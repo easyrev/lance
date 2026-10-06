@@ -3,6 +3,7 @@
 
 use std::collections::HashMap;
 use std::str;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::mpsc::{self, Receiver, SyncSender, TrySendError};
 use std::sync::{Arc, Mutex};
 
@@ -16,6 +17,9 @@ use arrow_schema::{DataType, Schema as ArrowSchema};
 use async_trait::async_trait;
 use blob::LanceBlobFile;
 use chrono::{Duration, TimeDelta, Utc};
+use datafusion::catalog::{Session as DataFusionSession, TableProvider};
+use datafusion::logical_expr::{Expr, TableType};
+use datafusion::physical_plan::ExecutionPlan;
 use futures::{StreamExt, TryFutureExt};
 use lance_index::scalar::minhash_lsh::MinHashQuery;
 use lance_index::vector::bq::RQBuildParams;
@@ -308,6 +312,36 @@ fn convert_reader(reader: &Bound<PyAny>) -> PyResult<Box<dyn RecordBatchReader +
     }
 }
 
+// Provisional instrumentation for validating native dataset replay on conflict.
+// Holding the source Arc keeps every scan on the same dataset snapshot.
+#[derive(Debug)]
+struct PrototypeCountingDatasetProvider {
+    source: Arc<LanceDataset>,
+    scans: Arc<AtomicUsize>,
+}
+
+#[async_trait]
+impl TableProvider for PrototypeCountingDatasetProvider {
+    fn schema(&self) -> Arc<ArrowSchema> {
+        TableProvider::schema(self.source.as_ref())
+    }
+
+    fn table_type(&self) -> TableType {
+        TableProvider::table_type(self.source.as_ref())
+    }
+
+    async fn scan(
+        &self,
+        state: &dyn DataFusionSession,
+        projection: Option<&Vec<usize>>,
+        filters: &[Expr],
+        limit: Option<usize>,
+    ) -> datafusion::common::Result<Arc<dyn ExecutionPlan>> {
+        self.scans.fetch_add(1, Ordering::Relaxed);
+        TableProvider::scan(self.source.as_ref(), state, projection, filters, limit).await
+    }
+}
+
 #[pyclass(name = "_MergeInsertBuilder", module = "_lib", subclass)]
 pub struct MergeInsertBuilder {
     builder: LanceMergeInsertBuilder,
@@ -541,6 +575,31 @@ impl MergeInsertBuilder {
         Ok(Self::build_stats(&stats, py)?.into())
     }
 
+    // Private design-validation hook, not a proposed Python source API.
+    fn _execute_dataset_prototype(&mut self, source: &Bound<'_, Dataset>) -> PyResult<Py<PyAny>> {
+        let py = source.py();
+        let scans = Arc::new(AtomicUsize::new(0));
+        let provider = Arc::new(PrototypeCountingDatasetProvider {
+            source: source.borrow().ds.clone(),
+            scans: scans.clone(),
+        });
+        let job = self
+            .builder
+            .try_build()
+            .map_err(|err| PyValueError::new_err(err.to_string()))?;
+
+        let (new_dataset, stats) = rt()
+            .spawn(Some(py), job.execute_provider(provider))?
+            .map_err(|err: lance::Error| PyIOError::new_err(err.to_string()))?;
+
+        self.dataset.bind(py).borrow_mut().ds = new_dataset;
+        let stats = Self::build_stats(&stats, py)?;
+        if std::env::var_os("LANCE_PROTOTYPE_DIAGNOSTICS").is_some() {
+            stats.set_item("_prototype_source_scans", scans.load(Ordering::Relaxed))?;
+        }
+        Ok(stats.into())
+    }
+
     /// [`Self::execute_batches`] without committing; returns the transaction.
     pub fn execute_uncommitted_batches<'a>(
         &mut self,
@@ -684,6 +743,10 @@ impl MergeInsertBuilder {
         dict.set_item("num_inserted_rows", stats.num_inserted_rows)?;
         dict.set_item("num_updated_rows", stats.num_updated_rows)?;
         dict.set_item("num_deleted_rows", stats.num_deleted_rows)?;
+        // Provisional evidence that validation exercised a conflict retry.
+        if std::env::var_os("LANCE_PROTOTYPE_DIAGNOSTICS").is_some() {
+            dict.set_item("_prototype_num_attempts", stats.num_attempts)?;
+        }
         Ok(dict)
     }
 }

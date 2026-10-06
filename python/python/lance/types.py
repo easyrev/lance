@@ -3,6 +3,9 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from enum import Enum
+from functools import singledispatch
 from typing import TYPE_CHECKING, Iterable, Optional, Union
 
 import pyarrow as pa
@@ -28,6 +31,50 @@ if TYPE_CHECKING:
         Iterable[RecordBatch],
         pa.RecordBatchReader,
     ]
+
+
+class _PrototypeSourceStrategy(Enum):
+    MATERIALIZED = "materialized"
+    ONE_SHOT = "one_shot"
+    RESCANNABLE = "rescannable"
+
+
+@dataclass
+class _PrototypeWriteSource:
+    strategy: _PrototypeSourceStrategy
+    source: object
+
+
+@singledispatch
+def _prototype_write_source(
+    data_obj: ReaderLike, schema: Optional[pa.Schema] = None
+) -> _PrototypeWriteSource:
+    # Prototype coverage boundary: retain existing coercion and classification
+    # for unregistered types; a complete registry migration is deferred.
+    reader = _coerce_reader(data_obj, schema)
+    strategy = (
+        _PrototypeSourceStrategy.MATERIALIZED
+        if _is_materialized(data_obj)
+        else _PrototypeSourceStrategy.ONE_SHOT
+    )
+    return _PrototypeWriteSource(strategy, reader)
+
+
+@_prototype_write_source.register(pa.Table)
+@_prototype_write_source.register(pa.RecordBatch)
+def _prototype_materialized_source(
+    data_obj, schema: Optional[pa.Schema] = None
+) -> _PrototypeWriteSource:
+    return _PrototypeWriteSource(
+        _PrototypeSourceStrategy.MATERIALIZED, _coerce_reader(data_obj, schema)
+    )
+
+
+@_prototype_write_source.register(pa.RecordBatchReader)
+def _prototype_one_shot_source(
+    data_obj: pa.RecordBatchReader, schema: Optional[pa.Schema] = None
+) -> _PrototypeWriteSource:
+    return _PrototypeWriteSource(_PrototypeSourceStrategy.ONE_SHOT, data_obj)
 
 
 def _casting_recordbatch_iter(

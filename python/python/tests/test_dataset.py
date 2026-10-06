@@ -2840,6 +2840,141 @@ def test_merge_insert_input_kinds(tmp_path: Path, materialized: bool):
     }
 
 
+@pytest.mark.parametrize("source_kind", ["materialized", "one_shot", "rescannable"])
+@pytest.mark.parametrize("conflict_retries", [0, 1])
+def test_merge_insert_prototype_retry(
+    tmp_path: Path, monkeypatch, source_kind, conflict_retries
+):
+    """A stale target forces a real semantic conflict, without racing threads."""
+    monkeypatch.setenv("LANCE_PROTOTYPE_DIAGNOSTICS", "1")
+    if source_kind != "one_shot" or conflict_retries == 0:
+        monkeypatch.setenv("LANCE_PROTOTYPE_FORBID_REPLAY_SPILL", "1")
+    else:
+        monkeypatch.delenv("LANCE_PROTOTYPE_FORBID_REPLAY_SPILL", raising=False)
+
+    schema = pa.schema(
+        [
+            pa.field(
+                "id",
+                pa.int32(),
+                nullable=False,
+                metadata={b"lance-schema:unenforced-primary-key": b"true"},
+            ),
+            pa.field("value", pa.int32(), nullable=False),
+        ]
+    )
+    target_uri = tmp_path / "target"
+    target = lance.write_dataset(
+        pa.table({"id": [0, 1, 2, 3], "value": [0, 0, 0, 0]}, schema=schema),
+        target_uri,
+        max_rows_per_file=2,
+    )
+    assert len(target.get_fragments()) == 2
+    builder = (
+        target.merge_insert("id")
+        .when_matched_update_all()
+        .when_not_matched_insert_all()
+        .conflict_retries(conflict_retries)
+    )
+    new = pa.table({"id": [1, 100, 101], "value": [10, 1000, 1010]}, schema=schema)
+    yielded_batches = []
+    if source_kind == "materialized":
+        source = new
+    elif source_kind == "one_shot":
+
+        def batches():
+            for batch in new.to_batches(max_chunksize=2):
+                yielded_batches.append(batch.num_rows)
+                yield batch
+
+        source = pa.RecordBatchReader.from_batches(schema, batches())
+    else:
+        source_uri = tmp_path / "source"
+        source = lance.write_dataset(new, source_uri, max_rows_per_file=2)
+        assert len(source.get_fragments()) == 2
+        # The source handle must retain v1 even though its URI now has a v2.
+        lance.write_dataset(
+            pa.table({"id": [999], "value": [9999]}, schema=schema),
+            source_uri,
+            mode="append",
+        )
+        assert source.version == 1
+        assert lance.dataset(source_uri).version == 2
+
+    # This append overlaps a source key. Recomputing against v2 must turn that
+    # key from an insert into an update, preserving a single row for key 100.
+    lance.write_dataset(
+        pa.table({"id": [100], "value": [999]}, schema=schema),
+        target_uri,
+        mode="append",
+    )
+    assert target.version == 1
+    if conflict_retries == 0:
+        with pytest.raises(OSError, match="Attempted 0 retries"):
+            builder.execute(source)
+        assert lance.dataset(target_uri).to_table().sort_by("id").to_pydict() == {
+            "id": [0, 1, 2, 3, 100],
+            "value": [0, 0, 0, 0, 999],
+        }
+    else:
+        stats = builder.execute(source)
+        assert stats["_prototype_num_attempts"] == 2
+        check_merge_stats(stats, (1, 2, 0))
+        assert target.version == 3
+        assert target.to_table().sort_by("id").to_pydict() == {
+            "id": [0, 1, 2, 3, 100, 101],
+            "value": [0, 10, 0, 0, 1000, 1010],
+        }
+        if source_kind == "rescannable":
+            assert stats["_prototype_source_scans"] == 2
+    if source_kind == "one_shot":
+        assert yielded_batches == [2, 1]
+
+
+def test_merge_insert_prototype_spill_tripwire(tmp_path: Path, monkeypatch):
+    """Positive control: the original reader route enters the guarded spill."""
+    monkeypatch.setenv("LANCE_PROTOTYPE_FORBID_REPLAY_SPILL", "1")
+    new = pa.table({"id": [1], "value": [10]})
+    target = lance.write_dataset(new, tmp_path / "target")
+    source = lance.write_dataset(new, tmp_path / "source")
+    with pytest.raises(OSError, match="prototype: replay spill path entered"):
+        target.merge_insert("id").when_matched_update_all().conflict_retries(1).execute(
+            source.scanner().to_reader()
+        )
+
+
+def test_merge_insert_prototype_scanner_counterexample():
+    """A Scanner type alone cannot promise repeatability."""
+    from lance.types import _prototype_write_source, _PrototypeSourceStrategy
+
+    table = pa.table({"id": [1, 2]})
+    scanner = pa_ds.Scanner.from_batches(iter(table.to_batches()), schema=table.schema)
+    source = _prototype_write_source(scanner)
+    assert source.strategy == _PrototypeSourceStrategy.ONE_SHOT
+    assert source.source.read_all() == table
+    with pytest.raises(pa.ArrowInvalid):
+        scanner.to_table()
+
+
+def test_merge_insert_prototype_preserves_scan_defaults(tmp_path: Path):
+    from lance.types import _prototype_write_source, _PrototypeSourceStrategy
+
+    table = pa.table({"id": [1, 2], "value": [10, 20]})
+    lance.write_dataset(table, tmp_path / "source")
+    source = lance.dataset(
+        tmp_path / "source", default_scan_options={"filter": "id = 1"}
+    )
+    assert _prototype_write_source(source).strategy == _PrototypeSourceStrategy.ONE_SHOT
+    target = lance.write_dataset(
+        pa.table({"id": [1, 2], "value": [0, 0]}), tmp_path / "target"
+    )
+    target.merge_insert("id").when_matched_update_all().execute(source)
+    assert target.to_table().sort_by("id").to_pydict() == {
+        "id": [1, 2],
+        "value": [10, 0],
+    }
+
+
 def test_merge_insert_subcols(tmp_path: Path):
     initial_data = pa.table(
         {

@@ -118,6 +118,13 @@ pub async fn spilling_table_provider(
     mut source: SendableRecordBatchStream,
     memory_limit: usize,
 ) -> Result<Arc<dyn TableProvider>, DataFusionError> {
+    // Prototype-only tripwire: observes the buffering path even below its disk
+    // threshold. Remove this instrumentation after the #7895 design experiment.
+    if std::env::var_os("LANCE_PROTOTYPE_FORBID_REPLAY_SPILL").is_some() {
+        return Err(DataFusionError::Execution(
+            "prototype: replay spill path entered".to_string(),
+        ));
+    }
     let schema = source.schema();
     let tmp_dir = tokio::task::spawn_blocking(TempDir::try_new)
         .await

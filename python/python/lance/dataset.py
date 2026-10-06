@@ -78,7 +78,13 @@ from .lance import (
 from .lance import __version__ as __version__
 from .lance import _Session as Session
 from .query import DocumentGranularity, FullTextQuery, MinHashQuery
-from .types import _coerce_reader, _is_materialized
+from .types import (
+    _coerce_reader,
+    _is_materialized,
+    _prototype_write_source,
+    _PrototypeSourceStrategy,
+    _PrototypeWriteSource,
+)
 from .udf import BatchUDF, normalize_transform
 from .udf import BatchUDFCheckpoint as BatchUDFCheckpoint
 from .udf import batch_udf as batch_udf
@@ -394,15 +400,12 @@ class MergeInsertBuilder(_MergeInsertBuilder):
             The schema of the data.  This only needs to be supplied whenever the data
             source is some kind of generator.
         """
-        reader = _coerce_reader(data_obj, schema)
-
-        # Materialized sources are wrapped in an in-memory table so retries never
-        # spill and the source's statistics can drive the join; everything else is
-        # treated as a one-shot stream.
-        if _is_materialized(data_obj):
-            return super(MergeInsertBuilder, self).execute_batches(reader)
-
-        return super(MergeInsertBuilder, self).execute(reader)
+        source = _prototype_write_source(data_obj, schema)
+        if source.strategy is _PrototypeSourceStrategy.RESCANNABLE:
+            return super()._execute_dataset_prototype(source.source._ds)
+        if source.strategy is _PrototypeSourceStrategy.MATERIALIZED:
+            return super().execute_batches(source.source)
+        return super().execute(source.source)
 
     def execute_uncommitted(
         self, data_obj: ReaderLike, *, schema: Optional[pa.Schema] = None
@@ -5865,6 +5868,21 @@ class LanceDataset(pa.dataset.Dataset):
         entries are not included.
         """
         return self._ds.all_files()
+
+
+# Registration follows the class definition because types.py also participates
+# in dataset.py's import cycle. No public registration contract is proposed here.
+@_prototype_write_source.register(LanceDataset)
+def _prototype_lance_dataset_source(
+    data_obj: LanceDataset, schema: Optional[pa.Schema] = None
+) -> _PrototypeWriteSource:
+    # Subclasses and default scan options can change scanner semantics. The
+    # prototype only validates an unconfigured dataset's native snapshot.
+    if type(data_obj) is not LanceDataset or data_obj._default_scan_options is not None:
+        return _PrototypeWriteSource(
+            _PrototypeSourceStrategy.ONE_SHOT, _coerce_reader(data_obj, schema)
+        )
+    return _PrototypeWriteSource(_PrototypeSourceStrategy.RESCANNABLE, data_obj)
 
 
 class SqlQuery:
