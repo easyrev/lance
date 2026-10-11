@@ -1,0 +1,38 @@
+ruff format --check --diff python
+173 files already formatted
+ruff check python
+All checks passed!
+pyright
+/workspace/lance-7895/python/python/lance/arrow.py
+  /workspace/lance-7895/python/python/lance/arrow.py:11:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+  /workspace/lance-7895/python/python/lance/arrow.py:12:8 - warning: Stub file not found for "pyarrow.compute" (reportMissingTypeStubs)
+  /workspace/lance-7895/python/python/lance/arrow.py:265:14 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+/workspace/lance-7895/python/python/lance/dependencies.py
+  /workspace/lance-7895/python/python/lance/dependencies.py:161:12 - warning: Stub file not found for "datasets" (reportMissingTypeStubs)
+  /workspace/lance-7895/python/python/lance/dependencies.py:163:12 - warning: Stub file not found for "pandas" (reportMissingTypeStubs)
+/workspace/lance-7895/python/python/lance/file.py
+  /workspace/lance-7895/python/python/lance/file.py:8:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+/workspace/lance-7895/python/python/lance/schema.py
+  /workspace/lance-7895/python/python/lance/schema.py:7:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+/workspace/lance-7895/python/python/lance/util.py
+  /workspace/lance-7895/python/python/lance/util.py:19:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+/workspace/lance-7895/python/python/tests/test_arrow.py
+  /workspace/lance-7895/python/python/tests/test_arrow.py:12:8 - warning: Stub file not found for "pandas" (reportMissingTypeStubs)
+  /workspace/lance-7895/python/python/tests/test_arrow.py:13:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+/workspace/lance-7895/python/python/tests/test_fragment_typing.py
+  /workspace/lance-7895/python/python/tests/test_fragment_typing.py:22:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+/workspace/lance-7895/python/python/tests/test_schema.py
+  /workspace/lance-7895/python/python/tests/test_schema.py:9:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+  /workspace/lance-7895/python/python/tests/test_schema.py:16:10 - warning: Import "lance.lance.schema" could not be resolved from source (reportMissingModuleSource)
+/workspace/lance-7895/python/python/tests/test_udf.py
+  /workspace/lance-7895/python/python/tests/test_udf.py:24:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+0 errors, 14 warnings, 0 informations
+cargo fmt -- --check
+cargo clippy -- -D warnings
+    Blocking waiting for file lock on build directory
+warning: lance-linalg@14.0.0-beta.12: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.12: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@14.0.0-beta.12: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.12: fp16kernels feature is not enabled, skipping build of bf16 kernels
+    Checking pylance v14.0.0-beta.12 (/workspace/lance-7895/python)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2m 59s

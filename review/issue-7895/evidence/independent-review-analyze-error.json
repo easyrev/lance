@@ -1,0 +1,39 @@
+{
+  "extension": "/workspace/lance-7895/python/python/lance/lance.abi3.so",
+  "extension_sha256": "63e42bdc2884c488248892631abeb03bfa2b7c525bd1c1e2a53310576800e6dd",
+  "results": [
+    {
+      "failure": "factory",
+      "operation": "execute",
+      "error_type": "OSError",
+      "error": "Failed to open replayable merge source\ncaused by\nExternal error: ValueError: independent factory failure"
+    },
+    {
+      "failure": "factory",
+      "operation": "analyze_plan",
+      "returned": "    MergeInsert: elapsed=3.539372ms, on=[id], when_matched=UpdateAll, when_not_matched=DoNothing, when_not_matched_by_source=Keep, metrics=[output_rows=0, elapsed_compute=1ns, output_bytes=0.0 B, output_batches=0, bytes_written=0, num_deleted_rows=0, num_files_written=0, num_inserted_rows=0, num_skipped_duplicates=0, num_updated_rows=0]"
+    },
+    {
+      "failure": "schema",
+      "operation": "execute",
+      "error_type": "OSError",
+      "error": "Failed to open replayable merge source\ncaused by\nExternal error: ValueError: Write source reader schema does not match the declared schema.\nExpected:\nid: int64\nvalue: int64\nGot:\nid: int64\nvalue: int64\n-- schema metadata --\nunexpected: 'value'"
+    },
+    {
+      "failure": "schema",
+      "operation": "analyze_plan",
+      "returned": "    MergeInsert: elapsed=3.265899ms, on=[id], when_matched=UpdateAll, when_not_matched=DoNothing, when_not_matched_by_source=Keep, metrics=[output_rows=0, elapsed_compute=1ns, output_bytes=0.0 B, output_batches=0, bytes_written=0, num_deleted_rows=0, num_files_written=0, num_inserted_rows=0, num_skipped_duplicates=0, num_updated_rows=0]"
+    },
+    {
+      "failure": "batch",
+      "operation": "execute",
+      "error_type": "OSError",
+      "error": "Arrow error: C Data interface error: Invalid: independent batch failure. Detail: Python exception: Traceback (most recent call last):\n  File \"/workspace/issue-7895-evidence/independent-review-analyze-error.py\", line 24, in batches\n    raise ValueError(\"independent batch failure\")\nValueError: independent batch failure\n"
+    },
+    {
+      "failure": "batch",
+      "operation": "analyze_plan",
+      "returned": "    MergeInsert: elapsed=4.610543ms, on=[id], when_matched=UpdateAll, when_not_matched=DoNothing, when_not_matched_by_source=Keep, metrics=[output_rows=0, elapsed_compute=1ns, output_bytes=0.0 B, output_batches=0, bytes_written=0, num_deleted_rows=0, num_files_written=0, num_inserted_rows=0, num_skipped_duplicates=0, num_updated_rows=0]"
+    }
+  ]
+}

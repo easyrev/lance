@@ -1,0 +1,12 @@
+mkdir	/workspace/issue-7895-evidence/probes/calibration-oneshot-clean/tmp/.tmpRfx64K	0
+frame	/workspace/issue-7895-evidence/replay_probe.so	0x15a9	mkdir
+frame	/workspace/issue-7895-evidence/baseline-python/lance/lance.abi3.so	0xcb25fac	?
+frame	/workspace/issue-7895-evidence/baseline-python/lance/lance.abi3.so	0xcb79a89	?
+frame	/workspace/issue-7895-evidence/baseline-python/lance/lance.abi3.so	0xcb79718	?
+frame	/workspace/issue-7895-evidence/baseline-python/lance/lance.abi3.so	0x8b5a5c3	?
+frame	/workspace/issue-7895-evidence/baseline-python/lance/lance.abi3.so	0xcb87b84	?
+frame	/workspace/issue-7895-evidence/baseline-python/lance/lance.abi3.so	0xcb8cdab	?
+frame	/workspace/issue-7895-evidence/baseline-python/lance/lance.abi3.so	0xcb30ea7	?
+frame	/lib/x86_64-linux-gnu/libc.so.6	0x92b7b	?
+frame	/lib/x86_64-linux-gnu/libc.so.6	0x1107f8	?
+unlink	/workspace/issue-7895-evidence/probes/calibration-oneshot-clean/tmp/.tmpRfx64K	4096

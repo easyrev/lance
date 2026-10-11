@@ -1,0 +1,38 @@
+main 139990686013248 MainThread
+operation update
+factory 139989763598016 Dummy-1
+error_str_start 139990686013248 MainThread
+nested_count 1
+error_str_end 139990686013248 MainThread
+caught 139990686013248 MainThread
+OSError Failed to open replayable merge source
+caused by
+External error: SourceError: custom source failure
+operation insert
+factory 139989763598016 Dummy-1
+error_str_start 139990686013248 MainThread
+nested_count 1
+error_str_end 139990686013248 MainThread
+caught 139990686013248 MainThread
+OSError Failed to open replayable merge source
+caused by
+External error: SourceError: custom source failure
+operation upsert
+factory 139989763598016 Dummy-1
+error_str_start 139990686013248 MainThread
+nested_count 1
+error_str_end 139990686013248 MainThread
+caught 139990686013248 MainThread
+OSError Failed to open replayable merge source
+caused by
+External error: SourceError: custom source failure
+operation analyze
+factory 139989763598016 Dummy-1
+analyze_result     MergeInsert: elapsed=4.989075ms, on=[id], when_matched=UpdateAll, when_not_matched=DoNothing, when_not_matched_by_source=Keep, metrics=[output_rows=0, elapsed_compute=1ns, output_bytes=0.0 B, output_batches=0, bytes_written=0, num_deleted_rows=0, num_files_written=0, num_inserted_rows=0, num_skipped_duplicates=0, num_updated_rows=0]
+      CoalescePartitionsExec, elapsed=4.980262ms, metrics=[output_rows=0, elapsed_compute=19.79µs, output_bytes=0.0 B, output_batches=0]
+        ProjectionExec: elapsed=3.875591ms, expr=[_rowid@0 as _rowid, _rowaddr@1 as _rowaddr, id@2 as id, value@3 as value, __merge_source_sentinel@4 as __merge_source_sentinel, CASE WHEN _rowaddr@1 IS NOT NULL THEN 1 ELSE 0 END as __action], metrics=[output_rows=0, elapsed_compute=4ns, output_bytes=0.0 B, output_batches=0, expr_0_eval_time=4ns, expr_1_eval_time=4ns, expr_2_eval_time=4ns, expr_3_eval_time=4ns, expr_4_eval_time=4ns, expr_5_eval_time=4ns]
+          HashJoinExec: elapsed=3.873618ms, mode=CollectLeft, join_type=Inner, on=[(id@0, id@0)], projection=[_rowid@1, _rowaddr@2, id@3, value@4, __merge_source_sentinel@5], metrics=[output_rows=0, elapsed_compute=1.82ms, output_bytes=0.0 B, output_batches=0, array_map_created_count=1, build_input_batches=1, build_input_rows=1, input_batches=0, input_rows=0, build_mem_used=20, build_time=1.28ms, join_time=4ns, avg_fanout=N/A (0/0), probe_hit_rate=N/A (0/0)]
+            LanceRead: elapsed=2.091553ms, uri=tmp/tmp90kvxw_r/target/data, projection=[id], num_fragments=1, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--, metrics=[output_rows=1, elapsed_compute=1.37ms, output_bytes=0.0 B, output_batches=0, fragments_scanned=1, ranges_scanned=1, rows_scanned=1, bytes_read=0, iops=0, requests=0, task_wait_time=1.37ms]
+            RepartitionExec: elapsed=3.801139ms, partitioning=RoundRobinBatch(4), input_partitions=1, metrics=[output_rows=0, elapsed_compute=6.37µs, output_bytes=0.0 B, output_batches=0, spill_count=0, spilled_bytes=0.0 B, spilled_rows=0, fetch_time=501.24µs, repartition_time=1ns, send_time=4ns]
+              ProjectionExec: elapsed=3.510259ms, expr=[id@0 as id, value@1 as value, true as __merge_source_sentinel], metrics=[output_rows=0, elapsed_compute=1ns, output_bytes=0.0 B, output_batches=0, expr_0_eval_time=1ns, expr_1_eval_time=1ns, expr_2_eval_time=1ns]
+                StreamingTableExec: partition_sizes=1, projection=[id, value], metrics=[]

@@ -1,0 +1,52 @@
+{
+  "extension": "/workspace/lance-7895/python/python/lance/lance.abi3.so",
+  "extension_sha256": "b4b1c1da690158d29e53ee79e8a57138b934054d16961c8e6ec25f63db4280d4",
+  "pyarrow": "25.0.1",
+  "checks": [
+    {
+      "mode": "replayable",
+      "failure": "factory",
+      "error_type": "OSError"
+    },
+    {
+      "mode": "replayable",
+      "failure": "schema",
+      "error_type": "OSError"
+    },
+    {
+      "mode": "replayable",
+      "failure": "batch",
+      "error_type": "OSError"
+    },
+    {
+      "mode": "streaming",
+      "failure": "factory",
+      "error_type": "ValueError"
+    },
+    {
+      "mode": "streaming",
+      "failure": "schema",
+      "error_type": "ValueError"
+    },
+    {
+      "mode": "streaming",
+      "failure": "batch",
+      "error_type": "OSError"
+    },
+    {
+      "kind": "materialized",
+      "successful_report": true
+    },
+    {
+      "kind": "streaming",
+      "successful_report": true
+    },
+    {
+      "kind": "replayable",
+      "successful_report": true
+    },
+    {
+      "ordinary_scanner_analyze": true
+    }
+  ]
+}

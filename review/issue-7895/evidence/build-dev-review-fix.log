@@ -1,0 +1,21 @@
+uv run --frozen --no-sync maturin develop --uv
+🍹 Building a mixed python/rust project
+🐍 Found CPython 3.12 at /workspace/lance-7895/python/.venv/bin/python
+🔗 Found pyo3 bindings with abi3 support
+📡 Using build options rustc-args from pyproject.toml
+Checked 23 packages in 2ms
+Resolved 5 packages in 234ms
+Checked 5 packages in 0.40ms
+warning: lance-linalg@14.0.0-beta.12: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.12: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@14.0.0-beta.12: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.12: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance-datafusion v14.0.0-beta.12 (/workspace/lance-7895/rust/lance-datafusion)
+   Compiling lance-index v14.0.0-beta.12 (/workspace/lance-7895/rust/lance-index)
+   Compiling lance v14.0.0-beta.12 (/workspace/lance-7895/rust/lance)
+   Compiling lance-namespace-impls v14.0.0-beta.12 (/workspace/lance-7895/rust/lance-namespace-impls)
+   Compiling pylance v14.0.0-beta.12 (/workspace/lance-7895/python)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 5m 44s
+📦 Built wheel for abi3 Python ≥ 3.10 to /tmp/.tmpzlR1Xu/pylance-14.0.0b12-cp310-abi3-linux_x86_64.whl
+✏️ Setting installed package as editable
+🛠 Installed pylance-14.0.0b12

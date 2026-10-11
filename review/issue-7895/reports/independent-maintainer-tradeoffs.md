@@ -1,0 +1,9 @@
+> Historical report. Status statements describe the stage when this report was written. See the [review index](../README.md) for the published branch context. Only links were adapted below. The [original report](../evidence/independent-maintainer-tradeoffs.md) remains byte-identical.
+
+Recommend exposing `lance.types.coerce_source` and `WriteSource` as experimental Python APIs, with the documented schema, reader ownership, concurrency, and repeatability contract. External adapters already execute real conflict retries without Lance private objects. The remaining API choice is whether these names and experimental status fit the project's Python API policy. Declaring them stable now remains possible, but commits the project to the factory contract before broader integrations exercise it.
+
+Keep automatic replay eligibility conservative. Opaque Arrow scanners lack a public query that distinguishes repeatable scans from `Scanner.from_batches`. Explicit `WriteSource` adapters provide repeatable scanner support when the caller can guarantee identical values and order. Built-in Arrow file sources also require unchanged files throughout execution. Broader automatic scanner support needs a reliable capability contract.
+
+The shared analyze error fix is necessary for trustworthy diagnostics. Independent probes confirm both error propagation and successful reports across the three source modes.
+
+Matched optimized builds confirm that eligible sources avoid replay storage, including a 132 MiB spill file in the large fixture. This is the supported performance claim. Large clean merges had lower measured latency and process RSS, but small Lance inputs had higher latency medians, and large Lance retries used more CPU and peak RSS. Random retry backoff also limits wall-time comparisons. Keep these costs visible; the measurements do not establish uniform speed or memory gains, or cloud performance.

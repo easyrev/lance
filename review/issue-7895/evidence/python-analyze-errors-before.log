@@ -1,0 +1,164 @@
+...FFF.....F                                                             [100%]
+=================================== FAILURES ===================================
+__________ test_write_source_errors[replayable-analyze_plan-factory] ___________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-10/test_write_source_errors_repla3')
+failure = 'factory', operation = 'analyze_plan', mode = 'replayable'
+
+    @pytest.mark.parametrize("failure", ["factory", "metadata", "batch"])
+    @pytest.mark.parametrize("operation", ["execute", "analyze_plan"])
+    @pytest.mark.parametrize("mode", ["replayable", "streaming"])
+    def test_write_source_errors(tmp_path, failure, operation, mode):
+        from lance.types import WriteSource, coerce_source
+    
+        class ExternalSource:
+            pass
+    
+        data = pa.table({"id": [0, 1]}, metadata={"version": "1"})
+    
+        def reader():
+            if failure == "factory":
+                raise ValueError("external factory failure")
+            if failure == "metadata":
+                return data.replace_schema_metadata({"version": "2"}).to_reader()
+    
+            def batches():
+                yield data.to_batches()[0]
+                raise ValueError("external batch failure")
+    
+            return pa.RecordBatchReader.from_batches(data.schema, batches())
+    
+        @coerce_source.register(ExternalSource)
+        def adapt(source, schema=None):
+            return WriteSource(data.schema, reader, mode=mode)
+    
+        target = lance.write_dataset(data, tmp_path)
+        match = "schema" if failure == "metadata" else f"external {failure} failure"
+>       with pytest.raises((OSError, ValueError), match=match):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE any of (<class 'OSError'>, <class 'ValueError'>)
+
+python/tests/test_dataset.py:4234: Failed
+__________ test_write_source_errors[replayable-analyze_plan-metadata] __________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-10/test_write_source_errors_repla4')
+failure = 'metadata', operation = 'analyze_plan', mode = 'replayable'
+
+    @pytest.mark.parametrize("failure", ["factory", "metadata", "batch"])
+    @pytest.mark.parametrize("operation", ["execute", "analyze_plan"])
+    @pytest.mark.parametrize("mode", ["replayable", "streaming"])
+    def test_write_source_errors(tmp_path, failure, operation, mode):
+        from lance.types import WriteSource, coerce_source
+    
+        class ExternalSource:
+            pass
+    
+        data = pa.table({"id": [0, 1]}, metadata={"version": "1"})
+    
+        def reader():
+            if failure == "factory":
+                raise ValueError("external factory failure")
+            if failure == "metadata":
+                return data.replace_schema_metadata({"version": "2"}).to_reader()
+    
+            def batches():
+                yield data.to_batches()[0]
+                raise ValueError("external batch failure")
+    
+            return pa.RecordBatchReader.from_batches(data.schema, batches())
+    
+        @coerce_source.register(ExternalSource)
+        def adapt(source, schema=None):
+            return WriteSource(data.schema, reader, mode=mode)
+    
+        target = lance.write_dataset(data, tmp_path)
+        match = "schema" if failure == "metadata" else f"external {failure} failure"
+>       with pytest.raises((OSError, ValueError), match=match):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE any of (<class 'OSError'>, <class 'ValueError'>)
+
+python/tests/test_dataset.py:4234: Failed
+___________ test_write_source_errors[replayable-analyze_plan-batch] ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-10/test_write_source_errors_repla5')
+failure = 'batch', operation = 'analyze_plan', mode = 'replayable'
+
+    @pytest.mark.parametrize("failure", ["factory", "metadata", "batch"])
+    @pytest.mark.parametrize("operation", ["execute", "analyze_plan"])
+    @pytest.mark.parametrize("mode", ["replayable", "streaming"])
+    def test_write_source_errors(tmp_path, failure, operation, mode):
+        from lance.types import WriteSource, coerce_source
+    
+        class ExternalSource:
+            pass
+    
+        data = pa.table({"id": [0, 1]}, metadata={"version": "1"})
+    
+        def reader():
+            if failure == "factory":
+                raise ValueError("external factory failure")
+            if failure == "metadata":
+                return data.replace_schema_metadata({"version": "2"}).to_reader()
+    
+            def batches():
+                yield data.to_batches()[0]
+                raise ValueError("external batch failure")
+    
+            return pa.RecordBatchReader.from_batches(data.schema, batches())
+    
+        @coerce_source.register(ExternalSource)
+        def adapt(source, schema=None):
+            return WriteSource(data.schema, reader, mode=mode)
+    
+        target = lance.write_dataset(data, tmp_path)
+        match = "schema" if failure == "metadata" else f"external {failure} failure"
+>       with pytest.raises((OSError, ValueError), match=match):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE any of (<class 'OSError'>, <class 'ValueError'>)
+
+python/tests/test_dataset.py:4234: Failed
+____________ test_write_source_errors[streaming-analyze_plan-batch] ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-10/test_write_source_errors_strea5')
+failure = 'batch', operation = 'analyze_plan', mode = 'streaming'
+
+    @pytest.mark.parametrize("failure", ["factory", "metadata", "batch"])
+    @pytest.mark.parametrize("operation", ["execute", "analyze_plan"])
+    @pytest.mark.parametrize("mode", ["replayable", "streaming"])
+    def test_write_source_errors(tmp_path, failure, operation, mode):
+        from lance.types import WriteSource, coerce_source
+    
+        class ExternalSource:
+            pass
+    
+        data = pa.table({"id": [0, 1]}, metadata={"version": "1"})
+    
+        def reader():
+            if failure == "factory":
+                raise ValueError("external factory failure")
+            if failure == "metadata":
+                return data.replace_schema_metadata({"version": "2"}).to_reader()
+    
+            def batches():
+                yield data.to_batches()[0]
+                raise ValueError("external batch failure")
+    
+            return pa.RecordBatchReader.from_batches(data.schema, batches())
+    
+        @coerce_source.register(ExternalSource)
+        def adapt(source, schema=None):
+            return WriteSource(data.schema, reader, mode=mode)
+    
+        target = lance.write_dataset(data, tmp_path)
+        match = "schema" if failure == "metadata" else f"external {failure} failure"
+>       with pytest.raises((OSError, ValueError), match=match):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE any of (<class 'OSError'>, <class 'ValueError'>)
+
+python/tests/test_dataset.py:4234: Failed
+=========================== short test summary info ============================
+FAILED python/tests/test_dataset.py::test_write_source_errors[replayable-analyze_plan-factory]
+FAILED python/tests/test_dataset.py::test_write_source_errors[replayable-analyze_plan-metadata]
+FAILED python/tests/test_dataset.py::test_write_source_errors[replayable-analyze_plan-batch]
+FAILED python/tests/test_dataset.py::test_write_source_errors[streaming-analyze_plan-batch]
+4 failed, 8 passed, 331 deselected in 2.01s

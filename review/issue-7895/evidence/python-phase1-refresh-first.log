@@ -1,0 +1,733 @@
+FFFFFFFFF                                                                [100%]
+=================================== FAILURES ===================================
+_________________ test_merge_insert_source_retry[append-lance] _________________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-11/test_merge_insert_source_retry0')
+source_kind = 'lance', conflict_kind = 'append'
+
+    @pytest.mark.parametrize(
+        "source_kind",
+        [
+            "lance",
+            "lance_scanner",
+            "arrow",
+            "arrow_memory",
+            "arrow_union",
+            "arrow_scanner",
+            "arrow_scanner_factory",
+            "batches",
+            "table",
+        ],
+    )
+    @pytest.mark.parametrize("conflict_kind", ["update", "append"])
+    def test_merge_insert_source_retry(tmp_path, source_kind, conflict_kind):
+        """Force a conflicting commit after the source was read, then verify replay."""
+        from lance.types import WriteSource, coerce_source
+    
+        data = pa.table({"id": [0, 1, 2, 3], "value": [10, 11, 12, 13]})
+        target_uri = tmp_path / "target"
+        lance.write_dataset(pa.table({"id": [0], "value": [-1]}), target_uri)
+        source_ds = lance.write_dataset(data, tmp_path / "source", max_rows_per_file=2)
+        if source_kind == "lance":
+            source = source_ds
+        elif source_kind == "lance_scanner":
+            source = source_ds.scanner(batch_size=1)
+        elif source_kind == "arrow_memory":
+            source = pa_ds.dataset(data)
+        elif source_kind == "arrow_union":
+            source = pa_ds.dataset(
+                [pa_ds.dataset(data.slice(0, 2)), pa_ds.dataset(data.slice(2))]
+            )
+        elif source_kind in ("arrow", "arrow_scanner", "arrow_scanner_factory"):
+            pq.write_table(data.slice(0, 2), tmp_path / "part0.parquet")
+            pq.write_table(data.slice(2), tmp_path / "part1.parquet")
+            source = pa_ds.dataset([tmp_path / "part0.parquet", tmp_path / "part1.parquet"])
+            if source_kind == "arrow_scanner":
+                source = source.scanner(batch_size=1)
+            elif source_kind == "arrow_scanner_factory":
+                scanner = source.scanner(
+                    columns=["value", "id"], filter=pc.field("id") >= 0, batch_size=1
+                )
+                source = WriteSource(scanner.projected_schema, scanner.to_reader)
+        elif source_kind == "batches":
+            source = pa_ds.Scanner.from_batches(iter(data.to_batches()), schema=data.schema)
+        else:
+            source = data
+    
+        # Coercion must not consume one-shot scanners.
+        if source_kind not in ("arrow_scanner", "batches"):
+            expected_mode = "materialized" if source_kind == "table" else "replayable"
+            assert coerce_source(source).mode == expected_mode
+    
+        commits = []
+    
+        def commit_lock(version):
+            return _source_retry_commit_lock(target_uri, commits, version, conflict_kind)
+    
+        target = lance.dataset(target_uri, commit_lock=commit_lock)
+        stats = (
+            target.merge_insert("id")
+            .when_matched_update_all()
+            .when_not_matched_insert_all()
+            .conflict_retries(2)
+            .execute(source)
+        )
+        assert len(commits) == 2
+        assert target.version == 3
+>       assert target.to_table().sort_by("id") == data
+E       assert pyarrow.Table...,-2,11,12,13]] == pyarrow.Table...[10,11,12,13]]
+E         
+E         Use -v to get more diff
+
+python/tests/test_dataset.py:3929: AssertionError
+_____________ test_merge_insert_source_retry[append-lance_scanner] _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-11/test_merge_insert_source_retry1')
+source_kind = 'lance_scanner', conflict_kind = 'append'
+
+    @pytest.mark.parametrize(
+        "source_kind",
+        [
+            "lance",
+            "lance_scanner",
+            "arrow",
+            "arrow_memory",
+            "arrow_union",
+            "arrow_scanner",
+            "arrow_scanner_factory",
+            "batches",
+            "table",
+        ],
+    )
+    @pytest.mark.parametrize("conflict_kind", ["update", "append"])
+    def test_merge_insert_source_retry(tmp_path, source_kind, conflict_kind):
+        """Force a conflicting commit after the source was read, then verify replay."""
+        from lance.types import WriteSource, coerce_source
+    
+        data = pa.table({"id": [0, 1, 2, 3], "value": [10, 11, 12, 13]})
+        target_uri = tmp_path / "target"
+        lance.write_dataset(pa.table({"id": [0], "value": [-1]}), target_uri)
+        source_ds = lance.write_dataset(data, tmp_path / "source", max_rows_per_file=2)
+        if source_kind == "lance":
+            source = source_ds
+        elif source_kind == "lance_scanner":
+            source = source_ds.scanner(batch_size=1)
+        elif source_kind == "arrow_memory":
+            source = pa_ds.dataset(data)
+        elif source_kind == "arrow_union":
+            source = pa_ds.dataset(
+                [pa_ds.dataset(data.slice(0, 2)), pa_ds.dataset(data.slice(2))]
+            )
+        elif source_kind in ("arrow", "arrow_scanner", "arrow_scanner_factory"):
+            pq.write_table(data.slice(0, 2), tmp_path / "part0.parquet")
+            pq.write_table(data.slice(2), tmp_path / "part1.parquet")
+            source = pa_ds.dataset([tmp_path / "part0.parquet", tmp_path / "part1.parquet"])
+            if source_kind == "arrow_scanner":
+                source = source.scanner(batch_size=1)
+            elif source_kind == "arrow_scanner_factory":
+                scanner = source.scanner(
+                    columns=["value", "id"], filter=pc.field("id") >= 0, batch_size=1
+                )
+                source = WriteSource(scanner.projected_schema, scanner.to_reader)
+        elif source_kind == "batches":
+            source = pa_ds.Scanner.from_batches(iter(data.to_batches()), schema=data.schema)
+        else:
+            source = data
+    
+        # Coercion must not consume one-shot scanners.
+        if source_kind not in ("arrow_scanner", "batches"):
+            expected_mode = "materialized" if source_kind == "table" else "replayable"
+            assert coerce_source(source).mode == expected_mode
+    
+        commits = []
+    
+        def commit_lock(version):
+            return _source_retry_commit_lock(target_uri, commits, version, conflict_kind)
+    
+        target = lance.dataset(target_uri, commit_lock=commit_lock)
+        stats = (
+            target.merge_insert("id")
+            .when_matched_update_all()
+            .when_not_matched_insert_all()
+            .conflict_retries(2)
+            .execute(source)
+        )
+        assert len(commits) == 2
+        assert target.version == 3
+>       assert target.to_table().sort_by("id") == data
+E       assert pyarrow.Table...,-2,11,12,13]] == pyarrow.Table...[10,11,12,13]]
+E         
+E         Use -v to get more diff
+
+python/tests/test_dataset.py:3929: AssertionError
+_________________ test_merge_insert_source_retry[append-arrow] _________________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-11/test_merge_insert_source_retry2')
+source_kind = 'arrow', conflict_kind = 'append'
+
+    @pytest.mark.parametrize(
+        "source_kind",
+        [
+            "lance",
+            "lance_scanner",
+            "arrow",
+            "arrow_memory",
+            "arrow_union",
+            "arrow_scanner",
+            "arrow_scanner_factory",
+            "batches",
+            "table",
+        ],
+    )
+    @pytest.mark.parametrize("conflict_kind", ["update", "append"])
+    def test_merge_insert_source_retry(tmp_path, source_kind, conflict_kind):
+        """Force a conflicting commit after the source was read, then verify replay."""
+        from lance.types import WriteSource, coerce_source
+    
+        data = pa.table({"id": [0, 1, 2, 3], "value": [10, 11, 12, 13]})
+        target_uri = tmp_path / "target"
+        lance.write_dataset(pa.table({"id": [0], "value": [-1]}), target_uri)
+        source_ds = lance.write_dataset(data, tmp_path / "source", max_rows_per_file=2)
+        if source_kind == "lance":
+            source = source_ds
+        elif source_kind == "lance_scanner":
+            source = source_ds.scanner(batch_size=1)
+        elif source_kind == "arrow_memory":
+            source = pa_ds.dataset(data)
+        elif source_kind == "arrow_union":
+            source = pa_ds.dataset(
+                [pa_ds.dataset(data.slice(0, 2)), pa_ds.dataset(data.slice(2))]
+            )
+        elif source_kind in ("arrow", "arrow_scanner", "arrow_scanner_factory"):
+            pq.write_table(data.slice(0, 2), tmp_path / "part0.parquet")
+            pq.write_table(data.slice(2), tmp_path / "part1.parquet")
+            source = pa_ds.dataset([tmp_path / "part0.parquet", tmp_path / "part1.parquet"])
+            if source_kind == "arrow_scanner":
+                source = source.scanner(batch_size=1)
+            elif source_kind == "arrow_scanner_factory":
+                scanner = source.scanner(
+                    columns=["value", "id"], filter=pc.field("id") >= 0, batch_size=1
+                )
+                source = WriteSource(scanner.projected_schema, scanner.to_reader)
+        elif source_kind == "batches":
+            source = pa_ds.Scanner.from_batches(iter(data.to_batches()), schema=data.schema)
+        else:
+            source = data
+    
+        # Coercion must not consume one-shot scanners.
+        if source_kind not in ("arrow_scanner", "batches"):
+            expected_mode = "materialized" if source_kind == "table" else "replayable"
+            assert coerce_source(source).mode == expected_mode
+    
+        commits = []
+    
+        def commit_lock(version):
+            return _source_retry_commit_lock(target_uri, commits, version, conflict_kind)
+    
+        target = lance.dataset(target_uri, commit_lock=commit_lock)
+        stats = (
+            target.merge_insert("id")
+            .when_matched_update_all()
+            .when_not_matched_insert_all()
+            .conflict_retries(2)
+            .execute(source)
+        )
+        assert len(commits) == 2
+        assert target.version == 3
+>       assert target.to_table().sort_by("id") == data
+E       assert pyarrow.Table...,-2,11,12,13]] == pyarrow.Table...[10,11,12,13]]
+E         
+E         Use -v to get more diff
+
+python/tests/test_dataset.py:3929: AssertionError
+_____________ test_merge_insert_source_retry[append-arrow_memory] ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-11/test_merge_insert_source_retry3')
+source_kind = 'arrow_memory', conflict_kind = 'append'
+
+    @pytest.mark.parametrize(
+        "source_kind",
+        [
+            "lance",
+            "lance_scanner",
+            "arrow",
+            "arrow_memory",
+            "arrow_union",
+            "arrow_scanner",
+            "arrow_scanner_factory",
+            "batches",
+            "table",
+        ],
+    )
+    @pytest.mark.parametrize("conflict_kind", ["update", "append"])
+    def test_merge_insert_source_retry(tmp_path, source_kind, conflict_kind):
+        """Force a conflicting commit after the source was read, then verify replay."""
+        from lance.types import WriteSource, coerce_source
+    
+        data = pa.table({"id": [0, 1, 2, 3], "value": [10, 11, 12, 13]})
+        target_uri = tmp_path / "target"
+        lance.write_dataset(pa.table({"id": [0], "value": [-1]}), target_uri)
+        source_ds = lance.write_dataset(data, tmp_path / "source", max_rows_per_file=2)
+        if source_kind == "lance":
+            source = source_ds
+        elif source_kind == "lance_scanner":
+            source = source_ds.scanner(batch_size=1)
+        elif source_kind == "arrow_memory":
+            source = pa_ds.dataset(data)
+        elif source_kind == "arrow_union":
+            source = pa_ds.dataset(
+                [pa_ds.dataset(data.slice(0, 2)), pa_ds.dataset(data.slice(2))]
+            )
+        elif source_kind in ("arrow", "arrow_scanner", "arrow_scanner_factory"):
+            pq.write_table(data.slice(0, 2), tmp_path / "part0.parquet")
+            pq.write_table(data.slice(2), tmp_path / "part1.parquet")
+            source = pa_ds.dataset([tmp_path / "part0.parquet", tmp_path / "part1.parquet"])
+            if source_kind == "arrow_scanner":
+                source = source.scanner(batch_size=1)
+            elif source_kind == "arrow_scanner_factory":
+                scanner = source.scanner(
+                    columns=["value", "id"], filter=pc.field("id") >= 0, batch_size=1
+                )
+                source = WriteSource(scanner.projected_schema, scanner.to_reader)
+        elif source_kind == "batches":
+            source = pa_ds.Scanner.from_batches(iter(data.to_batches()), schema=data.schema)
+        else:
+            source = data
+    
+        # Coercion must not consume one-shot scanners.
+        if source_kind not in ("arrow_scanner", "batches"):
+            expected_mode = "materialized" if source_kind == "table" else "replayable"
+            assert coerce_source(source).mode == expected_mode
+    
+        commits = []
+    
+        def commit_lock(version):
+            return _source_retry_commit_lock(target_uri, commits, version, conflict_kind)
+    
+        target = lance.dataset(target_uri, commit_lock=commit_lock)
+        stats = (
+            target.merge_insert("id")
+            .when_matched_update_all()
+            .when_not_matched_insert_all()
+            .conflict_retries(2)
+            .execute(source)
+        )
+        assert len(commits) == 2
+        assert target.version == 3
+>       assert target.to_table().sort_by("id") == data
+E       assert pyarrow.Table...,-2,11,12,13]] == pyarrow.Table...[10,11,12,13]]
+E         
+E         Use -v to get more diff
+
+python/tests/test_dataset.py:3929: AssertionError
+______________ test_merge_insert_source_retry[append-arrow_union] ______________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-11/test_merge_insert_source_retry4')
+source_kind = 'arrow_union', conflict_kind = 'append'
+
+    @pytest.mark.parametrize(
+        "source_kind",
+        [
+            "lance",
+            "lance_scanner",
+            "arrow",
+            "arrow_memory",
+            "arrow_union",
+            "arrow_scanner",
+            "arrow_scanner_factory",
+            "batches",
+            "table",
+        ],
+    )
+    @pytest.mark.parametrize("conflict_kind", ["update", "append"])
+    def test_merge_insert_source_retry(tmp_path, source_kind, conflict_kind):
+        """Force a conflicting commit after the source was read, then verify replay."""
+        from lance.types import WriteSource, coerce_source
+    
+        data = pa.table({"id": [0, 1, 2, 3], "value": [10, 11, 12, 13]})
+        target_uri = tmp_path / "target"
+        lance.write_dataset(pa.table({"id": [0], "value": [-1]}), target_uri)
+        source_ds = lance.write_dataset(data, tmp_path / "source", max_rows_per_file=2)
+        if source_kind == "lance":
+            source = source_ds
+        elif source_kind == "lance_scanner":
+            source = source_ds.scanner(batch_size=1)
+        elif source_kind == "arrow_memory":
+            source = pa_ds.dataset(data)
+        elif source_kind == "arrow_union":
+            source = pa_ds.dataset(
+                [pa_ds.dataset(data.slice(0, 2)), pa_ds.dataset(data.slice(2))]
+            )
+        elif source_kind in ("arrow", "arrow_scanner", "arrow_scanner_factory"):
+            pq.write_table(data.slice(0, 2), tmp_path / "part0.parquet")
+            pq.write_table(data.slice(2), tmp_path / "part1.parquet")
+            source = pa_ds.dataset([tmp_path / "part0.parquet", tmp_path / "part1.parquet"])
+            if source_kind == "arrow_scanner":
+                source = source.scanner(batch_size=1)
+            elif source_kind == "arrow_scanner_factory":
+                scanner = source.scanner(
+                    columns=["value", "id"], filter=pc.field("id") >= 0, batch_size=1
+                )
+                source = WriteSource(scanner.projected_schema, scanner.to_reader)
+        elif source_kind == "batches":
+            source = pa_ds.Scanner.from_batches(iter(data.to_batches()), schema=data.schema)
+        else:
+            source = data
+    
+        # Coercion must not consume one-shot scanners.
+        if source_kind not in ("arrow_scanner", "batches"):
+            expected_mode = "materialized" if source_kind == "table" else "replayable"
+            assert coerce_source(source).mode == expected_mode
+    
+        commits = []
+    
+        def commit_lock(version):
+            return _source_retry_commit_lock(target_uri, commits, version, conflict_kind)
+    
+        target = lance.dataset(target_uri, commit_lock=commit_lock)
+        stats = (
+            target.merge_insert("id")
+            .when_matched_update_all()
+            .when_not_matched_insert_all()
+            .conflict_retries(2)
+            .execute(source)
+        )
+        assert len(commits) == 2
+        assert target.version == 3
+>       assert target.to_table().sort_by("id") == data
+E       assert pyarrow.Table...,-2,11,12,13]] == pyarrow.Table...[10,11,12,13]]
+E         
+E         Use -v to get more diff
+
+python/tests/test_dataset.py:3929: AssertionError
+_____________ test_merge_insert_source_retry[append-arrow_scanner] _____________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-11/test_merge_insert_source_retry5')
+source_kind = 'arrow_scanner', conflict_kind = 'append'
+
+    @pytest.mark.parametrize(
+        "source_kind",
+        [
+            "lance",
+            "lance_scanner",
+            "arrow",
+            "arrow_memory",
+            "arrow_union",
+            "arrow_scanner",
+            "arrow_scanner_factory",
+            "batches",
+            "table",
+        ],
+    )
+    @pytest.mark.parametrize("conflict_kind", ["update", "append"])
+    def test_merge_insert_source_retry(tmp_path, source_kind, conflict_kind):
+        """Force a conflicting commit after the source was read, then verify replay."""
+        from lance.types import WriteSource, coerce_source
+    
+        data = pa.table({"id": [0, 1, 2, 3], "value": [10, 11, 12, 13]})
+        target_uri = tmp_path / "target"
+        lance.write_dataset(pa.table({"id": [0], "value": [-1]}), target_uri)
+        source_ds = lance.write_dataset(data, tmp_path / "source", max_rows_per_file=2)
+        if source_kind == "lance":
+            source = source_ds
+        elif source_kind == "lance_scanner":
+            source = source_ds.scanner(batch_size=1)
+        elif source_kind == "arrow_memory":
+            source = pa_ds.dataset(data)
+        elif source_kind == "arrow_union":
+            source = pa_ds.dataset(
+                [pa_ds.dataset(data.slice(0, 2)), pa_ds.dataset(data.slice(2))]
+            )
+        elif source_kind in ("arrow", "arrow_scanner", "arrow_scanner_factory"):
+            pq.write_table(data.slice(0, 2), tmp_path / "part0.parquet")
+            pq.write_table(data.slice(2), tmp_path / "part1.parquet")
+            source = pa_ds.dataset([tmp_path / "part0.parquet", tmp_path / "part1.parquet"])
+            if source_kind == "arrow_scanner":
+                source = source.scanner(batch_size=1)
+            elif source_kind == "arrow_scanner_factory":
+                scanner = source.scanner(
+                    columns=["value", "id"], filter=pc.field("id") >= 0, batch_size=1
+                )
+                source = WriteSource(scanner.projected_schema, scanner.to_reader)
+        elif source_kind == "batches":
+            source = pa_ds.Scanner.from_batches(iter(data.to_batches()), schema=data.schema)
+        else:
+            source = data
+    
+        # Coercion must not consume one-shot scanners.
+        if source_kind not in ("arrow_scanner", "batches"):
+            expected_mode = "materialized" if source_kind == "table" else "replayable"
+            assert coerce_source(source).mode == expected_mode
+    
+        commits = []
+    
+        def commit_lock(version):
+            return _source_retry_commit_lock(target_uri, commits, version, conflict_kind)
+    
+        target = lance.dataset(target_uri, commit_lock=commit_lock)
+        stats = (
+            target.merge_insert("id")
+            .when_matched_update_all()
+            .when_not_matched_insert_all()
+            .conflict_retries(2)
+            .execute(source)
+        )
+        assert len(commits) == 2
+        assert target.version == 3
+>       assert target.to_table().sort_by("id") == data
+E       assert pyarrow.Table...,-2,11,12,13]] == pyarrow.Table...[10,11,12,13]]
+E         
+E         Use -v to get more diff
+
+python/tests/test_dataset.py:3929: AssertionError
+_________ test_merge_insert_source_retry[append-arrow_scanner_factory] _________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-11/test_merge_insert_source_retry6')
+source_kind = 'arrow_scanner_factory', conflict_kind = 'append'
+
+    @pytest.mark.parametrize(
+        "source_kind",
+        [
+            "lance",
+            "lance_scanner",
+            "arrow",
+            "arrow_memory",
+            "arrow_union",
+            "arrow_scanner",
+            "arrow_scanner_factory",
+            "batches",
+            "table",
+        ],
+    )
+    @pytest.mark.parametrize("conflict_kind", ["update", "append"])
+    def test_merge_insert_source_retry(tmp_path, source_kind, conflict_kind):
+        """Force a conflicting commit after the source was read, then verify replay."""
+        from lance.types import WriteSource, coerce_source
+    
+        data = pa.table({"id": [0, 1, 2, 3], "value": [10, 11, 12, 13]})
+        target_uri = tmp_path / "target"
+        lance.write_dataset(pa.table({"id": [0], "value": [-1]}), target_uri)
+        source_ds = lance.write_dataset(data, tmp_path / "source", max_rows_per_file=2)
+        if source_kind == "lance":
+            source = source_ds
+        elif source_kind == "lance_scanner":
+            source = source_ds.scanner(batch_size=1)
+        elif source_kind == "arrow_memory":
+            source = pa_ds.dataset(data)
+        elif source_kind == "arrow_union":
+            source = pa_ds.dataset(
+                [pa_ds.dataset(data.slice(0, 2)), pa_ds.dataset(data.slice(2))]
+            )
+        elif source_kind in ("arrow", "arrow_scanner", "arrow_scanner_factory"):
+            pq.write_table(data.slice(0, 2), tmp_path / "part0.parquet")
+            pq.write_table(data.slice(2), tmp_path / "part1.parquet")
+            source = pa_ds.dataset([tmp_path / "part0.parquet", tmp_path / "part1.parquet"])
+            if source_kind == "arrow_scanner":
+                source = source.scanner(batch_size=1)
+            elif source_kind == "arrow_scanner_factory":
+                scanner = source.scanner(
+                    columns=["value", "id"], filter=pc.field("id") >= 0, batch_size=1
+                )
+                source = WriteSource(scanner.projected_schema, scanner.to_reader)
+        elif source_kind == "batches":
+            source = pa_ds.Scanner.from_batches(iter(data.to_batches()), schema=data.schema)
+        else:
+            source = data
+    
+        # Coercion must not consume one-shot scanners.
+        if source_kind not in ("arrow_scanner", "batches"):
+            expected_mode = "materialized" if source_kind == "table" else "replayable"
+            assert coerce_source(source).mode == expected_mode
+    
+        commits = []
+    
+        def commit_lock(version):
+            return _source_retry_commit_lock(target_uri, commits, version, conflict_kind)
+    
+        target = lance.dataset(target_uri, commit_lock=commit_lock)
+        stats = (
+            target.merge_insert("id")
+            .when_matched_update_all()
+            .when_not_matched_insert_all()
+            .conflict_retries(2)
+            .execute(source)
+        )
+        assert len(commits) == 2
+        assert target.version == 3
+>       assert target.to_table().sort_by("id") == data
+E       assert pyarrow.Table...,-2,11,12,13]] == pyarrow.Table...[10,11,12,13]]
+E         
+E         Use -v to get more diff
+
+python/tests/test_dataset.py:3929: AssertionError
+________________ test_merge_insert_source_retry[append-batches] ________________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-11/test_merge_insert_source_retry7')
+source_kind = 'batches', conflict_kind = 'append'
+
+    @pytest.mark.parametrize(
+        "source_kind",
+        [
+            "lance",
+            "lance_scanner",
+            "arrow",
+            "arrow_memory",
+            "arrow_union",
+            "arrow_scanner",
+            "arrow_scanner_factory",
+            "batches",
+            "table",
+        ],
+    )
+    @pytest.mark.parametrize("conflict_kind", ["update", "append"])
+    def test_merge_insert_source_retry(tmp_path, source_kind, conflict_kind):
+        """Force a conflicting commit after the source was read, then verify replay."""
+        from lance.types import WriteSource, coerce_source
+    
+        data = pa.table({"id": [0, 1, 2, 3], "value": [10, 11, 12, 13]})
+        target_uri = tmp_path / "target"
+        lance.write_dataset(pa.table({"id": [0], "value": [-1]}), target_uri)
+        source_ds = lance.write_dataset(data, tmp_path / "source", max_rows_per_file=2)
+        if source_kind == "lance":
+            source = source_ds
+        elif source_kind == "lance_scanner":
+            source = source_ds.scanner(batch_size=1)
+        elif source_kind == "arrow_memory":
+            source = pa_ds.dataset(data)
+        elif source_kind == "arrow_union":
+            source = pa_ds.dataset(
+                [pa_ds.dataset(data.slice(0, 2)), pa_ds.dataset(data.slice(2))]
+            )
+        elif source_kind in ("arrow", "arrow_scanner", "arrow_scanner_factory"):
+            pq.write_table(data.slice(0, 2), tmp_path / "part0.parquet")
+            pq.write_table(data.slice(2), tmp_path / "part1.parquet")
+            source = pa_ds.dataset([tmp_path / "part0.parquet", tmp_path / "part1.parquet"])
+            if source_kind == "arrow_scanner":
+                source = source.scanner(batch_size=1)
+            elif source_kind == "arrow_scanner_factory":
+                scanner = source.scanner(
+                    columns=["value", "id"], filter=pc.field("id") >= 0, batch_size=1
+                )
+                source = WriteSource(scanner.projected_schema, scanner.to_reader)
+        elif source_kind == "batches":
+            source = pa_ds.Scanner.from_batches(iter(data.to_batches()), schema=data.schema)
+        else:
+            source = data
+    
+        # Coercion must not consume one-shot scanners.
+        if source_kind not in ("arrow_scanner", "batches"):
+            expected_mode = "materialized" if source_kind == "table" else "replayable"
+            assert coerce_source(source).mode == expected_mode
+    
+        commits = []
+    
+        def commit_lock(version):
+            return _source_retry_commit_lock(target_uri, commits, version, conflict_kind)
+    
+        target = lance.dataset(target_uri, commit_lock=commit_lock)
+        stats = (
+            target.merge_insert("id")
+            .when_matched_update_all()
+            .when_not_matched_insert_all()
+            .conflict_retries(2)
+            .execute(source)
+        )
+        assert len(commits) == 2
+        assert target.version == 3
+>       assert target.to_table().sort_by("id") == data
+E       assert pyarrow.Table...,-2,11,12,13]] == pyarrow.Table...[10,11,12,13]]
+E         
+E         Use -v to get more diff
+
+python/tests/test_dataset.py:3929: AssertionError
+_________________ test_merge_insert_source_retry[append-table] _________________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-11/test_merge_insert_source_retry8')
+source_kind = 'table', conflict_kind = 'append'
+
+    @pytest.mark.parametrize(
+        "source_kind",
+        [
+            "lance",
+            "lance_scanner",
+            "arrow",
+            "arrow_memory",
+            "arrow_union",
+            "arrow_scanner",
+            "arrow_scanner_factory",
+            "batches",
+            "table",
+        ],
+    )
+    @pytest.mark.parametrize("conflict_kind", ["update", "append"])
+    def test_merge_insert_source_retry(tmp_path, source_kind, conflict_kind):
+        """Force a conflicting commit after the source was read, then verify replay."""
+        from lance.types import WriteSource, coerce_source
+    
+        data = pa.table({"id": [0, 1, 2, 3], "value": [10, 11, 12, 13]})
+        target_uri = tmp_path / "target"
+        lance.write_dataset(pa.table({"id": [0], "value": [-1]}), target_uri)
+        source_ds = lance.write_dataset(data, tmp_path / "source", max_rows_per_file=2)
+        if source_kind == "lance":
+            source = source_ds
+        elif source_kind == "lance_scanner":
+            source = source_ds.scanner(batch_size=1)
+        elif source_kind == "arrow_memory":
+            source = pa_ds.dataset(data)
+        elif source_kind == "arrow_union":
+            source = pa_ds.dataset(
+                [pa_ds.dataset(data.slice(0, 2)), pa_ds.dataset(data.slice(2))]
+            )
+        elif source_kind in ("arrow", "arrow_scanner", "arrow_scanner_factory"):
+            pq.write_table(data.slice(0, 2), tmp_path / "part0.parquet")
+            pq.write_table(data.slice(2), tmp_path / "part1.parquet")
+            source = pa_ds.dataset([tmp_path / "part0.parquet", tmp_path / "part1.parquet"])
+            if source_kind == "arrow_scanner":
+                source = source.scanner(batch_size=1)
+            elif source_kind == "arrow_scanner_factory":
+                scanner = source.scanner(
+                    columns=["value", "id"], filter=pc.field("id") >= 0, batch_size=1
+                )
+                source = WriteSource(scanner.projected_schema, scanner.to_reader)
+        elif source_kind == "batches":
+            source = pa_ds.Scanner.from_batches(iter(data.to_batches()), schema=data.schema)
+        else:
+            source = data
+    
+        # Coercion must not consume one-shot scanners.
+        if source_kind not in ("arrow_scanner", "batches"):
+            expected_mode = "materialized" if source_kind == "table" else "replayable"
+            assert coerce_source(source).mode == expected_mode
+    
+        commits = []
+    
+        def commit_lock(version):
+            return _source_retry_commit_lock(target_uri, commits, version, conflict_kind)
+    
+        target = lance.dataset(target_uri, commit_lock=commit_lock)
+        stats = (
+            target.merge_insert("id")
+            .when_matched_update_all()
+            .when_not_matched_insert_all()
+            .conflict_retries(2)
+            .execute(source)
+        )
+        assert len(commits) == 2
+        assert target.version == 3
+>       assert target.to_table().sort_by("id") == data
+E       assert pyarrow.Table...,-2,11,12,13]] == pyarrow.Table...[10,11,12,13]]
+E         
+E         Use -v to get more diff
+
+python/tests/test_dataset.py:3929: AssertionError
+=========================== short test summary info ============================
+FAILED python/tests/test_dataset.py::test_merge_insert_source_retry[append-lance]
+FAILED python/tests/test_dataset.py::test_merge_insert_source_retry[append-lance_scanner]
+FAILED python/tests/test_dataset.py::test_merge_insert_source_retry[append-arrow]
+FAILED python/tests/test_dataset.py::test_merge_insert_source_retry[append-arrow_memory]
+FAILED python/tests/test_dataset.py::test_merge_insert_source_retry[append-arrow_union]
+FAILED python/tests/test_dataset.py::test_merge_insert_source_retry[append-arrow_scanner]
+FAILED python/tests/test_dataset.py::test_merge_insert_source_retry[append-arrow_scanner_factory]
+FAILED python/tests/test_dataset.py::test_merge_insert_source_retry[append-batches]
+FAILED python/tests/test_dataset.py::test_merge_insert_source_retry[append-table]
+9 failed, 343 deselected in 2.92s
