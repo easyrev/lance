@@ -41,6 +41,7 @@ use tracing::{instrument, warn};
 use uuid::Uuid;
 
 use arrow_array::RecordBatchReader;
+use datafusion::execution::memory_pool::MemoryPool;
 use datafusion::physical_plan::SendableRecordBatchStream;
 use lance_datafusion::utils::reader_to_stream;
 use lance_index::scalar::registry::{TrainingCriteria, TrainingOrdering};
@@ -85,6 +86,7 @@ pub struct CreateIndexBuilder<'a> {
     index_uuid: Option<Uuid>,
     preprocessed_data: Option<(SendableRecordBatchStream, TrainingCriteria)>,
     progress: Arc<dyn IndexBuildProgress>,
+    memory_pool: Option<Arc<dyn MemoryPool>>,
     /// Transaction properties to store with this commit.
     transaction_properties: Option<Arc<HashMap<String, String>>>,
 }
@@ -108,6 +110,7 @@ impl<'a> CreateIndexBuilder<'a> {
             index_uuid: None,
             preprocessed_data: None,
             progress: Arc::new(NoopIndexBuildProgress),
+            memory_pool: None,
             transaction_properties: None,
         }
     }
@@ -163,6 +166,30 @@ impl<'a> CreateIndexBuilder<'a> {
         self
     }
 
+    /// Set the memory pool for the current IVF build's shuffle and partition buffers.
+    ///
+    /// The caller controls the pool's capacity and whether concurrent builds share it.
+    /// Memory pressure flushes shuffle buffers or limits partition concurrency. A
+    /// batch or partition that cannot fit by itself returns an error.
+    ///
+    /// This does not limit process RSS. Model training, HNSW graphs, upstream scan
+    /// buffers, and file encoding and decoding buffers are outside this accounting.
+    /// Scalar builds and legacy IVF writers do not support this option.
+    /// Without a pool, the existing batch and partition scheduling limits apply.
+    ///
+    /// ```no_run
+    /// # use std::sync::Arc;
+    /// # use datafusion::execution::memory_pool::FairSpillPool;
+    /// # use lance::index::CreateIndexBuilder;
+    /// # fn configure(builder: CreateIndexBuilder<'_>) -> CreateIndexBuilder<'_> {
+    /// builder.with_memory_pool(Arc::new(FairSpillPool::new(512 * 1024 * 1024)))
+    /// # }
+    /// ```
+    pub fn with_memory_pool(mut self, pool: Arc<dyn MemoryPool>) -> Self {
+        self.memory_pool = Some(pool);
+        self
+    }
+
     /// Set transaction properties to store with this commit.
     ///
     /// These key-value pairs are stored in the transaction file
@@ -180,6 +207,11 @@ impl<'a> CreateIndexBuilder<'a> {
 
     fn execute_uncommitted_impl(&mut self) -> BoxFuture<'_, Result<IndexMetadata>> {
         async move {
+        if self.memory_pool.is_some() && !self.index_type.is_vector() {
+            return Err(Error::not_supported(
+                "a build memory pool is supported only for current IVF vector indices",
+            ));
+        }
         if self.columns.len() != 1 {
             return Err(Error::index(
                 "Only support building index on 1 column at the moment".to_string(),
@@ -567,6 +599,7 @@ impl<'a> CreateIndexBuilder<'a> {
                                 fri,
                                 fragments,
                                 self.progress.clone(),
+                                self.memory_pool.clone(),
                             ))
                             .await?;
                             output_index_uuid = segment_uuid;
@@ -581,6 +614,7 @@ impl<'a> CreateIndexBuilder<'a> {
                                 fri,
                                 fragments,
                                 self.progress.clone(),
+                                self.memory_pool.clone(),
                             ))
                             .await?
                         }
@@ -594,6 +628,7 @@ impl<'a> CreateIndexBuilder<'a> {
                             vec_params,
                             fri,
                             self.progress.clone(),
+                            self.memory_pool.clone(),
                         ))
                         .await?
                     }

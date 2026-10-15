@@ -3,6 +3,7 @@
 
 //! IVF - Inverted File index.
 
+use super::create_dataset_ivf_shuffler;
 use super::details::target_partition_size_from_details;
 use super::{
     LogicalIvfView, derive_hnsw_params,
@@ -13,7 +14,6 @@ use super::{
     builder::{ExistingIndex, IvfIndexBuilder, index_type_string},
     utils::PartitionLoadLock,
 };
-use crate::dataset::index::dataset_format_version;
 use crate::index::DatasetIndexExt;
 use crate::index::DatasetIndexInternalExt;
 use crate::index::vector::open_index_file;
@@ -83,7 +83,6 @@ use lance_index::vector::pq::storage::{
 };
 use lance_index::vector::quantizer::QuantizationType;
 use lance_index::vector::storage::STORAGE_METADATA_KEY;
-use lance_index::vector::v3::shuffler::create_ivf_shuffler;
 use lance_index::vector::v3::subindex::{IvfSubIndex, SubIndexType};
 use lance_index::{
     INDEX_AUXILIARY_FILE_NAME, INDEX_METADATA_SCHEMA_KEY, Index, IndexMetadata, IndexType,
@@ -714,6 +713,12 @@ pub(crate) async fn optimize_vector_indices(
         .await;
     }
 
+    if options.memory_pool.is_some() {
+        return Err(Error::not_supported(
+            "a build memory pool is not supported when optimizing a legacy IVF index",
+        ));
+    }
+
     let new_uuid = Uuid::new_v4();
     let object_store = dataset.object_store.as_ref();
     let index_file = dataset
@@ -802,11 +807,15 @@ pub(crate) async fn optimize_vector_indices_v2(
     let index_type = reference_index.sub_index_type();
     let frag_reuse_index = dataset.open_frag_reuse_index(&NoOpMetricsCollector).await?;
 
-    let format_version = dataset_format_version(dataset);
-
     let temp_dir = lance_core::utils::tempfile::TempStdDir::default();
     let temp_dir_path = Path::from_filesystem_path(&temp_dir)?;
-    let shuffler = create_ivf_shuffler(temp_dir_path, num_partitions, format_version, None);
+    let shuffler = create_dataset_ivf_shuffler(
+        dataset,
+        temp_dir_path,
+        num_partitions,
+        None,
+        options.memory_pool.clone(),
+    )?;
 
     let (_, element_type) = get_vector_type(dataset.schema(), vector_column)?;
     let summary = match index_type {

@@ -8,6 +8,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::task::{Context, Poll};
 
+use datafusion::execution::memory_pool::{MemoryConsumer, MemoryPool, MemoryReservation};
 use futures::future::BoxFuture;
 use futures::stream::FuturesUnordered;
 use futures::task::AtomicWaker;
@@ -130,15 +131,24 @@ impl<T> OrderedPartitionResults<T> {
 pub(super) struct AdmissionPermit {
     budget: Arc<Budget>,
     charged_bytes: usize,
+    pub(super) memory_reservation: Option<Arc<MemoryReservation>>,
 }
 
 impl AdmissionPermit {
     /// Reconcile the pre-decode admission charge to the materialized size.
     ///
-    /// Oversized values remain charged at the cap. Estimates are conservative,
-    /// so this normally releases capacity; an underestimate is still reflected
-    /// in the budget to prevent admitting additional work against stale usage.
-    pub(super) fn reconcile(&mut self, actual_bytes: usize) {
+    /// The local admission charge remains capped for oversized values. A caller's
+    /// memory pool accounts for the full size and rejects growth past its limit.
+    /// Estimates are conservative, so this normally releases capacity.
+    pub(super) fn reconcile(&mut self, actual_bytes: usize) -> Result<()> {
+        if let Some(reservation) = &self.memory_reservation {
+            reservation.try_resize(actual_bytes).map_err(|error| {
+                Error::execution(format!(
+                    "IVF partition build cannot reserve {actual_bytes} materialized bytes in the memory pool: \
+                     {error}. Increase the memory pool limit or use more IVF partitions."
+                ))
+            })?;
+        }
         let charged_bytes = actual_bytes.min(self.budget.max_bytes);
         match charged_bytes.cmp(&self.charged_bytes) {
             std::cmp::Ordering::Less => {
@@ -164,11 +174,15 @@ impl AdmissionPermit {
         }
         self.charged_bytes = charged_bytes;
         self.budget.waker.wake();
+        Ok(())
     }
 }
 
 impl Drop for AdmissionPermit {
     fn drop(&mut self) {
+        // Release the pool reservation before waking admission. Otherwise the
+        // woken stream could see the old pool usage after its last job ended.
+        self.memory_reservation.take();
         self.budget
             .current_bytes
             .fetch_sub(self.charged_bytes, Ordering::AcqRel);
@@ -206,7 +220,28 @@ impl Budget {
             .is_some_and(|total| total <= self.max_bytes)
     }
 
-    fn admit(self: &Arc<Self>, weight_bytes: usize) -> AdmissionPermit {
+    fn admit(
+        self: &Arc<Self>,
+        weight_bytes: usize,
+        memory_reservation: Option<&MemoryReservation>,
+    ) -> Result<AdmissionPermit> {
+        let memory_reservation = memory_reservation
+            .map(|reservation| {
+                if weight_bytes == usize::MAX {
+                    return Err(Error::not_supported(
+                        "IVF partition reader must provide a decoded-size estimate when a memory pool is configured",
+                    ));
+                }
+                let reservation = reservation.new_empty();
+                reservation.try_grow(weight_bytes).map_err(|error| {
+                    Error::execution(format!(
+                        "IVF partition build cannot reserve {weight_bytes} bytes before decoding in the memory pool: \
+                         {error}. Increase the memory pool limit or use more IVF partitions."
+                    ))
+                })?;
+                Ok::<_, Error>(Arc::new(reservation))
+            })
+            .transpose()?;
         let charged_bytes = weight_bytes.min(self.max_bytes);
         let current_bytes = self
             .current_bytes
@@ -221,10 +256,11 @@ impl Budget {
             self.peak_entries
                 .fetch_max(current_entries, Ordering::AcqRel);
         }
-        AdmissionPermit {
+        Ok(AdmissionPermit {
             budget: self.clone(),
             charged_bytes,
-        }
+            memory_reservation,
+        })
     }
 }
 
@@ -238,6 +274,8 @@ pub(super) struct BoundedPartitionStream<S, T> {
     pending: Option<WeightedJob<T>>,
     in_flight: FuturesUnordered<BoxFuture<'static, Result<Budgeted<T>>>>,
     budget: Arc<Budget>,
+    memory_reservation: Option<MemoryReservation>,
+    memory_reclaimer: Option<BoxFuture<'static, Result<()>>>,
     max_concurrency: usize,
     is_input_done: bool,
     is_failed: bool,
@@ -274,16 +312,38 @@ where
                 #[cfg(test)]
                 peak_entries: AtomicUsize::new(0),
             }),
+            memory_reservation: None,
+            memory_reclaimer: None,
             max_concurrency,
             is_input_done: false,
             is_failed: false,
         })
     }
 
+    /// Apply a caller's pool to jobs admitted after this stream is configured.
+    ///
+    /// Unlike the local scheduling cap, the pool reserves the full estimate
+    /// even for an oversized job. Configure the pool before polling the stream
+    /// so every job participates in the same accounting.
+    pub(super) fn with_memory_pool(mut self, pool: Arc<dyn MemoryPool>) -> Self {
+        self.memory_reservation = Some(MemoryConsumer::new("IVFPartitionBuild").register(&pool));
+        self
+    }
+
+    /// Release optional reader caches once when no admitted job can free space.
+    pub(super) fn with_memory_reclaimer(
+        mut self,
+        reclaimer: BoxFuture<'static, Result<()>>,
+    ) -> Self {
+        self.memory_reclaimer = Some(reclaimer);
+        self
+    }
+
     fn fail(&mut self) {
         self.is_failed = true;
         self.pending = None;
         self.in_flight = FuturesUnordered::new();
+        self.memory_reclaimer = None;
     }
 
     #[cfg(test)]
@@ -319,7 +379,43 @@ where
                     self.pending = Some(job);
                     break;
                 }
-                let permit = self.budget.admit(job.weight_bytes);
+                let permit = match self
+                    .budget
+                    .admit(job.weight_bytes, self.memory_reservation.as_ref())
+                {
+                    Ok(permit) => permit,
+                    Err(_) if self.budget.current_entries.load(Ordering::Acquire) > 0 => {
+                        // Active jobs and held results can return capacity. Their
+                        // permits wake this stream, including after a result has
+                        // left `in_flight` but has not yet been written.
+                        self.pending = Some(job);
+                        break;
+                    }
+                    Err(error) => {
+                        if let Some(reclaimer) = self.memory_reclaimer.as_mut() {
+                            match reclaimer.as_mut().poll(cx) {
+                                Poll::Pending => {
+                                    self.pending = Some(job);
+                                    return Poll::Pending;
+                                }
+                                Poll::Ready(Ok(())) => {
+                                    self.memory_reclaimer = None;
+                                    self.pending = Some(job);
+                                    continue;
+                                }
+                                Poll::Ready(Err(reclaim_error)) => {
+                                    self.fail();
+                                    return Poll::Ready(Some(Err(reclaim_error)));
+                                }
+                            }
+                        }
+                        // A MemoryPool has no notification for unrelated
+                        // consumers. With no owned permits left to release,
+                        // waiting here could never make observable progress.
+                        self.fail();
+                        return Poll::Ready(Some(Err(error)));
+                    }
+                };
                 let future = (job.start)(permit);
                 self.in_flight.push(Box::pin(async move {
                     future.await.map(|(value, permit)| Budgeted {
@@ -362,6 +458,7 @@ mod tests {
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::time::Duration;
 
+    use datafusion::execution::memory_pool::GreedyMemoryPool;
     use futures::stream;
     use futures::{StreamExt, TryStreamExt};
 
@@ -420,6 +517,206 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn memory_pool_holds_full_reservation_until_result_drop() {
+        let pool = Arc::new(GreedyMemoryPool::new(20));
+        let jobs = vec![Ok(WeightedJob::new(20, async { Ok(0) }))];
+        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 1, 8, 1)
+            .unwrap()
+            .with_memory_pool(pool.clone());
+
+        let result = output.next().await.unwrap().unwrap();
+        assert_eq!(pool.reserved(), 20);
+        assert_eq!(output.stats().0, 8);
+        drop(output);
+        assert_eq!(pool.reserved(), 20);
+        drop(result);
+        assert_eq!(pool.reserved(), 0);
+    }
+
+    #[tokio::test]
+    async fn memory_pool_rejects_job_before_materialization() {
+        let pool = Arc::new(GreedyMemoryPool::new(8));
+        let materialized = Arc::new(AtomicBool::new(false));
+        let marker = materialized.clone();
+        let jobs = vec![Ok(WeightedJob::new(9, async move {
+            marker.store(true, Ordering::Release);
+            Ok(0)
+        }))];
+        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 1, 8, 1)
+            .unwrap()
+            .with_memory_pool(pool.clone());
+
+        let Err(error) = output.next().await.unwrap() else {
+            panic!("expected memory pool exhaustion");
+        };
+        assert!(matches!(error, Error::Execution { .. }));
+        assert!(
+            error
+                .to_string()
+                .contains("cannot reserve 9 bytes before decoding")
+        );
+        assert!(!materialized.load(Ordering::Acquire));
+        assert_eq!(pool.reserved(), 0);
+        assert_eq!(output.stats().0, 0);
+        assert!(output.next().await.is_none());
+    }
+
+    #[tokio::test]
+    async fn memory_pool_external_exhaustion_returns_without_waiting() {
+        let pool: Arc<dyn MemoryPool> = Arc::new(GreedyMemoryPool::new(8));
+        let other = MemoryConsumer::new("OtherBuild").register(&pool);
+        other.try_grow(8).unwrap();
+        let jobs = vec![Ok(WeightedJob::new(1, async { Ok(0) }))];
+        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 1, 8, 1)
+            .unwrap()
+            .with_memory_pool(pool.clone());
+
+        let Err(error) = tokio::time::timeout(Duration::from_millis(100), output.next())
+            .await
+            .unwrap()
+            .unwrap()
+        else {
+            panic!("expected memory pool exhaustion");
+        };
+        assert!(matches!(error, Error::Execution { .. }));
+        assert!(
+            error
+                .to_string()
+                .contains("cannot reserve 1 bytes before decoding")
+        );
+        assert_eq!(pool.reserved(), 8);
+        drop(other);
+        assert_eq!(pool.reserved(), 0);
+    }
+
+    #[tokio::test]
+    async fn memory_pool_retries_after_completed_result_release() {
+        let pool = Arc::new(GreedyMemoryPool::new(6));
+        let jobs = vec![
+            Ok(WeightedJob::new(6, async { Ok(0) })),
+            Ok(WeightedJob::new(6, async { Ok(1) })),
+        ];
+        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 2, 20, 2)
+            .unwrap()
+            .with_memory_pool(pool.clone());
+        let first = output.next().await.unwrap().unwrap();
+        assert_eq!(first.value, 0);
+        assert_eq!(pool.reserved(), 6);
+
+        let next = output.next();
+        tokio::pin!(next);
+        assert!(
+            tokio::time::timeout(Duration::from_millis(10), &mut next)
+                .await
+                .is_err()
+        );
+        drop(first);
+        let second = tokio::time::timeout(Duration::from_millis(100), &mut next)
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert_eq!(second.value, 1);
+        assert_eq!(pool.reserved(), 6);
+        drop(second);
+        assert_eq!(pool.reserved(), 0);
+    }
+
+    #[tokio::test]
+    async fn memory_reclaimer_waits_for_results_and_wakes_admission() {
+        let pool: Arc<dyn MemoryPool> = Arc::new(GreedyMemoryPool::new(6));
+        let cache = MemoryConsumer::new("ReaderOffsets").register(&pool);
+        cache.try_grow(3).unwrap();
+        let reclaimed = Arc::new(AtomicUsize::new(0));
+        let reclaim_count = reclaimed.clone();
+        let jobs = vec![
+            Ok(WeightedJob::new(3, async { Ok(0) })),
+            Ok(WeightedJob::new(6, async { Ok(1) })),
+            Ok(WeightedJob::new(7, async { Ok(2) })),
+        ];
+        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 2, 12, 3)
+            .unwrap()
+            .with_memory_pool(pool.clone())
+            .with_memory_reclaimer(Box::pin(async move {
+                reclaim_count.fetch_add(1, Ordering::SeqCst);
+                tokio::time::sleep(Duration::from_millis(5)).await;
+                drop(cache);
+                Ok(())
+            }));
+        let first = output.next().await.unwrap().unwrap();
+        assert!(
+            tokio::time::timeout(Duration::from_millis(5), output.next())
+                .await
+                .is_err()
+        );
+        assert_eq!(reclaimed.load(Ordering::SeqCst), 0);
+        drop(first);
+        let second = tokio::time::timeout(Duration::from_millis(100), output.next())
+            .await
+            .unwrap()
+            .unwrap()
+            .unwrap();
+        assert_eq!(second.value, 1);
+        assert_eq!(reclaimed.load(Ordering::SeqCst), 1);
+        assert_eq!(pool.reserved(), 6);
+        drop(second);
+        assert!(matches!(
+            output.next().await.unwrap(),
+            Err(Error::Execution { .. })
+        ));
+        assert_eq!(reclaimed.load(Ordering::SeqCst), 1);
+        assert_eq!(pool.reserved(), 0);
+    }
+
+    #[tokio::test]
+    async fn memory_reclaimer_error_releases_cache_without_starting_job() {
+        let pool: Arc<dyn MemoryPool> = Arc::new(GreedyMemoryPool::new(4));
+        let cache = MemoryConsumer::new("ReaderOffsets").register(&pool);
+        cache.try_grow(4).unwrap();
+        let started = Arc::new(AtomicUsize::new(0));
+        let job_started = started.clone();
+        let jobs = vec![Ok(WeightedJob::new(4, async move {
+            job_started.fetch_add(1, Ordering::SeqCst);
+            Ok(())
+        }))];
+        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 1, 4, 1)
+            .unwrap()
+            .with_memory_pool(pool.clone())
+            .with_memory_reclaimer(Box::pin(async move {
+                let _cache = cache;
+                Err(Error::execution("offset cache reclaim failed"))
+            }));
+        let error = output.next().await.unwrap().err().unwrap();
+        assert!(error.to_string().contains("offset cache reclaim failed"));
+        assert_eq!(started.load(Ordering::SeqCst), 0);
+        assert_eq!(pool.reserved(), 0);
+        assert!(output.next().await.is_none());
+    }
+
+    #[tokio::test]
+    async fn cancelling_memory_reclaimer_releases_owned_cache() {
+        let pool: Arc<dyn MemoryPool> = Arc::new(GreedyMemoryPool::new(4));
+        let cache = MemoryConsumer::new("ReaderOffsets").register(&pool);
+        cache.try_grow(4).unwrap();
+        let jobs = vec![Ok(WeightedJob::new(4, async { Ok(()) }))];
+        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 1, 4, 1)
+            .unwrap()
+            .with_memory_pool(pool.clone())
+            .with_memory_reclaimer(Box::pin(async move {
+                let _cache = cache;
+                futures::future::pending::<Result<()>>().await
+            }));
+        assert!(
+            tokio::time::timeout(Duration::from_millis(5), output.next())
+                .await
+                .is_err()
+        );
+        assert_eq!(pool.reserved(), 4);
+        drop(output);
+        assert_eq!(pool.reserved(), 0);
+    }
+
+    #[tokio::test]
     async fn oversized_job_is_exclusive() {
         let jobs = vec![
             Ok(WeightedJob::new(2, async { Ok(0) })),
@@ -450,7 +747,7 @@ mod tests {
                 20,
                 move |mut admission| async move {
                     marker.store(true, Ordering::Release);
-                    admission.reconcile(20);
+                    admission.reconcile(20)?;
                     Ok((1, admission))
                 },
             )),
@@ -473,14 +770,17 @@ mod tests {
 
     #[tokio::test]
     async fn actual_size_reconciliation_releases_admission_capacity() {
+        let pool = Arc::new(GreedyMemoryPool::new(8));
         let jobs = vec![
             Ok(WeightedJob::with_permit(8, |mut admission| async move {
-                admission.reconcile(2);
+                admission.reconcile(2)?;
                 Ok((0, admission))
             })),
             Ok(WeightedJob::new(6, async { Ok(1) })),
         ];
-        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 2, 8, 2).unwrap();
+        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 2, 8, 2)
+            .unwrap()
+            .with_memory_pool(pool.clone());
 
         let first = output.next().await.unwrap().unwrap();
         assert_eq!(first.value, 0);
@@ -489,6 +789,7 @@ mod tests {
         assert_eq!(peak_bytes, 8);
         assert_eq!(current_entries, 1);
         assert_eq!(peak_entries, 1);
+        assert_eq!(pool.reserved(), 2);
 
         let second = output.next().await.unwrap().unwrap();
         assert_eq!(second.value, 1);
@@ -496,7 +797,36 @@ mod tests {
         assert_eq!(current_bytes, 8);
         assert_eq!(current_entries, 2);
         assert_eq!(peak_entries, 2);
+        assert_eq!(pool.reserved(), 8);
         drop((first, second));
+        assert_eq!(pool.reserved(), 0);
+    }
+
+    #[tokio::test]
+    async fn memory_pool_reconciliation_rejects_underestimated_job() {
+        let pool = Arc::new(GreedyMemoryPool::new(8));
+        let jobs = vec![Ok(WeightedJob::with_permit(
+            4,
+            |mut admission| async move {
+                admission.reconcile(9)?;
+                Ok((0, admission))
+            },
+        ))];
+        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 1, 8, 1)
+            .unwrap()
+            .with_memory_pool(pool.clone());
+
+        let Err(error) = output.next().await.unwrap() else {
+            panic!("expected memory pool exhaustion");
+        };
+        assert!(matches!(error, Error::Execution { .. }));
+        assert!(
+            error
+                .to_string()
+                .contains("cannot reserve 9 materialized bytes")
+        );
+        assert_eq!(pool.reserved(), 0);
+        assert_eq!(output.stats().0, 0);
     }
 
     #[tokio::test]
@@ -598,6 +928,7 @@ mod tests {
 
     #[tokio::test]
     async fn error_drops_pending_work() {
+        let pool = Arc::new(GreedyMemoryPool::new(2));
         let was_dropped = Arc::new(AtomicBool::new(false));
         struct DropFlag(Arc<AtomicBool>);
         impl Drop for DropFlag {
@@ -617,17 +948,21 @@ mod tests {
                 Ok(1)
             })),
         ];
-        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 2, 2, 2).unwrap();
+        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 2, 2, 2)
+            .unwrap()
+            .with_memory_pool(pool.clone());
         let Err(error) = output.next().await.unwrap() else {
             panic!("expected build failure");
         };
         assert!(error.to_string().contains("build failed"));
         assert!(was_dropped.load(Ordering::Acquire));
+        assert_eq!(pool.reserved(), 0);
         assert!(output.next().await.is_none());
     }
 
     #[tokio::test]
     async fn dropping_stream_cancels_in_flight_work() {
+        let pool = Arc::new(GreedyMemoryPool::new(1));
         let was_dropped = Arc::new(AtomicBool::new(false));
         struct DropFlag(Arc<AtomicBool>);
         impl Drop for DropFlag {
@@ -642,14 +977,18 @@ mod tests {
             futures::future::pending::<()>().await;
             Ok(0)
         }))];
-        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 1, 1, 1).unwrap();
+        let mut output = BoundedPartitionStream::try_new(stream::iter(jobs), 1, 1, 1)
+            .unwrap()
+            .with_memory_pool(pool.clone());
         assert!(
             tokio::time::timeout(Duration::from_millis(10), output.next())
                 .await
                 .is_err()
         );
+        assert_eq!(pool.reserved(), 1);
         drop(output);
         assert!(was_dropped.load(Ordering::Acquire));
+        assert_eq!(pool.reserved(), 0);
     }
 
     #[test]

@@ -4,6 +4,8 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use datafusion::execution::memory_pool::MemoryPool;
+
 use crate::progress::{IndexBuildProgress, noop_progress};
 
 /// Options for optimizing all indices.
@@ -48,6 +50,13 @@ pub struct OptimizeOptions {
 
     /// Progress callback for index building during optimization.
     pub progress: Arc<dyn IndexBuildProgress>,
+
+    /// Pool for current IVF shuffle and partition buffers during optimization.
+    ///
+    /// Model training, HNSW graphs, and scan/file buffers are not included.
+    /// Scalar optimizations do not use this pool. Legacy IVF writers reject it.
+    /// See [`Self::with_memory_pool`] for sizing and sharing semantics.
+    pub memory_pool: Option<Arc<dyn MemoryPool>>,
 }
 
 impl Default for OptimizeOptions {
@@ -58,11 +67,30 @@ impl Default for OptimizeOptions {
             retrain: false,
             transaction_properties: None,
             progress: noop_progress(),
+            memory_pool: None,
         }
     }
 }
 
 impl OptimizeOptions {
+    /// Use a caller-owned pool for IVF shuffle and partition construction.
+    ///
+    /// Cloned options share the pool, so the caller can limit concurrent builds
+    /// together. A minimum working set that cannot fit returns an error.
+    /// Leaving this unset preserves existing scheduling limits.
+    ///
+    /// ```
+    /// # use std::sync::Arc;
+    /// # use datafusion::execution::memory_pool::FairSpillPool;
+    /// # use lance_index::optimize::OptimizeOptions;
+    /// let options = OptimizeOptions::default()
+    ///     .with_memory_pool(Arc::new(FairSpillPool::new(512 * 1024 * 1024)));
+    /// ```
+    pub fn with_memory_pool(mut self, pool: Arc<dyn MemoryPool>) -> Self {
+        self.memory_pool = Some(pool);
+        self
+    }
+
     pub fn new() -> Self {
         Self::default()
     }

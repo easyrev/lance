@@ -20,12 +20,13 @@ use arrow_array::{
     RecordBatch, UInt32Array, UInt64Array,
 };
 use arrow_schema::{DataType, Field, Fields};
+use datafusion::execution::memory_pool::{MemoryLimit, MemoryPool};
 use futures::{FutureExt, SinkExt, stream};
 use futures::{
     Stream,
     prelude::stream::{StreamExt, TryStreamExt},
 };
-use lance_arrow::{FixedSizeListArrayExt, RecordBatchExt};
+use lance_arrow::{DataTypeExt, FixedSizeListArrayExt, RecordBatchExt};
 use lance_core::ROW_ID;
 use lance_core::datatypes::Schema;
 use lance_core::utils::tempfile::TempStdDir;
@@ -52,7 +53,7 @@ use lance_index::vector::shared::{SupportedIvfIndexType, write_unified_ivf_and_i
 use lance_index::vector::storage::STORAGE_METADATA_KEY;
 use lance_index::vector::transform::Flatten;
 use lance_index::vector::v3::shuffler::{
-    DEFAULT_PARTITION_WINDOW_BYTES, EmptyReader, IvfShufflerReader, create_ivf_shuffler,
+    DEFAULT_PARTITION_WINDOW_BYTES, EmptyReader, IvfShufflerReader,
 };
 use lance_index::vector::v3::subindex::SubIndexType;
 use lance_index::vector::{LOSS_METADATA_KEY, PART_ID_COLUMN, PQ_CODE_COLUMN, VectorIndex};
@@ -93,12 +94,13 @@ use crate::dataset::ProjectionRequest;
 use crate::dataset::index::dataset_format_version;
 use crate::index::append::build_old_data_filter;
 use crate::index::vector::bounded_partition_stream::{
-    BoundedPartitionStream, Budgeted, OrderedPartitionResults, WeightedJob,
+    AdmissionPermit, BoundedPartitionStream, Budgeted, OrderedPartitionResults, WeightedJob,
 };
 use crate::index::vector::utils::infer_vector_dim;
 
 use super::v2::IVFIndex;
 use super::{
+    create_dataset_ivf_shuffler,
     ivf::load_precomputed_partitions_if_available,
     utils::{self, get_vector_type},
 };
@@ -143,6 +145,42 @@ const PARTITION_BUILD_BUDGET_BYTES: usize = 512 * 1024 * 1024;
 /// Bound ready-map overhead even when many consecutive partitions are empty.
 const PARTITION_BUILD_ENTRIES_PER_WORKER: usize = 2;
 
+/// Size upstream vector scans before their Arrow buffers are materialized.
+/// Caller-owned streams must choose their own input batch size.
+pub(crate) fn ivf_input_batch_size(
+    schema: &Schema,
+    column: &str,
+    memory_pool: Option<&Arc<dyn MemoryPool>>,
+) -> Result<Option<usize>> {
+    let Some(batch_bytes) = ivf_input_batch_bytes(memory_pool) else {
+        return Ok(None);
+    };
+    let (vector_type, element_type) = get_vector_type(schema, column)?;
+    if matches!(vector_type, DataType::List(_) | DataType::LargeList(_)) {
+        return Ok(Some(64));
+    }
+    let row_bytes = infer_vector_dim(&vector_type)?
+        .checked_mul(element_type.byte_width_opt().ok_or_else(|| {
+            Error::not_supported(format!(
+                "IVF input batching does not support vector elements {element_type}"
+            ))
+        })?)
+        .and_then(|bytes| bytes.checked_add(8))
+        .ok_or_else(|| Error::invalid_input("IVF input row size overflows"))?;
+    // Slicing an oversized Arrow batch would retain its full buffers. Leave
+    // room for the transform workers, retained shuffle input, and sorting.
+    Ok(Some((batch_bytes / row_bytes).clamp(1, 8192)))
+}
+
+pub(crate) fn ivf_input_batch_bytes(memory_pool: Option<&Arc<dyn MemoryPool>>) -> Option<usize> {
+    match memory_pool?.memory_limit() {
+        MemoryLimit::Finite(limit) => {
+            Some((limit / 4 / (get_num_compute_intensive_cpus() + 1)).max(1))
+        }
+        MemoryLimit::Infinite | MemoryLimit::Unknown => None,
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 struct FreshPartitionBuildLimits {
     window_bytes: usize,
@@ -156,6 +194,76 @@ impl Default for FreshPartitionBuildLimits {
             decoded_budget_bytes: PARTITION_BUILD_BUDGET_BYTES,
         }
     }
+}
+
+/// Workspace retained while converting decoded inputs into partition storage.
+/// Slices can retain a whole input window while sibling partitions are built.
+/// File decoder/writer buffers and the HNSW graph are not included.
+#[derive(Clone, Copy)]
+struct PartitionBuildMemory {
+    copies: usize,
+    row_scratch_bytes: usize,
+}
+
+impl PartitionBuildMemory {
+    fn new(quantization: QuantizationType, remapped: bool, distance_type: DistanceType) -> Self {
+        let copies = match (quantization, remapped) {
+            // Input, concatenation, and transposed/packed codes coexist.
+            (QuantizationType::Product | QuantizationType::Rabit, false) => 3,
+            // A 4-bit PQ remap allocates row-major capacity for unpacked codes
+            // before it builds the new transposed representation.
+            (QuantizationType::Product, true) => 5,
+            // RQ keeps old packed storage, row-major remap codes, new packed
+            // codes, and Arrow take output alongside the original inputs.
+            (QuantizationType::Rabit, true) => 6,
+            (_, true) => 3,
+            (_, false) => 2,
+        };
+        let mut row_scratch_bytes = if !remapped {
+            0
+        } else if quantization == QuantizationType::Rabit {
+            // RQ constructs a HashMap<u64, Option<u64>> before remapping.
+            // Include overlapping old/new buckets during growth and the row
+            // selection/id vectors used by remap and Arrow take.
+            128
+        } else {
+            // Optional row ids (16 bytes), selection indices, replacement ids,
+            // and Arrow's converted index buffer can coexist during remapping.
+            48
+        };
+        if quantization == QuantizationType::Flat && distance_type == DistanceType::Cosine {
+            // Flat cosine storage also retains one f32 norm per row.
+            row_scratch_bytes += std::mem::size_of::<f32>();
+        }
+        Self {
+            copies,
+            row_scratch_bytes,
+        }
+    }
+
+    fn bytes(self, decoded_bytes: usize, rows: usize) -> Result<usize> {
+        decoded_bytes
+            .checked_mul(self.copies)
+            .and_then(|bytes| rows.checked_mul(self.row_scratch_bytes)?.checked_add(bytes))
+            .ok_or_else(|| {
+        Error::invalid_input(format!(
+            "IVF partition build memory estimate overflows for {decoded_bytes} decoded bytes"
+        ))
+    })
+    }
+}
+
+fn shuffled_partition_bytes(reader: &dyn ShuffleReader, partition: usize) -> Result<usize> {
+    if reader.partition_size(partition)? == 0 {
+        return Ok(0);
+    }
+    let plan = reader.plan_partition_window(partition, 1)?;
+    if plan.estimated_decoded_bytes == usize::MAX {
+        return Err(Error::not_supported(format!(
+            "IVF partition {partition} reader cannot estimate decoded memory for a supplied memory pool"
+        )));
+    }
+    Ok(plan.estimated_decoded_bytes)
 }
 
 /// Build a new centroid array that incorporates the results of partition splits.
@@ -378,6 +486,7 @@ pub struct IvfIndexBuilder<S: IvfSubIndex, Q: Quantization> {
     format_version: ConcreteFileVersion,
 
     progress: Arc<dyn IndexBuildProgress>,
+    memory_pool: Option<Arc<dyn MemoryPool>>,
 }
 
 type BuildStream<S, Q> =
@@ -479,6 +588,7 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
             transpose_codes: true,
             format_version,
             progress: Arc::new(NoopIndexBuildProgress),
+            memory_pool: None,
         })
     }
 
@@ -504,6 +614,7 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
             sub_index_params,
             frag_reuse_index,
         )?;
+        builder.memory_pool = optimize_options.memory_pool.clone();
         builder.optimize_options = Some(optimize_options);
         Ok(builder)
     }
@@ -547,6 +658,7 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
             transpose_codes: true,
             format_version,
             progress: Arc::new(NoopIndexBuildProgress),
+            memory_pool: None,
         })
     }
 
@@ -726,6 +838,38 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
         self
     }
 
+    /// Use a caller-supplied pool for partition builds.
+    ///
+    /// Partition admission reserves decoded input and concatenation space before
+    /// reading. Training, HNSW graphs, and transient file I/O buffers are outside
+    /// this accounting. A partition that cannot fit after other builds drain
+    /// returns an error instead of exceeding the pool's limit. Configure the
+    /// shuffler with the same pool to include its retained input buffers.
+    ///
+    /// ```
+    /// # use std::sync::Arc;
+    /// # use datafusion::execution::memory_pool::GreedyMemoryPool;
+    /// # use lance::index::vector::builder::IvfIndexBuilder;
+    /// # use lance_index::vector::flat::index::{FlatIndex, FlatQuantizer};
+    /// # fn configure(builder: &mut IvfIndexBuilder<FlatIndex, FlatQuantizer>) {
+    /// builder.with_memory_pool(Arc::new(GreedyMemoryPool::new(512 * 1024 * 1024)));
+    /// # }
+    /// ```
+    pub fn with_memory_pool(&mut self, memory_pool: Arc<dyn MemoryPool>) -> &mut Self {
+        self.memory_pool = Some(memory_pool);
+        self
+    }
+
+    pub(crate) fn with_optional_memory_pool(
+        &mut self,
+        memory_pool: Option<Arc<dyn MemoryPool>>,
+    ) -> &mut Self {
+        if let Some(memory_pool) = memory_pool {
+            self.with_memory_pool(memory_pool);
+        }
+        self
+    }
+
     #[instrument(name = "load_or_build_ivf", level = "debug", skip_all)]
     async fn load_or_build_ivf(&self) -> Result<IvfModel> {
         match &self.ivf {
@@ -893,7 +1037,11 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
                 let uri = uri.trim_end_matches("data");
                 log::info!("shuffle with precomputed shuffle buffers from {}", uri);
                 let ds = Dataset::open(uri).await?;
-                ds.scan().try_into_stream().await?
+                let mut scanner = ds.scan();
+                if let Some(bytes) = ivf_input_batch_bytes(self.memory_pool.as_ref()) {
+                    scanner.batch_size_bytes(bytes as u64);
+                }
+                scanner.try_into_stream().await?
             }
             _ => {
                 log::info!("shuffle column {} over dataset", self.column);
@@ -918,6 +1066,15 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
                 let is_multivector = matches!(vector_type, datatypes::DataType::List(_));
                 if is_multivector {
                     builder.batch_size(64);
+                } else if let Some(batch_size) =
+                    ivf_input_batch_size(dataset.schema(), &self.column, self.memory_pool.as_ref())?
+                {
+                    builder.batch_size(batch_size);
+                }
+                if let Some(bytes) = ivf_input_batch_bytes(self.memory_pool.as_ref()) {
+                    // Multivector row widths are variable; the scanner's byte
+                    // target limits allocation before flattening expands them.
+                    builder.batch_size_bytes(bytes as u64);
                 }
                 builder.try_into_stream().await?
             }
@@ -1247,9 +1404,44 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
                 column,
                 frag_reuse_index,
                 FreshPartitionBuildLimits::default(),
+                self.memory_pool.clone(),
             );
         }
+        let memory_pool = self.memory_pool.clone();
+        let row_bytes = if memory_pool.is_some() {
+            self.partition_row_bytes(&quantizer)?
+        } else {
+            0
+        };
+        let has_memory_pool = memory_pool.is_some();
+        let build_memory = PartitionBuildMemory::new(
+            Q::quantization_type(),
+            frag_reuse_index.is_some(),
+            distance_type,
+        );
         let partition_adjustment = Arc::new(partition_adjustment);
+        let reclaim_reader = reader.clone();
+        let reclaim_adjustment = partition_adjustment.clone();
+        let memory_reclaimer = async move {
+            reclaim_reader.release_optional_memory().await?;
+            match reclaim_adjustment.as_ref() {
+                Some(PartitionAdjustment::Split {
+                    split_shuffle_reader,
+                    ..
+                }) => {
+                    split_shuffle_reader.release_optional_memory().await?;
+                }
+                Some(PartitionAdjustment::Join {
+                    join_shuffle_reader,
+                    ..
+                }) => {
+                    join_shuffle_reader.release_optional_memory().await?;
+                }
+                None => {}
+            }
+            Ok(())
+        }
+        .boxed();
         let build_iter = (0..num_partitions).map(move |partition| {
             let output_partition_id = partition;
             let reader = reader.clone();
@@ -1260,24 +1452,75 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
             let column = column.clone();
             let frag_reuse_index = frag_reuse_index.clone();
             let partition_adjustment = partition_adjustment.clone();
-            async move {
-                let (is_affected, split_reader) = match partition_adjustment.as_ref() {
-                    Some(PartitionAdjustment::Split {
-                        affected_partitions,
-                        split_shuffle_reader,
-                    }) => (
-                        affected_partitions.contains(&partition),
-                        Some(split_shuffle_reader.clone()),
-                    ),
-                    _ => (false, None),
-                };
-                let partition = match partition_adjustment.as_ref() {
-                    Some(PartitionAdjustment::Join {
-                        kept_partitions, ..
-                    }) => kept_partitions[partition],
-                    _ => partition,
-                };
+            let (is_affected, split_reader) = match partition_adjustment.as_ref() {
+                Some(PartitionAdjustment::Split {
+                    affected_partitions,
+                    split_shuffle_reader,
+                }) => (
+                    affected_partitions.contains(&partition),
+                    Some(split_shuffle_reader.clone()),
+                ),
+                _ => (false, None),
+            };
+            let partition = match partition_adjustment.as_ref() {
+                Some(PartitionAdjustment::Join {
+                    kept_partitions, ..
+                }) => kept_partitions[partition],
+                _ => partition,
+            };
 
+            let estimated_bytes = if has_memory_pool {
+                let (mut decoded_bytes, mut rows) = if is_affected {
+                    (0, 0)
+                } else {
+                    let (existing_bytes, existing_rows) =
+                        Self::existing_partition_memory(indices.as_ref(), partition, row_bytes)?;
+                    let decoded_bytes = existing_bytes
+                        .checked_add(shuffled_partition_bytes(reader.as_ref(), partition)?)
+                        .ok_or_else(|| {
+                            Error::invalid_input("IVF partition memory estimate overflows")
+                        })?;
+                    let rows = existing_rows
+                        .checked_add(reader.partition_size(partition)?)
+                        .ok_or_else(|| Error::invalid_input("IVF partition row count overflows"))?;
+                    (decoded_bytes, rows)
+                };
+                if let Some(reader) = &split_reader {
+                    rows = rows
+                        .checked_add(reader.partition_size(partition)?)
+                        .ok_or_else(|| {
+                            Error::invalid_input("IVF split partition row count overflows")
+                        })?;
+                    decoded_bytes = decoded_bytes
+                        .checked_add(shuffled_partition_bytes(reader.as_ref(), partition)?)
+                        .ok_or_else(|| {
+                            Error::invalid_input("IVF split partition memory estimate overflows")
+                        })?;
+                }
+                if let Some(PartitionAdjustment::Join {
+                    join_shuffle_reader,
+                    ..
+                }) = partition_adjustment.as_ref()
+                {
+                    rows = rows
+                        .checked_add(join_shuffle_reader.partition_size(partition)?)
+                        .ok_or_else(|| {
+                            Error::invalid_input("IVF joined partition row count overflows")
+                        })?;
+                    decoded_bytes = decoded_bytes
+                        .checked_add(shuffled_partition_bytes(
+                            join_shuffle_reader.as_ref(),
+                            partition,
+                        )?)
+                        .ok_or_else(|| {
+                            Error::invalid_input("IVF joined partition memory estimate overflows")
+                        })?;
+                }
+                build_memory.bytes(decoded_bytes, rows)?
+            } else {
+                0
+            };
+            let build = move |mut admission: Option<AdmissionPermit>| async move {
                 // For affected partitions, the split shuffle reader has
                 // all data (existing + new), re-assigned with updated
                 // centroids. For other partitions, read from existing
@@ -1330,13 +1573,38 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
                     loss += extra_loss;
                 }
 
-                spawn_cpu(move || {
+                if let Some(admission) = &mut admission {
+                    let decoded_bytes = batches.iter().try_fold(0usize, |total, batch| {
+                        total
+                            .checked_add(batch.get_array_memory_size())
+                            .ok_or_else(|| {
+                                Error::invalid_input(format!(
+                                    "IVF partition {partition} decoded memory size overflows"
+                                ))
+                            })
+                    })?;
+                    let rows = batches.iter().try_fold(0usize, |total, batch| {
+                        total.checked_add(batch.num_rows()).ok_or_else(|| {
+                            Error::invalid_input(format!(
+                                "IVF partition {partition} row count overflows"
+                            ))
+                        })
+                    })?;
+                    admission.reconcile(build_memory.bytes(decoded_bytes, rows)?)?;
+                }
+
+                // CPU tasks cannot be cancelled. Move the reservation into the
+                // task so cancellation cannot release bytes still in use.
+                spawn_cpu(move || -> Result<_> {
                     let num_rows = batches.iter().map(|b| b.num_rows()).sum::<usize>();
                     if num_rows == 0 {
-                        return Ok(Budgeted::untracked(PartitionBuildResult {
-                            partition_id: output_partition_id,
-                            built: None,
-                        }));
+                        return Ok((
+                            PartitionBuildResult {
+                                partition_id: output_partition_id,
+                                built: None,
+                            },
+                            admission,
+                        ));
                     }
 
                     let (storage, sub_index) = Self::build_index(
@@ -1347,17 +1615,135 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
                         column,
                         frag_reuse_index,
                     )?;
-                    Ok(Budgeted::untracked(PartitionBuildResult {
-                        partition_id: output_partition_id,
-                        built: Some((storage, sub_index, loss)),
-                    }))
+                    Ok((
+                        PartitionBuildResult {
+                            partition_id: output_partition_id,
+                            built: Some((storage, sub_index, loss)),
+                        },
+                        admission,
+                    ))
                 })
                 .await
-            }
+            };
+            Ok::<_, Error>((estimated_bytes, build))
         });
-        Ok(stream::iter(build_iter)
-            .buffered(get_num_compute_intensive_cpus())
+        let concurrency = get_num_compute_intensive_cpus().max(1);
+        if let Some(memory_pool) = memory_pool {
+            let budget_bytes = match memory_pool.memory_limit() {
+                MemoryLimit::Finite(limit) => limit.max(1),
+                MemoryLimit::Infinite | MemoryLimit::Unknown => PARTITION_BUILD_BUDGET_BYTES,
+            };
+            let jobs = stream::iter(build_iter)
+                .map_ok(|(estimated_bytes, build)| {
+                    WeightedJob::with_permit(estimated_bytes, move |admission| async move {
+                        let (result, admission) = build(Some(admission)).await?;
+                        let admission = admission.ok_or_else(|| {
+                            Error::internal("IVF partition build lost its memory admission")
+                        })?;
+                        Ok((result, admission))
+                    })
+                })
+                .boxed();
+            Ok(BoundedPartitionStream::try_new(
+                jobs,
+                concurrency,
+                budget_bytes,
+                concurrency * PARTITION_BUILD_ENTRIES_PER_WORKER,
+            )?
+            .with_memory_pool(memory_pool)
+            .with_memory_reclaimer(memory_reclaimer)
             .boxed())
+        } else {
+            Ok(stream::iter(build_iter)
+                .map_ok(|(_, build)| async move {
+                    let (result, _) = build(None).await?;
+                    Ok(Budgeted::untracked(result))
+                })
+                .try_buffered(concurrency)
+                .boxed())
+        }
+    }
+
+    fn partition_row_bytes(&self, quantizer: &Q) -> Result<usize> {
+        let code_bytes = if Q::quantization_type() == QuantizationType::Flat {
+            let dataset = self.dataset.as_ref().ok_or_else(|| {
+                Error::invalid_input("IVF partition memory estimate requires the dataset schema")
+            })?;
+            let (vector_type, element_type) = get_vector_type(dataset.schema(), &self.column)?;
+            let element_bytes = element_type.byte_width_opt().ok_or_else(|| {
+                Error::not_supported(format!(
+                    "IVF partition memory estimate does not support vector elements {element_type}"
+                ))
+            })?;
+            infer_vector_dim(&vector_type)?
+                .checked_mul(element_bytes)
+                .ok_or_else(|| Error::invalid_input("IVF vector memory stride overflows"))?
+        } else {
+            quantizer
+                .field()
+                .data_type()
+                .byte_width_opt()
+                .ok_or_else(|| {
+                    Error::not_supported(
+                        "IVF quantizer must have a fixed-width code for memory admission",
+                    )
+                })?
+        };
+        quantizer.extra_fields().iter().try_fold(
+            // Row ids plus one validity byte for each of the two base fields.
+            code_bytes
+                .checked_add(std::mem::size_of::<u64>() + 2)
+                .ok_or_else(|| Error::invalid_input("IVF partition memory stride overflows"))?,
+            |total, field| {
+                let bytes = field.data_type().byte_width_opt().ok_or_else(|| {
+                    Error::not_supported(format!(
+                        "IVF partition memory estimate requires a fixed-width field '{}', got {}",
+                        field.name(),
+                        field.data_type()
+                    ))
+                })?;
+                total
+                    .checked_add(bytes)
+                    .and_then(|total| total.checked_add(1))
+                    .ok_or_else(|| Error::invalid_input("IVF partition memory stride overflows"))
+            },
+        )
+    }
+
+    fn existing_partition_memory(
+        indices: &[ExistingIndex],
+        partition: usize,
+        row_bytes: usize,
+    ) -> Result<(usize, usize)> {
+        let rows = indices.iter().try_fold(0usize, |rows, source| {
+            let count = if partition < source.index.ivf_model().num_partitions() {
+                source.index.partition_size(partition)
+            } else {
+                0
+            };
+            rows.checked_add(count).ok_or_else(|| {
+                Error::invalid_input(format!("IVF partition {partition} row count overflows"))
+            })
+        })?;
+        if rows == 0 {
+            return Ok((0, 0));
+        }
+        let values = rows.checked_mul(row_bytes).ok_or_else(|| {
+            Error::invalid_input(format!(
+                "IVF partition {partition} decoded memory estimate overflows"
+            ))
+        })?;
+        // Match shuffle planning's headroom for validity, Arrow buffers, and
+        // per-batch allocations. The materialized charge is checked again.
+        let bytes = values
+            .checked_add(values / 4)
+            .and_then(|bytes| bytes.checked_add(1024 * 1024))
+            .ok_or_else(|| {
+                Error::invalid_input(format!(
+                    "IVF partition {partition} admission memory estimate overflows"
+                ))
+            })?;
+        Ok((bytes, rows))
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -1369,11 +1755,40 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
         sub_index_params: S::BuildParams,
         column: String,
         frag_reuse_index: Option<Arc<CompactFragReuseIndex>>,
-        limits: FreshPartitionBuildLimits,
+        mut limits: FreshPartitionBuildLimits,
+        memory_pool: Option<Arc<dyn MemoryPool>>,
     ) -> Result<BuildStream<S, Q>> {
+        let has_memory_pool = memory_pool.is_some();
+        let build_memory = PartitionBuildMemory::new(
+            Q::quantization_type(),
+            frag_reuse_index.is_some(),
+            distance_type,
+        );
+        if let Some(pool) = &memory_pool
+            && let MemoryLimit::Finite(limit) = pool.memory_limit()
+        {
+            // The local gate controls concurrency; the pool remains the final
+            // authority, including when its limit is zero.
+            limits.decoded_budget_bytes = limit.max(1);
+            // Every decoded row includes a u64 id. This lower bound also
+            // budgets remapping scratch without reading vector data or relying
+            // on quantizer metadata's type matching the source vector type.
+            let workspace_ratio = build_memory.copies
+                + build_memory
+                    .row_scratch_bytes
+                    .div_ceil(std::mem::size_of::<u64>());
+            // Leave room for storage conversion and a second read window. The
+            // offsets table can retain part of the same pool until reclaimed.
+            limits.window_bytes = limits
+                .window_bytes
+                .min((limit.saturating_sub(pool.reserved()) / (2 * workspace_ratio)).max(1));
+        }
         let concurrency = get_num_compute_intensive_cpus().max(1);
         let max_entries = concurrency.saturating_mul(PARTITION_BUILD_ENTRIES_PER_WORKER);
         let cpu_permits = Arc::new(Semaphore::new(concurrency));
+        let reclaim_reader = reader.clone();
+        let memory_reclaimer =
+            async move { reclaim_reader.release_optional_memory().await }.boxed();
         let jobs = stream::try_unfold(0usize, move |next_partition_id| {
             let reader = reader.clone();
             let quantizer = quantizer.clone();
@@ -1406,8 +1821,24 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
                     max_entries,
                     concurrency,
                 );
+                let estimated_bytes = if has_memory_pool {
+                    if plan.estimated_decoded_bytes == usize::MAX {
+                        return Err(Error::not_supported(format!(
+                            "IVF partition {} reader cannot estimate decoded memory for a supplied memory pool",
+                            planned_range.start
+                        )));
+                    }
+                    let rows = planned_range.clone().try_fold(0usize, |total, partition| {
+                        total.checked_add(reader.partition_size(partition)?).ok_or_else(|| {
+                            Error::invalid_input("IVF partition window row count overflows")
+                        })
+                    })?;
+                    build_memory.bytes(plan.estimated_decoded_bytes, rows)?
+                } else {
+                    plan.estimated_decoded_bytes
+                };
                 let job = WeightedJob::with_permit(
-                    plan.estimated_decoded_bytes,
+                    estimated_bytes,
                     move |mut admission| async move {
                         let mut window = reader
                             .read_partition_window(
@@ -1441,12 +1872,16 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
                         let count_stream_bytes = window.materialized_decoded_bytes.is_none();
                         let mut decoded_bytes =
                             window.materialized_decoded_bytes.unwrap_or_default();
+                        let mut rows = 0usize;
                         let mut inputs = Vec::with_capacity(window.partitions.len());
                         for mut partition in window.partitions.drain(..) {
                             let mut batches = Vec::new();
                             let mut loss = 0.0;
                             if let Some(mut data) = partition.data.take() {
                                 while let Some(batch) = data.try_next().await? {
+                                    rows = rows.checked_add(batch.num_rows()).ok_or_else(|| {
+                                        Error::invalid_input("IVF partition window row count overflows")
+                                    })?;
                                     loss += batch
                                         .metadata()
                                         .get(LOSS_METADATA_KEY)
@@ -1476,7 +1911,12 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
                                 loss,
                             });
                         }
-                        admission.reconcile(decoded_bytes);
+                        admission.reconcile(if has_memory_pool {
+                            build_memory.bytes(decoded_bytes, rows)?
+                        } else {
+                            decoded_bytes
+                        })?;
+                        let memory_reservation = admission.memory_reservation.clone();
 
                         // Multiple windows each own a small FIFO entry budget so a
                         // later window cannot consume every slot needed for the
@@ -1491,6 +1931,7 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
                                 let column = column.clone();
                                 let frag_reuse_index = frag_reuse_index.clone();
                                 let cpu_permits = cpu_permits.clone();
+                                let memory_reservation = memory_reservation.clone();
                                 async move {
                                     let partition_id = input.partition_id;
                                     let loss = input.loss;
@@ -1500,14 +1941,14 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
                                                 "partition build CPU semaphore was closed",
                                             )
                                         })?;
-                                    let built = spawn_cpu(move || -> Result<_> {
+                                    let (built, _memory_reservation) = spawn_cpu(move || -> Result<_> {
                                         let num_rows = input
                                             .batches
                                             .iter()
                                             .map(|batch| batch.num_rows())
                                             .sum::<usize>();
                                         if num_rows == 0 {
-                                            return Ok(None);
+                                            return Ok((None, memory_reservation));
                                         }
                                         let (storage, sub_index) = Self::build_index(
                                             distance_type,
@@ -1517,7 +1958,7 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
                                             column,
                                             frag_reuse_index,
                                         )?;
-                                        Ok(Some((storage, sub_index, loss)))
+                                        Ok((Some((storage, sub_index, loss)), memory_reservation))
                                     })
                                     .await?;
                                     Ok::<_, Error>((
@@ -1539,7 +1980,7 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
         })
         .boxed();
 
-        let windows = BoundedPartitionStream::try_new(
+        let mut windows = BoundedPartitionStream::try_new(
             jobs,
             concurrency,
             limits.decoded_budget_bytes,
@@ -1548,6 +1989,11 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
             // `max_entries` even after an inner stream has finished.
             concurrency,
         )?;
+        if let Some(memory_pool) = memory_pool {
+            windows = windows
+                .with_memory_pool(memory_pool)
+                .with_memory_reclaimer(memory_reclaimer);
+        }
         Ok(windows
             .map_ok(|window| {
                 let Budgeted {
@@ -2252,11 +2698,15 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
 
         let (transformer, vector_field) = self.assign_transformer(new_centroids)?;
         let transformer = Arc::new(transformer);
+        let fetch_bytes = ivf_input_batch_bytes(self.memory_pool.as_ref())
+            .unwrap_or(RAW_VECTOR_FETCH_BYTES)
+            .min(RAW_VECTOR_FETCH_BYTES);
         let (rows_per_fetch, prefetch) = raw_vector_fetch_shape(
             is_multivector_column(dataset.schema(), &self.column)?,
             new_centroids.value_length() as usize,
             &vector_field,
             self.store.block_size(),
+            fetch_bytes,
         );
         let fetched = Self::take_vectors_stream(
             dataset,
@@ -2268,13 +2718,13 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
         .await?;
 
         // A split can touch most of the index, so the raw vectors are read in
-        // batches of `RAW_VECTOR_FETCH_BYTES`, and each batch is sliced across
+        // batches targeting `fetch_bytes`, and each batch is sliced across
         // the transform workers instead of admitting one whole batch per
         // worker. The rows held at once are then bounded by the fetch budget,
         // not by the number of affected rows or CPUs.
         let column = self.column.clone();
         let num_workers = get_num_compute_intensive_cpus().max(1);
-        let slices = regroup_by_bytes(Box::pin(fetched), RAW_VECTOR_FETCH_BYTES)
+        let slices = regroup_by_bytes(Box::pin(fetched), fetch_bytes)
             .map(move |batch| -> Result<_> {
                 // For multivector, flatten
                 let batch = Flatten::new(&column).transform(&batch?)?;
@@ -2313,12 +2763,13 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
             Box::new(RecordBatchStreamAdapter::new(schema, transformed_stream));
 
         let split_shuffle_dir = self.temp_dir.clone().join("split_shuffle");
-        let shuffler = create_ivf_shuffler(
+        let shuffler = create_dataset_ivf_shuffler(
+            dataset,
             split_shuffle_dir,
             new_centroids.len(),
-            self.format_version,
             None,
-        );
+            self.memory_pool.clone(),
+        )?;
         shuffler.shuffle(transformed_stream).await
     }
 
@@ -2651,12 +3102,13 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
 
         let num_partitions = ivf.num_partitions();
         let shuffle_dir = self.temp_dir.clone().join("join_shuffle");
-        let shuffler = create_ivf_shuffler(
+        let shuffler = create_dataset_ivf_shuffler(
+            dataset,
             shuffle_dir.clone(),
             num_partitions,
-            self.format_version,
             None,
-        );
+            self.memory_pool.clone(),
+        )?;
         let store = Arc::new(self.store.clone());
         let (mut sender, mut receiver) = futures::channel::mpsc::channel::<RecordBatch>(2);
         let shuffle = async move {
@@ -2675,12 +3127,26 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
                 .shuffle(Box::new(RecordBatchStreamAdapter::new(schema, batches)))
                 .await
         };
+        let fetch_bytes = ivf_input_batch_bytes(self.memory_pool.as_ref())
+            .unwrap_or(RAW_VECTOR_FETCH_BYTES)
+            .min(RAW_VECTOR_FETCH_BYTES);
         let (rows_per_fetch, prefetch) = raw_vector_fetch_shape(
             multivector,
             ivf.dimension(),
             &vector_field,
             self.store.block_size(),
+            fetch_bytes,
         );
+        let vectors_per_batch = if ivf_input_batch_bytes(self.memory_pool.as_ref()).is_some() {
+            let vector_bytes = ivf
+                .dimension()
+                .checked_mul(vector_field_element_width(&vector_field))
+                .and_then(|bytes| bytes.checked_add(12))
+                .ok_or_else(|| Error::invalid_input("IVF join input row size overflows"))?;
+            (fetch_bytes / vector_bytes).clamp(1, JOIN_VECTORS_PER_BATCH)
+        } else {
+            JOIN_VECTORS_PER_BATCH
+        };
         let route = async move {
             for (&part_idx, row_ids) in partitions.iter().zip(rows_per_partition) {
                 if row_ids.is_empty() {
@@ -2700,11 +3166,11 @@ impl<S: IvfSubIndex + 'static, Q: Quantization + 'static> IvfIndexBuilder<S, Q> 
                     prefetch,
                 )
                 .await?;
-                let mut chunks = Box::pin(regroup_by_bytes(fetched, RAW_VECTOR_FETCH_BYTES));
+                let mut chunks = Box::pin(regroup_by_bytes(fetched, fetch_bytes));
                 while let Some(chunk) = chunks.try_next().await? {
                     let (row_ids, vectors) = self.flatten_raw_vectors(&chunk)?;
-                    for start in (0..row_ids.len()).step_by(JOIN_VECTORS_PER_BATCH) {
-                        let end = (start + JOIN_VECTORS_PER_BATCH).min(row_ids.len());
+                    for start in (0..row_ids.len()).step_by(vectors_per_batch) {
+                        let end = (start + vectors_per_batch).min(row_ids.len());
                         let mut assign_ops: BTreeMap<u32, Vec<AssignOp>> = BTreeMap::new();
                         for i in start..end {
                             let vector = vectors.value(i);
@@ -3064,7 +3530,7 @@ where
 
 /// Rows per fetch and fetches in flight for re-reading the raw vectors of a
 /// split or join. A fixed-size vector row has a known size, so a fetch is sized
-/// to `RAW_VECTOR_FETCH_BYTES` up front, capped at `max_rows_per_fetch`; a
+/// to `fetch_bytes` up front, capped at `max_rows_per_fetch`; a
 /// multivector row does not, so those are fetched one at a time and regrouped
 /// by measured size.
 fn raw_vector_fetch_shape(
@@ -3072,13 +3538,14 @@ fn raw_vector_fetch_shape(
     dimension: usize,
     vector_field: &Field,
     max_rows_per_fetch: usize,
+    fetch_bytes: usize,
 ) -> (usize, usize) {
     if multivector {
         return (1, MULTIVECTOR_FETCHES_IN_FLIGHT);
     }
     let row_bytes = dimension * vector_field_element_width(vector_field);
     (
-        (RAW_VECTOR_FETCH_BYTES / row_bytes.max(1)).clamp(1, max_rows_per_fetch.max(1)),
+        (fetch_bytes / row_bytes.max(1)).clamp(1, max_rows_per_fetch.max(1)),
         RAW_VECTOR_FETCHES_IN_FLIGHT,
     )
 }
@@ -3255,11 +3722,16 @@ mod tests {
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     use super::*;
-    use arrow_array::{Array, Float32Array, NullArray};
+    use arrow_array::{Array, Float32Array, NullArray, UInt8Array};
+    use datafusion::execution::memory_pool::GreedyMemoryPool;
     use lance_index::vector::flat::index::{FlatIndex, FlatQuantizer};
+    use lance_index::vector::pq::ProductQuantizer;
     use lance_index::vector::v3::shuffler::{
         ShufflePartition, ShufflePartitionWindow, ShufflePartitionWindowPlan,
     };
+    use lance_table::system_index::frag_reuse::FragReuseIndexDetails;
+    use rstest::rstest;
+    use uuid::Uuid;
 
     struct SingleBatchReader {
         batch: RecordBatch,
@@ -3299,6 +3771,7 @@ mod tests {
     struct WindowedBatchReader {
         batches: Vec<RecordBatch>,
         windows_read: Arc<AtomicUsize>,
+        partition_bytes: usize,
     }
 
     #[async_trait::async_trait]
@@ -3334,11 +3807,12 @@ mod tests {
                 )));
             }
             let end_partition_id = start_partition_id
-                .saturating_add(max_decoded_bytes)
+                .saturating_add((max_decoded_bytes / self.partition_bytes).max(1))
                 .min(self.batches.len());
             Ok(ShufflePartitionWindowPlan {
                 partition_range: start_partition_id..end_partition_id,
-                estimated_decoded_bytes: end_partition_id - start_partition_id,
+                estimated_decoded_bytes: (end_partition_id - start_partition_id)
+                    * self.partition_bytes,
             })
         }
 
@@ -3373,7 +3847,7 @@ mod tests {
                 })
                 .collect();
             Ok(ShufflePartitionWindow {
-                materialized_decoded_bytes: Some(plan.partition_range.len()),
+                materialized_decoded_bytes: Some(plan.estimated_decoded_bytes),
                 partition_range: plan.partition_range,
                 partitions,
             })
@@ -3463,13 +3937,30 @@ mod tests {
         assert_eq!(partition_window_entry_limit(&(32..64), 64, 32, 16), 2);
     }
 
+    #[rstest]
+    #[case::default(false, false)]
+    #[case::memory_pool(true, false)]
+    #[case::pool_above_default_budget(true, true)]
     #[tokio::test]
-    async fn fresh_partition_build_runs_multiple_windows_end_to_end() {
+    async fn fresh_partition_build_runs_multiple_windows_end_to_end(
+        #[case] has_memory_pool: bool,
+        #[case] has_large_partitions: bool,
+    ) {
         let num_partitions = 6;
+        // The reader models large decoded partitions without allocating them.
+        // Its first read waits for another window, proving the caller's larger
+        // pool replaces the default local byte gate rather than serializing it.
+        let partition_bytes = if has_large_partitions {
+            PARTITION_BUILD_BUDGET_BYTES / 2 + 1
+        } else {
+            flat_partition_batch(0).get_array_memory_size()
+        };
+        let pool = Arc::new(GreedyMemoryPool::new(8 * partition_bytes));
         let windows_read = Arc::new(AtomicUsize::new(0));
         let reader = Arc::new(WindowedBatchReader {
             batches: (0..num_partitions).map(flat_partition_batch).collect(),
             windows_read: windows_read.clone(),
+            partition_bytes,
         });
         let mut build_stream =
             IvfIndexBuilder::<FlatIndex, FlatQuantizer>::build_fresh_partitions_windowed(
@@ -3481,15 +3972,21 @@ mod tests {
                 "vector".to_string(),
                 None,
                 FreshPartitionBuildLimits {
-                    window_bytes: 2,
-                    decoded_budget_bytes: 4,
+                    window_bytes: 2 * partition_bytes,
+                    decoded_budget_bytes: if has_large_partitions {
+                        PARTITION_BUILD_BUDGET_BYTES
+                    } else {
+                        8 * partition_bytes
+                    },
                 },
+                has_memory_pool.then(|| pool.clone() as Arc<dyn MemoryPool>),
             )
             .unwrap();
 
         let mut ordered_results = OrderedPartitionResults::new(num_partitions);
         let mut merged_partition_ids = Vec::with_capacity(num_partitions);
         while let Some(result) = build_stream.try_next().await.unwrap() {
+            assert_eq!(pool.reserved() > 0, has_memory_pool);
             ordered_results
                 .push(result.value.partition_id, result)
                 .unwrap();
@@ -3499,12 +3996,164 @@ mod tests {
             }
         }
         ordered_results.finish().unwrap();
+        assert_eq!(pool.reserved(), 0);
 
         assert_eq!(windows_read.load(Ordering::Relaxed), 3);
         assert_eq!(
             merged_partition_ids,
             (0..num_partitions).collect::<Vec<_>>()
         );
+    }
+
+    #[rstest]
+    #[case::pq4(4, false)]
+    #[case::pq4_remapped(4, true)]
+    #[case::pq8(8, false)]
+    #[case::pq8_remapped(8, true)]
+    #[tokio::test]
+    async fn fresh_pq_partition_windows_account_for_conversion(
+        #[case] bits: u32,
+        #[case] remapped: bool,
+    ) {
+        let num_partitions = 3;
+        let code_bytes = if bits == 4 { 2 } else { 4 };
+        let batches = (0..num_partitions)
+            .map(|partition| {
+                let codes = FixedSizeListArray::try_new_from_values(
+                    UInt8Array::from(vec![0; code_bytes]),
+                    code_bytes as i32,
+                )
+                .unwrap();
+                RecordBatch::try_from_iter([
+                    (
+                        ROW_ID,
+                        Arc::new(UInt64Array::from(vec![partition as u64])) as ArrayRef,
+                    ),
+                    (PQ_CODE_COLUMN, Arc::new(codes) as ArrayRef),
+                ])
+                .unwrap()
+            })
+            .collect::<Vec<_>>();
+        let partition_bytes = batches[0].get_array_memory_size();
+        let pool = Arc::new(GreedyMemoryPool::new(12 * partition_bytes));
+        let windows_read = Arc::new(AtomicUsize::new(0));
+        let reader = Arc::new(WindowedBatchReader {
+            batches,
+            windows_read: windows_read.clone(),
+            partition_bytes,
+        });
+        let codebook = FixedSizeListArray::try_new_from_values(
+            Float32Array::from(vec![0.0; 4 * (1usize << bits)]),
+            4,
+        )
+        .unwrap();
+        let quantizer = ProductQuantizer::new(4, bits, 4, codebook, DistanceType::L2);
+        let frag_reuse_index = remapped.then(|| {
+            Arc::new(CompactFragReuseIndex::from_row_id_maps(
+                Uuid::new_v4(),
+                vec![
+                    (0..num_partitions)
+                        .map(|id| (id as u64, Some(id as u64 + 10)))
+                        .collect(),
+                ],
+                FragReuseIndexDetails {
+                    versions: Vec::new(),
+                },
+            ))
+        });
+        let mut output =
+            IvfIndexBuilder::<FlatIndex, ProductQuantizer>::build_fresh_partitions_windowed(
+                reader,
+                num_partitions,
+                DistanceType::L2,
+                quantizer,
+                (),
+                "vector".to_owned(),
+                frag_reuse_index,
+                FreshPartitionBuildLimits::default(),
+                Some(pool.clone()),
+            )
+            .unwrap();
+        let mut completed = 0;
+        while let Some(result) = output.try_next().await.unwrap() {
+            assert!(pool.reserved() >= 3 * partition_bytes);
+            assert!(pool.reserved() <= 12 * partition_bytes);
+            let (storage, _, _) = result.value.built.as_ref().unwrap();
+            assert_eq!(
+                storage.row_ids().copied().collect::<Vec<_>>(),
+                vec![result.value.partition_id as u64 + if remapped { 10 } else { 0 }]
+            );
+            completed += 1;
+        }
+        assert_eq!(completed, num_partitions);
+        assert!(windows_read.load(Ordering::Relaxed) >= 2);
+        assert_eq!(pool.reserved(), 0);
+    }
+
+    #[tokio::test]
+    async fn fresh_partition_memory_admission_rejects_before_reading() {
+        let windows_read = Arc::new(AtomicUsize::new(0));
+        let batch = flat_partition_batch(0);
+        let pool = Arc::new(GreedyMemoryPool::new(batch.get_array_memory_size()));
+        let reader = Arc::new(WindowedBatchReader {
+            partition_bytes: batch.get_array_memory_size(),
+            batches: vec![batch],
+            windows_read: windows_read.clone(),
+        });
+        let mut output =
+            IvfIndexBuilder::<FlatIndex, FlatQuantizer>::build_fresh_partitions_windowed(
+                reader,
+                1,
+                DistanceType::L2,
+                FlatQuantizer::new(2, DistanceType::L2),
+                (),
+                "vector".to_string(),
+                None,
+                FreshPartitionBuildLimits::default(),
+                Some(pool.clone()),
+            )
+            .unwrap();
+
+        let Err(error) = output.next().await.unwrap() else {
+            panic!("expected partition admission failure");
+        };
+        assert!(matches!(error, Error::Execution { .. }));
+        assert!(error.to_string().contains("before decoding"));
+        assert_eq!(windows_read.load(Ordering::Relaxed), 0);
+        assert_eq!(pool.reserved(), 0);
+    }
+
+    #[tokio::test]
+    async fn fresh_partition_memory_admission_requires_an_estimate() {
+        let pool = Arc::new(GreedyMemoryPool::new(1024 * 1024));
+        let reader = Arc::new(SingleBatchReader {
+            batch: flat_partition_batch(0),
+            partition_id: 0,
+        });
+        let mut output =
+            IvfIndexBuilder::<FlatIndex, FlatQuantizer>::build_fresh_partitions_windowed(
+                reader,
+                1,
+                DistanceType::L2,
+                FlatQuantizer::new(2, DistanceType::L2),
+                (),
+                "vector".to_string(),
+                None,
+                FreshPartitionBuildLimits::default(),
+                Some(pool.clone()),
+            )
+            .unwrap();
+
+        let Err(error) = output.next().await.unwrap() else {
+            panic!("expected unavailable memory estimate");
+        };
+        assert!(matches!(error, Error::NotSupported { .. }));
+        assert!(
+            error
+                .to_string()
+                .contains("partition 0 reader cannot estimate decoded memory")
+        );
+        assert_eq!(pool.reserved(), 0);
     }
 
     #[test]
@@ -4234,6 +4883,51 @@ mod tests {
             sizes.iter().all(|&rows| rows <= 400),
             "a join destination exceeds the split threshold: {sizes:?}"
         );
+    }
+
+    #[tokio::test]
+    async fn raw_vector_fetch_budget_bounds_materialized_buffers() {
+        let batch = lance_datagen::gen_batch()
+            .col(
+                "vector",
+                lance_datagen::array::rand_vec::<Float32Type>(lance_datagen::Dimension::from(128)),
+            )
+            .into_batch_rows(lance_datagen::RowCount::from(256))
+            .unwrap();
+        let vector_field = batch.schema().field(0).clone();
+        let dataset = Dataset::write(
+            arrow_array::RecordBatchIterator::new(vec![Ok(batch.clone())], batch.schema()),
+            "memory://",
+            None,
+        )
+        .await
+        .unwrap();
+        let pool: Arc<dyn MemoryPool> = Arc::new(GreedyMemoryPool::new(
+            16 * 1024 * 4 * (get_num_compute_intensive_cpus() + 1),
+        ));
+        let fetch_bytes = ivf_input_batch_bytes(Some(&pool)).unwrap();
+        let (rows_per_fetch, prefetch) =
+            raw_vector_fetch_shape(false, 128, &vector_field, 8192, fetch_bytes);
+        assert!(rows_per_fetch < 256);
+        let fetched = IvfIndexBuilder::<FlatIndex, FlatQuantizer>::take_vectors_stream(
+            &dataset,
+            "vector",
+            &(0..256).collect::<Vec<_>>(),
+            rows_per_fetch,
+            prefetch,
+        )
+        .await
+        .unwrap();
+        let mut grouped = regroup_by_bytes(Box::pin(fetched), fetch_bytes).boxed();
+        let mut rows = 0;
+        while let Some(batch) = grouped.try_next().await.unwrap() {
+            // Inspect the backing allocation, not the visible row count: a
+            // slice of a large Arrow buffer would fail this assertion.
+            let vectors = batch["vector"].as_fixed_size_list();
+            assert!(vectors.values().get_buffer_memory_size() <= fetch_bytes);
+            rows += batch.num_rows();
+        }
+        assert_eq!(rows, 256);
     }
 
     #[tokio::test]

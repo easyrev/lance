@@ -74,6 +74,7 @@ pub struct Session {
     store_registry: Arc<ObjectStoreRegistry>,
 
     spill_store: Arc<dyn SpillStore>,
+    has_custom_spill_store: bool,
 }
 
 impl DeepSizeOf for Session {
@@ -138,6 +139,7 @@ impl Session {
             index_extensions: HashMap::new(),
             store_registry,
             spill_store: Arc::new(LocalSpillStore::default()),
+            has_custom_spill_store: false,
         }
     }
 
@@ -159,6 +161,7 @@ impl Session {
             index_extensions: HashMap::new(),
             store_registry,
             spill_store: Arc::new(LocalSpillStore::default()),
+            has_custom_spill_store: false,
         }
     }
 
@@ -176,6 +179,7 @@ impl Session {
     /// ```
     pub fn with_spill_store(mut self, store: Arc<dyn SpillStore>) -> Self {
         self.spill_store = store;
+        self.has_custom_spill_store = true;
         self
     }
 
@@ -185,6 +189,14 @@ impl Session {
     /// state that overflows memory (e.g. index builders).
     pub fn spill_store(&self) -> &dyn SpillStore {
         &*self.spill_store
+    }
+
+    pub(crate) fn spill_store_arc(&self) -> Arc<dyn SpillStore> {
+        self.spill_store.clone()
+    }
+
+    pub(crate) fn has_custom_spill_store(&self) -> bool {
+        self.has_custom_spill_store
     }
 
     /// Create a session with custom backends for both caches.
@@ -238,6 +250,7 @@ impl Session {
             index_extensions: HashMap::new(),
             store_registry,
             spill_store: Arc::new(LocalSpillStore::default()),
+            has_custom_spill_store: false,
         }
     }
 

@@ -4,6 +4,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use datafusion::execution::memory_pool::MemoryPool;
 use futures::{FutureExt, TryStreamExt};
 use lance_core::{Error, Result};
 use lance_file::reader::FileReaderOptions;
@@ -12,7 +13,7 @@ use lance_index::{
     frag_reuse::CompactFragReuseIndex,
     metrics::NoOpMetricsCollector,
     optimize::OptimizeOptions,
-    progress::{IndexBuildProgress, NoopIndexBuildProgress},
+    progress::NoopIndexBuildProgress,
     scalar::{
         BuiltinIndexType, CreatedIndex, OldIndexDataFilter, ScalarIndex, index_files_to_table,
         inverted::InvertedIndex,
@@ -938,16 +939,19 @@ async fn rebuild_vector_segment(
     params: &VectorIndexParams,
     field_path: &str,
     fragment_bitmap: &RoaringBitmap,
-    progress: Arc<dyn IndexBuildProgress>,
+    options: &OptimizeOptions,
 ) -> Result<IndexMetadata> {
     let mut build_dataset = dataset.clone();
-    CreateIndexBuilder::new(&mut build_dataset, &[field_path], IndexType::Vector, params)
-        .name(name.to_string())
-        .replace(true)
-        .fragments(fragment_bitmap.iter().collect())
-        .progress(progress)
-        .execute_uncommitted()
-        .await
+    let mut builder =
+        CreateIndexBuilder::new(&mut build_dataset, &[field_path], IndexType::Vector, params)
+            .name(name.to_string())
+            .replace(true)
+            .fragments(fragment_bitmap.iter().collect())
+            .progress(options.progress.clone());
+    if let Some(pool) = &options.memory_pool {
+        builder = builder.with_memory_pool(pool.clone());
+    }
+    builder.execute_uncommitted().await
 }
 
 /// True when a segment carries only its definition: nothing to open, nothing
@@ -969,6 +973,7 @@ async fn scan_vector_fragments(
     field_path: &str,
     column_nullable: bool,
     fragments: &[Fragment],
+    memory_pool: Option<&Arc<dyn MemoryPool>>,
 ) -> Result<crate::dataset::scanner::DatasetRecordBatchStream> {
     let mut scanner = dataset.scan();
     scanner
@@ -978,6 +983,14 @@ async fn scan_vector_fragments(
     if column_nullable {
         let column_expr = lance_datafusion::logical_expr::field_path_to_expr(field_path)?;
         scanner.filter_expr(column_expr.is_not_null());
+    }
+    if let Some(batch_size) =
+        super::vector::builder::ivf_input_batch_size(dataset.schema(), field_path, memory_pool)?
+    {
+        scanner.batch_size(batch_size);
+    }
+    if let Some(bytes) = super::vector::builder::ivf_input_batch_bytes(memory_pool) {
+        scanner.batch_size_bytes(bytes as u64);
     }
     scanner.try_into_stream().await
 }
@@ -1010,7 +1023,7 @@ async fn train_from_definition<'a>(
         &params,
         field_path,
         &fragment_bitmap,
-        options.progress.clone(),
+        options,
     )
     .await?;
     // Only a result that looks degraded is worth confirming; a rebuild that
@@ -1275,7 +1288,7 @@ pub async fn merge_indices_with_unindexed_frags<'a>(
                     &params,
                     &field_path,
                     &fragment_bitmap,
-                    options.progress.clone(),
+                    options,
                 )
                 .await?;
                 // Only a result that looks degraded is worth confirming; a
@@ -1322,6 +1335,7 @@ pub async fn merge_indices_with_unindexed_frags<'a>(
                     &field_path,
                     column.nullable,
                     unindexed,
+                    options.memory_pool.as_ref(),
                 )
                 .await?;
                 let mut append_options = options.clone();
@@ -1476,6 +1490,7 @@ pub async fn merge_indices_with_unindexed_frags<'a>(
                             &field_path,
                             column.nullable,
                             unindexed,
+                            options.memory_pool.as_ref(),
                         )
                         .await?,
                     )
@@ -1814,6 +1829,7 @@ mod tests {
     };
     use arrow_buffer::{BooleanBufferBuilder, NullBuffer, OffsetBuffer};
     use arrow_schema::{DataType, Field, Schema};
+    use datafusion::execution::memory_pool::GreedyMemoryPool;
     use futures::TryStreamExt;
     use lance_arrow::FixedSizeListArrayExt;
     use lance_core::utils::tempfile::TempStrDir;
@@ -1840,6 +1856,112 @@ mod tests {
     use crate::index::CreateIndexBuilder;
     use crate::index::vector::VectorIndexParams;
     use crate::utils::test::{DatagenExt, FragmentCount, FragmentRowCount};
+
+    #[rstest]
+    #[case::fixed_vector(false)]
+    #[case::multivector(true)]
+    #[tokio::test]
+    async fn vector_append_sizes_wide_input_batches_for_memory_pool(#[case] multivector: bool) {
+        // Sixteen separated clusters keep every final partition small; the
+        // last coordinate identifies each vector within its cluster.
+        let num_vectors = if multivector { 64 * 100 } else { 8192 };
+        let values = Float32Array::from_iter_values((0..num_vectors * 128).map(|offset| {
+            let row = offset / 128;
+            if offset % 128 == row % 16 {
+                1.0
+            } else if offset % 128 == 127 {
+                (row / 16) as f32 * 0.0001
+            } else {
+                0.0
+            }
+        }));
+        let vectors = FixedSizeListArray::try_new_from_values(values, 128).unwrap();
+        let query = vectors.value(num_vectors - 1);
+        let ivf = IvfBuildParams {
+            num_partitions: Some(16),
+            centroids: Some(Arc::new(vectors.slice(0, 16))),
+            ..Default::default()
+        };
+        let metric = if multivector {
+            MetricType::Cosine
+        } else {
+            MetricType::L2
+        };
+        let params = VectorIndexParams::with_ivf_flat_params(metric, ivf);
+        let vectors: ArrayRef = if multivector {
+            Arc::new(ListArray::new(
+                Arc::new(Field::new("item", vectors.data_type().clone(), true)),
+                OffsetBuffer::from_lengths(std::iter::repeat_n(100, 64)),
+                Arc::new(vectors),
+                None,
+            ))
+        } else {
+            Arc::new(vectors)
+        };
+        let batch = RecordBatch::try_from_iter([("vector", vectors)]).unwrap();
+        let schema = batch.schema();
+        let initial_rows = if multivector { 2 } else { 64 };
+        let mut dataset = Dataset::write(
+            RecordBatchIterator::new(vec![Ok(batch.slice(0, initial_rows))], batch.schema()),
+            "memory://",
+            Some(WriteParams {
+                max_rows_per_file: initial_rows / 2,
+                ..Default::default()
+            }),
+        )
+        .await
+        .unwrap();
+        dataset
+            .create_index(
+                &["vector"],
+                IndexType::Vector,
+                Some("vector_idx".to_owned()),
+                &params,
+                true,
+            )
+            .await
+            .unwrap();
+        dataset
+            .append(RecordBatchIterator::new(vec![Ok(batch)], schema), None)
+            .await
+            .unwrap();
+
+        // Both the default fixed-vector scan and the 64-row multivector scan
+        // exceed 4 MiB with sort workspace. Each final partition fits.
+        let pool = Arc::new(GreedyMemoryPool::new(4 * 1024 * 1024));
+        dataset
+            .optimize_indices(&OptimizeOptions::append().with_memory_pool(pool.clone()))
+            .await
+            .unwrap();
+        assert_eq!(pool.reserved(), 0);
+        assert_eq!(
+            dataset
+                .load_indices_by_name("vector_idx")
+                .await
+                .unwrap()
+                .len(),
+            2
+        );
+        assert!(
+            dataset
+                .unindexed_fragments("vector_idx")
+                .await
+                .unwrap()
+                .is_empty()
+        );
+
+        let result = dataset
+            .scan()
+            .nearest("vector", &query, 1)
+            .unwrap()
+            .nprobes(16)
+            .try_into_batch()
+            .await
+            .unwrap();
+        // The query is an appended vector, so exact self-recall is 1.0.
+        assert_eq!(result.num_rows(), 1);
+        assert!(result["_distance"].as_primitive::<Float32Type>().value(0) < 1e-6);
+    }
 
     #[test]
     fn test_fragment_reuse_at_source_version_affects_segment() {

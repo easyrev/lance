@@ -10,7 +10,7 @@ use lance_encoding::{
     compression_config::CompressionParams,
     encoder::{BatchEncoder, EncodedBatch},
 };
-use lance_io::{object_store::ObjectStore, traits::Writer as ObjectWriter};
+use lance_io::{object_store::ObjectStore, spill::SpillStore, traits::Writer as ObjectWriter};
 use object_store::path::Path;
 use tokio::io::AsyncWriteExt;
 
@@ -95,6 +95,24 @@ impl Writer {
     /// Spill page metadata to a sidecar file instead of retaining it in memory.
     pub fn with_page_metadata_spill(mut self, object_store: Arc<ObjectStore>, path: Path) -> Self {
         self.sink.with_page_metadata_spill(object_store, path);
+        self
+    }
+
+    /// Spill page metadata through a shared scratch store.
+    ///
+    /// The store enforces its disk budget and reclaims the sidecar after finish
+    /// or when this writer is dropped before completion.
+    ///
+    /// ```no_run
+    /// # use std::sync::Arc;
+    /// # use lance_file::versions::v2_1::Writer;
+    /// # use lance_io::spill::LocalSpillStore;
+    /// # fn configure(writer: Writer) -> Writer {
+    /// writer.with_page_metadata_spill_store(Arc::new(LocalSpillStore::default()))
+    /// # }
+    /// ```
+    pub fn with_page_metadata_spill_store(mut self, store: Arc<dyn SpillStore>) -> Self {
+        self.sink.with_page_metadata_spill_store(store);
         self
     }
 

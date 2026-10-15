@@ -21,7 +21,11 @@ use lance_encoding::{
     },
     repdef::RepDefBuilder,
 };
-use lance_io::{object_store::ObjectStore, traits::Writer as ObjectWriter};
+use lance_io::{
+    object_store::ObjectStore,
+    spill::{Spill, SpillStore},
+    traits::{Reader, Writer as ObjectWriter},
+};
 use log::{debug, warn};
 use object_store::path::Path;
 use prost::Message;
@@ -49,27 +53,60 @@ const DEFAULT_SPILL_BUFFER_LIMIT: usize = 256 * 1024;
 
 struct PageMetadataSpill {
     writer: Box<dyn ObjectWriter>,
-    object_store: Arc<ObjectStore>,
-    path: Path,
+    source: PageMetadataSource,
     position: u64,
     column_buffers: Vec<Vec<u8>>,
     column_chunks: Vec<Vec<(u64, u32)>>,
     per_column_limit: usize,
 }
 
+enum PageMetadataSource {
+    Path(Arc<ObjectStore>, Path),
+    Spill(Box<dyn Spill>),
+}
+
+impl PageMetadataSource {
+    async fn reader(&self) -> Result<Box<dyn Reader>> {
+        match self {
+            Self::Path(store, path) => store.open(path).await,
+            Self::Spill(spill) => spill.reader().await,
+        }
+    }
+}
+
 impl PageMetadataSpill {
     async fn new(object_store: Arc<ObjectStore>, path: Path, num_columns: usize) -> Result<Self> {
         let writer = object_store.create(&path).await?;
-        let per_column_limit = (DEFAULT_SPILL_BUFFER_LIMIT / num_columns.max(1)).max(64);
-        Ok(Self {
+        Ok(Self::with_writer(
             writer,
-            object_store,
-            path,
+            PageMetadataSource::Path(object_store, path),
+            num_columns,
+        ))
+    }
+
+    async fn from_store(store: &dyn SpillStore, num_columns: usize) -> Result<Self> {
+        let (writer, spill) = store.new_spill().await?;
+        Ok(Self::with_writer(
+            writer,
+            PageMetadataSource::Spill(spill),
+            num_columns,
+        ))
+    }
+
+    fn with_writer(
+        writer: Box<dyn ObjectWriter>,
+        source: PageMetadataSource,
+        num_columns: usize,
+    ) -> Self {
+        let per_column_limit = (DEFAULT_SPILL_BUFFER_LIMIT / num_columns.max(1)).max(64);
+        Self {
+            writer,
+            source,
             position: 0,
             column_buffers: vec![Vec::new(); num_columns],
             column_chunks: vec![Vec::new(); num_columns],
             per_column_limit,
-        })
+        }
     }
 
     async fn append_page(
@@ -131,6 +168,7 @@ fn decode_spilled_chunk(data: &Bytes) -> Result<Vec<pbfile::column_metadata::Pag
 
 enum PageSpillState {
     Pending(Arc<ObjectStore>, Path),
+    PendingStore(Arc<dyn SpillStore>),
     Active(PageMetadataSpill),
 }
 
@@ -169,6 +207,14 @@ impl StructuralFileSink {
 
     pub fn with_page_metadata_spill(&mut self, object_store: Arc<ObjectStore>, path: Path) {
         self.page_spill = Some(PageSpillState::Pending(object_store, path));
+    }
+
+    /// Store page metadata in reclaimable scratch space.
+    ///
+    /// The store is first used when a page is written. Its handle remains alive
+    /// until the metadata is copied into the finished file, or the writer drops.
+    pub fn with_page_metadata_spill_store(&mut self, store: Arc<dyn SpillStore>) {
+        self.page_spill = Some(PageSpillState::PendingStore(store));
     }
 
     pub fn initialize_columns(&mut self, num_columns: u32) {
@@ -228,18 +274,31 @@ impl StructuralFileSink {
             priority: encoded_page.row_number,
         };
         let column_index = encoded_page.column_idx as usize;
-        if matches!(&self.page_spill, Some(PageSpillState::Pending(..))) {
-            let Some(PageSpillState::Pending(store, path)) = self.page_spill.take() else {
-                unreachable!()
+        if matches!(
+            &self.page_spill,
+            Some(PageSpillState::Pending(..) | PageSpillState::PendingStore(..))
+        ) {
+            let spill = match self.page_spill.take() {
+                Some(PageSpillState::Pending(store, path)) => {
+                    PageMetadataSpill::new(store, path, self.num_columns as usize).await?
+                }
+                Some(PageSpillState::PendingStore(store)) => {
+                    PageMetadataSpill::from_store(store.as_ref(), self.num_columns as usize).await?
+                }
+                _ => {
+                    return Err(Error::internal(
+                        "page metadata spill configuration is missing",
+                    ));
+                }
             };
-            self.page_spill = Some(PageSpillState::Active(
-                PageMetadataSpill::new(store, path, self.num_columns as usize).await?,
-            ));
+            self.page_spill = Some(PageSpillState::Active(spill));
         }
         match &mut self.page_spill {
             Some(PageSpillState::Active(spill)) => spill.append_page(column_index, &page).await?,
             None => self.column_metadata[column_index].pages.push(page),
-            Some(PageSpillState::Pending(..)) => unreachable!(),
+            Some(PageSpillState::Pending(..) | PageSpillState::PendingStore(..)) => {
+                return Err(Error::internal("page metadata spill was not initialized"));
+            }
         }
         Ok(())
     }
@@ -311,11 +370,13 @@ impl StructuralFileSink {
 
     pub async fn write_column_metadatas(&mut self) -> Result<Vec<(u64, u64)>> {
         let metadatas = std::mem::take(&mut self.column_metadata);
-        let spill_state = self.page_spill.take();
+        // Keep the spill owner alive while its reader replays metadata. A reader
+        // obtained from a custom store need not own the underlying scratch data.
+        let mut spill_state = self.page_spill.take();
         let (spill_chunks, spill_reader) =
-            if let Some(PageSpillState::Active(mut spill)) = spill_state {
+            if let Some(PageSpillState::Active(spill)) = spill_state.as_mut() {
                 spill.shutdown_writer().await?;
-                let reader = spill.object_store.open(&spill.path).await?;
+                let reader = spill.source.reader().await?;
                 let chunks = std::mem::take(&mut spill.column_chunks);
                 (chunks, Some(reader))
             } else {
@@ -932,12 +993,32 @@ pub fn encode_batch_body(batch: &EncodedBatch, write_schema: bool) -> Result<Enc
 mod tests {
     use std::sync::Arc;
 
-    use arrow_array::{ArrayRef, BooleanArray, StructArray};
+    use arrow_array::{ArrayRef, BooleanArray, StructArray, record_batch};
     use arrow_buffer::NullBuffer;
     use arrow_schema::{DataType, Field as ArrowField, Fields, Schema as ArrowSchema};
-    use lance_core::datatypes::Schema;
+    use lance_core::{Error, datatypes::Schema};
+    use lance_io::{object_store::ObjectStore, spill::LocalSpillStore};
+    use object_store::path::Path;
 
     use super::EncodingPipeline;
+
+    #[tokio::test]
+    async fn metadata_spill_enforces_the_shared_disk_cap() {
+        let store = ObjectStore::memory();
+        let output = store.create(&Path::from("output.lance")).await.unwrap();
+        let batch = record_batch!(("value", Int32, [1, 2, 3])).unwrap();
+        let mut writer = crate::versions::v2_1::create_writer(
+            output,
+            Schema::try_from(batch.schema().as_ref()).unwrap(),
+            Default::default(),
+        )
+        .unwrap()
+        .with_page_metadata_spill_store(Arc::new(LocalSpillStore::with_cap(0).unwrap()));
+        writer.write_batch(&batch).await.unwrap();
+        let error = writer.finish().await.unwrap_err();
+        assert!(matches!(error, Error::DiskCapExceeded { cap_bytes: 0, .. }));
+        assert!(error.to_string().contains("cap"));
+    }
 
     /// `analysis: struct<changed: bool>` where the child is declared
     /// non-nullable, built with a nullable child so the array can carry the

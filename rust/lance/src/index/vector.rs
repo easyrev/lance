@@ -29,6 +29,7 @@ use datafusion::physical_plan::SendableRecordBatchStream;
 use datafusion::physical_plan::stream::RecordBatchStreamAdapter;
 use futures::TryStreamExt;
 use futures::stream;
+use lance_core::utils::parse::str_is_truthy;
 use lance_core::utils::tempfile::TempStdDir;
 use lance_file::versions::v1::reader::FileReader as V1FileReader;
 use lance_index::frag_reuse::CompactFragReuseIndex;
@@ -43,10 +44,13 @@ use lance_index::vector::ivf::builder::recommended_num_partitions;
 use lance_index::vector::ivf::storage::IvfModel;
 use object_store::path::Path;
 
+use datafusion::execution::memory_pool::MemoryPool;
 use lance_arrow::FixedSizeListArrayExt;
 use lance_index::vector::pq::ProductQuantizer;
 use lance_index::vector::quantizer::QuantizationType;
-use lance_index::vector::v3::shuffler::{Shuffler, create_ivf_shuffler};
+use lance_index::vector::v3::shuffler::{
+    Shuffler, create_ivf_shuffler, create_ivf_shuffler_with_resources,
+};
 use lance_index::vector::v3::subindex::SubIndexType;
 use lance_index::vector::{
     VectorIndex,
@@ -671,6 +675,37 @@ pub(crate) fn vector_quantizer_minimum_rows(stages: &[StageParams]) -> Option<us
     })
 }
 
+pub(crate) fn create_dataset_ivf_shuffler(
+    dataset: &Dataset,
+    output_dir: Path,
+    num_partitions: usize,
+    progress: Option<Arc<dyn IndexBuildProgress>>,
+    memory_pool: Option<Arc<dyn MemoryPool>>,
+) -> Result<Box<dyn Shuffler>> {
+    let session = dataset.session();
+    let format_version = dataset_format_version(dataset);
+    let use_legacy =
+        std::env::var("LANCE_LEGACY_SHUFFLER").is_ok_and(|value| str_is_truthy(&value));
+    // Keep the existing opt-in fallback when no resource contract was supplied.
+    // Explicit pools and stores must never be silently bypassed by that switch.
+    if use_legacy && memory_pool.is_none() && !session.has_custom_spill_store() {
+        return Ok(create_ivf_shuffler(
+            output_dir,
+            num_partitions,
+            format_version,
+            progress,
+        ));
+    }
+    create_ivf_shuffler_with_resources(
+        output_dir,
+        num_partitions,
+        format_version,
+        progress,
+        session.spill_store_arc(),
+        memory_pool,
+    )
+}
+
 /// Prepare the shared build inputs used by both direct local builds and
 /// staged shard builds.
 ///
@@ -678,13 +713,15 @@ pub(crate) fn vector_quantizer_minimum_rows(stages: &[StageParams]) -> Option<us
 /// validating the vector column, deriving the effective index type, sizing IVF
 /// partitions, and constructing the shuffler.
 ///
-/// The shuffler carries only the path of its scratch directory, so the returned
-/// [`TempStdDir`] guard owns that directory: hold it until the build finishes.
+/// The returned [`TempStdDir`] guard keeps scratch space alive for the optional
+/// legacy shuffler. The current shuffler owns its scratch through `SpillStore`.
+#[allow(clippy::too_many_arguments)]
 async fn prepare_vector_segment_build(
     dataset: &Dataset,
     column: &str,
     params: &VectorIndexParams,
     progress: Arc<dyn IndexBuildProgress>,
+    memory_pool: Option<Arc<dyn MemoryPool>>,
     mode: &str,
     require_precomputed_ivf: bool,
     fragment_ids: Option<&[u32]>,
@@ -772,15 +809,15 @@ async fn prepare_vector_segment_build(
     let mut ivf_params = ivf_params0.clone();
     ivf_params.num_partitions = Some(num_partitions);
 
-    let format_version = dataset_format_version(dataset);
     let temp_dir = TempStdDir::default();
     let temp_dir_path = Path::from_filesystem_path(&temp_dir)?;
-    let shuffler = create_ivf_shuffler(
+    let shuffler = create_dataset_ivf_shuffler(
+        dataset,
         temp_dir_path,
         num_partitions,
-        format_version,
         Some(progress),
-    );
+        memory_pool.clone(),
+    )?;
 
     Ok((element_type, index_type, ivf_params, shuffler, temp_dir))
 }
@@ -797,6 +834,7 @@ pub(crate) async fn build_distributed_vector_index(
     frag_reuse_index: Option<Arc<CompactFragReuseIndex>>,
     fragment_ids: &[u32],
     progress: Arc<dyn IndexBuildProgress>,
+    memory_pool: Option<Arc<dyn MemoryPool>>,
 ) -> Result<(Uuid, Vec<IndexFile>)> {
     let (element_type, index_type, ivf_params, shuffler, _shuffle_temp_dir) =
         prepare_vector_segment_build(
@@ -804,6 +842,7 @@ pub(crate) async fn build_distributed_vector_index(
             column,
             params,
             progress.clone(),
+            memory_pool.clone(),
             "Build Distributed Vector Index",
             true,
             Some(fragment_ids),
@@ -884,6 +923,7 @@ pub(crate) async fn build_distributed_vector_index(
                 .with_ivf(ivf_model)
                 .with_fragment_filter(fragment_filter)
                 .with_progress(progress.clone())
+                .with_optional_memory_pool(memory_pool.clone())
                 .build()
                 .await?;
                 return Ok((segment_uuid, summary.files));
@@ -905,6 +945,7 @@ pub(crate) async fn build_distributed_vector_index(
                 .with_ivf(ivf_model)
                 .with_fragment_filter(fragment_filter)
                 .with_progress(progress.clone())
+                .with_optional_memory_pool(memory_pool.clone())
                 .build()
                 .await?;
                 return Ok((segment_uuid, summary.files));
@@ -954,6 +995,7 @@ pub(crate) async fn build_distributed_vector_index(
                     .with_transpose(false)
                     .with_fragment_filter(fragment_filter)
                     .with_progress(progress.clone())
+                    .with_optional_memory_pool(memory_pool.clone())
                     .build()
                     .await?;
                     return Ok((segment_uuid, summary.files));
@@ -981,6 +1023,7 @@ pub(crate) async fn build_distributed_vector_index(
             )?
             .with_fragment_filter(fragment_filter)
             .with_progress(progress.clone())
+            .with_optional_memory_pool(memory_pool.clone())
             .build()
             .await?;
             return Ok((segment_uuid, summary.files));
@@ -1009,6 +1052,7 @@ pub(crate) async fn build_distributed_vector_index(
                     )?
                     .with_fragment_filter(fragment_filter)
                     .with_progress(progress.clone())
+                    .with_optional_memory_pool(memory_pool.clone())
                     .build()
                     .await?;
                     return Ok((segment_uuid, summary.files));
@@ -1027,6 +1071,7 @@ pub(crate) async fn build_distributed_vector_index(
                     )?
                     .with_fragment_filter(fragment_filter)
                     .with_progress(progress.clone())
+                    .with_optional_memory_pool(memory_pool.clone())
                     .build()
                     .await?;
                     return Ok((segment_uuid, summary.files));
@@ -1069,6 +1114,7 @@ pub(crate) async fn build_distributed_vector_index(
             .with_transpose(false)
             .with_fragment_filter(fragment_filter)
             .with_progress(progress.clone())
+            .with_optional_memory_pool(memory_pool.clone())
             .build()
             .await?;
             return Ok((segment_uuid, summary.files));
@@ -1100,6 +1146,7 @@ pub(crate) async fn build_distributed_vector_index(
             )?
             .with_fragment_filter(fragment_filter)
             .with_progress(progress.clone())
+            .with_optional_memory_pool(memory_pool.clone())
             .build()
             .await?;
             return Ok((segment_uuid, summary.files));
@@ -1132,6 +1179,7 @@ pub(crate) async fn build_distributed_vector_index(
             .with_transpose(false)
             .with_fragment_filter(fragment_filter)
             .with_progress(progress.clone())
+            .with_optional_memory_pool(memory_pool.clone())
             .build()
             .await?;
             return Ok((segment_uuid, summary.files));
@@ -1147,6 +1195,7 @@ pub(crate) async fn build_distributed_vector_index(
 }
 
 /// Build a Vector Index
+#[allow(clippy::too_many_arguments)]
 #[instrument(level = "debug", skip(dataset))]
 pub(crate) async fn build_vector_index(
     dataset: &Dataset,
@@ -1156,6 +1205,7 @@ pub(crate) async fn build_vector_index(
     params: &VectorIndexParams,
     frag_reuse_index: Option<Arc<CompactFragReuseIndex>>,
     progress: Arc<dyn IndexBuildProgress>,
+    memory_pool: Option<Arc<dyn MemoryPool>>,
 ) -> Result<Vec<IndexFile>> {
     build_vector_index_impl(
         dataset,
@@ -1165,6 +1215,7 @@ pub(crate) async fn build_vector_index(
         params,
         frag_reuse_index,
         progress,
+        memory_pool,
         None,
     )
     .await
@@ -1181,6 +1232,7 @@ pub(crate) async fn build_filtered_vector_index(
     frag_reuse_index: Option<Arc<CompactFragReuseIndex>>,
     fragment_ids: &[u32],
     progress: Arc<dyn IndexBuildProgress>,
+    memory_pool: Option<Arc<dyn MemoryPool>>,
 ) -> Result<Vec<IndexFile>> {
     build_vector_index_impl(
         dataset,
@@ -1190,6 +1242,7 @@ pub(crate) async fn build_filtered_vector_index(
         params,
         frag_reuse_index,
         progress,
+        memory_pool,
         Some(fragment_ids),
     )
     .await
@@ -1204,14 +1257,24 @@ async fn build_vector_index_impl(
     params: &VectorIndexParams,
     frag_reuse_index: Option<Arc<CompactFragReuseIndex>>,
     progress: Arc<dyn IndexBuildProgress>,
+    memory_pool: Option<Arc<dyn MemoryPool>>,
     fragment_ids: Option<&[u32]>,
 ) -> Result<Vec<IndexFile>> {
+    if memory_pool.is_some()
+        && params.index_type() == IndexType::IvfPq
+        && matches!(params.version, IndexFileVersion::Legacy)
+    {
+        return Err(Error::not_supported(
+            "a build memory pool is not supported by the legacy IVF writer; use the current index format",
+        ));
+    }
     let (element_type, index_type, ivf_params, shuffler, _shuffle_temp_dir) =
         prepare_vector_segment_build(
             dataset,
             column,
             params,
             progress.clone(),
+            memory_pool.clone(),
             "Build Vector Index",
             false,
             fragment_ids,
@@ -1244,6 +1307,7 @@ async fn build_vector_index_impl(
                 )?
                 .with_optional_fragment_filter(fragment_ids)
                 .with_progress(progress.clone())
+                .with_optional_memory_pool(memory_pool.clone())
                 .build()
                 .await?;
                 Ok(summary.files)
@@ -1262,6 +1326,7 @@ async fn build_vector_index_impl(
                 )?
                 .with_optional_fragment_filter(fragment_ids)
                 .with_progress(progress.clone())
+                .with_optional_memory_pool(memory_pool.clone())
                 .build()
                 .await?;
                 Ok(summary.files)
@@ -1318,6 +1383,7 @@ async fn build_vector_index_impl(
                         .with_transpose(!params.skip_transpose)
                         .with_optional_fragment_filter(fragment_ids)
                         .with_progress(progress.clone())
+                        .with_optional_memory_pool(memory_pool.clone())
                         .build()
                         .await?;
                     Ok(summary.files)
@@ -1345,6 +1411,7 @@ async fn build_vector_index_impl(
             )?
             .with_optional_fragment_filter(fragment_ids)
             .with_progress(progress.clone())
+            .with_optional_memory_pool(memory_pool.clone())
             .build()
             .await?;
             Ok(summary.files)
@@ -1373,6 +1440,7 @@ async fn build_vector_index_impl(
                 .with_transpose(!params.skip_transpose)
                 .with_optional_fragment_filter(fragment_ids)
                 .with_progress(progress.clone())
+                .with_optional_memory_pool(memory_pool.clone())
                 .build()
                 .await?;
             Ok(summary.files)
@@ -1399,6 +1467,7 @@ async fn build_vector_index_impl(
                     )?
                     .with_optional_fragment_filter(fragment_ids)
                     .with_progress(progress.clone())
+                    .with_optional_memory_pool(memory_pool.clone())
                     .build()
                     .await?;
                     Ok(summary.files)
@@ -1417,6 +1486,7 @@ async fn build_vector_index_impl(
                     )?
                     .with_optional_fragment_filter(fragment_ids)
                     .with_progress(progress.clone())
+                    .with_optional_memory_pool(memory_pool.clone())
                     .build()
                     .await?;
                     Ok(summary.files)
@@ -1449,6 +1519,7 @@ async fn build_vector_index_impl(
             )?
             .with_optional_fragment_filter(fragment_ids)
             .with_progress(progress.clone())
+            .with_optional_memory_pool(memory_pool.clone())
             .build()
             .await?;
             Ok(summary.files)
@@ -1479,6 +1550,7 @@ async fn build_vector_index_impl(
             )?
             .with_optional_fragment_filter(fragment_ids)
             .with_progress(progress.clone())
+            .with_optional_memory_pool(memory_pool.clone())
             .build()
             .await?;
             Ok(summary.files)
@@ -1492,6 +1564,7 @@ async fn build_vector_index_impl(
 
 /// Build a Vector Index incrementally using an existing index's IVF model and quantizer
 /// This creates a delta index that shares centroids with the source index
+#[allow(clippy::too_many_arguments)]
 #[instrument(level = "debug", skip(dataset, existing_index, frag_reuse_index))]
 pub(crate) async fn build_vector_index_incremental(
     dataset: &Dataset,
@@ -1501,6 +1574,7 @@ pub(crate) async fn build_vector_index_incremental(
     existing_index: Arc<dyn VectorIndex>,
     frag_reuse_index: Option<Arc<CompactFragReuseIndex>>,
     progress: Arc<dyn IndexBuildProgress>,
+    memory_pool: Option<Arc<dyn MemoryPool>>,
 ) -> Result<VectorIndexBuildSummary> {
     let stages = &params.stages;
 
@@ -1542,16 +1616,15 @@ pub(crate) async fn build_vector_index_incremental(
         )));
     }
 
-    let format_version = dataset_format_version(dataset);
-
     let temp_dir = TempStdDir::default();
     let temp_dir_path = Path::from_filesystem_path(&temp_dir)?;
-    let shuffler = create_ivf_shuffler(
+    let shuffler = create_dataset_ivf_shuffler(
+        dataset,
         temp_dir_path,
         ivf_model.num_partitions(),
-        format_version,
         Some(progress.clone()),
-    );
+        memory_pool.clone(),
+    )?;
 
     let index_dir = dataset.indices_dir().join(uuid.to_string());
 
@@ -1574,6 +1647,7 @@ pub(crate) async fn build_vector_index_incremental(
             .with_ivf(ivf_model)
             .with_quantizer(quantizer.try_into()?)
             .with_progress(progress.clone())
+            .with_optional_memory_pool(memory_pool.clone())
             .build()
             .await?;
             return Ok(summary);
@@ -1592,6 +1666,7 @@ pub(crate) async fn build_vector_index_incremental(
             .with_ivf(ivf_model)
             .with_quantizer(quantizer.try_into()?)
             .with_progress(progress.clone())
+            .with_optional_memory_pool(memory_pool.clone())
             .build()
             .await?;
             return Ok(summary);
@@ -1613,6 +1688,7 @@ pub(crate) async fn build_vector_index_incremental(
                 .with_quantizer(quantizer.try_into()?)
                 .with_transpose(!params.skip_transpose)
                 .with_progress(progress.clone())
+                .with_optional_memory_pool(memory_pool.clone())
                 .build()
                 .await?;
             return Ok(summary);
@@ -1632,6 +1708,7 @@ pub(crate) async fn build_vector_index_incremental(
             .with_ivf(ivf_model)
             .with_quantizer(quantizer.try_into()?)
             .with_progress(progress.clone())
+            .with_optional_memory_pool(memory_pool.clone())
             .build()
             .await?;
             return Ok(summary);
@@ -1653,6 +1730,7 @@ pub(crate) async fn build_vector_index_incremental(
                 .with_quantizer(quantizer.try_into()?)
                 .with_transpose(!params.skip_transpose)
                 .with_progress(progress.clone())
+                .with_optional_memory_pool(memory_pool.clone())
                 .build()
                 .await?;
             return Ok(summary);
@@ -1681,6 +1759,7 @@ pub(crate) async fn build_vector_index_incremental(
                     .with_ivf(ivf_model)
                     .with_quantizer(quantizer.try_into()?)
                     .with_progress(progress.clone())
+                    .with_optional_memory_pool(memory_pool.clone())
                     .build()
                     .await?;
                     return Ok(summary);
@@ -1699,6 +1778,7 @@ pub(crate) async fn build_vector_index_incremental(
                     .with_ivf(ivf_model)
                     .with_quantizer(quantizer.try_into()?)
                     .with_progress(progress.clone())
+                    .with_optional_memory_pool(memory_pool.clone())
                     .build()
                     .await?;
                     return Ok(summary);
@@ -1717,6 +1797,7 @@ pub(crate) async fn build_vector_index_incremental(
                     .with_ivf(ivf_model)
                     .with_quantizer(quantizer.try_into()?)
                     .with_progress(progress.clone())
+                    .with_optional_memory_pool(memory_pool.clone())
                     .build()
                     .await?;
                     return Ok(summary);
@@ -1735,6 +1816,7 @@ pub(crate) async fn build_vector_index_incremental(
                     .with_ivf(ivf_model)
                     .with_quantizer(quantizer.try_into()?)
                     .with_progress(progress.clone())
+                    .with_optional_memory_pool(memory_pool.clone())
                     .build()
                     .await?;
                     return Ok(summary);
@@ -2130,6 +2212,7 @@ pub async fn initialize_vector_index(
         source_vector_index,
         frag_reuse_index,
         noop_progress(),
+        None,
     )
     .await?;
 
@@ -3311,6 +3394,7 @@ mod tests {
             None,
             &[invalid_id],
             noop_progress(),
+            None,
         )
         .await;
 
@@ -3364,6 +3448,7 @@ mod tests {
             None,
             &[],
             noop_progress(),
+            None,
         )
         .await;
 
@@ -3436,6 +3521,7 @@ mod tests {
             &params,
             None,
             progress.clone(),
+            None,
         )
         .await
         .unwrap();
@@ -3507,6 +3593,7 @@ mod tests {
             None,
             &[valid_id],
             noop_progress(),
+            None,
         )
         .await;
 

@@ -3091,11 +3091,14 @@ mod tests {
     use crate::utils::test::copy_test_data_to_tmp;
     use crate::{
         Dataset,
-        index::vector::{VectorIndex, VectorIndexParams},
+        index::vector::{StageParams, VectorIndex, VectorIndexParams},
     };
     use crate::{
         dataset::optimize::{CompactionOptions, compact_files},
         index::vector::IndexFileVersion,
+    };
+    use datafusion::execution::memory_pool::{
+        FairSpillPool, GreedyMemoryPool, MemoryConsumer, MemoryLimit, MemoryPool, MemoryReservation,
     };
     use futures::TryStreamExt;
     use lance_core::cache::{CacheBackend, CacheCodecImpl, LanceCache, WeakLanceCache};
@@ -3131,6 +3134,8 @@ mod tests {
     use lance_io::{
         object_store::{ObjectStore, ObjectStoreParams, StorageOptionsAccessor},
         scheduler::{ScanScheduler, SchedulerConfig},
+        spill::{LocalSpillStore, Spill, SpillStore},
+        traits::Writer,
         utils::CachedFileSize,
     };
     use lance_linalg::distance::{DistanceType, multivec_distance};
@@ -6419,6 +6424,406 @@ mod tests {
     #[tokio::test]
     async fn test_flat_knn() {
         test_distance_range(None, 4).await;
+    }
+
+    struct CountingSpillStore {
+        inner: LocalSpillStore,
+        created: AtomicUsize,
+    }
+
+    #[async_trait::async_trait]
+    impl SpillStore for CountingSpillStore {
+        async fn new_spill(&self) -> Result<(Box<dyn Writer>, Box<dyn Spill>)> {
+            let spill = self.inner.new_spill().await?;
+            self.created.fetch_add(1, Ordering::Relaxed);
+            Ok(spill)
+        }
+    }
+
+    #[derive(Debug)]
+    struct TrackingMemoryPool {
+        inner: Arc<dyn MemoryPool>,
+        peak: AtomicUsize,
+    }
+
+    impl std::fmt::Display for TrackingMemoryPool {
+        fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            std::fmt::Display::fmt(&self.inner, formatter)
+        }
+    }
+
+    impl MemoryPool for TrackingMemoryPool {
+        fn name(&self) -> &str {
+            "ivf_resource_test"
+        }
+
+        fn register(&self, consumer: &MemoryConsumer) {
+            self.inner.register(consumer);
+        }
+
+        fn unregister(&self, consumer: &MemoryConsumer) {
+            self.inner.unregister(consumer);
+        }
+
+        fn grow(&self, reservation: &MemoryReservation, additional: usize) {
+            self.inner.grow(reservation, additional);
+            self.peak
+                .fetch_max(self.inner.reserved(), Ordering::Relaxed);
+        }
+
+        fn shrink(&self, reservation: &MemoryReservation, shrink: usize) {
+            self.inner.shrink(reservation, shrink);
+        }
+
+        fn try_grow(
+            &self,
+            reservation: &MemoryReservation,
+            additional: usize,
+        ) -> datafusion::common::Result<()> {
+            self.inner.try_grow(reservation, additional)?;
+            self.peak
+                .fetch_max(self.inner.reserved(), Ordering::Relaxed);
+            Ok(())
+        }
+
+        fn reserved(&self) -> usize {
+            self.inner.reserved()
+        }
+
+        fn memory_limit(&self) -> MemoryLimit {
+            self.inner.memory_limit()
+        }
+    }
+
+    async fn ivf_resource_test_dataset(
+        spill_store: Option<Arc<dyn SpillStore>>,
+    ) -> (Dataset, VectorIndexParams, RecordBatch) {
+        let batch = gen_batch()
+            .with_seed(Seed(42))
+            .col("id", array::step::<UInt64Type>())
+            .col("vector", array::rand_vec::<Float32Type>(Dimension::from(8)))
+            .into_batch_rows(RowCount::from(192))
+            .unwrap();
+        let centroids = Arc::new(batch["vector"].as_fixed_size_list().slice(0, 2));
+        let params = VectorIndexParams::with_ivf_flat_params(
+            DistanceType::L2,
+            IvfBuildParams::try_with_centroids(2, centroids).unwrap(),
+        );
+        let mut session = crate::session::Session::default();
+        if let Some(spill_store) = spill_store {
+            session = session.with_spill_store(spill_store);
+        }
+        let dataset = Dataset::write(
+            RecordBatchIterator::new(vec![Ok(batch.slice(0, 128))], batch.schema()),
+            "memory://",
+            Some(WriteParams {
+                max_rows_per_file: 64,
+                session: Some(Arc::new(session)),
+                ..Default::default()
+            }),
+        )
+        .await
+        .unwrap();
+        assert_eq!(dataset.get_fragments().len(), 2);
+        (dataset, params, batch)
+    }
+
+    #[rstest]
+    #[case::flat_greedy(false, 1.0)]
+    #[case::pq_fair(true, 0.5)]
+    #[tokio::test]
+    async fn test_ivf_build_and_optimize_use_session_spill_store(
+        #[case] is_pq: bool,
+        #[case] recall_requirement: f32,
+    ) {
+        const MEMORY_CAP: usize = 8 * 1024 * 1024;
+
+        let spill_store = Arc::new(CountingSpillStore {
+            inner: LocalSpillStore::default(),
+            created: AtomicUsize::new(0),
+        });
+        let inner: Arc<dyn MemoryPool> = if is_pq {
+            Arc::new(FairSpillPool::new(MEMORY_CAP))
+        } else {
+            Arc::new(GreedyMemoryPool::new(MEMORY_CAP))
+        };
+        let pool = Arc::new(TrackingMemoryPool {
+            inner,
+            peak: AtomicUsize::new(0),
+        });
+        let (mut dataset, mut params, batch) =
+            ivf_resource_test_dataset(Some(spill_store.clone())).await;
+        if is_pq {
+            let StageParams::Ivf(ivf) = &params.stages[0] else {
+                panic!("resource fixture must supply the IVF stage");
+            };
+            params = VectorIndexParams::with_ivf_pq_params(
+                DistanceType::L2,
+                ivf.clone(),
+                PQBuildParams {
+                    num_sub_vectors: 4,
+                    num_bits: 4,
+                    max_iters: 2,
+                    sample_rate: 8,
+                    ..Default::default()
+                },
+            );
+        }
+        dataset
+            .create_index_builder(&["vector"], IndexType::Vector, &params)
+            .name("resource_test".to_owned())
+            .with_memory_pool(pool.clone())
+            .await
+            .unwrap();
+        let build_peak = pool.peak.swap(0, Ordering::Relaxed);
+        assert!(build_peak > 0 && build_peak <= MEMORY_CAP);
+        assert_eq!(pool.reserved(), 0);
+        let build_spills = spill_store.created.load(Ordering::Relaxed);
+        assert!(
+            build_spills > 0,
+            "the build must use the session spill store"
+        );
+        let vectors = Arc::new(batch["vector"].as_fixed_size_list().clone());
+        test_recall::<Float32Type>(
+            params.clone(),
+            2,
+            recall_requirement,
+            "vector",
+            &dataset,
+            vectors.clone(),
+        )
+        .await;
+
+        dataset
+            .append(
+                RecordBatchIterator::new(vec![Ok(batch.slice(128, 64))], batch.schema()),
+                None,
+            )
+            .await
+            .unwrap();
+        dataset
+            .optimize_indices(&OptimizeOptions::append().with_memory_pool(pool.clone()))
+            .await
+            .unwrap();
+        let optimize_peak = pool.peak.load(Ordering::Relaxed);
+        assert!(optimize_peak > 0 && optimize_peak <= MEMORY_CAP);
+        assert_eq!(pool.reserved(), 0);
+        assert!(
+            spill_store.created.load(Ordering::Relaxed) > build_spills,
+            "optimization must use the session spill store"
+        );
+        assert_eq!(dataset.count_rows(None).await.unwrap(), 192);
+        test_recall::<Float32Type>(params, 2, recall_requirement, "vector", &dataset, vectors)
+            .await;
+    }
+
+    #[rstest]
+    #[case::split(8, true)]
+    #[case::join(512, false)]
+    #[tokio::test]
+    async fn test_ivf_budgeted_partition_adjustment_with_fragment_reuse(
+        #[case] target_partition_size: usize,
+        #[case] is_split: bool,
+    ) {
+        const MEMORY_CAP: usize = 16 * 1024 * 1024;
+
+        let spill_store = Arc::new(CountingSpillStore {
+            inner: LocalSpillStore::default(),
+            created: AtomicUsize::new(0),
+        });
+        let (mut dataset, mut params, batch) =
+            ivf_resource_test_dataset(Some(spill_store.clone())).await;
+        let StageParams::Ivf(ivf) = &mut params.stages[0] else {
+            panic!("resource fixture must supply the IVF stage");
+        };
+        ivf.target_partition_size = Some(target_partition_size);
+        dataset
+            .create_index_builder(&["vector"], IndexType::Vector, &params)
+            .name("resource_test".to_owned())
+            .await
+            .unwrap();
+
+        // Keep the index's old row addresses so optimization must apply FRI
+        // while it reads existing partitions for the split or join.
+        compact_files(
+            &mut dataset,
+            CompactionOptions {
+                target_rows_per_fragment: 128,
+                defer_index_remap: true,
+                ..Default::default()
+            },
+            None,
+        )
+        .await
+        .unwrap();
+        assert_eq!(dataset.get_fragments().len(), 1);
+        assert!(
+            dataset
+                .open_frag_reuse_index(&NoOpMetricsCollector)
+                .await
+                .unwrap()
+                .is_some()
+        );
+        dataset
+            .append(
+                RecordBatchIterator::new(vec![Ok(batch.slice(128, 64))], batch.schema()),
+                None,
+            )
+            .await
+            .unwrap();
+
+        let pool = Arc::new(TrackingMemoryPool {
+            inner: Arc::new(GreedyMemoryPool::new(MEMORY_CAP)),
+            peak: AtomicUsize::new(0),
+        });
+        let build_spills = spill_store.created.load(Ordering::Relaxed);
+        dataset
+            .optimize_indices(&OptimizeOptions::new().with_memory_pool(pool.clone()))
+            .await
+            .unwrap();
+        let peak = pool.peak.load(Ordering::Relaxed);
+        assert!(peak > 0 && peak <= MEMORY_CAP);
+        assert_eq!(pool.reserved(), 0);
+        assert!(spill_store.created.load(Ordering::Relaxed) > build_spills);
+
+        let context = load_vector_index_context(&dataset, "vector", "resource_test").await;
+        let num_partitions = context.num_partitions();
+        if is_split {
+            assert!(num_partitions > 2);
+        } else {
+            assert_eq!(num_partitions, 1);
+        }
+        assert_eq!(dataset.count_rows(None).await.unwrap(), 192);
+        let vectors = Arc::new(batch["vector"].as_fixed_size_list().clone());
+        test_recall::<Float32Type>(params, num_partitions, 1.0, "vector", &dataset, vectors).await;
+
+        let live_rows = dataset.scan().with_row_id().try_into_batch().await.unwrap();
+        let expected_ids = live_rows[ROW_ID]
+            .as_primitive::<UInt64Type>()
+            .values()
+            .iter()
+            .copied()
+            .collect::<HashSet<_>>();
+        let mut indexed_ids = HashSet::new();
+        for partition in 0..num_partitions {
+            for row_id in load_flat_partition_row_ids(context.ivf_flat(), partition).await {
+                assert!(indexed_ids.insert(row_id), "duplicate indexed row {row_id}");
+            }
+        }
+        assert_eq!(indexed_ids, expected_ids);
+    }
+
+    enum IvfResourceLimit {
+        Disk,
+        Memory,
+    }
+
+    #[rstest]
+    #[case::disk_cap(IvfResourceLimit::Disk)]
+    #[case::memory_budget(IvfResourceLimit::Memory)]
+    #[tokio::test]
+    async fn test_ivf_resource_failure_does_not_commit_index(#[case] limit: IvfResourceLimit) {
+        let (disk_cap, memory_cap) = match limit {
+            IvfResourceLimit::Disk => (1024, usize::MAX),
+            IvfResourceLimit::Memory => (u64::MAX, 1),
+        };
+        let spill_store = Arc::new(LocalSpillStore::with_cap(disk_cap).unwrap());
+        let pool = Arc::new(GreedyMemoryPool::new(memory_cap));
+        let (mut dataset, params, _) = ivf_resource_test_dataset(Some(spill_store)).await;
+        let version = dataset.version_id();
+        let error = dataset
+            .create_index_builder(&["vector"], IndexType::Vector, &params)
+            .name("resource_test".to_owned())
+            .with_memory_pool(pool.clone())
+            .await
+            .unwrap_err();
+        match limit {
+            IvfResourceLimit::Disk => {
+                assert!(matches!(
+                    error,
+                    lance_core::Error::DiskCapExceeded {
+                        cap_bytes: 1024,
+                        ..
+                    }
+                ));
+                assert!(error.to_string().contains("Spill disk cap of 1024 bytes"));
+            }
+            IvfResourceLimit::Memory => {
+                assert!(matches!(error, lance_core::Error::Execution { .. }));
+                assert!(error.to_string().contains("IVF"));
+                assert!(error.to_string().contains("memory"));
+            }
+        }
+        assert_eq!(pool.reserved(), 0);
+        dataset.checkout_latest().await.unwrap();
+        assert_eq!(dataset.version_id(), version);
+        assert!(dataset.load_indices().await.unwrap().is_empty());
+        assert_eq!(dataset.count_rows(None).await.unwrap(), 128);
+    }
+
+    #[tokio::test]
+    async fn test_ivf_legacy_shuffler_preserves_default_resource_behavior() {
+        const CHILD_ENV: &str = "LANCE_TEST_IVF_LEGACY_RESOURCE_CHILD";
+
+        if std::env::var_os(CHILD_ENV).is_none() {
+            let output = std::process::Command::new(std::env::current_exe().unwrap())
+                .args([
+                    "--exact",
+                    std::thread::current().name().unwrap(),
+                    "--nocapture",
+                ])
+                .env(CHILD_ENV, "1")
+                .env("LANCE_LEGACY_SHUFFLER", "1")
+                .output()
+                .unwrap();
+            assert!(
+                output.status.success(),
+                "child test failed: {}\n{}",
+                String::from_utf8_lossy(&output.stdout),
+                String::from_utf8_lossy(&output.stderr)
+            );
+            assert!(String::from_utf8_lossy(&output.stdout).contains("1 passed"));
+            return;
+        }
+
+        let (mut dataset, params, batch) = ivf_resource_test_dataset(None).await;
+        dataset
+            .create_index_builder(&["vector"], IndexType::Vector, &params)
+            .name("legacy_default".to_owned())
+            .await
+            .unwrap();
+        let vectors = Arc::new(batch["vector"].as_fixed_size_list().clone());
+        test_recall::<Float32Type>(params.clone(), 2, 1.0, "vector", &dataset, vectors).await;
+
+        let version = dataset.version_id();
+        let pool = Arc::new(GreedyMemoryPool::new(8 * 1024 * 1024));
+        let error = dataset
+            .create_index_builder(&["vector"], IndexType::Vector, &params)
+            .name("legacy_pool".to_owned())
+            .with_memory_pool(pool.clone())
+            .await
+            .unwrap_err();
+        assert!(matches!(error, lance_core::Error::InvalidInput { .. }));
+        assert!(error.to_string().contains("LANCE_LEGACY_SHUFFLER"));
+        assert!(error.to_string().contains("unset"));
+        assert_eq!(pool.reserved(), 0);
+        assert_eq!(dataset.version_id(), version);
+
+        let spill_store = Arc::new(CountingSpillStore {
+            inner: LocalSpillStore::default(),
+            created: AtomicUsize::new(0),
+        });
+        let (mut dataset, params, _) = ivf_resource_test_dataset(Some(spill_store.clone())).await;
+        let error = dataset
+            .create_index_builder(&["vector"], IndexType::Vector, &params)
+            .name("legacy_custom_store".to_owned())
+            .await
+            .unwrap_err();
+        assert!(matches!(error, lance_core::Error::InvalidInput { .. }));
+        assert!(error.to_string().contains("LANCE_LEGACY_SHUFFLER"));
+        assert!(error.to_string().contains("unset"));
+        assert_eq!(spill_store.created.load(Ordering::Relaxed), 0);
+        assert!(dataset.load_indices().await.unwrap().is_empty());
     }
 
     #[rstest]

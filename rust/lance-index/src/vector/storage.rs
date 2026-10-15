@@ -574,6 +574,9 @@ impl<Q: Quantization> StorageBuilder<Q> {
 
     pub fn build(&self, batches: Vec<RecordBatch>) -> Result<Q::Storage> {
         let mut batch = concat_batches(batches[0].schema_ref(), batches.iter())?;
+        // Storage conversion can transpose or remap codes. Release our source
+        // buffers before it allocates those additional representations.
+        drop(batches);
 
         if batch.column_by_name(self.quantizer.column()).is_none() {
             let vectors = batch
@@ -1162,12 +1165,99 @@ impl<Q: Quantization> IvfQuantizationStorage<Q> {
 #[cfg(test)]
 mod tests {
     use super::{
-        QueryScratchCapacity, QueryScratchPool, compact_prewarm_batches,
+        QueryScratchCapacity, QueryScratchPool, StorageBuilder, compact_prewarm_batches,
         spawn_prewarm_materialization,
     };
-    use arrow_array::{Array, ArrayRef, RecordBatch, UInt64Array};
+    use crate::scalar::RowIdRemapper;
+    use crate::vector::flat::index::FlatQuantizer;
+    use crate::vector::storage::VectorStore;
+    use arrow::buffer::Buffer;
+    use arrow_array::{
+        Array, ArrayRef, FixedSizeListArray, Float32Array, RecordBatch, UInt64Array,
+    };
+    use lance_arrow::FixedSizeListArrayExt;
     use lance_core::deepsize::DeepSizeOf;
+    use lance_core::{ROW_ID, Result};
+    use lance_linalg::distance::DistanceType;
+    use lance_select::RowAddrTreeMap;
+    use roaring::RoaringTreemap;
+    use rstest::rstest;
     use std::sync::Arc;
+    use std::sync::atomic::{AtomicBool, Ordering};
+
+    #[derive(Debug)]
+    struct SourceBufferObserver {
+        buffers: Vec<Buffer>,
+        expected_owners: usize,
+        observed: AtomicBool,
+    }
+
+    impl RowIdRemapper for SourceBufferObserver {
+        fn remap_row_id(&self, row_id: u64) -> Option<u64> {
+            Some(row_id)
+        }
+
+        fn remap_row_addrs_tree_map(&self, addresses: &RowAddrTreeMap) -> RowAddrTreeMap {
+            addresses.clone()
+        }
+
+        fn remap_row_ids_roaring_tree_map(&self, row_ids: &RoaringTreemap) -> RoaringTreemap {
+            row_ids.clone()
+        }
+
+        fn remap_row_ids_record_batch(&self, batch: RecordBatch, _: usize) -> Result<RecordBatch> {
+            for buffer in &self.buffers {
+                assert_eq!(buffer.strong_count(), self.expected_owners);
+            }
+            self.observed.store(true, Ordering::SeqCst);
+            Ok(batch)
+        }
+    }
+
+    #[rstest]
+    #[case::owned_inputs(false)]
+    #[case::shared_window_inputs(true)]
+    fn storage_conversion_releases_owned_inputs(#[case] retain_window: bool) {
+        let mut buffers = Vec::new();
+        let batches = (0..2)
+            .map(|row| {
+                let row_ids = UInt64Array::from(vec![row]);
+                buffers.push(row_ids.values().inner().clone());
+                let values = Float32Array::from(vec![row as f32, 0.5]);
+                buffers.push(values.values().inner().clone());
+                let vectors = FixedSizeListArray::try_new_from_values(values, 2).unwrap();
+                RecordBatch::try_from_iter([
+                    (ROW_ID, Arc::new(row_ids) as ArrayRef),
+                    ("vector", Arc::new(vectors) as ArrayRef),
+                ])
+                .unwrap()
+            })
+            .collect::<Vec<_>>();
+        // A sibling partition can retain a window's original buffers even
+        // after StorageBuilder releases the batches passed to this build.
+        let retained = retain_window.then(|| {
+            batches
+                .iter()
+                .map(|batch| batch.slice(0, 1))
+                .collect::<Vec<_>>()
+        });
+        let observer = Arc::new(SourceBufferObserver {
+            buffers,
+            expected_owners: if retain_window { 2 } else { 1 },
+            observed: AtomicBool::new(false),
+        });
+        let builder = StorageBuilder::new_with_remapper(
+            "vector".to_owned(),
+            DistanceType::L2,
+            FlatQuantizer::new(2, DistanceType::L2),
+            Some(observer.clone()),
+        )
+        .unwrap();
+        let storage = builder.build(batches).unwrap();
+        assert_eq!(storage.len(), 2);
+        assert!(observer.observed.load(Ordering::SeqCst));
+        drop(retained);
+    }
 
     #[tokio::test]
     async fn test_prewarm_materialization_uses_cpu_pool() {
