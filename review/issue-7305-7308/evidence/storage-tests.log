@@ -1,0 +1,64 @@
+   Compiling lance-arrow v14.0.0-beta.16 (/workspace/lance/rust/lance-arrow)
+warning: lance-linalg@14.0.0-beta.16: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.16: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@14.0.0-beta.16: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.16: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance-core v14.0.0-beta.16 (/workspace/lance/rust/lance-core)
+   Compiling lance-testing v14.0.0-beta.16 (/workspace/lance/rust/lance-testing)
+   Compiling lance-namespace v14.0.0-beta.16 (/workspace/lance/rust/lance-namespace)
+   Compiling lance-select v14.0.0-beta.16 (/workspace/lance/rust/lance-select)
+   Compiling lance-encoding v14.0.0-beta.16 (/workspace/lance/rust/lance-encoding)
+   Compiling lance-io v14.0.0-beta.16 (/workspace/lance/rust/lance-io)
+   Compiling lance-linalg v14.0.0-beta.16 (/workspace/lance/rust/lance-linalg)
+   Compiling lance-datafusion v14.0.0-beta.16 (/workspace/lance/rust/lance-datafusion)
+warning: method `downgrade` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:567:8
+    |
+529 | impl AimdThrottleState {
+    | ---------------------- method in this implementation
+...
+567 |     fn downgrade(&self) -> WeakThrottleState {
+    |        ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `WeakThrottleState` is never constructed
+   --> rust/lance-io/src/object_store/throttle.rs:579:8
+    |
+579 | struct WeakThrottleState {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: method `upgrade` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:587:8
+    |
+586 | impl WeakThrottleState {
+    | ---------------------- method in this implementation
+587 |     fn upgrade(&self) -> Option<AimdThrottleState> {
+    |        ^^^^^^^
+
+warning: static `SHARED_THROTTLE_STATES` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:601:8
+    |
+601 | static SHARED_THROTTLE_STATES: LazyLock<
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `shared_throttle_state` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:608:15
+    |
+608 | pub(crate) fn shared_throttle_state(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling lance-index-core v14.0.0-beta.16 (/workspace/lance/rust/lance-index-core)
+   Compiling lance-file v14.0.0-beta.16 (/workspace/lance/rust/lance-file)
+warning: `lance-io` (lib) generated 5 warnings
+   Compiling lance-table v14.0.0-beta.16 (/workspace/lance/rust/lance-table)
+   Compiling lance-index v14.0.0-beta.16 (/workspace/lance/rust/lance-index)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 42.05s
+     Running unittests src/lib.rs (target/debug/deps/lance_index-20e0b48971bf406b)
+
+running 2 tests
+test vector::storage::tests::storage_conversion_releases_owned_inputs::case_1_owned_inputs ... ok
+test vector::storage::tests::storage_conversion_releases_owned_inputs::case_2_shared_window_inputs ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 2138 filtered out; finished in 0.00s
+

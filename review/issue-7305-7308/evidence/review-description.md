@@ -1,0 +1,11 @@
+IVF builds currently use separate local scheduling limits and scratch paths. A caller cannot share one memory budget across builds, and a Session spill cap does not cover the shuffle files.
+
+This change adds caller-owned `MemoryPool` options to `CreateIndexBuilder` and `OptimizeOptions`. The current IVF path shares that pool across shuffle buffers, optional offsets, partition admission, and completed results waiting for writes. It flushes on pressure, limits concurrent partitions, and discards optional offsets before rejecting a minimum working set that cannot fit. Unconfigured builds retain the existing scheduling behavior.
+
+Shuffle data, offsets, and page metadata use the Session `SpillStore`. A separate fix retains spill ownership through aborted writes and asynchronous shutdown so disk quota is released when storage is reclaimed.
+
+The scope follows the current main branch. Completed partitions already write directly to the final index. This change does not add serialization of an in-progress subindex, an all-in-memory shuffle path, or a process RSS limit. Model training, HNSW graphs, unadmitted upstream input, and file codec transients are outside the reservations. Unsupported legacy paths reject explicit resource options.
+
+Addresses lance-format/lance#7305 and lance-format/lance#7308. The caller-owned API follows the direction in lance-format/lance#9799. The historical draft lance-format/lance#7312 was not merged and does not implement the current builder path.
+
+Validation passed: `cargo fmt --all`; `cargo clippy --all --tests --benches -- -D warnings`; 19 spill, 56 shuffle, 4 metadata spill, 2 storage ownership, 29 builder, and 19 scheduler tests; dataset build/optimize, split/join with fragment reuse, failure atomicity, legacy-switch compatibility, and wide fixed/multivector input regressions. Default PQ/SQ/RQ/HNSW, NULL, and empty-partition cases also passed. The standalone `ivf_shuffle_memory` diagnostic already verified every row and vector for uniform and hotspot distributions at 8 MiB, 32 MiB, and an unbounded control. Larger finite budgets reduced flush groups from 32 to 8; all runs released pool reservations and spill handles. These debug runs establish resource behavior and correctness, not an optimized throughput improvement.

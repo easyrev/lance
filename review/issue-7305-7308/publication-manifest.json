@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "purpose": "ChatGPT review branch; this publication adds reports and evidence only",
+  "generated_at_utc": "2026-10-15T07:12:37.429043+00:00",
+  "branch": "codex/ivf-build-memory-spill",
+  "upstream_base": "08ea2c11674daf4791a00388b0bbe4bd9b339121",
+  "code_candidate": "09d2c8a0deff51d59b77a83f68d54fed2c277710",
+  "implementation_commits": [
+    "dd95988d41ee9f92e47268c70327411ca4355c75",
+    "09d2c8a0deff51d59b77a83f68d54fed2c277710"
+  ],
+  "historical_execution_provenance": "The original logs do not contain source or binary hashes. Their run order is recorded in task history. These hashes verify publication bytes, not historical execution identity.",
+  "original_evidence_files": [
+    "builder-tests.log",
+    "clippy-final.log",
+    "clippy.log",
+    "default-regressions.log",
+    "design.md",
+    "final-resource-tests.log",
+    "final-shuffler-tests.log",
+    "input-batch-regressions.log",
+    "resource-diagnostic.jsonl",
+    "review-description.md",
+    "storage-tests.log",
+    "wide-input-tests.log"
+  ],
+  "report_count": 8,
+  "candidate_source_sha256": {
+    "rust/lance-file/src/versions/v2_1/writer.rs": "c66db550ec766c4e6962a733ab507bd8f674403b04ee1043c2b074d500295a56",
+    "rust/lance-file/src/writer/structural.rs": "389f726cabed1b6f92892c50084da041c247899f76b66d2bfcc58e86bb5c68b2",
+    "rust/lance-index/examples/ivf_shuffle_memory.rs": "f321f41ba9ad889f826cc84e15a085554a58188322ffb009698c22257d294f20",
+    "rust/lance-index/src/optimize.rs": "f656350a5f182d161dae4dcf7dc9b739ecfe80eaac5feacce449c4e7395e2697",
+    "rust/lance-index/src/vector/storage.rs": "0ac2fa189ced9e81252490cd06c8d08fa98d6dc0836cfa52d5e3a3729776cc6d",
+    "rust/lance-index/src/vector/v3/shuffler.rs": "dc4a8b2519747fa0d3f6178c0e328ac88bd0a3b3a64e3453cce8315fd24f4026",
+    "rust/lance-io/src/spill.rs": "e1f9d79bbd07bd7a60d06dc918cf664e55cc38ea2973ba244ea62b01bbb6a47e",
+    "rust/lance/src/index/append.rs": "344ba47a3ad88b8e62264cfd05f491359068d2d9293c67a59adc60a4dfa20b9a",
+    "rust/lance/src/index/create.rs": "16c32ebace189af1dfab8c35422f9be05264e9ff11c625c0855694095dc7e615",
+    "rust/lance/src/index/vector.rs": "b7b4154f08c12a1a54c3b0eeecc1694bda7c96349118c79e2caf170d06efbec6",
+    "rust/lance/src/index/vector/bounded_partition_stream.rs": "c7f517f889c468988a87fff8a44311c32ee60b58fd84ae9b20fb3ed66cddb5d5",
+    "rust/lance/src/index/vector/builder.rs": "2ac7caec3e6c22ff917bc1d1a5a4a44b29ea2c230b3511a68a7f032c4c3fac86",
+    "rust/lance/src/index/vector/ivf.rs": "5406aeed84e37382fe2e7abf8064bd1073241403ba4c10037e96b86fe79b8258",
+    "rust/lance/src/index/vector/ivf/v2.rs": "2d82fe09c8f3a28db94ba04c353a26a41310fb7f72b67f37824ef14cd6749778",
+    "rust/lance/src/session.rs": "823886d43a193060b3e342ab4253d8401a7f8137e820da788fd48b62ca928a68"
+  },
+  "files": {
+    "README.md": {
+      "bytes": 3383,
+      "sha256": "9b88f901348563cdba56de07101cc6df86926f079d1d105b3b13d0c49e789fce"
+    },
+    "environment.json": {
+      "bytes": 663,
+      "sha256": "474310cde1c4a47b5ccd15ab0b08a347d11cbc0409c6565e412fbf5fa23cd0b6"
+    },
+    "evidence/README.md": {
+      "bytes": 1894,
+      "sha256": "62a177b6b791eda1a346dcb921541991dea0569fe9e8c575c615ffc45be99e29"
+    },
+    "evidence/builder-tests.log": {
+      "bytes": 3893,
+      "sha256": "26b1202b3622b6cc385d9d6be4b5c1815aa4b9aa8e7f7627408733c62c04479a"
+    },
+    "evidence/clippy-final.log": {
+      "bytes": 1068,
+      "sha256": "1d4e124385bd5b90753ec93a04eb54ce54bd3da667c2dcb80739449e68df03f2"
+    },
+    "evidence/clippy.log": {
+      "bytes": 8904,
+      "sha256": "9acb617e3632b936f3f9c9920d0584157670ff4cc7b8184ce11594481f932be8"
+    },
+    "evidence/default-regressions.log": {
+      "bytes": 6661,
+      "sha256": "7b723b521cc4dc6b6b8a12841d2fe1c68f3ea205b931c33fcfe20e6acea950e3"
+    },
+    "evidence/design.md": {
+      "bytes": 4837,
+      "sha256": "f3bec0d6a5ca6c4473f323a113d1ab257b0c45e130dcb9c4956237e1e84bdd1b"
+    },
+    "evidence/final-resource-tests.log": {
+      "bytes": 6866,
+      "sha256": "bc2231a4729531c46aa736d1827f92ea57aae0d53f1f29ed23d3e09fb5726e9c"
+    },
+    "evidence/final-shuffler-tests.log": {
+      "bytes": 5556,
+      "sha256": "cd959154b33b4797a58aaf610880bf6cc3ec6dfb5fec579b67e76163c3396925"
+    },
+    "evidence/input-batch-regressions.log": {
+      "bytes": 3765,
+      "sha256": "c00c76ae376427b6adf077cf16c70434d3706d99bc26222dd2939381368f3e88"
+    },
+    "evidence/resource-diagnostic.jsonl": {
+      "bytes": 4093,
+      "sha256": "851f245fa31bdc80b60cdb6ceb996e55fa540e1159051ac1343067e534a4f6ff"
+    },
+    "evidence/review-description.md": {
+      "bytes": 2282,
+      "sha256": "1a0850615a7134e8149138775601fd4a56acf5ea7ee8c475e8e8620f66d30404"
+    },
+    "evidence/storage-tests.log": {
+      "bytes": 3196,
+      "sha256": "c26c766241f8f22ff8679ee203be5f1909cb592a733cfc428f726ebf645f35b9"
+    },
+    "evidence/wide-input-tests.log": {
+      "bytes": 971,
+      "sha256": "bb9c9516972399a8a952954116993e137e9451755006186094e3651de781ee08"
+    },
+    "reports/baseline-comparison.md": {
+      "bytes": 3803,
+      "sha256": "2d553a6d7243a100ff68da42a29b6acbdc448b3dbcce036721cc0c505ffc34a8"
+    },
+    "reports/delivery-report.md": {
+      "bytes": 2953,
+      "sha256": "91d0f2f2ddaf5a66591e56b6f860e516dc40285e74af1cdebf379057923cc0ec"
+    },
+    "reports/design-report.md": {
+      "bytes": 4308,
+      "sha256": "d0debb71066179ffa063e8ada459328c8abff791d3a92d6d58304cf9f4635acd"
+    },
+    "reports/independent-review-history.md": {
+      "bytes": 2950,
+      "sha256": "0778ce1d7cf907cbc30cf62c10645f4045430156c01354296975c0627d6ac063"
+    },
+    "reports/package-audit.md": {
+      "bytes": 7360,
+      "sha256": "c0b3a0add9e78298bdf6754fb2a16a835360b0916ad5c009f988981414699e96"
+    },
+    "reports/resource-report.md": {
+      "bytes": 3636,
+      "sha256": "f68729d610f717d31de1429d2370f348ee190829c676895065e062b1cb6cf623"
+    },
+    "reports/review-description.md": {
+      "bytes": 2560,
+      "sha256": "cb256665b8e49a1c0a42ee4ec0e7af9f3e2d15b948f9ba7112ec600b1ce2c072"
+    },
+    "reports/validation-report.md": {
+      "bytes": 4946,
+      "sha256": "21fc83be649edd7c4c1ccf29646200b2dda65d9efdc14628ba6b6e872b344b36"
+    },
+    "verify_bundle.py": {
+      "bytes": 2919,
+      "sha256": "42e0ee229dc46bb23463e8b753f963db2c0f3d3963253862bd293172b8bd8ff9"
+    }
+  }
+}

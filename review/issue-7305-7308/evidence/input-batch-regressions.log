@@ -1,0 +1,50 @@
+index::vector::builder::tests
+
+running 29 tests
+test index::vector::builder::tests::apply_centroid_splits_correct_count_and_ordering ... ok
+test index::vector::builder::tests::fresh_partition_memory_admission_rejects_before_reading ... ok
+test index::vector::builder::tests::fresh_partition_memory_admission_requires_an_estimate ... ok
+test index::vector::builder::tests::fresh_partition_build_runs_multiple_windows_end_to_end::case_1_default ... ok
+test index::vector::builder::tests::fresh_partition_build_runs_multiple_windows_end_to_end::case_2_memory_pool ... ok
+test index::vector::builder::tests::fresh_partition_build_runs_multiple_windows_end_to_end::case_3_pool_above_default_budget ... ok
+test index::vector::builder::tests::fresh_pq_partition_windows_account_for_conversion::case_1_pq4 ... ok
+test index::vector::builder::tests::fresh_pq_partition_windows_account_for_conversion::case_2_pq4_remapped ... ok
+test index::vector::builder::tests::fresh_pq_partition_windows_account_for_conversion::case_4_pq8_remapped ... ok
+test index::vector::builder::tests::join_window_follows_each_vector_of_a_multivector_row ... ok
+test index::vector::builder::tests::fresh_pq_partition_windows_account_for_conversion::case_3_pq8 ... ok
+test index::vector::builder::tests::optimize_join_keeps_every_destination_below_the_split_threshold ... ok
+test index::vector::builder::tests::optimize_joins_all_undersized_partitions_in_one_pass ... ok
+test index::vector::builder::tests::optimize_join_counts_room_after_the_reindexed_rows_leave ... ok
+test index::vector::builder::tests::optimize_join_leaves_no_partition_above_the_split_threshold ... ok
+test index::vector::builder::tests::optimize_split_threshold_honors_persisted_target_partition_size ... ok
+test index::vector::builder::tests::optimize_splits_duplicate_heavy_partition_as_far_as_its_distinct_rows_allow ... ok
+test index::vector::builder::tests::optimize_steady_state_keeps_small_delta_partitions ... ok
+test index::vector::builder::tests::plan_partition_adjustment_joins_all_undersized_partitions_but_one ... ok
+test index::vector::builder::tests::plan_partition_adjustment_keeps_room_for_every_joined_row ... ok
+test index::vector::builder::tests::partition_entry_admission_preserves_input_order ... ok
+test index::vector::builder::tests::regroup_by_bytes_bounds_each_batch_to_the_budget ... ok
+test index::vector::builder::tests::select_reassign_candidates_skips_deleted_partition ... ok
+test index::vector::builder::tests::single_partition_window_uses_full_entry_budget ... ok
+test index::vector::builder::tests::raw_vector_fetch_budget_bounds_materialized_buffers ... ok
+test index::vector::builder::tests::test_shuffle_data_reports_duplicate_partition_id_column ... ok
+test index::vector::builder::tests::optimize_split_after_append_pushes_partition_over_threshold ... ok
+test index::vector::builder::tests::optimize_splits_oversized_partition_to_target_in_one_pass ... ok
+test index::vector::builder::tests::take_partition_batches_preserves_partition_order_for_large_fixed_size_list ... ok
+
+test result: ok. 29 passed; 0 failed; 0 ignored; 0 measured; 6025 filtered out; finished in 0.68s
+
+test_ivf_budgeted_partition_adjustment_with_fragment_reuse
+
+running 2 tests
+test index::vector::ivf::v2::tests::test_ivf_budgeted_partition_adjustment_with_fragment_reuse::case_2_join ... ok
+test index::vector::ivf::v2::tests::test_ivf_budgeted_partition_adjustment_with_fragment_reuse::case_1_split ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 6052 filtered out; finished in 0.13s
+
+test_spfresh_join_split
+
+running 1 test
+test index::vector::ivf::v2::tests::test_spfresh_join_split ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6053 filtered out; finished in 0.71s
+
