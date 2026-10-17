@@ -1,0 +1,24 @@
+{"operation": "execute", "uri": "/mnt/lance/issue-9505/data/fixed-64000000", "output": "/mnt/lance/issue-9505/results/main/fixed-64000000-materialized-1.json", "batch_rows": 32768, "source_rows": 100, "source_binary_bytes": 0, "source": "materialized", "full_schema": false, "retries": 10, "write_mode": "rewrite_rows", "lance_version": "14.0.0-beta.19", "lance_module": "/mnt/lance/issue-9505/main/python/python/lance/__init__.py", "pool_bytes": "1073741824", "cpu_count": 16, "pid": 268849, "target_rows": 64000000, "target_columns": 44, "target_fragments": 640, "source_prepare_seconds": 0.00027164999846718274, "source_fields": ["id", "c0", "c1"], "cgroup": "/system.slice/lance9505-main-fixed-64000000-materialized-1.service", "cgroup_memory_max": "68719476736", "status": "ok", "baseline_rss_bytes": 215080960, "merge_stats": {"num_inserted_rows": 0, "num_updated_rows": 100, "num_deleted_rows": 0}, "seconds": 5.858119193002494, "source_prepare_and_merge_seconds": 5.8583908430009615, "cpu_seconds": 24.159999999999997, "average_cpu_cores": 4.124190581314741, "cgroup_memory_peak_bytes": 1155616768, "sampled_peak_anon_bytes": 1139912704, "sampled_peak_file_bytes": 162926592, "sampled_peak_rss_bytes": 1301123072, "process_peak_rss_bytes": 1300709376, "target_rows_per_second": 10925008.162423156, "source_rows_per_second": 17.07032525378618, "validated": true}
+	Command being timed: "/root/.local/bin/uv run --no-sync python /mnt/lance/issue-9505/harness/harness.py execute --uri /mnt/lance/issue-9505/data/fixed-64000000 --source materialized --output /mnt/lance/issue-9505/results/main/fixed-64000000-materialized-1.json"
+	User time (seconds): 19.58
+	System time (seconds): 7.82
+	Percent of CPU this job got: 401%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:06.83
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1270224
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1576966
+	Voluntary context switches: 284777
+	Involuntary context switches: 1705
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 1424
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

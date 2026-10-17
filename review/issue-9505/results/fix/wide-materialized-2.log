@@ -1,0 +1,25 @@
+{"operation": "execute", "uri": "/mnt/lance/issue-9505/data/wide", "output": "/mnt/lance/issue-9505/results/fix/wide-materialized-2.json", "batch_rows": 32768, "source_rows": 25, "source_binary_bytes": 10485760, "source": "materialized", "full_schema": false, "retries": 10, "write_mode": "rewrite_rows", "lance_version": "14.0.0-beta.19", "lance_module": "/mnt/lance/issue-9505/fix/python/python/lance/__init__.py", "pool_bytes": "1073741824", "cpu_count": 16, "pid": 274301, "target_rows": 400, "target_columns": 5, "target_fragments": 16, "source_prepare_seconds": 0.2696732219992555, "source_fields": ["id", "new_payload"], "cgroup": "/system.slice/lance9505-fix-wide-materialized-2.service", "cgroup_memory_max": "8589934592", "status": "error", "baseline_rss_bytes": 482697216, "error": "Resources exhausted: Additional allocation failed for HashJoinInput with top memory consumers (across reservations) as:\n  HashJoinInput#0(can spill: false) consumed 1000.0 MB, peak 1000.0 MB,\n  RepartitionExec[4]#5(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[6]#7(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[15]#16(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[12]#13(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[10]#11(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[9]#10(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[13]#14(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[3]#4(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[8]#9(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[1]#2(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[0]#1(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[11]#12(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[2]#3(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[5]#6(can spill: true) consumed 0.0 B, peak 0.0 B,\n  RepartitionExec[7]#8(can spill: true) consumed 0.0 B, peak 0.0 B.\nError: Failed to allocate additional 125.0 MB for HashJoinInput with 1000.0 MB already allocated for this reservation - 24.0 MB remain available for the total memory pool: fair(pool_size: 1024.0 MB)", "error_type": "OSError", "seconds": 1.6106602530016971, "source_prepare_and_merge_seconds": 1.8803334750009526, "cpu_seconds": 3.5700000000000003, "average_cpu_cores": 2.216482335953092, "cgroup_memory_peak_bytes": 3691462656, "sampled_peak_anon_bytes": 3636150272, "sampled_peak_file_bytes": 166621184, "sampled_peak_rss_bytes": 3801985024, "process_peak_rss_bytes": 3835777024, "target_rows_per_second": 248.34535977065457, "source_rows_per_second": 15.52158498566591}
+Command exited with non-zero status 1
+	Command being timed: "/root/.local/bin/uv run --no-sync python /mnt/lance/issue-9505/harness/harness.py execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source materialized --output /mnt/lance/issue-9505/results/fix/wide-materialized-2.json"
+	User time (seconds): 3.07
+	System time (seconds): 2.88
+	Percent of CPU this job got: 237%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.50
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3745876
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1142916
+	Voluntary context switches: 1832
+	Involuntary context switches: 212
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 136
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 1

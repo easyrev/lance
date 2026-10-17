@@ -1,0 +1,99 @@
+#9505 research, baseline 2026-10-17 (Asia/Shanghai)
+
+Authoritative upstream main: dc53d5d174af62c49ddd98d1024a64488c1e4404.
+PR #10077 head: 9e1ebc2e816a7195b56757ebe269e74989fc30c7.
+PR base: 42e593fb4ad0e1ccc22c1fa5e3c30bfe92a5384d.
+All remote work is under /mnt/lance/issue-9505 in an independent bare repository
+and worktrees main, fix, pr10077. Existing #7895/#9617 checkouts and build targets
+are not modified. Build caches were copied, not hardlinked.
+
+Evidence hierarchy
+
+1. Production report #9505: ~81.6M rows, 494 fragments, 44 columns; 100-row source
+   carrying a key and two updated columns; use_index=false to get RewriteRows
+   through an SDK that did not expose write_mode. Reported 110 GiB cgroup kill
+   after 49 seconds on 13.0.0-beta.7. These are reporter measurements, not ours.
+2. Current source: #7368 already routes materialized Python inputs to MemTable.
+   A reader is a one-shot stream. With default retries it is wrapped in an
+   asynchronously draining replay spill that still reports absent statistics.
+   FirstSeen also wraps its deduplicated input in StreamingTable, dropping stats.
+3. Current benchmarks: CI has 10M narrow, 1M wide (20 scalars + 256-float vector),
+   10M rows/10K fragments, deleted rows, and an unindexed index tail. Sources are
+   1K/10K/100K, often materialized. These define regression scenarios, not proof
+   of the original reporter's data distribution.
+4. #10077 author tests: 200/400 rows with 5 MiB binary cells, 25-row source with
+   1/10 MiB updated binary cells; includes indexed and column patch routes.
+   Important width stress, distinct from the original 80M-row report.
+5. Reverse size ratio and dense partial updates are regression boundaries.
+   No claim that they dominate user deployments.
+
+Call chain on current main
+
+Python MergeInsertBuilder.execute -> _coerce_reader + _is_materialized
+-> PyO3 execute_batches or execute -> Rust execute_batches/MemTable or
+execute_reader/execute/stream_source_to_provider -> execute_inner retry loop
+-> execute_uncommitted_impl -> non-indexed execute_uncommitted_v2/create_plan
+-> target JOIN source -> DataFusion logical optimization/physical JoinSelection
+-> HashJoinExec left build -> FullSchemaMergeInsertExec or InPlaceMergeInsertExec.
+
+HashJoin retains build batches and concatenates them as well as allocating a
+hash table. Partial RewriteRows projects omitted target columns through the
+join. JoinSelection compares available total_byte_size, then num_rows. There is
+also threshold selection: a side known to fit under collect thresholds may be
+selected even when the other side has no stats. Thus simply using Absent bytes
+does not guarantee source build. Variable-width scan byte estimates use decoder
+seeds (e.g. 64-byte strings), not decoded payload measurements.
+
+Execution creates TaskContext::default on main. Planning's SessionContext::new
+and analyze_plan's default execution options are also unbounded. In DataFusion
+54.1 HashJoin reservation.try_grow returns a resources error; use_spilling=true
+does not give this hash join a disk-spilling implementation.
+
+Maintainer evidence
+
+#9505 wjones127 requested source statistics. #7368 implements that for known
+materialized inputs and preserves streaming replay for opaque streams.
+#7382 proposed source-first earlier; wjones127 accepted it provisionally but
+preferred statistics and explicitly mentioned a large source with narrow target
+keys. #10077 review requests benchmarks for disabled join optimizations and
+parallelism, and asks whether memory awareness can preserve some parallelism.
+#7363: prior late-materialization experiment lost efficient I/O after joins
+shuffled addresses; benefit needs substantially fewer take rows than scan rows.
+These are concrete tradeoffs, not conclusions based on maintainer personality.
+
+Candidate A (experimental, not yet accepted)
+
+Use source JOIN target by default; preserve DataFusion statistics/repartitioning;
+use Lance spilling-enabled execution context for both planning and execution.
+Only the non-indexed plan changes. No claim of a process RSS bound: scan decode,
+repartition coalescing, user materialized input, and writer memory remain outside
+the HashJoin reservation. Wide-cell and reverse-size benchmarks will decide if
+this is sufficient or must be rejected.
+
+Alternatives under evaluation
+
+- Statistics only: already fixes materialized small source in main; cannot infer
+  arbitrary stream size, and misleading target byte estimates remain.
+- Eagerly gather stream statistics: full drain adds a synchronization barrier and
+  disk I/O for large sources; bounded sampling only certifies fully consumed small
+  streams. FirstSeen requires a correct post-dedup stats contract too.
+- Force source build: avoids target-size growth but regresses large-source/small-
+  target cases, especially full-schema upserts that read only target keys.
+- Late materialization: attractive for sparse partial updates but adds take/null/
+  projection logic and needs a selectivity decision to avoid dense-update loss.
+- Bounded pool alone: fails safely inside HashJoin but does not make the wrong
+  build side fit, and does not account all scanner/coalescer allocations.
+- #10077: forces source build, disables join and round-robin repartition, derives
+  scan budgets from pool and stored row width, changes indexed fallback join and
+  column-patch sorting. Larger scope than #9505, with performance tradeoffs to test.
+
+Source URLs
+https://github.com/lance-format/lance/issues/9505
+https://github.com/lance-format/lance/pull/10077
+https://github.com/lance-format/lance/pull/7368
+https://github.com/lance-format/lance/pull/7382
+https://github.com/lance-format/lance/issues/7363
+https://github.com/lance-format/lance/pull/8423
+https://github.com/lance-format/lance/pull/7719
+https://github.com/lance-format/lance/issues/1983
+https://github.com/lance-format/lance/issues/3481

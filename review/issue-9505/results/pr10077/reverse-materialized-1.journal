@@ -1,0 +1,4 @@
+Oct 17 23:28:43 iZuf6dzkxs2wcpph3pma5wZ systemd[1]: Started lance9505-pr10077-reverse-materialized-1.service - /usr/bin/env LANCE_MEM_POOL_SIZE=1073741824 /usr/bin/time -v /root/.local/bin/uv run --no-sync python /mnt/lance/issue-9505/harness/harness.py execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source materialized --output /mnt/lance/issue-9505/results/pr10077/reverse-materialized-1.json.
+Oct 17 23:28:45 iZuf6dzkxs2wcpph3pma5wZ systemd[1]: lance9505-pr10077-reverse-materialized-1.service: Main process exited, code=exited, status=1/FAILURE
+Oct 17 23:28:45 iZuf6dzkxs2wcpph3pma5wZ systemd[1]: lance9505-pr10077-reverse-materialized-1.service: Failed with result 'exit-code'.
+Oct 17 23:28:45 iZuf6dzkxs2wcpph3pma5wZ systemd[1]: lance9505-pr10077-reverse-materialized-1.service: Consumed 2.962s CPU time, 5.5M memory peak, 0B memory swap peak.

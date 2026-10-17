@@ -1,0 +1,3 @@
+Oct 18 00:19:48 iZuf6dzkxs2wcpph3pma5wZ systemd[1]: Started lance9505-statistics-plan-reverse-materialized.service - /usr/bin/env LANCE_MEM_POOL_SIZE=1073741824 /usr/bin/time -v /root/.local/bin/uv run --no-sync python /mnt/lance/issue-9505/harness/harness.py analyze --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source materialized --output /mnt/lance/issue-9505/results/statistics/plan-reverse-materialized.json.
+Oct 18 00:19:51 iZuf6dzkxs2wcpph3pma5wZ systemd[1]: lance9505-statistics-plan-reverse-materialized.service: Deactivated successfully.
+Oct 18 00:19:51 iZuf6dzkxs2wcpph3pma5wZ systemd[1]: lance9505-statistics-plan-reverse-materialized.service: Consumed 8.617s CPU time, 5.4M memory peak, 0B memory swap peak.

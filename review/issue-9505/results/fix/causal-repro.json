@@ -1,0 +1,42 @@
+{
+  "operation": "execute",
+  "uri": "/mnt/lance/issue-9505/data/fixed-4000000",
+  "output": "/mnt/lance/issue-9505/results/fix/causal-repro.json",
+  "batch_rows": 32768,
+  "source_rows": 100,
+  "source_binary_bytes": 0,
+  "source": "streaming",
+  "full_schema": false,
+  "retries": 10,
+  "write_mode": "rewrite_rows",
+  "lance_version": "14.0.0-beta.19",
+  "lance_module": "/mnt/lance/issue-9505/fix/python/python/lance/__init__.py",
+  "pool_bytes": "67108864",
+  "cpu_count": 16,
+  "pid": 253603,
+  "target_rows": 4000000,
+  "target_columns": 44,
+  "target_fragments": 40,
+  "source_prepare_seconds": 0.000258897001913283,
+  "source_fields": [
+    "id",
+    "c0",
+    "c1"
+  ],
+  "status": "ok",
+  "baseline_rss_bytes": 217055232,
+  "merge_stats": {
+    "num_inserted_rows": 0,
+    "num_updated_rows": 100,
+    "num_deleted_rows": 0
+  },
+  "seconds": 1.4537835020018974,
+  "source_prepare_and_merge_seconds": 1.4540423990038107,
+  "cpu_seconds": 3.3099999999999996,
+  "average_cpu_cores": 2.2768176935850795,
+  "sampled_peak_rss_bytes": 1143242752,
+  "process_peak_rss_bytes": 1143291904,
+  "target_rows_per_second": 2751441.3215529663,
+  "source_rows_per_second": 68.78603303882416,
+  "validated": true
+}

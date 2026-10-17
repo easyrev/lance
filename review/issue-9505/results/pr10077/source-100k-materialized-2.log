@@ -1,0 +1,24 @@
+{"operation": "execute", "uri": "/mnt/lance/issue-9505/data/fixed-4000000", "output": "/mnt/lance/issue-9505/results/pr10077/source-100k-materialized-2.json", "binary_min_bytes": 0, "batch_rows": 32768, "source_rows": 100000, "source_binary_bytes": 0, "source": "materialized", "full_schema": false, "retries": 10, "write_mode": "rewrite_rows", "lance_version": "14.0.0-beta.19", "lance_module": "/mnt/lance/issue-9505/pr10077/python/python/lance/__init__.py", "pool_bytes": "1073741824", "cpu_count": 16, "pid": 339683, "target_rows": 4000000, "target_columns": 44, "target_fragments": 40, "source_prepare_seconds": 0.0013153639956726693, "source_fields": ["id", "c0", "c1"], "cgroup": "/system.slice/lance9505-pr10077-source-100k-materialized-2.service", "cgroup_memory_max": "8589934592", "status": "ok", "baseline_rss_bytes": 222355456, "merge_stats": {"num_inserted_rows": 0, "num_updated_rows": 100000, "num_deleted_rows": 0}, "seconds": 0.34735265700146556, "source_prepare_and_merge_seconds": 0.34866802099713823, "cpu_seconds": 1.6199999999999997, "average_cpu_cores": 4.6638480153994175, "cgroup_memory_peak_bytes": 666382336, "sampled_peak_anon_bytes": 653803520, "sampled_peak_file_bytes": 171053056, "sampled_peak_rss_bytes": 822104064, "process_peak_rss_bytes": 820404224, "target_rows_per_second": 11515674.112097329, "source_rows_per_second": 287891.85280243325, "validated": true}
+	Command being timed: "/root/.local/bin/uv run --no-sync python /mnt/lance/issue-9505/harness/harness.py execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source-rows 100000 --source materialized --output /mnt/lance/issue-9505/results/pr10077/source-100k-materialized-2.json"
+	User time (seconds): 3.00
+	System time (seconds): 0.81
+	Percent of CPU this job got: 402%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:00.94
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 801176
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 190569
+	Voluntary context switches: 23707
+	Involuntary context switches: 312
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 41688
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

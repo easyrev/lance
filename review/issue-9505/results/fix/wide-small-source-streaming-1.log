@@ -1,0 +1,25 @@
+{"operation": "execute", "uri": "/mnt/lance/issue-9505/data/wide", "output": "/mnt/lance/issue-9505/results/fix/wide-small-source-streaming-1.json", "binary_min_bytes": 0, "batch_rows": 32768, "source_rows": 25, "source_binary_bytes": 0, "source": "streaming", "full_schema": false, "retries": 10, "write_mode": "rewrite_rows", "lance_version": "14.0.0-beta.19", "lance_module": "/mnt/lance/issue-9505/fix/python/python/lance/__init__.py", "pool_bytes": "1073741824", "cpu_count": 16, "pid": 336766, "target_rows": 400, "target_columns": 5, "target_fragments": 16, "source_prepare_seconds": 0.00024629700055811554, "source_fields": ["id", "c0", "c1"], "cgroup": "/system.slice/lance9505-fix-wide-small-source-streaming-1.service", "cgroup_memory_max": "8589934592", "status": "error", "baseline_rss_bytes": 219541504, "error": "Resources exhausted: Additional allocation failed for HashJoinInput with top memory consumers (across reservations) as:\n  HashJoinInput#0(can spill: false) consumed 1000.0 MB, peak 1000.0 MB.\nError: Failed to allocate additional 125.0 MB for HashJoinInput with 1000.0 MB already allocated for this reservation - 24.0 MB remain available for the total memory pool: fair(pool_size: 1024.0 MB)", "error_type": "OSError", "seconds": 1.4447074240015354, "source_prepare_and_merge_seconds": 1.4449537210020935, "cpu_seconds": 3.5599999999999996, "average_cpu_cores": 2.464166751590124, "cgroup_memory_peak_bytes": 2658979840, "sampled_peak_anon_bytes": 2623393792, "sampled_peak_file_bytes": 164716544, "sampled_peak_rss_bytes": 2788044800, "process_peak_rss_bytes": 2804649984, "target_rows_per_second": 276.87266871799153, "source_rows_per_second": 17.30454179487447}
+Command exited with non-zero status 1
+	Command being timed: "/root/.local/bin/uv run --no-sync python /mnt/lance/issue-9505/harness/harness.py execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source streaming --output /mnt/lance/issue-9505/results/fix/wide-small-source-streaming-1.json"
+	User time (seconds): 2.77
+	System time (seconds): 2.99
+	Percent of CPU this job got: 285%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.02
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 2738916
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1282630
+	Voluntary context switches: 2040
+	Involuntary context switches: 157
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 120
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 1

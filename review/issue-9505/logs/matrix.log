@@ -1,0 +1,175 @@
+PR Python regression status=0
+RUN main fixed-4000000-materialized-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source materialized
+DONE main fixed-4000000-materialized-1 status=0
+RUN main fixed-4000000-streaming-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE main fixed-4000000-streaming-1 status=0
+RUN main fixed-16000000-materialized-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-16000000 --source materialized
+DONE main fixed-16000000-materialized-1 status=0
+RUN main fixed-16000000-streaming-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-16000000 --source streaming
+DONE main fixed-16000000-streaming-1 status=0
+RUN main fixed-64000000-materialized-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-64000000 --source materialized
+DONE main fixed-64000000-materialized-1 status=0
+RUN main fixed-64000000-streaming-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-64000000 --source streaming
+DONE main fixed-64000000-streaming-1 status=0
+RUN main reverse-materialized-1 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source materialized
+DONE main reverse-materialized-1 status=0
+RUN main wide-materialized-1 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source materialized
+DONE main wide-materialized-1 status=1
+RUN main reverse-streaming-1 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source streaming
+DONE main reverse-streaming-1 status=0
+RUN main wide-streaming-1 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source streaming
+DONE main wide-streaming-1 status=1
+RUN main limited-1 2G 268435456 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE main limited-1 status=1
+RUN main fixed-4000000-materialized-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source materialized
+DONE main fixed-4000000-materialized-2 status=0
+RUN main fixed-4000000-streaming-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE main fixed-4000000-streaming-2 status=0
+RUN main fixed-16000000-materialized-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-16000000 --source materialized
+DONE main fixed-16000000-materialized-2 status=0
+RUN main fixed-16000000-streaming-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-16000000 --source streaming
+DONE main fixed-16000000-streaming-2 status=0
+RUN main fixed-64000000-materialized-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-64000000 --source materialized
+DONE main fixed-64000000-materialized-2 status=0
+RUN main fixed-64000000-streaming-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-64000000 --source streaming
+DONE main fixed-64000000-streaming-2 status=0
+RUN main reverse-materialized-2 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source materialized
+DONE main reverse-materialized-2 status=0
+RUN main wide-materialized-2 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source materialized
+DONE main wide-materialized-2 status=0
+RUN main reverse-streaming-2 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source streaming
+DONE main reverse-streaming-2 status=0
+RUN main wide-streaming-2 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source streaming
+DONE main wide-streaming-2 status=0
+RUN main limited-2 2G 268435456 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE main limited-2 status=1
+RUN main wide-limited 2G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source streaming
+DONE main wide-limited status=1
+RUN main plan-fixed-materialized 16G 1073741824 analyze --uri /mnt/lance/issue-9505/data/fixed-4000000 --source materialized
+DONE main plan-fixed-materialized status=0
+RUN main plan-reverse-materialized 8G 1073741824 analyze --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source materialized
+DONE main plan-reverse-materialized status=0
+RUN main plan-wide-materialized 8G 1073741824 analyze --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source materialized
+DONE main plan-wide-materialized status=0
+RUN main plan-fixed-streaming 16G 1073741824 analyze --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE main plan-fixed-streaming status=0
+RUN main plan-reverse-streaming 8G 1073741824 analyze --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source streaming
+DONE main plan-reverse-streaming status=0
+RUN main plan-wide-streaming 8G 1073741824 analyze --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source streaming
+DONE main plan-wide-streaming status=0
+RUN fix fixed-4000000-materialized-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source materialized
+DONE fix fixed-4000000-materialized-1 status=0
+RUN fix fixed-4000000-streaming-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE fix fixed-4000000-streaming-1 status=0
+RUN fix fixed-16000000-materialized-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-16000000 --source materialized
+DONE fix fixed-16000000-materialized-1 status=0
+RUN fix fixed-16000000-streaming-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-16000000 --source streaming
+DONE fix fixed-16000000-streaming-1 status=0
+RUN fix fixed-64000000-materialized-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-64000000 --source materialized
+DONE fix fixed-64000000-materialized-1 status=0
+RUN fix fixed-64000000-streaming-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-64000000 --source streaming
+DONE fix fixed-64000000-streaming-1 status=0
+RUN fix reverse-materialized-1 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source materialized
+DONE fix reverse-materialized-1 status=0
+RUN fix wide-materialized-1 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source materialized
+DONE fix wide-materialized-1 status=1
+RUN fix reverse-streaming-1 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source streaming
+DONE fix reverse-streaming-1 status=1
+RUN fix wide-streaming-1 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source streaming
+DONE fix wide-streaming-1 status=1
+RUN fix limited-1 2G 268435456 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE fix limited-1 status=0
+RUN fix fixed-4000000-materialized-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source materialized
+DONE fix fixed-4000000-materialized-2 status=0
+RUN fix fixed-4000000-streaming-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE fix fixed-4000000-streaming-2 status=0
+RUN fix fixed-16000000-materialized-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-16000000 --source materialized
+DONE fix fixed-16000000-materialized-2 status=0
+RUN fix fixed-16000000-streaming-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-16000000 --source streaming
+DONE fix fixed-16000000-streaming-2 status=0
+RUN fix fixed-64000000-materialized-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-64000000 --source materialized
+DONE fix fixed-64000000-materialized-2 status=0
+RUN fix fixed-64000000-streaming-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-64000000 --source streaming
+DONE fix fixed-64000000-streaming-2 status=0
+RUN fix reverse-materialized-2 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source materialized
+DONE fix reverse-materialized-2 status=0
+RUN fix wide-materialized-2 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source materialized
+DONE fix wide-materialized-2 status=1
+RUN fix reverse-streaming-2 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source streaming
+DONE fix reverse-streaming-2 status=1
+RUN fix wide-streaming-2 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source streaming
+DONE fix wide-streaming-2 status=1
+RUN fix limited-2 2G 268435456 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE fix limited-2 status=0
+RUN fix wide-limited 2G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source streaming
+DONE fix wide-limited status=1
+RUN fix plan-fixed-materialized 16G 1073741824 analyze --uri /mnt/lance/issue-9505/data/fixed-4000000 --source materialized
+DONE fix plan-fixed-materialized status=0
+RUN fix plan-reverse-materialized 8G 1073741824 analyze --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source materialized
+DONE fix plan-reverse-materialized status=0
+RUN fix plan-wide-materialized 8G 1073741824 analyze --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source materialized
+DONE fix plan-wide-materialized status=0
+RUN fix plan-fixed-streaming 16G 1073741824 analyze --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE fix plan-fixed-streaming status=0
+RUN fix plan-reverse-streaming 8G 1073741824 analyze --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source streaming
+DONE fix plan-reverse-streaming status=0
+RUN fix plan-wide-streaming 8G 1073741824 analyze --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source streaming
+DONE fix plan-wide-streaming status=0
+RUN pr10077 fixed-4000000-materialized-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source materialized
+DONE pr10077 fixed-4000000-materialized-1 status=0
+RUN pr10077 fixed-4000000-streaming-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE pr10077 fixed-4000000-streaming-1 status=0
+RUN pr10077 fixed-16000000-materialized-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-16000000 --source materialized
+DONE pr10077 fixed-16000000-materialized-1 status=0
+RUN pr10077 fixed-16000000-streaming-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-16000000 --source streaming
+DONE pr10077 fixed-16000000-streaming-1 status=0
+RUN pr10077 fixed-64000000-materialized-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-64000000 --source materialized
+DONE pr10077 fixed-64000000-materialized-1 status=0
+RUN pr10077 fixed-64000000-streaming-1 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-64000000 --source streaming
+DONE pr10077 fixed-64000000-streaming-1 status=0
+RUN pr10077 reverse-materialized-1 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source materialized
+DONE pr10077 reverse-materialized-1 status=1
+RUN pr10077 wide-materialized-1 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source materialized
+DONE pr10077 wide-materialized-1 status=0
+RUN pr10077 reverse-streaming-1 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source streaming
+DONE pr10077 reverse-streaming-1 status=1
+RUN pr10077 wide-streaming-1 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source streaming
+DONE pr10077 wide-streaming-1 status=0
+RUN pr10077 limited-1 2G 268435456 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE pr10077 limited-1 status=0
+RUN pr10077 fixed-4000000-materialized-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source materialized
+DONE pr10077 fixed-4000000-materialized-2 status=0
+RUN pr10077 fixed-4000000-streaming-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE pr10077 fixed-4000000-streaming-2 status=0
+RUN pr10077 fixed-16000000-materialized-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-16000000 --source materialized
+DONE pr10077 fixed-16000000-materialized-2 status=0
+RUN pr10077 fixed-16000000-streaming-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-16000000 --source streaming
+DONE pr10077 fixed-16000000-streaming-2 status=0
+RUN pr10077 fixed-64000000-materialized-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-64000000 --source materialized
+DONE pr10077 fixed-64000000-materialized-2 status=0
+RUN pr10077 fixed-64000000-streaming-2 64G 1073741824 execute --uri /mnt/lance/issue-9505/data/fixed-64000000 --source streaming
+DONE pr10077 fixed-64000000-streaming-2 status=0
+RUN pr10077 reverse-materialized-2 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source materialized
+DONE pr10077 reverse-materialized-2 status=1
+RUN pr10077 wide-materialized-2 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source materialized
+DONE pr10077 wide-materialized-2 status=0
+RUN pr10077 reverse-streaming-2 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source streaming
+DONE pr10077 reverse-streaming-2 status=1
+RUN pr10077 wide-streaming-2 8G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source streaming
+DONE pr10077 wide-streaming-2 status=0
+RUN pr10077 limited-2 2G 268435456 execute --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE pr10077 limited-2 status=0
+RUN pr10077 wide-limited 2G 1073741824 execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source streaming
+DONE pr10077 wide-limited status=1
+RUN pr10077 plan-fixed-materialized 16G 1073741824 analyze --uri /mnt/lance/issue-9505/data/fixed-4000000 --source materialized
+DONE pr10077 plan-fixed-materialized status=0
+RUN pr10077 plan-reverse-materialized 8G 1073741824 analyze --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source materialized
+DONE pr10077 plan-reverse-materialized status=0
+RUN pr10077 plan-wide-materialized 8G 1073741824 analyze --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source materialized
+DONE pr10077 plan-wide-materialized status=0
+RUN pr10077 plan-fixed-streaming 16G 1073741824 analyze --uri /mnt/lance/issue-9505/data/fixed-4000000 --source streaming
+DONE pr10077 plan-fixed-streaming status=0
+RUN pr10077 plan-reverse-streaming 8G 1073741824 analyze --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source streaming
+DONE pr10077 plan-reverse-streaming status=0
+RUN pr10077 plan-wide-streaming 8G 1073741824 analyze --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source-binary-bytes 10485760 --source streaming
+DONE pr10077 plan-wide-streaming status=0

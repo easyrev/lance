@@ -1,0 +1,24 @@
+{"operation": "analyze", "uri": "/mnt/lance/issue-9505/data/fixed-4000000", "output": "/mnt/lance/issue-9505/results/main/plan-source-100k-streaming.json", "binary_min_bytes": 0, "batch_rows": 32768, "source_rows": 100000, "source_binary_bytes": 0, "source": "streaming", "full_schema": false, "retries": 10, "write_mode": "rewrite_rows", "lance_version": "14.0.0-beta.19", "lance_module": "/mnt/lance/issue-9505/main/python/python/lance/__init__.py", "pool_bytes": "1073741824", "cpu_count": 16, "pid": 338902, "target_rows": 4000000, "target_columns": 44, "target_fragments": 40, "source_prepare_seconds": 0.001363178002065979, "source_fields": ["id", "c0", "c1"], "cgroup": "/system.slice/lance9505-main-plan-source-100k-streaming.service", "cgroup_memory_max": "8589934592", "status": "diagnostic", "baseline_rss_bytes": 222453760, "seconds": 1.5169747629988706, "source_prepare_and_merge_seconds": 1.5183379410009366, "cpu_seconds": 4.300000000000001, "average_cpu_cores": 2.834589015508363, "cgroup_memory_peak_bytes": 3191484416, "sampled_peak_anon_bytes": 3145560064, "sampled_peak_file_bytes": 166973440, "sampled_peak_rss_bytes": 3308597248, "process_peak_rss_bytes": 3335589888, "target_rows_per_second": 2636826.99117057, "source_rows_per_second": 65920.67477926424}
+	Command being timed: "/root/.local/bin/uv run --no-sync python /mnt/lance/issue-9505/harness/harness.py analyze --uri /mnt/lance/issue-9505/data/fixed-4000000 --source-rows 100000 --source streaming --output /mnt/lance/issue-9505/results/main/plan-source-100k-streaming.json"
+	User time (seconds): 3.96
+	System time (seconds): 2.40
+	Percent of CPU this job got: 303%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.10
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3257412
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 876044
+	Voluntary context switches: 36825
+	Involuntary context switches: 544
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 41688
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

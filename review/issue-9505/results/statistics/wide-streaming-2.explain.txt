@@ -1,0 +1,8 @@
+MergeInsert: on=[id], when_matched=UpdateAll, when_not_matched=DoNothing, when_not_matched_by_source=Keep
+  CoalescePartitionsExec
+    ProjectionExec: expr=[c0@0 as c0, c1@1 as c1, payload@2 as payload, _rowid@3 as _rowid, _rowaddr@4 as _rowaddr, id@5 as id, new_payload@6 as new_payload, __merge_source_sentinel@7 as __merge_source_sentinel, CASE WHEN _rowaddr@4 IS NOT NULL THEN 1 ELSE 0 END as __action]
+      HashJoinExec: mode=CollectLeft, join_type=Inner, on=[(id@0, id@0)], projection=[c0@1, c1@2, payload@3, _rowid@4, _rowaddr@5, id@6, new_payload@7, __merge_source_sentinel@8]
+        LanceRead: uri=mnt/lance/issue-9505/data/wide/data, projection=[id, c0, c1, payload], num_fragments=16, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--
+        RepartitionExec: partitioning=RoundRobinBatch(16), input_partitions=1
+          ProjectionExec: expr=[id@0 as id, new_payload@1 as new_payload, true as __merge_source_sentinel]
+            StreamingTableExec: partition_sizes=1, projection=[id, new_payload]

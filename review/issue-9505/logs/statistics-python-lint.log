@@ -1,0 +1,15 @@
+ruff format --check --diff python
+173 files already formatted
+ruff check python
+python/lance/dataset.py:707:89: E501 Line too long (96 > 88)
+    |
+705 |         <BLANKLINE>
+706 |
+707 |         This is the shape for unknown source statistics. `explain_plan` receives a schema rather
+    |                                                                                         ^^^^^^^^ E501
+708 |         than data, so it cannot know how `execute` would wrap the source, and the
+709 |         wrapping affects the plan. Use `analyze_plan`, which receives the real
+    |
+
+Found 1 error.
+make: *** [Makefile:76: lint-python] Error 1

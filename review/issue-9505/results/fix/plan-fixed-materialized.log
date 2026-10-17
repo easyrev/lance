@@ -1,0 +1,24 @@
+{"operation": "analyze", "uri": "/mnt/lance/issue-9505/data/fixed-4000000", "output": "/mnt/lance/issue-9505/results/fix/plan-fixed-materialized.json", "batch_rows": 32768, "source_rows": 100, "source_binary_bytes": 0, "source": "materialized", "full_schema": false, "retries": 10, "write_mode": "rewrite_rows", "lance_version": "14.0.0-beta.19", "lance_module": "/mnt/lance/issue-9505/fix/python/python/lance/__init__.py", "pool_bytes": "1073741824", "cpu_count": 16, "pid": 274700, "target_rows": 4000000, "target_columns": 44, "target_fragments": 40, "source_prepare_seconds": 0.00027942800079472363, "source_fields": ["id", "c0", "c1"], "cgroup": "/system.slice/lance9505-fix-plan-fixed-materialized.service", "cgroup_memory_max": "17179869184", "status": "diagnostic", "baseline_rss_bytes": 219590656, "seconds": 0.5886202220026462, "source_prepare_and_merge_seconds": 0.5888996500034409, "cpu_seconds": 1.9599999999999997, "average_cpu_cores": 3.3298210403501707, "cgroup_memory_peak_bytes": 801968128, "sampled_peak_anon_bytes": 787857408, "sampled_peak_file_bytes": 167284736, "sampled_peak_rss_bytes": 953241600, "process_peak_rss_bytes": 951345152, "target_rows_per_second": 6795553.143571778, "source_rows_per_second": 169.88882858929443}
+	Command being timed: "/root/.local/bin/uv run --no-sync python /mnt/lance/issue-9505/harness/harness.py analyze --uri /mnt/lance/issue-9505/data/fixed-4000000 --source materialized --output /mnt/lance/issue-9505/results/fix/plan-fixed-materialized.json"
+	User time (seconds): 2.97
+	System time (seconds): 1.00
+	Percent of CPU this job got: 355%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:01.12
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 929048
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1
+	Minor (reclaiming a frame) page faults: 314709
+	Voluntary context switches: 27820
+	Involuntary context switches: 288
+	Swaps: 0
+	File system inputs: 3432
+	File system outputs: 544
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

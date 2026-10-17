@@ -1,0 +1,31 @@
+{
+  "operation": "execute",
+  "uri": "/mnt/lance/issue-9505/data/wide",
+  "output": "/mnt/lance/issue-9505/results/main/wide-small-source-limited.json",
+  "binary_min_bytes": 0,
+  "batch_rows": 32768,
+  "source_rows": 25,
+  "source_binary_bytes": 0,
+  "source": "streaming",
+  "full_schema": false,
+  "retries": 10,
+  "write_mode": "rewrite_rows",
+  "lance_version": "14.0.0-beta.19",
+  "lance_module": "/mnt/lance/issue-9505/main/python/python/lance/__init__.py",
+  "pool_bytes": "1073741824",
+  "cpu_count": 16,
+  "pid": 336437,
+  "target_rows": 400,
+  "target_columns": 5,
+  "target_fragments": 16,
+  "source_prepare_seconds": 0.00024342799588339403,
+  "source_fields": [
+    "id",
+    "c0",
+    "c1"
+  ],
+  "cgroup": "/system.slice/lance9505-main-wide-small-source-limited.service",
+  "cgroup_memory_max": "2147483648",
+  "status": "running",
+  "baseline_rss_bytes": 220454912
+}

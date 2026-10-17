@@ -1,0 +1,4 @@
+Oct 18 00:20:50 iZuf6dzkxs2wcpph3pma5wZ systemd[1]: Started lance9505-fix-wide-small-source-limited.service - /usr/bin/env LANCE_MEM_POOL_SIZE=1073741824 /usr/bin/time -v /root/.local/bin/uv run --no-sync python /mnt/lance/issue-9505/harness/harness.py execute --uri /mnt/lance/issue-9505/data/wide --source-rows 25 --source streaming --output /mnt/lance/issue-9505/results/fix/wide-small-source-limited.json.
+Oct 18 00:20:51 iZuf6dzkxs2wcpph3pma5wZ systemd[1]: lance9505-fix-wide-small-source-limited.service: A process of this unit has been killed by the OOM killer.
+Oct 18 00:20:51 iZuf6dzkxs2wcpph3pma5wZ systemd[1]: lance9505-fix-wide-small-source-limited.service: Failed with result 'oom-kill'.
+Oct 18 00:20:51 iZuf6dzkxs2wcpph3pma5wZ systemd[1]: lance9505-fix-wide-small-source-limited.service: Consumed 4.598s CPU time, 2.0G memory peak, 0B memory swap peak.

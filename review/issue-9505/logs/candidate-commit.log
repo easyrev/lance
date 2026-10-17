@@ -1,0 +1,27 @@
+[INFO] Initializing environment for https://github.com/astral-sh/ruff-pre-commit.
+[INFO] Initializing environment for https://github.com/doublify/pre-commit-rust.
+[INFO] Initializing environment for https://github.com/crate-ci/typos.
+[INFO] Installing environment for https://github.com/astral-sh/ruff-pre-commit.
+[INFO] Once installed this environment will be reused.
+[INFO] This may take a few minutes...
+An unexpected error has occurred: CalledProcessError: command: ('/root/.cache/pre-commit/repoctgr9dby/py_env-python3.12/bin/python', '-mpip', 'install', '.')
+return code: 1
+stdout:
+    Looking in indexes: http://mirrors.cloud.aliyuncs.com/pypi/simple/
+    Processing ./.
+      Installing build dependencies: started
+      Installing build dependencies: finished with status 'error'
+stderr:
+      error: subprocess-exited-with-error
+      
+      × installing build dependencies did not run successfully.
+      │ exit code: 1
+      ╰─> [3 lines of output]
+          Looking in indexes: http://mirrors.cloud.aliyuncs.com/pypi/simple/
+          ERROR: Could not find a version that satisfies the requirement setuptools>=40.8.0 (from versions: none)
+          ERROR: No matching distribution found for setuptools>=40.8.0
+          [end of output]
+      
+      note: This error originates from a subprocess, and is likely not a problem with pip.
+    ERROR: Failed to build 'file:///root/.cache/pre-commit/repoctgr9dby' when installing build dependencies
+Check the log at /root/.cache/pre-commit/pre-commit.log

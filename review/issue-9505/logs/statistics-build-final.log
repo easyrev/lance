@@ -1,0 +1,43 @@
+../../harness/profile.mk:3: warning: overriding recipe for target 'build'
+Makefile:44: warning: ignoring old recipe for target 'build'
+uv run --no-sync maturin develop --uv --profile release-with-debug --locked
+🍹 Building a mixed python/rust project
+🐍 Found CPython 3.12 at /mnt/lance/issue-9505/statistics/python/.venv/bin/python
+🔗 Found pyo3 bindings with abi3 support
+Checked 23 packages in 1ms
+Resolved 5 packages in 2ms
+Checked 5 packages in 0.09ms
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v14.0.0-beta.19 (/mnt/lance/issue-9505/statistics/rust/lance)
+   Compiling lance-namespace-impls v14.0.0-beta.19 (/mnt/lance/issue-9505/statistics/rust/lance-namespace-impls)
+   Compiling pylance v14.0.0-beta.19 (/mnt/lance/issue-9505/statistics/python)
+    Finished `release-with-debug` profile [optimized + debuginfo] target(s) in 14m 31s
+📦 Built wheel for abi3 Python ≥ 3.10 to /tmp/.tmpAb7SHY/pylance-14.0.0b19-cp310-abi3-linux_x86_64.whl
+✏️ Setting installed package as editable
+🛠 Installed pylance-14.0.0b19
+	Command being timed: "uv run --no-sync make -f Makefile -f ../../harness/profile.mk build UV_RUN=uv run --no-sync"
+	User time (seconds): 8744.30
+	System time (seconds): 248.15
+	Percent of CPU this job got: 1026%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 14:35.80
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 24336496
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 1413
+	Minor (reclaiming a frame) page faults: 74399951
+	Voluntary context switches: 125375
+	Involuntary context switches: 461217
+	Swaps: 0
+	File system inputs: 4545768
+	File system outputs: 45102208
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

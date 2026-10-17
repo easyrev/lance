@@ -1,0 +1,36 @@
+ruff format --check --diff python
+173 files already formatted
+ruff check python
+All checks passed!
+pyright
+/mnt/lance/issue-9505/statistics/python/python/lance/arrow.py
+  /mnt/lance/issue-9505/statistics/python/python/lance/arrow.py:11:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+  /mnt/lance/issue-9505/statistics/python/python/lance/arrow.py:12:8 - warning: Stub file not found for "pyarrow.compute" (reportMissingTypeStubs)
+  /mnt/lance/issue-9505/statistics/python/python/lance/arrow.py:265:14 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+/mnt/lance/issue-9505/statistics/python/python/lance/dependencies.py
+  /mnt/lance/issue-9505/statistics/python/python/lance/dependencies.py:161:12 - warning: Stub file not found for "datasets" (reportMissingTypeStubs)
+  /mnt/lance/issue-9505/statistics/python/python/lance/dependencies.py:163:12 - warning: Stub file not found for "pandas" (reportMissingTypeStubs)
+/mnt/lance/issue-9505/statistics/python/python/lance/file.py
+  /mnt/lance/issue-9505/statistics/python/python/lance/file.py:8:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+/mnt/lance/issue-9505/statistics/python/python/lance/schema.py
+  /mnt/lance/issue-9505/statistics/python/python/lance/schema.py:7:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+/mnt/lance/issue-9505/statistics/python/python/lance/util.py
+  /mnt/lance/issue-9505/statistics/python/python/lance/util.py:19:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+/mnt/lance/issue-9505/statistics/python/python/tests/test_arrow.py
+  /mnt/lance/issue-9505/statistics/python/python/tests/test_arrow.py:12:8 - warning: Stub file not found for "pandas" (reportMissingTypeStubs)
+  /mnt/lance/issue-9505/statistics/python/python/tests/test_arrow.py:13:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+/mnt/lance/issue-9505/statistics/python/python/tests/test_fragment_typing.py
+  /mnt/lance/issue-9505/statistics/python/python/tests/test_fragment_typing.py:22:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+/mnt/lance/issue-9505/statistics/python/python/tests/test_schema.py
+  /mnt/lance/issue-9505/statistics/python/python/tests/test_schema.py:9:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+  /mnt/lance/issue-9505/statistics/python/python/tests/test_schema.py:16:10 - warning: Import "lance.lance.schema" could not be resolved from source (reportMissingModuleSource)
+/mnt/lance/issue-9505/statistics/python/python/tests/test_udf.py
+  /mnt/lance/issue-9505/statistics/python/python/tests/test_udf.py:24:8 - warning: Stub file not found for "pyarrow" (reportMissingTypeStubs)
+0 errors, 14 warnings, 0 informations
+cargo fmt -- --check
+cargo clippy -- -D warnings
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.12s

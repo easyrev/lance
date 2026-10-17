@@ -1,0 +1,24 @@
+{"operation": "analyze", "uri": "/mnt/lance/issue-9505/data/reverse", "output": "/mnt/lance/issue-9505/results/statistics/plan-reverse-materialized.json", "binary_min_bytes": 0, "batch_rows": 32768, "source_rows": 3000000, "source_binary_bytes": 0, "source": "materialized", "full_schema": true, "retries": 10, "write_mode": "rewrite_rows", "lance_version": "14.0.0-beta.19", "lance_module": "/mnt/lance/issue-9505/statistics/python/python/lance/__init__.py", "pool_bytes": "1073741824", "cpu_count": 16, "pid": 335594, "target_rows": 100000, "target_columns": 44, "target_fragments": 4, "source_prepare_seconds": 0.8640904659987427, "source_fields": ["id", "c0", "c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8", "c9", "c10", "c11", "c12", "c13", "c14", "c15", "c16", "c17", "c18", "c19", "c20", "c21", "c22", "c23", "c24", "c25", "c26", "c27", "c28", "c29", "c30", "c31", "c32", "c33", "c34", "c35", "c36", "c37", "c38", "c39", "c40", "c41", "c42"], "cgroup": "/system.slice/lance9505-statistics-plan-reverse-materialized.service", "cgroup_memory_max": "8589934592", "status": "diagnostic", "baseline_rss_bytes": 1304539136, "seconds": 1.4421297179942485, "source_prepare_and_merge_seconds": 2.3062201839929912, "cpu_seconds": 5.609999999999999, "average_cpu_cores": 3.890080018462232, "cgroup_memory_peak_bytes": 3968155648, "sampled_peak_anon_bytes": 3340042240, "sampled_peak_file_bytes": 169795584, "sampled_peak_rss_bytes": 3509837824, "process_peak_rss_bytes": 3508047872, "target_rows_per_second": 69341.889812161, "source_rows_per_second": 2080256.6943648302}
+	Command being timed: "/root/.local/bin/uv run --no-sync python /mnt/lance/issue-9505/harness/harness.py analyze --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source materialized --output /mnt/lance/issue-9505/results/statistics/plan-reverse-materialized.json"
+	User time (seconds): 6.15
+	System time (seconds): 2.46
+	Percent of CPU this job got: 291%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.95
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 3425828
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 1031375
+	Voluntary context switches: 12138
+	Involuntary context switches: 322
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 1280880
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 0

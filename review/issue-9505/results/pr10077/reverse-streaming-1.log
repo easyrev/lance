@@ -1,0 +1,25 @@
+{"operation": "execute", "uri": "/mnt/lance/issue-9505/data/reverse", "output": "/mnt/lance/issue-9505/results/pr10077/reverse-streaming-1.json", "batch_rows": 32768, "source_rows": 3000000, "source_binary_bytes": 0, "source": "streaming", "full_schema": true, "retries": 10, "write_mode": "rewrite_rows", "lance_version": "14.0.0-beta.19", "lance_module": "/mnt/lance/issue-9505/pr10077/python/python/lance/__init__.py", "pool_bytes": "1073741824", "cpu_count": 16, "pid": 276050, "target_rows": 100000, "target_columns": 44, "target_fragments": 4, "source_prepare_seconds": 0.016158103997440776, "source_fields": ["id", "c0", "c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8", "c9", "c10", "c11", "c12", "c13", "c14", "c15", "c16", "c17", "c18", "c19", "c20", "c21", "c22", "c23", "c24", "c25", "c26", "c27", "c28", "c29", "c30", "c31", "c32", "c33", "c34", "c35", "c36", "c37", "c38", "c39", "c40", "c41", "c42"], "cgroup": "/system.slice/lance9505-pr10077-reverse-streaming-1.service", "cgroup_memory_max": "8589934592", "status": "error", "baseline_rss_bytes": 255037440, "error": "Resources exhausted: Additional allocation failed for HashJoinInput with top memory consumers (across reservations) as:\n  HashJoinInput#0(can spill: false) consumed 1021.6 MB, peak 1021.6 MB.\nError: Failed to allocate additional 22.9 MB for HashJoinInput with 1021.6 MB already allocated for this reservation - 2.4 MB remain available for the total memory pool: fair(pool_size: 1024.0 MB)", "error_type": "OSError", "seconds": 1.9510250630009978, "source_prepare_and_merge_seconds": 1.9671831669984385, "cpu_seconds": 2.31, "average_cpu_cores": 1.1839929910725184, "cgroup_memory_peak_bytes": 2300977152, "sampled_peak_anon_bytes": 1184116736, "sampled_peak_file_bytes": 156594176, "sampled_peak_rss_bytes": 1339203584, "process_peak_rss_bytes": 1338580992, "target_rows_per_second": 51255.10783863716, "source_rows_per_second": 1537653.2351591147}
+Command exited with non-zero status 1
+	Command being timed: "/root/.local/bin/uv run --no-sync python /mnt/lance/issue-9505/harness/harness.py execute --uri /mnt/lance/issue-9505/data/reverse --full-schema --source-rows 3000000 --source streaming --output /mnt/lance/issue-9505/results/pr10077/reverse-streaming-1.json"
+	User time (seconds): 2.83
+	System time (seconds): 1.46
+	Percent of CPU this job got: 171%
+	Elapsed (wall clock) time (h:mm:ss or m:ss): 0:02.49
+	Average shared text size (kbytes): 0
+	Average unshared data size (kbytes): 0
+	Average stack size (kbytes): 0
+	Average total size (kbytes): 0
+	Maximum resident set size (kbytes): 1307208
+	Average resident set size (kbytes): 0
+	Major (requiring I/O) page faults: 0
+	Minor (reclaiming a frame) page faults: 291698
+	Voluntary context switches: 1366
+	Involuntary context switches: 318
+	Swaps: 0
+	File system inputs: 0
+	File system outputs: 2095280
+	Socket messages sent: 0
+	Socket messages received: 0
+	Signals delivered: 0
+	Page size (bytes): 4096
+	Exit status: 1
