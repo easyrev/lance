@@ -24,6 +24,10 @@
 
 // Internal column name for the merge action. Using "__action" to avoid collisions with user columns.
 const MERGE_ACTION_COLUMN: &str = "__action";
+
+// Reuse the retry spill's in-memory budget for source statistics preparation.
+// A separate row bound also limits the cost of deduplicating a buffered source.
+const MAX_SOURCE_BUFFER_BYTES: usize = 100 * 1024 * 1024;
 // ## NULL-safe source row detection via sentinel column
 //
 // The merge join uses standard SQL equality for ON columns, which means NULL != NULL.
@@ -85,6 +89,7 @@ use arrow_array::{
 };
 use arrow_schema::{ArrowError, DataType, Field, Fields, Schema};
 use arrow_select::take::take_record_batch;
+use datafusion::common::stats::Precision;
 use datafusion::common::tree_node::{Transformed, TreeNode};
 use datafusion::common::{Column as DFColumn, NullEquality, TableReference};
 use datafusion::error::DataFusionError;
@@ -676,9 +681,9 @@ struct MergeInsertParams {
     conflict_retries: u32,
     // When the source is a one-shot stream and `conflict_retries > 0`, the source
     // is spilled (memory, then disk) so it can be replayed on each retry. Set to
-    // false to fail fast on contention instead of buffering the stream. Has no
-    // effect on re-scannable sources (materialized batches, files), which never
-    // spill.
+    // false to fail fast on contention without retaining the stream for retries.
+    // Small non-indexed sources may still be buffered for join statistics. Has
+    // no effect on re-scannable sources (materialized batches, files).
     spill_for_retry: bool,
     retry_timeout: Duration,
     // MemWAL SSTables to mark as compacted when this commit succeeds.
@@ -937,6 +942,9 @@ impl MergeInsertBuilder {
     /// `conflict_retries > 0`, the source is buffered in memory and spilled to disk
     /// so each retry can re-read it. Set this to `false` to skip that buffering and
     /// fail fast with a contention error instead of writing the stream to disk.
+    ///
+    /// Small non-indexed streams may still be buffered to provide join statistics.
+    /// This setting controls replay buffering and does not disable that preparation.
     ///
     /// This has no effect on re-scannable sources (materialized batches via
     /// [`MergeInsertJob::execute_batches`], or a [`TableProvider`] via
@@ -2347,8 +2355,10 @@ impl MergeInsertJob {
     /// This will take in the source, merge it with the existing target data, and insert new
     /// rows, update existing rows, and delete existing rows.
     ///
-    /// A stream can only be read once, so when `conflict_retries > 0` the stream is
-    /// spilled (in memory, then to disk) so it can be replayed on each retry. See
+    /// Small non-indexed sources are buffered to provide join statistics. Larger
+    /// streams are spilled (in memory, then to disk) when retries are enabled.
+    /// Disabling retry spilling still makes stream sources fail fast on conflicts.
+    /// See
     /// [`MergeInsertBuilder::spill_for_retry`] to fail fast instead, and
     /// [`Self::execute_batches`] / [`Self::execute_provider`] for re-scannable
     /// sources that never spill.
@@ -2356,8 +2366,9 @@ impl MergeInsertJob {
         self,
         source: SendableRecordBatchStream,
     ) -> Result<(Arc<Dataset>, MergeStats)> {
-        let (provider, replayable) = self.stream_source_to_provider(source).await?;
-        self.execute_inner(provider, replayable).await
+        let allow_replay = self.params.conflict_retries > 0 && self.params.spill_for_retry;
+        let provider = self.stream_source_to_provider(source, allow_replay).await?;
+        self.execute_inner(provider, allow_replay).await
     }
 
     /// Executes the merge insert job from a re-scannable [`TableProvider`].
@@ -2432,39 +2443,79 @@ impl MergeInsertJob {
         partitions
     }
 
-    /// Wrap a one-shot stream source in a provider, returning whether it can be
-    /// replayed across retries.
-    ///
-    /// With retries enabled and spilling allowed, the stream is drained into a
-    /// replayable spill (memory up to 100MB, then disk). Otherwise the stream is
-    /// wrapped in a non-replayable one-shot provider and any conflict fails fast.
+    /// Buffer a small non-indexed source to give join selection exact statistics.
+    /// Larger inputs retain their prefix and continue through the streaming path.
     async fn stream_source_to_provider(
         &self,
-        source: SendableRecordBatchStream,
-    ) -> Result<(Arc<dyn TableProvider>, bool)> {
-        if self.params.conflict_retries > 0 && self.params.spill_for_retry {
-            // Allow buffering up to 100MB in memory before spilling to disk.
-            let provider = spilling_table_provider(source, 100 * 1024 * 1024).await?;
-            Ok((provider, true))
+        mut source: SendableRecordBatchStream,
+        allow_replay: bool,
+    ) -> Result<Arc<dyn TableProvider>> {
+        let schema = source.schema();
+        if self.can_use_create_plan(schema.as_ref()).await? {
+            // Reject invalid write budgets before the first source poll, as the
+            // uncommitted execution path did before source preparation was eager.
+            if self.select_write_sink(schema.as_ref())? == WriteSink::RewriteRows {
+                self.params.carried_lineage_spill_budget(&self.dataset)?;
+            }
+            // Stay within the existing source buffer budget and DataFusion's
+            // small-table row bound. Exact statistics can also help a partitioned
+            // join: do not limit prefetch to the much smaller collected-byte
+            // threshold. A prefix is not a cardinality estimate; publish only
+            // after EOF and stop reading when either bound is crossed.
+            let config = SessionConfig::new();
+            let limits = &config.options().optimizer;
+            let mut bytes = 0;
+            let mut rows = 0;
+            let mut batches = Vec::new();
+            loop {
+                let Some(batch) = source.next().await else {
+                    let partitions =
+                        if self.params.source_dedupe_behavior == SourceDedupeBehavior::FirstSeen {
+                            vec![batches]
+                        } else {
+                            Self::batches_into_partitions(batches)
+                        };
+                    return Ok(Arc::new(MemTable::try_new(schema, partitions)?));
+                };
+                let batch = batch?;
+                let batch_bytes = batch.get_array_memory_size();
+                let batch_rows = batch.num_rows();
+                let exceeds_limit = batch_bytes > MAX_SOURCE_BUFFER_BYTES - bytes
+                    || batch_rows > limits.hash_join_single_partition_threshold_rows - rows;
+                batches.push(batch);
+                if exceeds_limit {
+                    break;
+                }
+                bytes += batch_bytes;
+                rows += batch_rows;
+            }
+            source = Box::pin(RecordBatchStreamAdapter::new(
+                schema,
+                stream::iter(batches.into_iter().map(Ok)).chain(source),
+            ));
+        }
+
+        if allow_replay {
+            // Keep the existing retry spill policy for sources that remain streams.
+            Ok(spilling_table_provider(source, MAX_SOURCE_BUFFER_BYTES).await?)
         } else {
-            Ok((one_shot_provider(source)?, false))
+            one_shot_provider(source)
         }
     }
 
     /// Run the retry loop against a provider, re-scanning it on each attempt.
     ///
-    /// `replayable` indicates whether the provider can be scanned more than once.
-    /// When it cannot (a one-shot stream that was not spilled), retries are
-    /// disabled so we never scan it twice; the operation runs once and surfaces any
-    /// commit conflict directly.
+    /// `allow_replay` preserves the caller's retry policy. A stream with retry
+    /// spilling disabled still fails fast, even if it was small enough to buffer
+    /// for statistics and its resulting provider could be scanned again.
     async fn execute_inner(
         self,
         provider: Arc<dyn TableProvider>,
-        replayable: bool,
+        allow_replay: bool,
     ) -> Result<(Arc<Dataset>, MergeStats)> {
         let dataset = self.dataset.clone();
         let config = RetryConfig {
-            max_retries: if replayable {
+            max_retries: if allow_replay {
                 self.params.conflict_retries
             } else {
                 0
@@ -2488,9 +2539,10 @@ impl MergeInsertJob {
         self,
         source: impl StreamingWriteSource,
     ) -> Result<UncommittedMergeInsert> {
-        let stream = source.into_stream();
-        self.execute_uncommitted_impl(one_shot_provider(stream)?)
-            .await
+        let provider = self
+            .stream_source_to_provider(source.into_stream(), false)
+            .await?;
+        self.execute_uncommitted_impl(provider).await
     }
 
     fn create_plan_join_type(&self) -> JoinType {
@@ -2604,7 +2656,10 @@ impl MergeInsertJob {
         // Goal: we shouldn't have to add new branches in this code to handle
         //       indexed vs non-indexed cases. That should be handled by optimizer rules.
         let write_sink = self.select_write_sink(provider.schema().as_ref())?;
-        let session_ctx = SessionContext::new();
+        let session_ctx = get_session_context(&LanceExecutionOptions {
+            use_spilling: true,
+            ..Default::default()
+        });
         let mut target_provider =
             crate::datafusion::dataframe::LanceTableProvider::new_with_ordering(
                 self.dataset.clone(),
@@ -2639,15 +2694,35 @@ impl MergeInsertJob {
         let source_skipped_duplicates = Arc::new(AtomicU64::new(0));
         let source_df = if deduplicate_source {
             let source_plan = provider.scan(&session_ctx.state(), None, &[], None).await?;
+            let statistics = source_plan.partition_statistics(None)?;
+            let state = session_ctx.state();
+            let limits = &state.config().options().optimizer;
+            let small_source = matches!(
+                (statistics.total_byte_size, statistics.num_rows),
+                (Precision::Exact(bytes), Precision::Exact(rows))
+                    if bytes <= MAX_SOURCE_BUFFER_BYTES
+                        && rows <= limits.hash_join_single_partition_threshold_rows
+            );
             let deduplicated_partition = Arc::new(DeduplicatingSourcePartitionStream::new(
                 source_plan,
                 self.params.on.clone(),
                 source_skipped_duplicates.clone(),
             ));
-            let deduplicated_provider = Arc::new(StreamingTable::try_new(
-                deduplicated_partition.schema().clone(),
-                vec![deduplicated_partition],
-            )?);
+            let schema = deduplicated_partition.schema().clone();
+            let deduplicated_provider: Arc<dyn TableProvider> = if small_source {
+                // Preserve statistics after FirstSeen so a small source does not
+                // become an unknown stream and move the build onto the target.
+                let batches = deduplicated_partition
+                    .execute(session_ctx.task_ctx())
+                    .try_collect::<Vec<_>>()
+                    .await?;
+                Arc::new(MemTable::try_new(schema, vec![batches])?)
+            } else {
+                Arc::new(StreamingTable::try_new(
+                    schema,
+                    vec![deduplicated_partition],
+                )?)
+            };
             session_ctx.read_table(deduplicated_provider)?
         } else {
             session_ctx.read_table(provider)?
@@ -2773,7 +2848,11 @@ impl MergeInsertJob {
         }
 
         // Execute partition 0 (the only partition)
-        let task_context = Arc::new(datafusion::execution::TaskContext::default());
+        let task_context = get_session_context(&LanceExecutionOptions {
+            use_spilling: true,
+            ..Default::default()
+        })
+        .task_ctx();
         let mut stream = plan.execute(0, task_context)?;
 
         // Assert that the execution produces no output (this is a write operation)
@@ -3396,16 +3475,17 @@ impl MergeInsertJob {
     ///
     /// * `source` - The source data stream that would be used in the merge insert
     ///
-    /// A stream reports no statistics, so the plan this returns is the streaming
-    /// one. Callers holding materialized data or a source that reports statistics
-    /// should use [`Self::analyze_plan_batches`] or [`Self::analyze_plan_provider`],
-    /// which report the plan those sources actually run.
+    /// Small streams are buffered to report exact statistics, as in [`Self::execute`].
+    /// Streams that exceed the collection bounds retain their streaming plan.
+    /// Callers holding materialized data or a provider should use
+    /// [`Self::analyze_plan_batches`] or [`Self::analyze_plan_provider`].
     ///
     /// # Errors
     ///
     /// See [`Self::analyze_plan_provider`], which this delegates to.
     pub async fn analyze_plan(&self, source: SendableRecordBatchStream) -> Result<String> {
-        self.analyze_plan_provider(one_shot_provider(source)?).await
+        let provider = self.stream_source_to_provider(source, false).await?;
+        self.analyze_plan_provider(provider).await
     }
 
     /// [`Self::analyze_plan`] for materialized batches.
@@ -3416,8 +3496,8 @@ impl MergeInsertJob {
     /// its collected side from the statistics each source reports.
     ///
     /// Under [`SourceDedupeBehavior::FirstSeen`] the source is deduplicated ahead
-    /// of the join and re-wrapped in a stream, so the reported plan is the
-    /// streaming one and the in-memory node does not appear in it.
+    /// of the join. Small inputs retain exact statistics after deduplication;
+    /// larger inputs remain streaming.
     ///
     /// An empty `batches` still reports an in-memory source, but it carries no
     /// schema for the provider to use, so the support check runs against the
@@ -3431,9 +3511,8 @@ impl MergeInsertJob {
 
     /// [`Self::analyze_plan`] from a re-scannable [`TableProvider`].
     ///
-    /// Mirrors [`Self::execute_provider`]. Under
-    /// [`SourceDedupeBehavior::FirstSeen`] the provider is re-wrapped in a stream
-    /// before the join, so its own node does not appear in the reported plan.
+    /// Mirrors [`Self::execute_provider`], including buffering small inputs after
+    /// [`SourceDedupeBehavior::FirstSeen`] deduplication to retain their statistics.
     ///
     /// The support check runs against `provider.schema()`, which is the source
     /// schema the caller supplied. For a provider built from an empty batch list
@@ -3461,7 +3540,10 @@ impl MergeInsertJob {
         let plan = cloned_job.create_plan(provider).await?;
 
         // Use the analyze_plan function from lance_datafusion, but strip out the wrapper lines
-        let options = LanceExecutionOptions::default();
+        let options = LanceExecutionOptions {
+            use_spilling: true,
+            ..Default::default()
+        };
         let full_analysis = analyze_plan(plan, options).await?;
 
         // Remove the AnalyzeExec and TracedExec lines from the output
@@ -4065,7 +4147,7 @@ mod tests {
     use lance_arrow::FixedSizeListArrayExt;
     use lance_core::utils::tempfile::TempStrDir;
     use lance_datafusion::{datagen::DatafusionDatagenExt, utils::reader_to_stream};
-    use lance_datagen::{BatchCount, Dimension, RowCount, Seed, array};
+    use lance_datagen::{BatchCount, ByteCount, Dimension, RowCount, Seed, array};
     use lance_index::IndexType;
     use lance_index::scalar::{FullTextSearchQuery, InvertedIndexParams, ScalarIndexParams};
     use lance_io::object_store::ObjectStoreParams;
@@ -4075,6 +4157,7 @@ mod tests {
     use object_store::throttle::ThrottleConfig;
     use roaring::RoaringBitmap;
     use std::collections::HashMap;
+    use std::sync::atomic::AtomicUsize;
     use tokio::sync::{Barrier, Notify};
     use url::Url;
 
@@ -10970,6 +11053,59 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_source_statistics_prefetch_preserves_large_stream() {
+        let dataset = Arc::new(
+            lance_datagen::gen_batch()
+                .col("key", array::step::<UInt64Type>())
+                .col("value", array::step::<UInt64Type>())
+                .into_ram_dataset(FragmentCount::from(1), FragmentRowCount::from(4))
+                .await
+                .unwrap(),
+        );
+        let batches = lance_datagen::gen_batch()
+            .col("key", array::step::<UInt64Type>())
+            .col("value", array::step::<UInt64Type>())
+            .into_reader_rows(RowCount::from(200_000), BatchCount::from(2))
+            .map(|batch| batch.map_err(DataFusionError::from))
+            .collect::<Vec<_>>();
+        let schema = batches[0].as_ref().unwrap().schema();
+        let polls = Arc::new(AtomicUsize::new(0));
+        let poll_count = polls.clone();
+        let source = RecordBatchStreamAdapter::new(
+            schema,
+            stream::iter(batches).inspect(move |_| {
+                poll_count.fetch_add(1, Ordering::SeqCst);
+            }),
+        );
+        let job = MergeInsertBuilder::try_new(dataset, vec!["key".to_string()])
+            .unwrap()
+            .when_matched(WhenMatched::UpdateAll)
+            .try_build()
+            .unwrap();
+        let provider = job
+            .stream_source_to_provider(Box::pin(source), false)
+            .await
+            .unwrap();
+        assert_eq!(polls.load(Ordering::SeqCst), 1);
+        let actual = provider_to_stream(provider)
+            .await
+            .unwrap()
+            .try_collect::<Vec<_>>()
+            .await
+            .unwrap();
+        assert_eq!(polls.load(Ordering::SeqCst), 2);
+        assert_eq!(
+            actual.iter().map(RecordBatch::num_rows).sum::<usize>(),
+            400_000
+        );
+        assert_eq!(actual[0]["key"].as_primitive::<UInt64Type>().value(0), 0);
+        assert_eq!(
+            actual[1]["key"].as_primitive::<UInt64Type>().value(0),
+            200_000
+        );
+    }
+
+    #[tokio::test]
     async fn test_plan_upsert() {
         let data = lance_datagen::gen_batch()
             .with_seed(Seed::from(1))
@@ -11039,10 +11175,9 @@ mod tests {
     /// `Absent` for everything, neither side qualifies for `CollectLeft`, and the
     /// plan falls back to a partitioned join whose build side is still the target.
     ///
-    /// The one-shot provider used below stands in for every non-materialized
-    /// source: `stream_source_to_provider` sends the default path through
-    /// `spilling_table_provider`, which also hands back a `StreamingTable` and so
-    /// reports the same absent statistics.
+    /// The one-shot provider below bypasses source preparation to isolate the
+    /// optimizer's behavior with absent statistics. Prepared small streams use
+    /// MemTable; larger streams and their retry spills still lack statistics.
     ///
     /// This is about which side is buffered, not about how much the target reads.
     /// The target scan projects `other` either way, because the row-rewrite fill
@@ -11157,12 +11292,68 @@ mod tests {
         );
     }
 
+    #[rstest::rstest]
+    #[case::fail(SourceDedupeBehavior::Fail)]
+    #[case::first_seen(SourceDedupeBehavior::FirstSeen)]
+    #[tokio::test]
+    async fn test_small_stream_with_small_join_pool(#[case] dedupe: SourceDedupeBehavior) {
+        let dataset = Arc::new(
+            lance_datagen::gen_batch()
+                .with_seed(Seed::from(9505))
+                .col("key", array::step::<UInt32Type>())
+                .col("value", array::step::<UInt32Type>())
+                .col("payload", array::rand_utf8(ByteCount::from(32), false))
+                .into_ram_dataset(FragmentCount::from(4), FragmentRowCount::from(32769))
+                .await
+                .unwrap(),
+        );
+        let source = record_batch!(
+            ("key", UInt32, [0, 32769, 65538, 98307]),
+            ("value", UInt32, [10, 11, 12, 13])
+        )
+        .unwrap();
+        let reader = RecordBatchIterator::new([Ok(source.clone())], source.schema());
+        let job = MergeInsertBuilder::try_new(dataset, vec!["key".to_string()])
+            .unwrap()
+            .source_dedupe_behavior(dedupe)
+            .when_matched(WhenMatched::UpdateAll)
+            .when_not_matched(WhenNotMatched::DoNothing)
+            .try_build()
+            .unwrap();
+        let provider = job
+            .stream_source_to_provider(reader_to_stream(Box::new(reader)), false)
+            .await
+            .unwrap();
+        let plan = job.create_plan(provider).await.unwrap();
+        // Retaining the target's rows and hash table exceeds this pool. The
+        // collected source contains only four rows, including after FirstSeen.
+        let session = lance_datafusion::exec::new_session_context(&LanceExecutionOptions {
+            use_spilling: true,
+            mem_pool_size: Some(8 * 1024 * 1024),
+            ..Default::default()
+        });
+        let output = plan
+            .execute(0, session.task_ctx())
+            .unwrap()
+            .try_collect::<Vec<_>>()
+            .await
+            .unwrap();
+        assert!(output.iter().all(|batch| batch.num_rows() == 0));
+        let stats = plan
+            .downcast_ref::<exec::FullSchemaMergeInsertExec>()
+            .unwrap()
+            .merge_stats()
+            .unwrap();
+        assert_eq!(stats.num_updated_rows, 4);
+        assert_eq!(stats.num_inserted_rows, 0);
+        assert_eq!(stats.num_deleted_rows, 0);
+    }
+
     /// `analyze_plan` is a diagnostic, so it has to report the plan the source it
     /// was handed would actually run. The batches entry point must therefore not
     /// fall back to the streaming plan: with the row counts used below the join
-    /// collects the materialized source and rewrites the join type, and a stream
-    /// gets neither. Which side wins is a size comparison, not a property of the
-    /// entry point; see the fixture comment.
+    /// collects the small source and rewrites the join type. A small reader must
+    /// report the same plan after buffering; larger readers remain streaming.
     #[tokio::test]
     async fn test_analyze_plan_reports_the_given_source_shape() {
         let data = lance_datagen::gen_batch()
@@ -11218,12 +11409,12 @@ mod tests {
             .await
             .unwrap();
         assert!(
-            streaming.contains("StreamingTableExec") && !streaming.contains("DataSourceExec"),
-            "a stream must still be reported as a stream:\n{streaming}"
+            streaming.contains("DataSourceExec") && !streaming.contains("StreamingTableExec"),
+            "a fully buffered small stream must report its statistics:\n{streaming}"
         );
         assert!(
-            streaming.contains("join_type=Right"),
-            "nothing is swapped without source statistics:\n{streaming}"
+            streaming.contains("join_type=Left"),
+            "the small stream now selects the same build side as batches:\n{streaming}"
         );
     }
 
@@ -12944,7 +13135,7 @@ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_n
         // Also validate the full string structure with pattern matching
         let expected_pattern = "[...MergeInsert: elapsed=..., on=[id], when_matched=UpdateAll, when_not_matched=InsertAll, when_not_matched_by_source=Keep, metrics=...bytes_written=...num_deleted_rows=0, num_files_written=...num_inserted_rows=1, num_skipped_duplicates=0, num_updated_rows=1]
     ...
-    StreamingTableExec: partition_sizes=1, projection=[id, name], metrics=[]...]";
+    DataSourceExec: partitions=1, partition_sizes=[1], metrics=[]...]";
         assert_string_matches(&analysis, expected_pattern).unwrap();
         assert!(analysis.contains("bytes_written"));
         assert!(analysis.contains("num_files_written"));
@@ -16601,10 +16792,8 @@ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_n
         );
     }
 
-    /// With a one-shot stream source and `spill_for_retry(false)`, a commit
-    /// conflict fails fast instead of replaying the stream. The non-replayable
-    /// one-shot provider must be scanned exactly once (scanning it twice would
-    /// panic), proving retries are disabled even though `conflict_retries > 0`.
+    /// Disabling retry spilling must keep stream callers' fail-fast policy even
+    /// when the source is small enough to buffer for statistics.
     #[tokio::test]
     async fn test_merge_insert_spill_for_retry_false_fails_fast() {
         let schema = Arc::new(Schema::new(vec![

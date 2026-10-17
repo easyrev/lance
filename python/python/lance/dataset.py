@@ -704,8 +704,9 @@ class MergeInsertBuilder(_MergeInsertBuilder):
                     StreamingTableExec: partition_sizes=1, ...
         <BLANKLINE>
 
-        This is always the streaming shape. `explain_plan` receives a schema rather
-        than data, so it cannot know how `execute` would wrap the source, and the
+        This is the shape for unknown source statistics. `explain_plan` receives
+        a schema rather than data, so it cannot know how `execute` would wrap the
+        source, and the
         wrapping affects the plan. Use `analyze_plan`, which receives the real
         source, when that matters. Note that `analyze_plan` runs the merge to
         collect metrics and may write data files, whereas `explain_plan` writes
@@ -793,11 +794,12 @@ class MergeInsertBuilder(_MergeInsertBuilder):
 
         The reported plan follows how the source was passed. `new_data` above is a
         `pa.Table`, so it is wrapped in an in-memory table that reports exact
-        statistics, while a `pa.RecordBatchReader` reports none. DataFusion picks
-        the side it collects from those statistics and from the two sides' sizes.
+        statistics. Small `pa.RecordBatchReader` inputs are buffered to report
+        statistics too; readers that exceed the collection bounds remain streaming.
+        DataFusion chooses the collected side from the available statistics.
         The target here is three rows, so it is the collected side either way; with
         a larger target the same merge can plan differently depending on which
-        source you hand it. Use `explain_plan` only for the streaming shape: it
+        source you hand it. Use `explain_plan` for the unknown-statistics shape: it
         takes a schema rather than data, so it cannot know how the source would be
         wrapped.
 

@@ -2756,7 +2756,8 @@ def check_merge_stats(merge_dict, expected):
     ) == expected
 
 
-def test_merge_insert(tmp_path: Path):
+@pytest.mark.parametrize("materialized", [True, False])
+def test_merge_insert(tmp_path: Path, materialized: bool):
     nrows = 1000
     # Create a schema with some metadata to regress an issue where the metadata
     # caused schema comparison problems in merge_insert.
@@ -2790,6 +2791,9 @@ def test_merge_insert(tmp_path: Path):
         schema=schema,
     )
 
+    def source():
+        return new_table if materialized else new_table.to_reader()
+
     is_new = pc.field("b") == 2
 
     merge_dict = (
@@ -2797,7 +2801,7 @@ def test_merge_insert(tmp_path: Path):
         .when_not_matched_insert_all()
         .retry_timeout(timedelta(seconds=5))
         .conflict_retries(0)
-        .execute(new_table)
+        .execute(source())
     )
     table = dataset.to_table()
     assert table.num_rows == 1300
@@ -2806,7 +2810,7 @@ def test_merge_insert(tmp_path: Path):
 
     dataset = lance.dataset(tmp_path / "dataset", version=version)
     dataset.restore()
-    merge_dict = dataset.merge_insert("a").when_matched_update_all().execute(new_table)
+    merge_dict = dataset.merge_insert("a").when_matched_update_all().execute(source())
     table = dataset.to_table()
     assert table.num_rows == 1000
     assert table.filter(is_new).num_rows == 700
@@ -2818,7 +2822,7 @@ def test_merge_insert(tmp_path: Path):
         dataset.merge_insert("a")
         .when_not_matched_insert_all()
         .when_matched_update_all()
-        .execute(new_table)
+        .execute(source())
     )
     table = dataset.to_table()
     assert table.num_rows == 1300
@@ -2831,7 +2835,7 @@ def test_merge_insert(tmp_path: Path):
         dataset.merge_insert("a")
         .when_not_matched_insert_all()
         .when_matched_update_all("target.c == source.c")
-        .execute(new_table)
+        .execute(source())
     )
     table = dataset.to_table()
     assert table.num_rows == 1300
@@ -2841,7 +2845,7 @@ def test_merge_insert(tmp_path: Path):
     dataset = lance.dataset(tmp_path / "dataset", version=version)
     dataset.restore()
     merge_dict = (
-        dataset.merge_insert("a").when_not_matched_by_source_delete().execute(new_table)
+        dataset.merge_insert("a").when_not_matched_by_source_delete().execute(source())
     )
     table = dataset.to_table()
     assert table.num_rows == 700
@@ -2854,7 +2858,7 @@ def test_merge_insert(tmp_path: Path):
         dataset.merge_insert("a")
         .when_not_matched_by_source_delete("a < 100")
         .when_not_matched_insert_all()
-        .execute(new_table)
+        .execute(source())
     )
 
     table = dataset.to_table()
@@ -2867,15 +2871,14 @@ def test_merge_insert(tmp_path: Path):
     dataset = lance.dataset(tmp_path / "dataset", version=version)
     dataset.restore()
     with pytest.raises(ValueError):
-        merge_dict = dataset.merge_insert("a").execute(new_table)
+        merge_dict = dataset.merge_insert("a").execute(source())
         check_merge_stats(merge_dict, (None, None, None))
 
 
 @pytest.mark.parametrize("materialized", [True, False])
 def test_merge_insert_input_kinds(tmp_path: Path, materialized: bool):
-    # A materialized pa.Table is routed through the in-memory (MemTable) path,
-    # while a RecordBatchReader is routed through the streaming path. Both must
-    # produce identical results.
+    # Both a materialized table and a small buffered reader must produce the
+    # same rows through the in-memory source plan.
     schema = pa.schema([pa.field("id", pa.int64()), pa.field("value", pa.int64())])
     base = pa.table({"id": range(5), "value": [0] * 5}, schema=schema)
     new = pa.table({"id": [1, 2, 5, 6], "value": [10, 20, 50, 60]}, schema=schema)
@@ -2892,6 +2895,41 @@ def test_merge_insert_input_kinds(tmp_path: Path, materialized: bool):
         "id": [0, 1, 2, 3, 4, 5, 6],
         "value": [0, 10, 20, 0, 0, 50, 60],
     }
+
+
+@pytest.mark.parametrize("empty_batch", [False, True])
+def test_merge_insert_empty_reader_deletes_unmatched(tmp_path: Path, empty_batch: bool):
+    base = pa.table({"id": [1, 2, 3, 4], "value": [10, 20, 30, 40]})
+    dataset = lance.write_dataset(base, tmp_path / "dataset", max_rows_per_file=2)
+    empty = base.select(["id"]).slice(0, 0)
+    batches = [pa.record_batch([pa.array([], type=pa.int64())], names=["id"])]
+    reader = pa.RecordBatchReader.from_batches(
+        empty.schema, batches if empty_batch else []
+    )
+    stats = (
+        dataset.merge_insert("id")
+        .use_index(False)
+        .when_not_matched_by_source_delete()
+        .execute(reader)
+    )
+    check_merge_stats(stats, (0, 0, 4))
+    assert dataset.count_rows() == 0
+
+
+def test_merge_insert_reader_error_during_prefetch(tmp_path: Path):
+    base = pa.table({"id": [1, 2], "value": [10, 20]})
+    dataset = lance.write_dataset(base, tmp_path / "dataset")
+
+    def source():
+        yield pa.record_batch({"id": [1], "value": [99]})
+        raise RuntimeError("source read failed")
+
+    reader = pa.RecordBatchReader.from_batches(base.schema, source())
+    with pytest.raises(OSError, match="source read failed"):
+        dataset.merge_insert("id").use_index(False).when_matched_update_all().execute(
+            reader
+        )
+    assert lance.dataset(tmp_path / "dataset").to_table() == base
 
 
 def test_merge_insert_subcols(tmp_path: Path):
@@ -3831,11 +3869,9 @@ def test_merge_insert_analyze_plan_matches_execute_routing():
     """analyze_plan must report the plan the given source would actually run.
 
     execute() wraps a materialized source in an in-memory table, which reports
-    exact statistics; a stream reports none. DataFusion picks the collected side of
-    the join from those statistics and from the two sides' sizes, so the same merge
-    plans differently depending on which one it is handed. analyze_plan used to
-    coerce every input to a stream, so it reported the stream's plan whatever it
-    was given.
+    exact statistics. A small reader is buffered to report the same statistics;
+    a reader that exceeds the bounds remains streaming. The analysis must use
+    the same preparation as execute.
     """
     data = pa.table({"id": range(64), "value": [i * 10 for i in range(64)]})
     dataset = lance.write_dataset(data, "memory://test-merge-analyze-routing")
@@ -3858,9 +3894,23 @@ def test_merge_insert_analyze_plan_matches_execute_routing():
     assert "join_type=Left" in materialized, materialized
 
     streaming = builder().analyze_plan(source.to_reader())
-    assert "StreamingTableExec" in streaming, streaming
-    assert "DataSourceExec" not in streaming, streaming
-    assert "join_type=Right" in streaming, streaming
+    assert "DataSourceExec" in streaming, streaming
+    assert "StreamingTableExec" not in streaming, streaming
+    assert "join_type=Left" in streaming, streaming
+
+    # This fits the source buffer but exceeds DataFusion's 1 MiB collected-byte
+    # threshold. Its complete statistics should still reach join selection.
+    medium_source = pa.table({"id": range(100_000), "value": range(100_000)})
+    medium_streaming = builder().analyze_plan(medium_source.to_reader())
+    assert "DataSourceExec" in medium_streaming, medium_streaming
+    assert "StreamingTableExec" not in medium_streaming, medium_streaming
+    assert "join_type=Right" in medium_streaming, medium_streaming
+
+    large_source = pa.table({"id": range(200_000), "value": range(200_000)})
+    large_streaming = builder().analyze_plan(large_source.to_reader())
+    assert "StreamingTableExec" in large_streaming, large_streaming
+    assert "DataSourceExec" not in large_streaming, large_streaming
+    assert "join_type=Right" in large_streaming, large_streaming
 
 
 def test_merge_insert_use_index():
