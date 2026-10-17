@@ -1,0 +1,260 @@
+#7895 — Phase 1 design-validation prototype
+
+Scope and provenance
+Base: upstream lance-format/lance main at 50e703271b7e9dbeef83ab301d5b5d44c219ed64.
+Isolated worktree: /workspace/work/lance-7895.
+No access, comparison, reuse or update of draft PR #9617.
+This branch publishes the independently validated Phase 1 experiment.
+This is an experiment, not a merge-ready change or a claim to close #7895.
+
+1. Current main data flow
+
+Python MergeInsertBuilder.execute first calls _coerce_reader, then independently
+calls _is_materialized. The latter asks whether wrapping the input in MemTable is
+cheap, not whether a source can be read twice.
+
+  Table/RecordBatch/etc -> reader -> PyO3 execute_batches -> collected batches
+                       -> MemTable -> execute_inner(provider, true)
+
+  LanceDataset -> scanner().to_reader()
+  Arrow Dataset -> Scanner.from_dataset(...).to_reader()
+  Arrow Scanner -> to_reader()
+  Reader/generator -> reader
+      -> PyO3 convert_reader -> Box<dyn RecordBatchReader + Send>
+      -> execute_reader -> SendableRecordBatchStream -> execute(stream)
+      -> stream_source_to_provider
+          retries > 0 && spill_for_retry:
+              spilling_table_provider(stream, 100 MiB), replayable=true
+          otherwise:
+              one_shot_provider, replayable=false
+      -> execute_inner -> execute_with_retry
+
+Re-readability is first discarded when the original Python source is reduced to
+one reader. The Arrow/PyO3 stream boundary then contains no source/factory/provider
+capability for Rust to recover. It is not a correctness bug in the old path: the
+spill makes a genuine one-shot source replayable.
+
+Spill setup occurs before the first attempt when retries are configured, not only
+after a conflict occurs. It drains in the background; consumers can read arriving
+batches immediately. Under 100 MiB, batches are retained in memory; beyond that,
+the replay store writes spill.arrows. No spill file is not evidence of no replay
+buffer/double-store.
+
+On RetryableCommitConflict the existing loop refreshes the TARGET dataset and
+re-executes the merge against the same source provider. execute_provider already
+uses this loop directly, with no stream-to-spill conversion.
+
+Main source anchors (all pinned to the base SHA above):
+  python/python/lance/types.py:61,89
+  python/python/lance/dataset.py:397
+  python/src/dataset.rs:296,474,522
+  rust/lance/src/dataset/write/merge_insert.rs:1245,2192,2260,2279,3319
+  rust/lance/src/dataset/write/retry.rs:73
+  rust/lance-datafusion/src/spill.rs:117,197,480
+  rust/lance/src/datafusion/logical_plan.rs:21
+
+2. Minimal prototype
+
+Private singledispatch registry returns an internal strategy and input:
+  MATERIALIZED -> existing execute_batches
+  ONE_SHOT -> existing execute(reader)
+  RESCANNABLE -> private native dataset binding -> pinned Arc<Dataset>
+             -> existing Dataset TableProvider -> existing execute_provider
+
+The validated native subset is an exact LanceDataset, with no default scan
+options, using simple columns and unique source keys. Subclasses and configured
+datasets fall back to the old reader path. Generic Arrow Dataset/Scanner inputs
+remain on the old path. An explicit Scanner.from_batches counterexample is tested.
+
+The source Arc pins its existing manifest; the bridge does not reopen its URI at
+latest, call to_table, or pre-materialize data. Each provider.scan delegates to
+Dataset's existing implementation, which creates a fresh scan plan. The target
+retry loop is unchanged.
+
+Why this is enough: native Dataset already implements TableProvider. Adding a
+generic Python reader factory, GIL callback machinery, Lance Scanner capability,
+or a public extension protocol would add architecture choices without being
+necessary to test the core Python -> provider -> retry -> no-spill direction.
+
+Only committed MergeInsertBuilder.execute is wired to the prototype registry.
+The compatibility fallback retains _is_materialized/_coerce_reader for other
+types; this experiment does not claim to complete their migration or remove all
+duplicated type lists. execute_uncommitted, analyze_plan and other write paths
+are deliberately outside this experiment.
+
+3. Three maintainer decisions
+
+D1. What qualifies as safely re-scannable, and how should eligibility be exposed?
+Options: (A) narrow explicit native adapters; (B) a factory/adapter carrying an
+explicit replay guarantee; (C) a general Scanner.is_repeatable() capability with
+defined semantics and provenance. Generic Scanner type inference is ruled out
+by the counterexample, rather than offered as a safe option.
+Recommendation: validate A now; decide B when broadening source coverage. Do not
+classify all Arrow Scanners as safe and do not add a public capability just for
+this experiment. A future callback/provider bridge remains unvalidated here.
+Evidence: Arrow Scanner.from_batches is documented as usable only once; source
+configuration can change filters/projection/order; exact LanceDataset type alone
+was not sufficient until default scan options were excluded. A method named scan
+or to_reader is not a replay guarantee.
+https://arrow.apache.org/docs/python/generated/pyarrow.dataset.Scanner.html#pyarrow.dataset.Scanner.from_batches
+
+D2. What is the minimum replay equivalence contract?
+Options: (A) same snapshot/schema/values as a multiset; (B) additionally stable
+encounter order for all sources; (C) same logical input plus stable encounter
+order where the chosen merge semantics are order-sensitive.
+Recommendation: C. The target may refresh on conflict, but the logical SOURCE
+must remain stable; FirstSeen duplicate resolution also needs stable encounter
+order. Do not claim the unique-key experiment settles duplicate/expression
+semantics. Whether to require universal stable order is for the maintainer.
+Evidence: main source_dedupe_behavior FirstSeen selects the first encountered
+row; batches_to_provider retains original batch order for it and the merge plan
+sequentially deduplicates before the join.
+https://github.com/lance-format/lance/blob/50e703271b7e9dbeef83ab301d5b5d44c219ed64/rust/lance/src/dataset/write/merge_insert.rs#L898
+https://github.com/lance-format/lance/blob/50e703271b7e9dbeef83ab301d5b5d44c219ed64/rust/lance/src/dataset/write/merge_insert.rs#L2231
+
+D3. What is the registry / third-party registration contract?
+Options: (A) private dispatch as an internal routing experiment; (B) publish a
+register API now; (C) later publish a small adapter protocol after agreeing replay
+ownership, snapshot/schema guarantees, lifecycle/errors and extension dispatch.
+Recommendation: A for Phase 1, C for the eventual extension goal. The current
+enum/dataclass, registration placement and native binding name are provisional.
+No third-party compatibility or stability promise is made by this patch.
+Evidence: #7368 explicitly proposes singledispatch and #7895, but neither fixes
+the public return type or allocates these semantic responsibilities.
+https://github.com/lance-format/lance/pull/7368#discussion_r3625757669
+
+4. Validation and results
+
+The target has two fragments. A builder keeps target v1; an independent append
+commits target v2 with key 100 already present. The source updates key 1 and
+contains keys 100 and 101. A correct retry must refresh target, update keys 1 and
+100, insert only 101, and preserve a single row for 100.
+
+Three source kinds are parameterized: materialized Table, one-shot reader backed
+by a counted generator, and native LanceDataset. With one allowed retry, require
+two actual merge attempts and final rows:
+  id:    [0, 1, 2, 3, 100, 101]
+  value: [0, 10, 0, 0, 1000, 1010]
+  inserted=1, updated=2, deleted=0; target version=3.
+With zero retries, all three must fail at the known conflict and leave v2 intact.
+
+For the native case source v1 is retained even after its URI gets a v2 containing
+key 999. Successful retry must exclude 999 and record two provider.scan calls.
+The one-shot generator must be consumed only once (batch sizes 2,1).
+
+A provisional environment tripwire at spilling_table_provider entry raises an
+error before any replay state is created. Successful materialized/native tests
+run with it enabled. A positive control converts the same native source through
+scanner().to_reader(), as main does, and must hit the tripwire. Thus the evidence
+covers the memory replay buffer as well as disk spill, even with tiny fixtures.
+
+Provider scan count is the number of TableProvider::scan invocations, not an I/O
+byte count. Together with two real attempts, correct refreshed-target results,
+the existing fresh-scan implementation and the tripwire positive control, it
+validates the narrow no-replay-spill claim. It does not prove no allocation/copy
+anywhere in Arrow/DataFusion, nor that rescanning is always faster.
+
+Additional checks: actual Arrow one-shot scanner counterexample; preserve a
+configured LanceDataset filter through fallback; targeted existing merge tests.
+
+Executed against the locally built main-based Rust extension:
+  Python 3.12.14; PyArrow 25.0.1; Lance 13.1.0-beta.2; Rust 1.98.1.
+  make install: local release extension built and installed successfully.
+  Its final pre-commit setup initially could not write the read-only home
+  directory; rerunning that exact setup step with workspace-local UV_TOOL_DIR,
+  UV_TOOL_BIN_DIR and PRE_COMMIT_HOME succeeded. No dependency substitution.
+
+  uv run --frozen pytest -q python/tests/test_dataset.py
+      -k merge_insert_prototype
+      --junitxml=/workspace/work/prototype-results.xml
+    Result: 9 passed, 303 deselected in 2.91s.
+
+  uv run --frozen pytest -q python/tests/test_dataset.py
+      -k 'merge_insert and not prototype'
+      --junitxml=/workspace/work/merge-regression-results.xml
+    Result: 38 passed, 274 deselected in 2.65s.
+
+  Ruff check and format passed for the three changed Python files.
+  rustfmt --check passed for the two changed Rust files.
+  git diff --check passed.
+
+Observed through passing assertions:
+  Table: 2 actual attempts, correct refreshed-target result, spill tripwire enabled.
+  Reader: 2 actual attempts, correct result, original generator consumed once.
+  LanceDataset: 2 actual attempts, 2 provider.scan calls, correct result, spill
+    tripwire enabled; source v1 retained despite a newer source URI version.
+  Zero-retry controls: all three fail at the real conflict, target v2 untouched.
+  Old native-dataset-to-reader route: hits the tripwire (positive control).
+  Scanner.from_batches: first consumption succeeds, second raises ArrowInvalid.
+  Configured LanceDataset filter: fallback preserves the filtered source result.
+
+These are targeted checks, not the full workspace, compatibility matrix or
+merge-ready lint suite. The reported test durations are test-run diagnostics,
+not performance measurements of rescan versus spill.
+
+Evidence artifacts in /workspace/work:
+  prototype-tests.log and prototype-results.xml
+  merge-regression-tests.log and merge-regression-results.xml
+  lance-7895-prototype.patch (applies to the base SHA above)
+
+Patch size: 5 files; 280 insertions, 10 deletions, including 135 lines of tests.
+
+5. Microbenchmark
+
+Not run. Correctness plus the spill-entry positive control establishes the core
+claim. No latency/throughput, peak-memory or general I/O improvement is claimed.
+A future benchmark must hold join planning, input data and conflict pattern
+constant; simply timing native provider vs MemTable would conflate other effects.
+
+6. Code disposition
+
+Reusable direction: classification before irreversible coercion; carrying the
+native source Arc across PyO3; reusing the existing provider/retry path; the
+deterministic stale-target overlap fixture and regression cases.
+
+Provisional: private strategy/result representation, registration location after
+the LanceDataset class (import-cycle workaround), source eligibility allowlist,
+only-execute integration and retained legacy fallback, native provider choice and
+private binding signature. These are not a proposed stable API.
+
+Delete after design validation: PrototypeCountingDatasetProvider (or move its
+assertion into a proper test seam), _prototype_source_scans and
+_prototype_num_attempts diagnostics, LANCE_PROTOTYPE_DIAGNOSTICS, and the global
+LANCE_PROTOTYPE_FORBID_REPLAY_SPILL tripwire. The tripwire is intentionally an
+experiment aid, not a production environment option.
+
+Review evidence applied (not a characterization of reviewer preferences)
+
+#7368: materialized means cheap MemTable, not re-readable; the stream boundary
+loses capability; providers already support direct retry, spill is memory-first
+and concurrently replayable. Preserve source errors and use plan primitives.
+https://github.com/lance-format/lance/pull/7368#discussion_r3625757669
+https://github.com/lance-format/lance/pull/7368#discussion_r3625757790
+https://github.com/lance-format/lance/pull/7368#discussion_r3625757883
+https://github.com/lance-format/lance/pull/7368#discussion_r3439306615
+https://github.com/lance-format/lance/pull/7368#discussion_r3439303010
+
+#7630: use general query optimization primitives; distinguish benchmark gains
+from already-existing join-order changes. This supports reusing execute_provider,
+not an obligation to design a generic public Scanner capability now.
+https://github.com/lance-format/lance/pull/7630#pullrequestreview-4638943604
+
+#7367: cost analysis and existing mechanisms justified a smaller follow-up;
+optimizations must preserve relation identity and unmatched-row semantics.
+https://github.com/lance-format/lance/pull/7367#issuecomment-4859092970
+https://github.com/lance-format/lance/pull/7367#discussion_r3439377331
+
+#7536: review asks whether irrelevant readers are already pruned and calls out
+O(fields x overlays) cost. The PR includes an I/O guard test; this motivates our
+structural bypass proof, not a claim that the reviewer prescribed this tripwire.
+https://github.com/lance-format/lance/pull/7536#discussion_r3545775967
+https://github.com/lance-format/lance/pull/7536#discussion_r3546068452
+https://github.com/lance-format/lance/pull/7536
+
+#7540: type-shaped binding can preserve semantic alternatives; independent
+performance work can be deferred. Roundtrip preservation was addressed after
+another reviewer identified lost overlays; this is not evidence that any public
+third-party registry design has been accepted.
+https://github.com/lance-format/lance/pull/7540#discussion_r3547473657
+https://github.com/lance-format/lance/pull/7540#discussion_r3547463339
+https://github.com/lance-format/lance/pull/7540#discussion_r3591229652

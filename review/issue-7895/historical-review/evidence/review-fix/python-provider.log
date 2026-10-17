@@ -1,0 +1,464 @@
+...........................................FF.....................F..... [ 67%]
+..................................                                       [100%]
+=================================== FAILURES ===================================
+____________________ test_merge_insert_explain_analyze_plan ____________________
+
+    def test_merge_insert_explain_analyze_plan():
+        """Test that explain_plan and analyze_plan work on merge insert operations."""
+        # Create a simple test dataset
+        data = pa.table(
+            [pa.array([1, 2, 3, 4]), pa.array(["a", "b", "c", "d"])], names=["id", "value"]
+        )
+    
+        dataset = lance.write_dataset(data, "memory://test-merge-explain")
+    
+        # Create merge insert builder
+        builder = (
+            dataset.merge_insert("id")
+            .when_matched_update_all()
+            .when_not_matched_insert_all()
+        )
+    
+        # Test explain_plan with default schema (None)
+        plan = builder.explain_plan()  # Uses dataset schema by default
+        assert isinstance(plan, str)
+        assert len(plan) > 0
+        assert "MergeInsert" in plan
+    
+        # Test with explicit schema (must match dataset schema exactly)
+        source_schema = pa.schema(
+            [pa.field("id", pa.int64()), pa.field("value", pa.string())]
+        )
+        plan_explicit = builder.explain_plan(source_schema, verbose=False)
+        assert isinstance(plan_explicit, str)
+        assert len(plan_explicit) > 0
+        assert "MergeInsert" in plan_explicit
+    
+        # Test verbose mode with default schema
+        plan_verbose = builder.explain_plan(verbose=True)
+        assert isinstance(plan_verbose, str)
+        assert len(plan_verbose) > 0
+        assert "MergeInsert" in plan_verbose
+    
+        # Create test source data for analyze_plan (must match dataset schema exactly)
+        source_data = pa.table(
+            [
+                pa.array([1, 5]),  # 1 matches existing, 5 is new
+                pa.array(["updated_a", "e"]),
+            ],
+            names=["id", "value"],
+        )
+    
+        # Test analyze_plan
+>       analysis = builder.analyze_plan(source_data)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+python/tests/test_dataset.py:3795: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lance.dataset.MergeInsertBuilder object at 0x7f67c108ea00>
+data_obj = pyarrow.Table
+id: int64
+value: string
+----
+id: [[1,5]]
+value: [["updated_a","e"]]
+
+    def analyze_plan(
+        self,
+        data_obj: ReaderLike,
+        *,
+        schema: Optional[pa.Schema] = None,
+    ) -> str:
+        """
+        Generate the execution plan and analyze its performance with real data.
+    
+        This method creates the execution plan using the provided source data,
+        executes it to collect performance metrics, and returns the analysis
+        as a formatted string. This is useful for understanding the actual
+        performance characteristics of the merge insert operation with your data.
+    
+        .. warning::
+            This method executes the merge insert operation to collect metrics
+            but **does not commit the changes**. While data files may be written
+            to storage during execution, they will not be referenced by any dataset
+            version and the dataset remains unchanged. This is intended for
+            performance analysis only.
+    
+        Parameters
+        ----------
+        data_obj : ReaderLike
+            The source data that would be merged into the dataset. This parameter
+            can be any source of data (e.g. table / dataset) that
+            :func:`~lance.write_dataset` accepts.
+        schema : Optional[pa.Schema], default None
+            The schema of the data. This only needs to be supplied whenever the data
+            source is some kind of generator.
+    
+        Returns
+        -------
+        str
+            A formatted string representation of the plan analysis with metrics.
+    
+        Examples
+        --------
+        >>> import lance
+        >>> import pyarrow as pa
+        >>> data = pa.table([
+        ...     pa.array([1, 2, 3]),
+        ...     pa.array(['alice', 'bob', 'charlie']),
+        ...     pa.array([100.0, 200.0, 300.0])
+        ... ], names=['id', 'name', 'score'])
+        >>> dataset = lance.write_dataset(data, "memory://analyze_dataset")
+        >>> new_data = pa.table([
+        ...     pa.array([1, 4]),
+        ...     pa.array(["updated_alice", "david"]),
+        ...     pa.array([150.0, 400.0])
+        ... ], names=["id", "name", "score"])
+        >>> builder = dataset.merge_insert("id")
+        >>> builder = builder.when_matched_update_all().when_not_matched_insert_all()
+        >>> analysis = builder.analyze_plan(new_data)
+        >>> print(analysis) # doctest: +ELLIPSIS
+            MergeInsert: elapsed=..., on=[id], ..., metrics=[..., bytes_written=..., ...]
+              CoalescePartitionsExec, elapsed=..., metrics=[output_rows=..., elapsed_compute=...]
+                ProjectionExec: elapsed=..., expr=[...], metrics=[...]
+                  RepartitionExec: ...
+                    HashJoinExec: elapsed=..., mode=CollectLeft, join_type=Right, ...
+                      LanceRead: elapsed=..., ..., metrics=[..., bytes_read=..., ...]
+                      ProjectionExec: elapsed=..., expr=[..., true as __merge_source_sentinel], metrics=[...]
+                        DataSourceExec: ..., metrics=[]
+    
+        The reported plan follows how the source was passed. `new_data` above is a
+        `pa.Table`, so it is wrapped in an in-memory table that reports exact
+        statistics, while a `pa.RecordBatchReader` reports none. DataFusion picks
+        the side it collects from those statistics and from the two sides' sizes.
+        The target here is three rows, so it is the collected side either way; with
+        a larger target the same merge can plan differently depending on which
+        source you hand it. Use `explain_plan` only for the streaming shape: it
+        takes a schema rather than data, so it cannot know how the source would be
+        wrapped.
+    
+        The two key parts of the plan analysis are LanceRead and MergeInsert.
+        LanceRead scans join keys and columns in conditions. MergeInsert writes
+        data files to storage.
+    
+        Key metrics in MergeInsert operations:
+        - bytes_written: total bytes written to storage
+        - num_files_written: number of new data files created
+        - num_inserted_rows: rows added that didn't match existing data
+        - num_updated_rows: existing rows that were updated
+        - num_deleted_rows: rows removed (when using delete conditions)
+    
+        Key metrics in LanceRead operations:
+        - bytes_read: bytes read from storage
+        - fragments_scanned: number of data fragments accessed
+        - rows_scanned: total rows examined during the scan
+        - iops: number of I/O operations performed
+        - requests: number of storage requests made
+        """  # noqa: E501
+        source = coerce_source(data_obj, schema)
+        if source.mode == "replayable":
+            return super(MergeInsertBuilder, self).analyze_plan_replayable(
+                source.schema, source.open_reader
+            )
+        reader = source.open_reader()
+        if source.mode == "materialized":
+>           return super(MergeInsertBuilder, self).analyze_plan_batches(reader)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           OSError: LanceError(Arrow): Invalid argument error: number of columns(2) must match number of fields(0) in schema, /workspace/lance-7895/rust/lance-datafusion/src/exec.rs:806:9
+
+python/lance/dataset.py:836: OSError
+____________ test_merge_insert_analyze_plan_matches_execute_routing ____________
+
+    def test_merge_insert_analyze_plan_matches_execute_routing():
+        """analyze_plan must report the plan the given source would actually run.
+    
+        execute() wraps a materialized source in an in-memory table, which reports
+        exact statistics; a stream reports none. DataFusion picks the collected side of
+        the join from those statistics and from the two sides' sizes, so the same merge
+        plans differently depending on which one it is handed. analyze_plan used to
+        coerce every input to a stream, so it reported the stream's plan whatever it
+        was given.
+        """
+        data = pa.table({"id": range(64), "value": [i * 10 for i in range(64)]})
+        dataset = lance.write_dataset(data, "memory://test-merge-analyze-routing")
+    
+        def builder():
+            return (
+                dataset.merge_insert("id")
+                .when_matched_update_all()
+                .when_not_matched_insert_all()
+            )
+    
+        # Two source rows against the target's 64 keeps the source the smaller side,
+        # which is what lets the join collect it. Raise it above 64 and the join
+        # collects the target instead and the join type stays Right.
+        source = pa.table({"id": [1, 100], "value": [999, 999]})
+    
+>       materialized = builder().analyze_plan(source)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+python/tests/test_dataset.py:3830: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lance.dataset.MergeInsertBuilder object at 0x7f67c108eda0>
+data_obj = pyarrow.Table
+id: int64
+value: int64
+----
+id: [[1,100]]
+value: [[999,999]]
+
+    def analyze_plan(
+        self,
+        data_obj: ReaderLike,
+        *,
+        schema: Optional[pa.Schema] = None,
+    ) -> str:
+        """
+        Generate the execution plan and analyze its performance with real data.
+    
+        This method creates the execution plan using the provided source data,
+        executes it to collect performance metrics, and returns the analysis
+        as a formatted string. This is useful for understanding the actual
+        performance characteristics of the merge insert operation with your data.
+    
+        .. warning::
+            This method executes the merge insert operation to collect metrics
+            but **does not commit the changes**. While data files may be written
+            to storage during execution, they will not be referenced by any dataset
+            version and the dataset remains unchanged. This is intended for
+            performance analysis only.
+    
+        Parameters
+        ----------
+        data_obj : ReaderLike
+            The source data that would be merged into the dataset. This parameter
+            can be any source of data (e.g. table / dataset) that
+            :func:`~lance.write_dataset` accepts.
+        schema : Optional[pa.Schema], default None
+            The schema of the data. This only needs to be supplied whenever the data
+            source is some kind of generator.
+    
+        Returns
+        -------
+        str
+            A formatted string representation of the plan analysis with metrics.
+    
+        Examples
+        --------
+        >>> import lance
+        >>> import pyarrow as pa
+        >>> data = pa.table([
+        ...     pa.array([1, 2, 3]),
+        ...     pa.array(['alice', 'bob', 'charlie']),
+        ...     pa.array([100.0, 200.0, 300.0])
+        ... ], names=['id', 'name', 'score'])
+        >>> dataset = lance.write_dataset(data, "memory://analyze_dataset")
+        >>> new_data = pa.table([
+        ...     pa.array([1, 4]),
+        ...     pa.array(["updated_alice", "david"]),
+        ...     pa.array([150.0, 400.0])
+        ... ], names=["id", "name", "score"])
+        >>> builder = dataset.merge_insert("id")
+        >>> builder = builder.when_matched_update_all().when_not_matched_insert_all()
+        >>> analysis = builder.analyze_plan(new_data)
+        >>> print(analysis) # doctest: +ELLIPSIS
+            MergeInsert: elapsed=..., on=[id], ..., metrics=[..., bytes_written=..., ...]
+              CoalescePartitionsExec, elapsed=..., metrics=[output_rows=..., elapsed_compute=...]
+                ProjectionExec: elapsed=..., expr=[...], metrics=[...]
+                  RepartitionExec: ...
+                    HashJoinExec: elapsed=..., mode=CollectLeft, join_type=Right, ...
+                      LanceRead: elapsed=..., ..., metrics=[..., bytes_read=..., ...]
+                      ProjectionExec: elapsed=..., expr=[..., true as __merge_source_sentinel], metrics=[...]
+                        DataSourceExec: ..., metrics=[]
+    
+        The reported plan follows how the source was passed. `new_data` above is a
+        `pa.Table`, so it is wrapped in an in-memory table that reports exact
+        statistics, while a `pa.RecordBatchReader` reports none. DataFusion picks
+        the side it collects from those statistics and from the two sides' sizes.
+        The target here is three rows, so it is the collected side either way; with
+        a larger target the same merge can plan differently depending on which
+        source you hand it. Use `explain_plan` only for the streaming shape: it
+        takes a schema rather than data, so it cannot know how the source would be
+        wrapped.
+    
+        The two key parts of the plan analysis are LanceRead and MergeInsert.
+        LanceRead scans join keys and columns in conditions. MergeInsert writes
+        data files to storage.
+    
+        Key metrics in MergeInsert operations:
+        - bytes_written: total bytes written to storage
+        - num_files_written: number of new data files created
+        - num_inserted_rows: rows added that didn't match existing data
+        - num_updated_rows: existing rows that were updated
+        - num_deleted_rows: rows removed (when using delete conditions)
+    
+        Key metrics in LanceRead operations:
+        - bytes_read: bytes read from storage
+        - fragments_scanned: number of data fragments accessed
+        - rows_scanned: total rows examined during the scan
+        - iops: number of I/O operations performed
+        - requests: number of storage requests made
+        """  # noqa: E501
+        source = coerce_source(data_obj, schema)
+        if source.mode == "replayable":
+            return super(MergeInsertBuilder, self).analyze_plan_replayable(
+                source.schema, source.open_reader
+            )
+        reader = source.open_reader()
+        if source.mode == "materialized":
+>           return super(MergeInsertBuilder, self).analyze_plan_batches(reader)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           OSError: LanceError(Arrow): Invalid argument error: number of columns(2) must match number of fields(0) in schema, /workspace/lance-7895/rust/lance-datafusion/src/exec.rs:806:9
+
+python/lance/dataset.py:836: OSError
+___________ test_registered_source_single_read_entrypoints[analyze] ____________
+
+tmp_path = PosixPath('/tmp/pytest-of-agent/pytest-13/test_registered_source_single_2')
+operation = 'analyze'
+
+    @pytest.mark.parametrize("operation", ["write", "uncommitted", "analyze"])
+    def test_registered_source_single_read_entrypoints(tmp_path, operation):
+        from lance.types import WriteSource, coerce_source
+    
+        class ExternalSource:
+            pass
+    
+        data = pa.table({"id": [0, 1], "value": [10, 11]})
+        calls = []
+    
+        def reader():
+            calls.append(True)
+            return data.to_reader()
+    
+        @coerce_source.register(ExternalSource)
+        def adapt(source, schema=None):
+            return WriteSource(data.schema, reader, mode="replayable")
+    
+        source = ExternalSource()
+        if operation == "write":
+            assert lance.write_dataset(source, tmp_path).to_table() == data
+        else:
+            target = lance.write_dataset(data, tmp_path)
+            version = target.version
+            builder = target.merge_insert("id").when_matched_update_all()
+            if operation == "uncommitted":
+                transaction, stats = builder.execute_uncommitted(source)
+                assert transaction is not None
+                check_merge_stats(stats, (0, 2, 0))
+            else:
+>               plan = builder.analyze_plan(source)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+python/tests/test_dataset.py:4012: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <lance.dataset.MergeInsertBuilder object at 0x7f67c108eda0>
+data_obj = <test_dataset.test_registered_source_single_read_entrypoints.<locals>.ExternalSource object at 0x7f67fd965250>
+
+    def analyze_plan(
+        self,
+        data_obj: ReaderLike,
+        *,
+        schema: Optional[pa.Schema] = None,
+    ) -> str:
+        """
+        Generate the execution plan and analyze its performance with real data.
+    
+        This method creates the execution plan using the provided source data,
+        executes it to collect performance metrics, and returns the analysis
+        as a formatted string. This is useful for understanding the actual
+        performance characteristics of the merge insert operation with your data.
+    
+        .. warning::
+            This method executes the merge insert operation to collect metrics
+            but **does not commit the changes**. While data files may be written
+            to storage during execution, they will not be referenced by any dataset
+            version and the dataset remains unchanged. This is intended for
+            performance analysis only.
+    
+        Parameters
+        ----------
+        data_obj : ReaderLike
+            The source data that would be merged into the dataset. This parameter
+            can be any source of data (e.g. table / dataset) that
+            :func:`~lance.write_dataset` accepts.
+        schema : Optional[pa.Schema], default None
+            The schema of the data. This only needs to be supplied whenever the data
+            source is some kind of generator.
+    
+        Returns
+        -------
+        str
+            A formatted string representation of the plan analysis with metrics.
+    
+        Examples
+        --------
+        >>> import lance
+        >>> import pyarrow as pa
+        >>> data = pa.table([
+        ...     pa.array([1, 2, 3]),
+        ...     pa.array(['alice', 'bob', 'charlie']),
+        ...     pa.array([100.0, 200.0, 300.0])
+        ... ], names=['id', 'name', 'score'])
+        >>> dataset = lance.write_dataset(data, "memory://analyze_dataset")
+        >>> new_data = pa.table([
+        ...     pa.array([1, 4]),
+        ...     pa.array(["updated_alice", "david"]),
+        ...     pa.array([150.0, 400.0])
+        ... ], names=["id", "name", "score"])
+        >>> builder = dataset.merge_insert("id")
+        >>> builder = builder.when_matched_update_all().when_not_matched_insert_all()
+        >>> analysis = builder.analyze_plan(new_data)
+        >>> print(analysis) # doctest: +ELLIPSIS
+            MergeInsert: elapsed=..., on=[id], ..., metrics=[..., bytes_written=..., ...]
+              CoalescePartitionsExec, elapsed=..., metrics=[output_rows=..., elapsed_compute=...]
+                ProjectionExec: elapsed=..., expr=[...], metrics=[...]
+                  RepartitionExec: ...
+                    HashJoinExec: elapsed=..., mode=CollectLeft, join_type=Right, ...
+                      LanceRead: elapsed=..., ..., metrics=[..., bytes_read=..., ...]
+                      ProjectionExec: elapsed=..., expr=[..., true as __merge_source_sentinel], metrics=[...]
+                        DataSourceExec: ..., metrics=[]
+    
+        The reported plan follows how the source was passed. `new_data` above is a
+        `pa.Table`, so it is wrapped in an in-memory table that reports exact
+        statistics, while a `pa.RecordBatchReader` reports none. DataFusion picks
+        the side it collects from those statistics and from the two sides' sizes.
+        The target here is three rows, so it is the collected side either way; with
+        a larger target the same merge can plan differently depending on which
+        source you hand it. Use `explain_plan` only for the streaming shape: it
+        takes a schema rather than data, so it cannot know how the source would be
+        wrapped.
+    
+        The two key parts of the plan analysis are LanceRead and MergeInsert.
+        LanceRead scans join keys and columns in conditions. MergeInsert writes
+        data files to storage.
+    
+        Key metrics in MergeInsert operations:
+        - bytes_written: total bytes written to storage
+        - num_files_written: number of new data files created
+        - num_inserted_rows: rows added that didn't match existing data
+        - num_updated_rows: existing rows that were updated
+        - num_deleted_rows: rows removed (when using delete conditions)
+    
+        Key metrics in LanceRead operations:
+        - bytes_read: bytes read from storage
+        - fragments_scanned: number of data fragments accessed
+        - rows_scanned: total rows examined during the scan
+        - iops: number of I/O operations performed
+        - requests: number of storage requests made
+        """  # noqa: E501
+        source = coerce_source(data_obj, schema)
+        if source.mode == "replayable":
+>           return super(MergeInsertBuilder, self).analyze_plan_replayable(
+                source.schema, source.open_reader
+            )
+E           OSError: LanceError(Arrow): Invalid argument error: number of columns(2) must match number of fields(0) in schema, /workspace/lance-7895/rust/lance-datafusion/src/exec.rs:806:9
+
+python/lance/dataset.py:831: OSError
+=========================== short test summary info ============================
+FAILED python/tests/test_dataset.py::test_merge_insert_explain_analyze_plan
+FAILED python/tests/test_dataset.py::test_merge_insert_analyze_plan_matches_execute_routing
+FAILED python/tests/test_dataset.py::test_registered_source_single_read_entrypoints[analyze]
+3 failed, 103 passed, 246 deselected in 12.66s

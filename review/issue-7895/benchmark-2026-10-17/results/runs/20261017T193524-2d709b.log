@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/mnt/lance/bench-9617/harness/run_merge.py", line 135, in <module>
+    main()
+  File "/mnt/lance/bench-9617/harness/run_merge.py", line 102, in main
+    stats = builder.execute(source)
+            ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/lance/bench-9617/src-upstream/python/python/lance/dataset.py", line 405, in execute
+    return super(MergeInsertBuilder, self).execute(reader)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+OSError: Arrow error: Io error: No space left on device (os error 28)

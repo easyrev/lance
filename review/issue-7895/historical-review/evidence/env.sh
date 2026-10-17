@@ -1,0 +1,9 @@
+export CARGO_HOME=/workspace/.cargo
+export RUSTUP_HOME=/workspace/.rustup
+export PATH="/workspace/.cargo/bin:/workspace/.onboarding/protoc/bin:/opt/codex/runtimes/codex-primary-runtime/dependencies/python/bin:$PATH"
+export CARGO_BUILD_JOBS=4
+export CARGO_TARGET_DIR=/workspace/issue-7895-target
+export UV_CACHE_DIR=/workspace/issue-7895-uv-cache
+export UV_TOOL_DIR=/workspace/issue-7895-uv-tools
+export UV_TOOL_BIN_DIR=/workspace/issue-7895-uv-tools/bin
+export PRE_COMMIT_HOME=/workspace/issue-7895-pre-commit

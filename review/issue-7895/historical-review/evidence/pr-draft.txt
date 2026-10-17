@@ -1,0 +1,18 @@
+Title: feat(python): preserve replayable write sources through registered adapters
+
+Python converts dataset inputs to one-shot readers before merge execution. With conflict retries enabled, this creates a replay buffer even when the source can be scanned again.
+
+Add an experimental `lance.types.coerce_source` registry and `WriteSource` adapter. A schema and fresh-reader factory supply the existing Rust provider retry path. Native Lance scans retain their version and settings. Automatic support covers ordered Lance scans with stable settings and unfiltered built-in Arrow datasets. Arrow files must remain unchanged throughout execution. Opaque scanners and scans with uncertain values or ordering keep the replay path. Third-party types and configured scanners can opt in through the documented factory contract.
+
+Materialized and one-shot behavior is preserved. Write entry points share conversion. Uncommitted execution still consumes once without committing. `analyze_plan` follows the same source routing. Its shared helper now propagates execution errors and uses the correct report schema, so failed sources cannot appear to analyze successfully.
+
+Validation:
+
+- Real retries across nine input forms, including a competing upsert that introduces a new matching key. External factory retries, schema/configuration, error and reader lifecycle checks.
+- 106 focused Python tests, 137 write regressions, 1 doctest, 4 Rust provider tests and the shared analyze regression passed. PyArrow 14/25 and single-worker checks passed.
+- Full Python lint, binding Clippy, root workspace Clippy with the CI profile, and commit hooks passed.
+- Matched `release-with-debug` builds: 14 detector controls and 120 local warm-cache measurements. Eligible sources avoid replay initialization, including when replay would remain in memory. At 132 MiB, replay spill falls from about 132 MiB to zero. No-conflict median latency falls 4.2–5.5%.
+
+The improvement is workload-dependent. A separate 20-run probe-free check found small Lance merges about 0.75 ms slower at the median, with overlapping ranges. Large Lance merges with a real retry used 6.8% more CPU and 39 MiB more peak RSS. Conflict wall times include randomized backoff. These measurements do not establish a retry latency improvement or cloud performance.
+
+Closes #7895

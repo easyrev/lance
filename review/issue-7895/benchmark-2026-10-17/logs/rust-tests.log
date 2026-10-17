@@ -1,0 +1,31 @@
+== lance-datafusion
+test spill::tests::test_spill_buffered_transition ... ok
+test expr::tests::test_f16_rounds_to_nearest_even_across_the_whole_range ... ok
+test planner::tests::test_parse_deep_logical_filter ... ok
+
+test result: ok. 233 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+exit=0
+== lance merge_insert
+test dataset::write::merge_insert::tests::test_when_matched_fail ... ok
+test dataset::write::merge_insert::tests::test_upsert_concurrent_full_frag ... ok
+test dataset::write::merge_insert::tests::test_indexed_merge_insert ... ok
+
+test result: ok. 334 passed; 0 failed; 0 ignored; 0 measured; 5844 filtered out; finished in 1.87s
+
+exit=0
+== pylance replayable
+   Compiling pylance v14.0.0-beta.19 (/mnt/lance/bench-9617/src-pr/python)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8m 51s
+     Running unittests src/lib.rs (/mnt/lance/target-test/debug/deps/lance-282e560d8549c1d3)
+
+running 4 tests
+test dataset::replayable::tests::test_cancelled_factory_releases_reader_when_it_returns ... ok
+test dataset::replayable::tests::test_reader_schema_metadata_must_match ... ok
+test dataset::replayable::tests::test_factory_is_lazy_reexecuted_and_reader_released ... ok
+test dataset::replayable::tests::test_factory_error_retains_context ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 22 filtered out; finished in 0.02s
+
+exit=0
+rust-tests-done

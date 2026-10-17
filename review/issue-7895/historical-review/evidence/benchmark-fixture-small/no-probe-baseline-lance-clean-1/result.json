@@ -1,0 +1,83 @@
+{
+  "label": "no-probe-baseline",
+  "kind": "lance",
+  "trial": "1",
+  "conflict": false,
+  "retries": 3,
+  "elapsed_s": 0.01237132999995083,
+  "wall_start_ns": 1791729612445903673,
+  "wall_end_ns": 1791729612458277206,
+  "user_s": 0.016077000000000008,
+  "system_s": 0.0010420000000000013,
+  "cpu_s": 0.017118999999999954,
+  "first_commit_elapsed_s": 0.011514292998981546,
+  "first_commit_cpu_s": 0.016264,
+  "concurrent_update_elapsed_s": 0,
+  "commit_events": [
+    {
+      "version": 2,
+      "entered_s": 0.011514292998981546,
+      "user_s": 0.015311999999999992,
+      "system_s": 0.0009520000000000084,
+      "released_s": 0.0118903019993013
+    }
+  ],
+  "max_rss_kib": 240816,
+  "io_delta": {
+    "rchar": 1070181,
+    "wchar": 1065555,
+    "syscr": 9,
+    "syscw": 25,
+    "read_bytes": 0,
+    "write_bytes": 1081344,
+    "cancelled_write_bytes": 4096
+  },
+  "replay_directory_count": 0,
+  "spill_file_count": 0,
+  "spill_file_unlink_bytes": 0,
+  "commit_versions": [
+    2
+  ],
+  "concurrent_versions": [],
+  "final_version": 2,
+  "final_rows": 8192,
+  "stats": {
+    "num_inserted_rows": 8191,
+    "num_updated_rows": 1,
+    "num_deleted_rows": 0
+  },
+  "error": null,
+  "correct": true,
+  "payload_sha256": "71528ca982ca40c6f3f3cbb2c51ed3bd42c6ab1d3f3f1eb23194be55008f75af",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "pyarrow": "25.0.1",
+  "lance": "14.0.0-beta.12",
+  "package": "/workspace/issue-7895-evidence/baseline-perf-python/lance/__init__.py",
+  "extension": "/workspace/issue-7895-evidence/baseline-perf-python/lance/lance.abi3.so",
+  "extension_sha256": "cdfc0093f978a131a608fec65ac15f1526655832a3b571ca7b01e4ba1a53c6b6",
+  "source_sha256": {
+    "__init__.py": "f1e0cc6d6a138215cfeb4587c5afd1164d49f2cf54028b82d21cc692aef6e6b2",
+    "types.py": "5704fa1f948a260a3d157187eb22bb714a1b35d4717024e202fc9b46c6375054",
+    "dataset.py": "0db80c77352156de3796bf1ad7cfe29a809d74e849722665083d3b1e15950de3"
+  },
+  "probe_sha256": null,
+  "thread_limits": {
+    "OMP_NUM_THREADS": "4",
+    "OPENBLAS_NUM_THREADS": "4",
+    "RAYON_NUM_THREADS": "4",
+    "TOKIO_WORKER_THREADS": "4"
+  },
+  "arrow_cpu_count": 4,
+  "arrow_io_thread_count": 4,
+  "fixture": {
+    "rows": 8192,
+    "width": 128,
+    "arrow_bytes": 1179648,
+    "payload_sha256": "71528ca982ca40c6f3f3cbb2c51ed3bd42c6ab1d3f3f1eb23194be55008f75af",
+    "seed": 7895,
+    "source_fragments": 1,
+    "pyarrow": "25.0.1",
+    "lance": "14.0.0-beta.12"
+  },
+  "cache": "source files explicitly read before timing to warm OS page cache; target fixture copied before timing; no eviction"
+}

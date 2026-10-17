@@ -1,0 +1,48 @@
+F..                                                                      [100%]
+=================================== FAILURES ===================================
+____________ test_lazy_source_registration_preserves_custom_adapter ____________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x7fba7b37c5f0>
+
+    def test_lazy_source_registration_preserves_custom_adapter(monkeypatch):
+        from functools import singledispatch
+    
+        import lance.types as source_types
+    
+        datasets = pytest.importorskip("datasets")
+        # Use a fresh registry to exercise lazy loading regardless of test order.
+        registry = singledispatch(source_types.coerce_source.__wrapped__)
+        monkeypatch.setattr(source_types, "coerce_source", registry)
+        data = pa.table({"id": [1, 2]})
+    
+        @registry.register(datasets.IterableDataset)
+        def custom_source(source, schema=None):
+            return source_types.WriteSource(data.schema, data.to_reader)
+    
+        ordinary = registry(datasets.Dataset.from_dict({"id": [1, 2]}))
+        assert ordinary.open_reader().read_all() == data
+        assert registry.dispatch(datasets.IterableDataset) is custom_source
+>       iterable = datasets.IterableDataset.from_generator(lambda: iter([{"id": 1}]))
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+python/tests/test_dataset.py:4113: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+.venv/lib/python3.12/site-packages/datasets/iterable_dataset.py:2631: in from_generator
+    return GeneratorDatasetInputStream(
+.venv/lib/python3.12/site-packages/datasets/io/generator.py:30: in __init__
+    self.builder = Generator(
+.venv/lib/python3.12/site-packages/datasets/builder.py:386: in __init__
+    os.makedirs(self._cache_dir_root, exist_ok=True)
+<frozen os>:215: in makedirs
+    ???
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+name = '/home/agent/.cache/huggingface', mode = 511, exist_ok = True
+
+>   ???
+E   OSError: [Errno 30] Read-only file system: '/home/agent/.cache/huggingface'
+
+<frozen os>:225: OSError
+=========================== short test summary info ============================
+FAILED python/tests/test_dataset.py::test_lazy_source_registration_preserves_custom_adapter
+1 failed, 2 passed, 327 deselected in 4.81s

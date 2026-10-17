@@ -1,0 +1,57 @@
+{
+  "label": "baseline-release",
+  "kind": "scanner",
+  "trial": "conflict",
+  "conflict": true,
+  "retries": 3,
+  "elapsed_s": 0.16440784999986136,
+  "user_s": 0.015261999999999998,
+  "system_s": 0.004470999999999999,
+  "max_rss_kib": 221308,
+  "io_delta": {
+    "rchar": 5844,
+    "wchar": 5132,
+    "syscr": 21,
+    "syscw": 67,
+    "read_bytes": 0,
+    "write_bytes": 49152,
+    "cancelled_write_bytes": 12288
+  },
+  "replay_directory_count": 1,
+  "spill_file_count": 0,
+  "spill_file_unlink_bytes": 0,
+  "commit_versions": [
+    2,
+    3
+  ],
+  "concurrent_versions": [
+    2
+  ],
+  "final_version": 3,
+  "final_rows": 8,
+  "stats": {
+    "num_inserted_rows": 7,
+    "num_updated_rows": 1,
+    "num_deleted_rows": 0
+  },
+  "error": null,
+  "correct": true,
+  "payload_sha256": "3d276bfbc6dcf15d2eea2cccfa7f3783f74c46c57881ea51f95e1af289f3f627",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "pyarrow": "25.0.1",
+  "lance": "14.0.0-beta.12",
+  "package": "/workspace/issue-7895-evidence/baseline-python/lance/__init__.py",
+  "extension": "/workspace/issue-7895-evidence/baseline-python/lance/lance.abi3.so",
+  "extension_sha256": "d0f565ae7b616e91967d88bc8022ad61a257d33fb2707d71bf9c48692e5a1a59",
+  "fixture": {
+    "rows": 8,
+    "width": 16,
+    "arrow_bytes": 256,
+    "payload_sha256": "3d276bfbc6dcf15d2eea2cccfa7f3783f74c46c57881ea51f95e1af289f3f627",
+    "seed": 7895,
+    "source_fragments": 1,
+    "pyarrow": "25.0.1",
+    "lance": "14.0.0-beta.12"
+  },
+  "cache": "warm OS page cache; no eviction; fixture copy precedes timed merge"
+}

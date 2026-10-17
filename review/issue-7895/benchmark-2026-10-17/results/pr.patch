@@ -1,0 +1,1458 @@
+diff --git a/python/python/lance/dataset.py b/python/python/lance/dataset.py
+index a7fc342..43d5325 100644
+--- a/python/python/lance/dataset.py
++++ b/python/python/lance/dataset.py
+@@ -78,7 +78,7 @@ from .lance import (
+ from .lance import __version__ as __version__
+ from .lance import _Session as Session
+ from .query import DocumentGranularity, FullTextQuery, MinHashQuery
+-from .types import _coerce_reader, _is_materialized
++from .types import WriteSource, _coerce_reader, coerce_source
+ from .udf import BatchUDF, normalize_transform
+ from .udf import BatchUDFCheckpoint as BatchUDFCheckpoint
+ from .udf import batch_udf as batch_udf
+@@ -393,15 +393,22 @@ class MergeInsertBuilder(_MergeInsertBuilder):
+         schema: Optional[pa.Schema]
+             The schema of the data.  This only needs to be supplied whenever the data
+             source is some kind of generator.
+-        """
+-        reader = _coerce_reader(data_obj, schema)
+ 
+-        # Materialized sources are wrapped in an in-memory table so retries never
+-        # spill and the source's statistics can drive the join; everything else is
+-        # treated as a one-shot stream.
+-        if _is_materialized(data_obj):
++        Notes
++        -----
++        :func:`lance.types.coerce_source` adapts built-in and registered source
++        types. Repeatable sources provide fresh readers for conflict retries.
++        Keep external source files unchanged until the operation finishes.
++        Sources without a repeatability contract retain the replay buffer.
++        """
++        source = coerce_source(data_obj, schema)
++        if source.mode == "replayable":
++            return super(MergeInsertBuilder, self).execute_replayable(
++                source.schema, source.open_reader
++            )
++        reader = source.open_reader()
++        if source.mode == "materialized":
+             return super(MergeInsertBuilder, self).execute_batches(reader)
+-
+         return super(MergeInsertBuilder, self).execute(reader)
+ 
+     def execute_uncommitted(
+@@ -409,9 +416,9 @@ class MergeInsertBuilder(_MergeInsertBuilder):
+     ) -> Tuple[Transaction, Dict[str, Any]]:
+         """Executes the merge insert operation without committing
+ 
+-        This function updates the original dataset and returns a dictionary with
+-        information about merge statistics - i.e. the number of inserted, updated,
+-        and deleted rows.
++        This function returns a transaction and merge statistics. It does not
++        commit the transaction or update the original dataset. The source is
++        consumed once, without a buffer for commit retries.
+ 
+         Parameters
+         ----------
+@@ -424,9 +431,9 @@ class MergeInsertBuilder(_MergeInsertBuilder):
+             The schema of the data.  This only needs to be supplied whenever the data
+             source is some kind of generator.
+         """
+-        reader = _coerce_reader(data_obj, schema)
+-
+-        if _is_materialized(data_obj):
++        source = coerce_source(data_obj, schema)
++        reader = source.open_reader()
++        if source.mode == "materialized":
+             return super(MergeInsertBuilder, self).execute_uncommitted_batches(reader)
+ 
+         return super(MergeInsertBuilder, self).execute_uncommitted(reader)
+@@ -819,12 +826,13 @@ class MergeInsertBuilder(_MergeInsertBuilder):
+         - iops: number of I/O operations performed
+         - requests: number of storage requests made
+         """  # noqa: E501
+-        reader = _coerce_reader(data_obj, schema)
+-
+-        # Route exactly as execute() does, so the reported plan is the one that
+-        # would run. A materialized source reports exact statistics where a stream
+-        # reports none, which can change which side of the join is collected.
+-        if _is_materialized(data_obj):
++        source = coerce_source(data_obj, schema)
++        if source.mode == "replayable":
++            return super(MergeInsertBuilder, self).analyze_plan_replayable(
++                source.schema, source.open_reader
++            )
++        reader = source.open_reader()
++        if source.mode == "materialized":
+             return super(MergeInsertBuilder, self).analyze_plan_batches(reader)
+ 
+         return super(MergeInsertBuilder, self).analyze_plan(reader)
+@@ -8856,3 +8864,50 @@ class VectorSearchQuery:
+ 
+     def inner(self):
+         return self._inner
++
++
++@coerce_source.register(LanceDataset)
++def _lance_dataset_source(data_obj: LanceDataset, schema=None) -> WriteSource:
++    # Capture the native dataset version and all default scan options once.
++    return coerce_source(data_obj.scanner(), schema)
++
++
++@coerce_source.register(LanceScanner)
++def _lance_scanner_source(data_obj: LanceScanner, schema=None) -> WriteSource:
++    if type(data_obj) is not LanceScanner:
++        return WriteSource.from_reader(data_obj.to_reader())
++    snapshot = data_obj._snapshot
++    replayable = False
++    if snapshot is not None:
++        defaults = vars(ScannerBuilder(data_obj._ds)).copy()
++        defaults.pop("ds")
++        # These settings preserve source values and order. Expressions, searches,
++        # callbacks, and sorting can change results across otherwise valid scans.
++        stable_options = {
++            "_columns",
++            "_limit",
++            "_offset",
++            "_batch_size",
++            "_batch_size_bytes",
++            "_io_buffer_size",
++            "_batch_readahead",
++            "_fragment_readahead",
++            "_fragments",
++            "_with_row_id",
++            "_with_row_address",
++            "_use_stats",
++            "_use_scalar_index",
++            "_include_deleted_rows",
++            "_late_materialization",
++            "_blob_handling",
++            "_strict_batch_size",
++            "_row_addr_allowlist",
++            "_row_addr_blocklist",
++        }
++        replayable = snapshot.keys() == defaults.keys() and all(
++            key in stable_options or value == defaults[key]
++            for key, value in snapshot.items()
++        )
++    if replayable:
++        return WriteSource(data_obj.projected_schema, data_obj.to_reader)
++    return WriteSource.from_reader(data_obj.to_reader())
+diff --git a/python/python/lance/lance/__init__.pyi b/python/python/lance/lance/__init__.pyi
+index 7bf85f7..3168b33 100644
+--- a/python/python/lance/lance/__init__.pyi
++++ b/python/python/lance/lance/__init__.pyi
+@@ -723,6 +723,12 @@ class _MergeInsertBuilder:
+     def target_all_bases(self, include_primary: bool = True) -> Self: ...
+     def execute(self, new_data: pa.RecordBatchReader) -> ExecuteResult: ...
+     def execute_batches(self, new_data: pa.RecordBatchReader) -> ExecuteResult: ...
++    def execute_replayable(
++        self, schema: pa.Schema, factory: Callable[[], pa.RecordBatchReader]
++    ) -> ExecuteResult: ...
++    def analyze_plan_replayable(
++        self, schema: pa.Schema, factory: Callable[[], pa.RecordBatchReader]
++    ) -> str: ...
+     def execute_uncommitted(
+         self, new_data: pa.RecordBatchReader
+     ) -> tuple[Transaction, ExecuteResult]: ...
+diff --git a/python/python/lance/types.py b/python/python/lance/types.py
+index 3b5cc5b..0125d05 100644
+--- a/python/python/lance/types.py
++++ b/python/python/lance/types.py
+@@ -3,12 +3,13 @@
+ 
+ from __future__ import annotations
+ 
+-from typing import TYPE_CHECKING, Iterable, Optional, Union
++from dataclasses import dataclass
++from functools import singledispatch
++from typing import TYPE_CHECKING, Callable, Iterable, Literal, Optional, Union
+ 
+ import pyarrow as pa
+ from pyarrow import RecordBatch
+ 
+-from . import dataset
+ from .dependencies import (
+     _check_for_hugging_face,
+     _check_for_pandas,
+@@ -20,13 +21,14 @@ from .dependencies import pandas as pd
+ 
+ if TYPE_CHECKING:
+     ReaderLike = Union[
+-        pd.Timestamp,
++        pd.DataFrame,
+         pa.Table,
+         pa.dataset.Dataset,
+         pa.dataset.Scanner,
+         pa.RecordBatch,
+         Iterable[RecordBatch],
+         pa.RecordBatchReader,
++        "WriteSource",
+     ]
+ 
+ 
+@@ -58,103 +60,204 @@ def _casting_recordbatch_iter(
+         yield batch
+ 
+ 
+-def _is_materialized(data_obj: ReaderLike) -> bool:
+-    """Whether ``data_obj`` is fully materialized in memory.
++@dataclass(frozen=True)
++class WriteSource:
++    """An experimental adapter for Python write inputs.
+ 
+-    Materialized sources (tables, in-memory frames) can be wrapped in an
+-    in-memory table for replay without spilling and to expose exact statistics.
+-    Streaming or re-readable sources (readers, scanners, datasets, generators)
+-    are not considered materialized.
++    ``open_reader`` is a zero-argument callable that returns a RecordBatchReader.
++    Construction does not call it. A write opens a reader when execution needs
++    the input. Each reader must have ``schema``, including its metadata.
++
++    ``mode="replayable"`` promises a fresh reader with the same values and row
++    order on every call, including retries. Keep the source unchanged, or pin
++    its version, until the operation finishes. The factory can run on a worker
++    thread. Factory calls can overlap, so the factory must support concurrent
++    calls. Lance owns each returned reader and releases it after execution.
++    Cancellation cannot interrupt a factory before it returns. Do not return a
++    shared or previously consumed reader.
++
++    ``mode="materialized"`` permits Lance to collect an already resident input
++    into an in-memory table. ``mode="streaming"`` supplies one reader and uses
++    the existing replay buffer when a merge enables retries. Other write APIs
++    consume one reader, regardless of the mode.
++
++    This API is experimental and can change without notice.
++
++    Examples
++    --------
++    >>> import pyarrow as pa
++    >>> table = pa.table({"id": [1, 2]})
++    >>> source = WriteSource(table.schema, table.to_reader)
++    >>> source.open_reader().read_all().equals(table)
++    True
++    """
++
++    schema: pa.Schema
++    open_reader: Callable[[], pa.RecordBatchReader]
++    mode: Literal["materialized", "replayable", "streaming"] = "replayable"
++
++    def __post_init__(self):
++        if not isinstance(self.schema, pa.Schema):
++            raise TypeError(f"schema must be a pyarrow.Schema, got {type(self.schema)}")
++        if not callable(self.open_reader):
++            raise TypeError("open_reader must be callable")
++        if self.mode not in ("materialized", "replayable", "streaming"):
++            raise ValueError(f"Unknown write source mode: {self.mode!r}")
++        factory = self.open_reader
++        schema = self.schema
++
++        def checked_open_reader() -> pa.RecordBatchReader:
++            reader = factory()
++            if not isinstance(reader, pa.RecordBatchReader):
++                raise TypeError(
++                    "open_reader must return a pyarrow.RecordBatchReader, "
++                    f"got {type(reader)}"
++                )
++            if not reader.schema.equals(schema, check_metadata=True):
++                actual = reader.schema
++                reader.close()
++                raise ValueError(
++                    "Write source reader schema does not match the declared schema."
++                    f"\nExpected:\n{schema}\nGot:\n{actual}"
++                )
++            return reader
++
++        object.__setattr__(self, "open_reader", checked_open_reader)
++
++    @classmethod
++    def from_reader(
++        cls, reader: pa.RecordBatchReader, *, materialized: bool = False
++    ) -> WriteSource:
++        """Adapt one reader, optionally declaring its input already resident.
++
++        Use a fresh descriptor for each operation. For example::
++
++            source = WriteSource.from_reader(table.to_reader(), materialized=True)
++        """
++        if not isinstance(reader, pa.RecordBatchReader):
++            raise TypeError(f"Expected RecordBatchReader, got {type(reader)}")
++        return cls(
++            reader.schema,
++            lambda: reader,
++            "materialized" if materialized else "streaming",
++        )
++
++
++@singledispatch
++def coerce_source(data_obj, schema: Optional[pa.Schema] = None) -> WriteSource:
++    """Adapt a write input with a type-specific, experimental registry.
++
++    Register a function that accepts ``(data_obj, schema=None)`` and returns a
++    :class:`WriteSource`. The optional schema serves inputs without a schema,
++    such as iterators. Registration applies to all Python write entry points.
++
++    Native ordered Lance scans can be rescanned when their settings preserve
++    values and row order. Arrow support covers unfiltered built-in
++    ``InMemoryDataset``, ``FileSystemDataset``, and unions of these datasets.
++    Arrow dataset files must remain unchanged until execution finishes. Filters,
++    computed projections, searches, custom Arrow datasets, and opaque scanners
++    retain the streaming path when Lance cannot establish stable results.
++
++    Third-party adapters can supply a reader factory without a Lance object.
++    Registering a replayable adapter promises the :class:`WriteSource` contract.
++    For example::
++
++        @coerce_source.register(MySnapshot)
++        def snapshot_source(snapshot, schema=None):
++            return WriteSource(snapshot.schema, snapshot.open_reader)
++
++    A configured Arrow scanner can also be adapted explicitly, if its source
++    supports repeated scans with identical values and order::
++
++        source = WriteSource(scanner.projected_schema, scanner.to_reader)
++
++    This API is experimental and can change without notice.
+     """
+     if _check_for_pandas(data_obj) and isinstance(data_obj, pd.DataFrame):
+-        return True
+-    if isinstance(data_obj, (pa.Table, pa.RecordBatch)):
+-        return True
++        coerce_source.register(pd.DataFrame, _pandas_source)
++        return _pandas_source(data_obj, schema)
+     if (
+         type(data_obj).__module__.startswith("polars")
+         and data_obj.__class__.__name__ == "DataFrame"
+     ):
+-        return True
+-    if isinstance(data_obj, dict):
+-        return True
+-    if (
+-        isinstance(data_obj, list)
+-        and len(data_obj) > 0
+-        and isinstance(data_obj[0], dict)
+-    ):
+-        return True
+-    return False
++        coerce_source.register(type(data_obj), _polars_source)
++        return _polars_source(data_obj, schema)
++    if _check_for_hugging_face(data_obj):
++        coerce_source.register(type(data_obj), _hugging_face_source)
++        return _hugging_face_source(data_obj, schema)
++    return _iterable_source(data_obj, schema)
+ 
+ 
+-def _coerce_reader(
+-    data_obj: ReaderLike, schema: Optional[pa.Schema] = None
+-) -> pa.RecordBatchReader:
+-    if _check_for_pandas(data_obj) and isinstance(data_obj, pd.DataFrame):
+-        return pa.Table.from_pandas(data_obj, schema=schema).to_reader()
+-    elif isinstance(data_obj, pa.Table):
+-        return data_obj.to_reader()
+-    elif isinstance(data_obj, pa.RecordBatch):
+-        return pa.Table.from_batches([data_obj]).to_reader()
+-    elif isinstance(data_obj, dataset.LanceDataset):
+-        return data_obj.scanner().to_reader()
+-    elif isinstance(data_obj, pa.dataset.Dataset):
+-        return pa.dataset.Scanner.from_dataset(data_obj).to_reader()
+-    elif isinstance(data_obj, pa.dataset.Scanner):
+-        return data_obj.to_reader()
+-    elif isinstance(data_obj, pa.RecordBatchReader):
+-        return data_obj
+-    elif (
+-        type(data_obj).__module__.startswith("polars")
+-        and data_obj.__class__.__name__ == "DataFrame"
+-    ):
+-        return data_obj.to_arrow().to_reader()
+-    elif _check_for_hugging_face(data_obj):
+-        from .dependencies import datasets as hf_datasets
+-
+-        if isinstance(data_obj, hf_datasets.Dataset):
+-            if schema is None:
+-                schema = data_obj.features.arrow_schema
+-            return data_obj.data.to_reader()
+-        elif isinstance(data_obj, hf_datasets.DatasetDict):
+-            raise ValueError(
+-                "DatasetDict is not yet supported. For now please "
+-                "iterate through the DatasetDict and pass in single "
+-                "Dataset instances (e.g., from dataset_dict.data) to "
+-                "`write_dataset`. "
+-            )
+-        elif isinstance(data_obj, hf_datasets.IterableDataset):
+-            if schema is None:
+-                schema = data_obj.features.arrow_schema
++@coerce_source.register(WriteSource)
++def _write_source(data_obj: WriteSource, schema=None) -> WriteSource:
++    return data_obj
+ 
+-            def batch_iter():
+-                # Try to provide a reasonable batch size. If the user needs to
+-                # override this, they can do the conversion to a reader themselves.
+-                for dict_batch in data_obj.iter(batch_size=1000):
+-                    yield pa.RecordBatch.from_pydict(dict_batch, schema=schema)
+ 
+-            return pa.RecordBatchReader.from_batches(schema, batch_iter())
+-        else:
+-            raise TypeError(
+-                f"Unknown HuggingFace dataset type: {type(data_obj)}. "
+-                "Please provide a single Dataset or DatasetDict."
+-            )
++@coerce_source.register(pa.Table)
++def _table_source(data_obj: pa.Table, schema=None) -> WriteSource:
++    return WriteSource(data_obj.schema, data_obj.to_reader, "materialized")
++
++
++@coerce_source.register(pa.RecordBatch)
++def _batch_source(data_obj: pa.RecordBatch, schema=None) -> WriteSource:
++    return coerce_source(pa.Table.from_batches([data_obj]))
++
++
++@coerce_source.register(pa.RecordBatchReader)
++def _reader_source(data_obj: pa.RecordBatchReader, schema=None) -> WriteSource:
++    return WriteSource.from_reader(data_obj)
+ 
+-    elif isinstance(data_obj, dict):
+-        batch = pa.RecordBatch.from_pydict(data_obj, schema=schema)
+-        return pa.RecordBatchReader.from_batches(batch.schema, [batch])
+-    elif (
+-        isinstance(data_obj, list)
+-        and len(data_obj) > 0
+-        and isinstance(data_obj[0], dict)
++
++def _arrow_dataset_replayable(data_obj: pa.dataset.Dataset) -> bool:
++    if type(data_obj) not in (
++        pa.dataset.InMemoryDataset,
++        pa.dataset.FileSystemDataset,
++        pa.dataset.UnionDataset,
+     ):
+-        # List of dictionaries
++        return False
++    try:
++        # This public API rejects hidden Dataset filters before yielding fragments.
++        # Do not consume the iterator or inspect source data to test repeatability.
++        data_obj.get_fragments()
++    except ValueError:
++        return False
++    if isinstance(data_obj, pa.dataset.UnionDataset):
++        return all(_arrow_dataset_replayable(child) for child in data_obj.children)
++    return True
++
++
++@coerce_source.register(pa.dataset.Dataset)
++def _arrow_dataset_source(data_obj: pa.dataset.Dataset, schema=None) -> WriteSource:
++    scanner = pa.dataset.Scanner.from_dataset(data_obj)
++    return WriteSource(
++        scanner.projected_schema,
++        scanner.to_reader,
++        "replayable" if _arrow_dataset_replayable(data_obj) else "streaming",
++    )
++
++
++@coerce_source.register(pa.dataset.Scanner)
++def _arrow_scanner_source(data_obj: pa.dataset.Scanner, schema=None) -> WriteSource:
++    # Scanner.from_batches is one-shot. Arrow exposes no public capability query.
++    return WriteSource.from_reader(data_obj.to_reader())
++
++
++@coerce_source.register(dict)
++def _dict_source(data_obj: dict[str, object], schema=None) -> WriteSource:
++    # DatasetDict subclasses dict, so singledispatch reaches this handler first.
++    if _check_for_hugging_face(data_obj):
++        coerce_source.register(type(data_obj), _hugging_face_source)
++        return _hugging_face_source(data_obj, schema)
++    batch = pa.RecordBatch.from_pydict(data_obj, schema=schema)
++    return coerce_source(batch)
++
++
++@coerce_source.register(list)
++def _list_source(data_obj: list[object], schema=None) -> WriteSource:
++    if data_obj and isinstance(data_obj[0], dict):
+         batch = pa.RecordBatch.from_pylist(data_obj, schema=schema)
+-        return pa.RecordBatchReader.from_batches(batch.schema, [batch])
+-    elif (
+-        isinstance(data_obj, list)
+-        and len(data_obj) > 0
+-        and _is_pydantic_base_model(data_obj[0])
+-    ):
++        return coerce_source(batch)
++    if data_obj and _is_pydantic_base_model(data_obj[0]):
+         model_class = type(data_obj[0])
+         _validate_pydantic_list(data_obj, model_class)
+         if schema is None:
+@@ -163,12 +266,19 @@ def _coerce_reader(
+             schema = pydantic_to_schema(model_class)
+         dicts = [model_to_dict(item) for item in data_obj]
+         batch = pa.RecordBatch.from_pylist(dicts, schema=schema)
+-        return pa.RecordBatchReader.from_batches(batch.schema, [batch])
+-    # for other iterables, assume they are of type Iterable[RecordBatch]
+-    elif isinstance(data_obj, Iterable):
++        return WriteSource.from_reader(
++            pa.RecordBatchReader.from_batches(batch.schema, [batch])
++        )
++    return _iterable_source(data_obj, schema)
++
++
++def _iterable_source(data_obj, schema) -> WriteSource:
++    if isinstance(data_obj, Iterable):
+         if schema is not None:
+             data = _casting_recordbatch_iter(data_obj, schema)
+-            return pa.RecordBatchReader.from_batches(schema, data)
++            return WriteSource.from_reader(
++                pa.RecordBatchReader.from_batches(schema, data)
++            )
+         else:
+             raise ValueError(
+                 "Must provide schema to write dataset from RecordBatch iterable"
+@@ -180,3 +290,47 @@ def _coerce_reader(
+             "https://lance.org/guide/read_and_write/ "
+             "to see supported types."
+         )
++
++
++def _pandas_source(data_obj, schema=None) -> WriteSource:
++    return coerce_source(pa.Table.from_pandas(data_obj, schema=schema))
++
++
++def _polars_source(data_obj, schema=None) -> WriteSource:
++    return coerce_source(data_obj.to_arrow())
++
++
++def _hugging_face_source(data_obj, schema=None) -> WriteSource:
++    from .dependencies import datasets as hf_datasets
++
++    if isinstance(data_obj, hf_datasets.Dataset):
++        return WriteSource.from_reader(data_obj.data.to_reader())
++    if isinstance(data_obj, hf_datasets.DatasetDict):
++        raise ValueError(
++            "DatasetDict is not yet supported. For now please "
++            "iterate through the DatasetDict and pass in single "
++            "Dataset instances (e.g., from dataset_dict.data) to "
++            "`write_dataset`. "
++        )
++    if isinstance(data_obj, hf_datasets.IterableDataset):
++        if schema is None:
++            schema = data_obj.features.arrow_schema
++
++        def batch_iter():
++            # Callers can supply their own reader to control the batch size.
++            for dict_batch in data_obj.iter(batch_size=1000):
++                yield pa.RecordBatch.from_pydict(dict_batch, schema=schema)
++
++        return WriteSource.from_reader(
++            pa.RecordBatchReader.from_batches(schema, batch_iter())
++        )
++    raise TypeError(
++        f"Unknown HuggingFace dataset type: {type(data_obj)}. "
++        "Please provide a single Dataset or DatasetDict."
++    )
++
++
++def _coerce_reader(
++    data_obj: ReaderLike, schema: Optional[pa.Schema] = None
++) -> pa.RecordBatchReader:
++    return coerce_source(data_obj, schema).open_reader()
+diff --git a/python/python/tests/test_dataset.py b/python/python/tests/test_dataset.py
+index 47a49c1..8b72949 100644
+--- a/python/python/tests/test_dataset.py
++++ b/python/python/tests/test_dataset.py
+@@ -11,6 +11,7 @@ import random
+ import re
+ import time
+ import uuid
++from concurrent.futures import ThreadPoolExecutor
+ from datetime import date, datetime, timedelta
+ from pathlib import Path
+ from typing import List, Optional
+@@ -3863,6 +3864,417 @@ def test_merge_insert_analyze_plan_matches_execute_routing():
+     assert "join_type=Right" in streaming, streaming
+ 
+ 
++@contextlib.contextmanager
++def _source_retry_commit_lock(uri, commits, version, conflict_kind="update"):
++    commits.append(version)
++    if len(commits) == 1:
++        # Commit hooks run on a Rust worker. Open the competing dataset from a
++        # Python thread to avoid nesting the synchronous constructor's runtime.
++        def compete():
++            if conflict_kind == "upsert":
++                competing = lance.dataset(uri)
++                (
++                    competing.merge_insert("id")
++                    .when_matched_update_all()
++                    .when_not_matched_insert_all()
++                    .execute(pa.table({"id": [0, 1], "value": [-2, -2]}))
++                )
++            else:
++                lance.dataset(uri).update({"value": "-2"})
++
++        with ThreadPoolExecutor(max_workers=1) as executor:
++            executor.submit(compete).result(timeout=10)
++    yield
++
++
++@pytest.mark.parametrize(
++    "source_kind",
++    [
++        "lance",
++        "lance_scanner",
++        "arrow",
++        "arrow_memory",
++        "arrow_union",
++        "arrow_scanner",
++        "arrow_scanner_factory",
++        "batches",
++        "table",
++    ],
++)
++@pytest.mark.parametrize("conflict_kind", ["update", "upsert"])
++def test_merge_insert_source_retry(tmp_path, source_kind, conflict_kind):
++    """Force a conflicting commit after the source was read, then verify replay."""
++    from lance.types import WriteSource, coerce_source
++
++    data = pa.table({"id": [0, 1, 2, 3], "value": [10, 11, 12, 13]})
++    target_uri = tmp_path / "target"
++    lance.write_dataset(pa.table({"id": [0], "value": [-1]}), target_uri)
++    source_ds = lance.write_dataset(data, tmp_path / "source", max_rows_per_file=2)
++    if source_kind == "lance":
++        source = source_ds
++    elif source_kind == "lance_scanner":
++        source = source_ds.scanner(batch_size=1)
++    elif source_kind == "arrow_memory":
++        source = pa_ds.dataset(data)
++    elif source_kind == "arrow_union":
++        source = pa_ds.dataset(
++            [pa_ds.dataset(data.slice(0, 2)), pa_ds.dataset(data.slice(2))]
++        )
++    elif source_kind in ("arrow", "arrow_scanner", "arrow_scanner_factory"):
++        pq.write_table(data.slice(0, 2), tmp_path / "part0.parquet")
++        pq.write_table(data.slice(2), tmp_path / "part1.parquet")
++        source = pa_ds.dataset([tmp_path / "part0.parquet", tmp_path / "part1.parquet"])
++        if source_kind == "arrow_scanner":
++            source = source.scanner(batch_size=1)
++        elif source_kind == "arrow_scanner_factory":
++            scanner = source.scanner(
++                columns=["value", "id"], filter=pc.field("id") >= 0, batch_size=1
++            )
++            source = WriteSource(scanner.projected_schema, scanner.to_reader)
++    elif source_kind == "batches":
++        source = pa_ds.Scanner.from_batches(iter(data.to_batches()), schema=data.schema)
++    else:
++        source = data
++
++    # Coercion must not consume one-shot scanners.
++    if source_kind not in ("arrow_scanner", "batches"):
++        expected_mode = "materialized" if source_kind == "table" else "replayable"
++        assert coerce_source(source).mode == expected_mode
++
++    commits = []
++
++    def commit_lock(version):
++        return _source_retry_commit_lock(target_uri, commits, version, conflict_kind)
++
++    target = lance.dataset(target_uri, commit_lock=commit_lock)
++    stats = (
++        target.merge_insert("id")
++        .when_matched_update_all()
++        .when_not_matched_insert_all()
++        .conflict_retries(2)
++        .execute(source)
++    )
++    assert len(commits) == 2
++    assert target.version == 3
++    assert target.to_table().sort_by("id") == data
++    check_merge_stats(stats, (2, 2, 0) if conflict_kind == "upsert" else (3, 1, 0))
++
++
++def test_registered_source_retry_and_lifecycle(tmp_path):
++    """An external type supplies executable capabilities without native objects."""
++    import threading
++    import weakref
++
++    from lance.types import WriteSource, coerce_source
++
++    class ExternalSource:
++        def __init__(self, table):
++            self.table = table
++            self.calls = []
++
++        def open(self):
++            self.calls.append(threading.get_ident())
++            return self.table.to_reader(max_chunksize=1)
++
++    @coerce_source.register(ExternalSource)
++    def adapt(source, schema=None):
++        return WriteSource(source.table.schema, source.open, mode="replayable")
++
++    data = pa.table({"id": [0, 1], "value": [10, 11]})
++    source = ExternalSource(data)
++    source_ref = weakref.ref(source)
++    assert coerce_source(source).mode == "replayable"
++    assert source.calls == []
++    uri = tmp_path / "target"
++    lance.write_dataset(data, uri)
++    commits = []
++
++    def commit_lock(version):
++        return _source_retry_commit_lock(uri, commits, version)
++
++    target = lance.dataset(uri, commit_lock=commit_lock)
++    target.merge_insert("id").when_matched_update_all().execute(source)
++    assert len(commits) == 2
++    assert len(source.calls) == 2
++    assert all(call != threading.get_ident() for call in source.calls)
++    assert target.to_table().sort_by("id") == data
++    del source
++    import gc
++
++    gc.collect()
++    assert source_ref() is None
++
++
++@pytest.mark.parametrize("operation", ["write", "uncommitted", "analyze"])
++def test_registered_source_single_read_entrypoints(tmp_path, operation):
++    from lance.types import WriteSource, coerce_source
++
++    class ExternalSource:
++        pass
++
++    data = pa.table({"id": [0, 1], "value": [10, 11]})
++    calls = []
++
++    def reader():
++        calls.append(True)
++        return data.to_reader()
++
++    @coerce_source.register(ExternalSource)
++    def adapt(source, schema=None):
++        return WriteSource(data.schema, reader, mode="replayable")
++
++    source = ExternalSource()
++    if operation == "write":
++        assert lance.write_dataset(source, tmp_path).to_table() == data
++    else:
++        target = lance.write_dataset(data, tmp_path)
++        version = target.version
++        builder = target.merge_insert("id").when_matched_update_all()
++        if operation == "uncommitted":
++            transaction, stats = builder.execute_uncommitted(source)
++            assert transaction is not None
++            check_merge_stats(stats, (0, 2, 0))
++        else:
++            plan = builder.analyze_plan(source)
++            assert "StreamingTableExec" in plan
++            assert "output_rows=" in plan
++        assert target.version == version
++        assert lance.dataset(tmp_path).version == version
++    assert calls == [True]
++
++
++def test_replayable_source_pins_lance_version_and_schema(tmp_path):
++    from lance.types import coerce_source
++
++    schema = pa.schema(
++        [pa.field("id", pa.int64(), metadata={"field": "value"})],
++        metadata={"source": "snapshot"},
++    )
++    data = pa.table({"id": [0, 1, 2]}, schema=schema)
++    source = lance.write_dataset(data, tmp_path, max_rows_per_file=1)
++    adapted = coerce_source(source)
++    source.update({"id": "id + 10"})
++    first = adapted.open_reader().read_all()
++    second = adapted.open_reader().read_all()
++    assert first.equals(data, check_metadata=True)
++    assert second.equals(data, check_metadata=True)
++
++
++def test_replayable_lance_scan_preserves_projection_and_order(tmp_path):
++    from lance.types import coerce_source
++
++    data = pa.table({"id": [1, 1, 2, 2, 3], "value": [10, 11, 12, 13, 14]})
++    dataset = lance.write_dataset(data, tmp_path, max_rows_per_file=2)
++    scanner = dataset.scanner(columns=["value", "id"], offset=1, limit=3, batch_size=1)
++    source = coerce_source(scanner)
++    assert source.mode == "replayable"
++    expected = data.select(["value", "id"]).slice(1, 3)
++    # Duplicate keys make encounter order observable, including across fragments.
++    assert source.open_reader().read_all() == expected
++    assert source.open_reader().read_all() == expected
++
++
++def test_replayable_source_conflict_without_retries(tmp_path):
++    from lance.types import WriteSource, coerce_source
++
++    class ExternalSource:
++        pass
++
++    data = pa.table({"id": [0], "value": [1]})
++    calls = []
++
++    def open_reader():
++        calls.append(True)
++        return data.to_reader()
++
++    @coerce_source.register(ExternalSource)
++    def adapt(source, schema=None):
++        return WriteSource(data.schema, open_reader, mode="replayable")
++
++    lance.write_dataset(data, tmp_path)
++    commits = []
++    target = lance.dataset(
++        tmp_path,
++        commit_lock=lambda version: _source_retry_commit_lock(
++            tmp_path, commits, version
++        ),
++    )
++    with pytest.raises(OSError, match="Too many concurrent writers"):
++        target.merge_insert("id").when_matched_update_all().conflict_retries(0).execute(
++            ExternalSource()
++        )
++    assert calls == [True]
++    assert len(commits) == 1
++    assert lance.dataset(tmp_path).version == 2
++
++
++@pytest.mark.parametrize(
++    "options",
++    [
++        {"columns": {"id": "id", "value": "random()"}},
++        {"filter": "id > 0"},
++        {"scan_in_order": False},
++        {"order_by": ["value"]},
++    ],
++)
++def test_lance_source_preserves_unsafe_scan_options(tmp_path, options):
++    from lance.types import coerce_source
++
++    data = pa.table({"id": [0, 1, 2], "value": [3, 2, 1]})
++    lance.write_dataset(data, tmp_path, max_rows_per_file=1)
++    if "columns" in options or "order_by" in options:
++        source = lance.dataset(tmp_path).scanner(**options)
++    else:
++        source = lance.dataset(tmp_path, default_scan_options=options)
++    adapted = coerce_source(source)
++    assert adapted.mode == "streaming"
++    actual = adapted.open_reader().read_all()
++    if "filter" in options:
++        assert actual == data.slice(1)
++    elif "order_by" in options:
++        assert actual == data.sort_by("value")
++    elif "columns" in options:
++        assert actual.schema.field("value").type == pa.float64()
++        assert all(0 <= value < 1 for value in actual["value"].to_pylist())
++    else:
++        assert actual.sort_by("id") == data
++
++
++def test_filtered_arrow_dataset_source_preserves_filter():
++    from lance.types import coerce_source
++
++    data = pa.table({"id": [0, 1, 2]})
++    source = pa_ds.dataset(data).filter(pc.field("id") > 0)
++    adapted = coerce_source(source)
++    assert adapted.mode == "streaming"
++    assert adapted.open_reader().read_all() == data.slice(1)
++
++
++def test_computed_source_replays_original_values_on_retry(tmp_path, monkeypatch):
++    data = pa.table({"id": [0, 1, 2], "value": [0.0, 0.0, 0.0]})
++    dataset = lance.write_dataset(data, tmp_path / "source", max_rows_per_file=1)
++    scanner = dataset.scanner(columns={"id": "id", "value": "random()"})
++    original_reader = scanner.to_reader
++    calls = []
++    observed = []
++
++    def open_reader():
++        calls.append(True)
++        reader = original_reader()
++
++        def batches():
++            for batch in reader:
++                observed.append(batch)
++                yield batch
++
++        return pa.RecordBatchReader.from_batches(reader.schema, batches())
++
++    monkeypatch.setattr(scanner, "to_reader", open_reader)
++    uri = tmp_path / "target"
++    lance.write_dataset(data, uri)
++    commits = []
++    target = lance.dataset(
++        uri,
++        commit_lock=lambda version: _source_retry_commit_lock(uri, commits, version),
++    )
++    target.merge_insert("id").when_matched_update_all().execute(scanner)
++    assert len(commits) == 2
++    assert calls == [True]
++    assert target.to_table().sort_by("id") == pa.Table.from_batches(observed).sort_by(
++        "id"
++    )
++
++
++def test_lazy_source_registration_preserves_custom_adapter(monkeypatch):
++    from functools import singledispatch
++
++    import lance.types as source_types
++
++    datasets = pytest.importorskip("datasets")
++    # Use a fresh registry to exercise lazy loading regardless of test order.
++    registry = singledispatch(source_types.coerce_source.__wrapped__)
++    monkeypatch.setattr(source_types, "coerce_source", registry)
++    data = pa.table({"id": [1, 2]})
++
++    @registry.register(datasets.IterableDataset)
++    def custom_source(source, schema=None):
++        return source_types.WriteSource(data.schema, data.to_reader)
++
++    dataset = datasets.Dataset.from_dict({"id": [1, 2]})
++    ordinary = registry(dataset)
++    assert ordinary.open_reader().read_all() == data
++    assert registry.dispatch(datasets.IterableDataset) is custom_source
++    adapted = registry(dataset.to_iterable_dataset())
++    assert adapted.mode == "replayable"
++    assert adapted.open_reader().read_all() == data
++
++
++@pytest.mark.parametrize("base", [pa_ds.Scanner, lance.LanceScanner])
++def test_custom_scanner_source_only_requires_to_reader(tmp_path, base):
++    from lance.types import coerce_source
++
++    data = pa.table({"id": [1, 2]})
++
++    class CustomScanner(base):
++        def __init__(self):
++            self.reads = 0
++
++        @property
++        def projected_schema(self):
++            raise AssertionError(
++                "The custom scanner exposes its schema through a reader"
++            )
++
++        def to_reader(self):
++            self.reads += 1
++            return data.to_reader()
++
++    scanner = CustomScanner()
++    adapted = coerce_source(scanner)
++    assert adapted.mode == "streaming"
++    assert adapted.open_reader().read_all() == data
++    assert scanner.reads == 1
++    scanner = CustomScanner()
++    assert lance.write_dataset(scanner, tmp_path).to_table() == data
++    assert scanner.reads == 1
++
++
++@pytest.mark.parametrize("failure", ["factory", "metadata", "batch"])
++@pytest.mark.parametrize("operation", ["execute", "analyze_plan"])
++@pytest.mark.parametrize("mode", ["replayable", "streaming"])
++def test_write_source_errors(tmp_path, failure, operation, mode):
++    from lance.types import WriteSource, coerce_source
++
++    class ExternalSource:
++        pass
++
++    data = pa.table({"id": [0, 1]}, metadata={"version": "1"})
++
++    def reader():
++        if failure == "factory":
++            raise ValueError("external factory failure")
++        if failure == "metadata":
++            return data.replace_schema_metadata({"version": "2"}).to_reader()
++
++        def batches():
++            yield data.to_batches()[0]
++            raise ValueError("external batch failure")
++
++        return pa.RecordBatchReader.from_batches(data.schema, batches())
++
++    @coerce_source.register(ExternalSource)
++    def adapt(source, schema=None):
++        return WriteSource(data.schema, reader, mode=mode)
++
++    target = lance.write_dataset(data, tmp_path)
++    match = "schema" if failure == "metadata" else f"external {failure} failure"
++    with pytest.raises((OSError, ValueError), match=match):
++        builder = target.merge_insert("id").when_matched_update_all()
++        getattr(builder, operation)(ExternalSource())
++    assert lance.dataset(tmp_path).version == 1
++    assert lance.dataset(tmp_path).to_table() == data
++
++
+ def test_merge_insert_use_index():
+     """Test that use_index parameter controls whether indices are used."""
+     data = pa.table({"id": range(100), "value": [i * 10 for i in range(100)]})
+diff --git a/python/src/dataset.rs b/python/src/dataset.rs
+index 9dc671e..d441a28 100644
+--- a/python/src/dataset.rs
++++ b/python/src/dataset.rs
+@@ -117,12 +117,14 @@ use self::cleanup::{
+ };
+ use self::commit::PyCommitLock;
+ use self::io_stats::IoStats;
++use self::replayable::replayable_provider;
+ 
+ pub mod blob;
+ pub mod cleanup;
+ pub mod commit;
+ pub mod io_stats;
+ pub mod optimize;
++mod replayable;
+ pub mod stats;
+ 
+ const LANCE_COMMIT_MESSAGE_KEY: &str = "__lance_commit_message";
+@@ -514,6 +516,25 @@ impl MergeInsertBuilder {
+         Ok((PyLance(transaction), stats))
+     }
+ 
++    pub fn execute_replayable(
++        &mut self,
++        schema: PyArrowType<ArrowSchema>,
++        factory: &Bound<'_, PyAny>,
++    ) -> PyResult<Py<PyAny>> {
++        let py = factory.py();
++        let provider = replayable_provider(Arc::new(schema.0), factory)?;
++        let job = self
++            .builder
++            .try_build()
++            .map_err(|err| PyValueError::new_err(err.to_string()))?;
++
++        let (new_dataset, stats) = rt()
++            .spawn(Some(py), job.execute_provider(provider))?
++            .map_err(|err: lance::Error| PyIOError::new_err(err.to_string()))?;
++        self.dataset.bind(py).borrow_mut().ds = new_dataset;
++        Ok(Self::build_stats(&stats, py)?.into())
++    }
++
+     /// Execute the merge insert from fully-materialized data.
+     ///
+     /// The data is read into memory and wrapped in an in-memory table, so retries
+@@ -599,6 +620,24 @@ impl MergeInsertBuilder {
+             .map_err(|err| PyIOError::new_err(err.to_string()))
+     }
+ 
++    pub fn analyze_plan_replayable(
++        &mut self,
++        schema: PyArrowType<ArrowSchema>,
++        factory: &Bound<'_, PyAny>,
++    ) -> PyResult<String> {
++        let provider = replayable_provider(Arc::new(schema.0), factory)?;
++        let job = self
++            .builder
++            .clone()
++            .try_build()
++            .map_err(|err| PyValueError::new_err(err.to_string()))?;
++
++        rt().spawn(Some(factory.py()), async move {
++            job.analyze_plan_provider(provider).await
++        })?
++        .map_err(|err| PyIOError::new_err(err.to_string()))
++    }
++
+     /// [`Self::analyze_plan`] for fully-materialized data.
+     ///
+     /// Routed to the same in-memory table `execute_batches` uses, so the reported
+diff --git a/python/src/dataset/replayable.rs b/python/src/dataset/replayable.rs
+new file mode 100644
+index 0000000..e633105
+--- /dev/null
++++ b/python/src/dataset/replayable.rs
+@@ -0,0 +1,312 @@
++// SPDX-License-Identifier: Apache-2.0
++// SPDX-FileCopyrightText: Copyright The Lance Authors
++
++use std::sync::Arc;
++
++use arrow::ffi_stream::ArrowArrayStreamReader;
++use arrow::pyarrow::FromPyArrow;
++use arrow_array::RecordBatchReader;
++use arrow_schema::SchemaRef;
++use datafusion::catalog::{TableProvider, streaming::StreamingTable};
++use datafusion::error::DataFusionError;
++use datafusion::execution::TaskContext;
++use datafusion::physical_plan::SendableRecordBatchStream;
++use datafusion::physical_plan::stream::RecordBatchStreamAdapter;
++use datafusion::physical_plan::streaming::PartitionStream;
++use futures::{TryStreamExt, stream};
++use lance_datafusion::utils::reader_to_stream;
++use pyo3::exceptions::{PyTypeError, PyValueError};
++use pyo3::prelude::*;
++
++/// A Python factory is only accepted after the Python adapter has established
++/// that it can return a fresh reader over the same source on every call.
++pub(super) fn replayable_provider(
++    schema: SchemaRef,
++    factory: &Bound<'_, PyAny>,
++) -> PyResult<Arc<dyn TableProvider>> {
++    if !factory.is_callable() {
++        return Err(PyTypeError::new_err(
++            "Replayable merge source factory must be callable",
++        ));
++    }
++    let partition = Arc::new(ReplayablePartition {
++        schema: schema.clone(),
++        factory: Arc::new(factory.clone().unbind()),
++    });
++    let provider = StreamingTable::try_new(schema, vec![partition])
++        .map_err(|error| PyValueError::new_err(error.to_string()))?;
++    Ok(Arc::new(provider))
++}
++
++struct ReplayablePartition {
++    schema: SchemaRef,
++    factory: Arc<Py<PyAny>>,
++}
++
++impl std::fmt::Debug for ReplayablePartition {
++    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        formatter
++            .debug_struct("ReplayablePartition")
++            .field("schema", &self.schema)
++            .finish_non_exhaustive()
++    }
++}
++
++impl PartitionStream for ReplayablePartition {
++    fn schema(&self) -> &SchemaRef {
++        &self.schema
++    }
++
++    fn execute(&self, _context: Arc<TaskContext>) -> SendableRecordBatchStream {
++        let factory = self.factory.clone();
++        let schema = self.schema.clone();
++        let open_reader = async move {
++            // The factory and Arrow C stream import can run Python or block on a
++            // Lance scan. Keep both off the async worker, and release the GIL
++            // before reader_to_stream drives the reader in background threads.
++            let reader = tokio::task::spawn_blocking(move || {
++                Python::attach(|py| {
++                    let source = factory.bind(py).call0().map_err(|error| {
++                        DataFusionError::External(Box::new(error))
++                            .context("Failed to open replayable merge source")
++                    })?;
++                    let reader =
++                        ArrowArrayStreamReader::from_pyarrow_bound(&source).map_err(|error| {
++                            DataFusionError::External(Box::new(error))
++                                .context("Failed to import replayable merge source reader")
++                        })?;
++                    let actual_schema = reader.schema();
++                    if actual_schema != schema {
++                        return Err(DataFusionError::Execution(format!(
++                            "Replayable merge source schema changed: expected {schema:?}, \
++                             got {actual_schema:?} (including metadata)"
++                        )));
++                    }
++                    Ok(reader)
++                })
++            })
++            .await
++            .map_err(|error| {
++                DataFusionError::External(Box::new(error))
++                    .context("Replayable merge source reader task failed")
++            })??;
++            Ok::<_, DataFusionError>(reader_to_stream(Box::new(reader)))
++        };
++        Box::pin(RecordBatchStreamAdapter::new(
++            self.schema.clone(),
++            stream::once(open_reader).try_flatten(),
++        ))
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use std::sync::atomic::{AtomicUsize, Ordering};
++
++    use arrow::ffi_stream::FFI_ArrowArrayStream;
++    use arrow_array::{RecordBatch, record_batch};
++    use arrow_schema::ArrowError;
++    use pyo3::exceptions::PyRuntimeError;
++    use pyo3::types::{PyCFunction, PyCapsule};
++
++    use super::*;
++
++    // Export C streams directly so the Rust tests do not require PyArrow.
++    #[pyclass]
++    struct ReaderSource(std::sync::Mutex<Option<Box<dyn RecordBatchReader + Send>>>);
++
++    #[pymethods]
++    impl ReaderSource {
++        fn __arrow_c_stream__<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyCapsule>> {
++            let reader = self.0.lock().unwrap().take().unwrap();
++            PyCapsule::new(
++                py,
++                FFI_ArrowArrayStream::new(reader),
++                Some(c"arrow_array_stream".to_owned()),
++            )
++        }
++    }
++
++    struct TrackedReader {
++        batch: Option<RecordBatch>,
++        schema: SchemaRef,
++        dropped: Arc<AtomicUsize>,
++        drop_notify: Option<Arc<tokio::sync::Notify>>,
++    }
++
++    impl Iterator for TrackedReader {
++        type Item = Result<RecordBatch, ArrowError>;
++
++        fn next(&mut self) -> Option<Self::Item> {
++            self.batch.take().map(Ok)
++        }
++    }
++
++    impl RecordBatchReader for TrackedReader {
++        fn schema(&self) -> SchemaRef {
++            self.schema.clone()
++        }
++    }
++
++    impl Drop for TrackedReader {
++        fn drop(&mut self) {
++            self.dropped.fetch_add(1, Ordering::SeqCst);
++            if let Some(notify) = &self.drop_notify {
++                notify.notify_one();
++            }
++        }
++    }
++
++    #[tokio::test]
++    async fn test_factory_is_lazy_reexecuted_and_reader_released() {
++        Python::initialize();
++        let expected = record_batch!(("id", Int64, [1, 2])).unwrap();
++        let calls = Arc::new(AtomicUsize::new(0));
++        let dropped = Arc::new(AtomicUsize::new(0));
++        let partition = Python::attach(|py| {
++            let calls = calls.clone();
++            let dropped = dropped.clone();
++            let batch = expected.clone();
++            let factory = PyCFunction::new_closure(py, None, None, move |args, _| {
++                // This would panic on a Tokio async worker. A Python factory can
++                // legitimately call back into a synchronous Lance API.
++                tokio::runtime::Handle::current().block_on(async {});
++                calls.fetch_add(1, Ordering::SeqCst);
++                let reader: Box<dyn RecordBatchReader + Send> = Box::new(TrackedReader {
++                    batch: Some(batch.clone()),
++                    schema: batch.schema(),
++                    dropped: dropped.clone(),
++                    drop_notify: None,
++                });
++                Py::new(args.py(), ReaderSource(std::sync::Mutex::new(Some(reader))))
++            })
++            .unwrap();
++            ReplayablePartition {
++                schema: expected.schema(),
++                factory: Arc::new(factory.into_any().unbind()),
++            }
++        });
++        for attempt in 0..2 {
++            let mut stream = partition.execute(Arc::new(TaskContext::default()));
++            assert_eq!(calls.load(Ordering::SeqCst), attempt);
++            assert_eq!(stream.try_next().await.unwrap().unwrap(), expected);
++            drop(stream);
++            assert_eq!(calls.load(Ordering::SeqCst), attempt + 1);
++            assert_eq!(dropped.load(Ordering::SeqCst), attempt + 1);
++        }
++    }
++
++    #[tokio::test]
++    async fn test_cancelled_factory_releases_reader_when_it_returns() {
++        Python::initialize();
++        let batch = record_batch!(("id", Int64, [1])).unwrap();
++        let schema = batch.schema();
++        let started = Arc::new(tokio::sync::Notify::new());
++        let (release_sender, release_receiver) = std::sync::mpsc::channel();
++        let release_receiver = std::sync::Mutex::new(release_receiver);
++        let dropped = Arc::new(tokio::sync::Notify::new());
++        let partition = Python::attach(|py| {
++            let started = started.clone();
++            let dropped = dropped.clone();
++            let factory = PyCFunction::new_closure(py, None, None, move |args, _| {
++                started.notify_one();
++                args.py()
++                    .detach(|| {
++                        release_receiver
++                            .lock()
++                            .unwrap()
++                            .recv_timeout(std::time::Duration::from_secs(1))
++                    })
++                    .map_err(|error| PyRuntimeError::new_err(error.to_string()))?;
++                let reader: Box<dyn RecordBatchReader + Send> = Box::new(TrackedReader {
++                    batch: Some(batch.clone()),
++                    schema: batch.schema(),
++                    dropped: Arc::new(AtomicUsize::new(0)),
++                    drop_notify: Some(dropped.clone()),
++                });
++                Py::new(args.py(), ReaderSource(std::sync::Mutex::new(Some(reader))))
++            })
++            .unwrap();
++            ReplayablePartition {
++                schema,
++                factory: Arc::new(factory.into_any().unbind()),
++            }
++        });
++        let mut stream = partition.execute(Arc::new(TaskContext::default()));
++        let task = tokio::spawn(async move { stream.try_next().await });
++        tokio::time::timeout(std::time::Duration::from_secs(1), started.notified())
++            .await
++            .expect("source factory should start");
++        task.abort();
++        assert!(task.await.unwrap_err().is_cancelled());
++        // Blocking callbacks cannot be interrupted, but their eventual reader
++        // must be released without being consumed once the stream is cancelled.
++        release_sender.send(()).unwrap();
++        tokio::time::timeout(std::time::Duration::from_secs(1), dropped.notified())
++            .await
++            .expect("cancelled factory result should release its reader");
++    }
++
++    #[tokio::test]
++    async fn test_factory_error_retains_context() {
++        Python::initialize();
++        let partition = Python::attach(|py| {
++            let factory = PyCFunction::new_closure(py, None, None, |_, _| -> PyResult<()> {
++                Err(PyRuntimeError::new_err("source factory failed"))
++            })
++            .unwrap();
++            ReplayablePartition {
++                schema: Arc::new(arrow_schema::Schema::empty()),
++                factory: Arc::new(factory.into_any().unbind()),
++            }
++        });
++        let error = partition
++            .execute(Arc::new(TaskContext::default()))
++            .try_next()
++            .await
++            .unwrap_err();
++        assert!(
++            error
++                .to_string()
++                .contains("Failed to open replayable merge source")
++        );
++        assert!(error.to_string().contains("source factory failed"));
++    }
++
++    #[tokio::test]
++    async fn test_reader_schema_metadata_must_match() {
++        Python::initialize();
++        let batch = record_batch!(("id", Int64, [1])).unwrap();
++        let expected_schema = Arc::new(
++            batch.schema().as_ref().clone().with_metadata(
++                [("source_version".to_string(), "1".to_string())]
++                    .into_iter()
++                    .collect(),
++            ),
++        );
++        let partition = Python::attach(|py| {
++            let factory = PyCFunction::new_closure(py, None, None, move |args, _| {
++                let reader: Box<dyn RecordBatchReader + Send> = Box::new(
++                    arrow_array::RecordBatchIterator::new([Ok(batch.clone())], batch.schema()),
++                );
++                Py::new(args.py(), ReaderSource(std::sync::Mutex::new(Some(reader))))
++            })
++            .unwrap();
++            ReplayablePartition {
++                schema: expected_schema,
++                factory: Arc::new(factory.into_any().unbind()),
++            }
++        });
++        let error = partition
++            .execute(Arc::new(TaskContext::default()))
++            .try_next()
++            .await
++            .unwrap_err();
++        assert!(
++            error
++                .to_string()
++                .contains("Replayable merge source schema changed")
++        );
++        assert!(error.to_string().contains("source_version"));
++    }
++}
+diff --git a/rust/lance-datafusion/src/exec.rs b/rust/lance-datafusion/src/exec.rs
+index e48470a..1d13b8b 100644
+--- a/rust/lance-datafusion/src/exec.rs
++++ b/rust/lance-datafusion/src/exec.rs
+@@ -25,6 +25,7 @@ use datafusion::{
+         memory_pool::FairSpillPool,
+         runtime_env::RuntimeEnvBuilder,
+     },
++    logical_expr::LogicalPlan,
+     physical_plan::{
+         DisplayAs, DisplayFormatType, ExecutionPlan, ExecutionPlanProperties, PlanProperties,
+         SendableRecordBatchStream,
+@@ -772,9 +773,8 @@ pub async fn analyze_plan(
+ /// When `task_context` is `Some`, the plan executes under it instead of the
+ /// context derived from `options`. Callers whose nodes read session-config
+ /// extensions at execution time (e.g. distributed routing identity) must pass
+-/// the context carrying those extensions; otherwise the nodes error during
+-/// `execute` and `AnalyzeExec` reports an empty, unexecuted plan tree instead
+-/// of surfacing the error.
++/// the context carrying those extensions. Errors from executing the plan or
++/// reading its output are propagated to the caller.
+ pub async fn analyze_plan_with_context(
+     plan: Arc<dyn ExecutionPlan>,
+     options: LanceExecutionOptions,
+@@ -784,7 +784,6 @@ pub async fn analyze_plan_with_context(
+     // partition, and we want these to be connected to the parent span
+     let plan = Arc::new(TracedExec::new(plan, Span::current()));
+ 
+-    let schema = plan.schema();
+     // TODO(tsaucer) I chose SUMMARY here but do we also want DEV?
+     let analyze = Arc::new(AnalyzeExec::new(
+         true,
+@@ -792,7 +791,7 @@ pub async fn analyze_plan_with_context(
+         vec![MetricType::Summary],
+         None,
+         plan,
+-        schema,
++        LogicalPlan::explain_schema(),
+     ));
+ 
+     let session_ctx = get_session_context(&options);
+@@ -803,7 +802,9 @@ pub async fn analyze_plan_with_context(
+         .map_err(|err| Error::io(format!("Failed to execute analyze plan: {}", err)))?;
+ 
+     // fully execute the plan
+-    while (stream.next().await).is_some() {}
++    while let Some(batch) = stream.next().await {
++        batch?;
++    }
+ 
+     let result = format_plan(analyze);
+     Ok(result)
+@@ -1637,8 +1638,7 @@ mod tests {
+ 
+     // Regression: analyze must run under a caller-provided TaskContext so nodes
+     // that read a session-config extension at execute time see it. Without the
+-    // context the node errors and AnalyzeExec would otherwise report an empty,
+-    // unexecuted plan tree.
++    // context the node's execution error must be propagated.
+     #[tokio::test]
+     async fn test_analyze_plan_uses_provided_task_context() {
+         use std::sync::atomic::{AtomicBool, Ordering};
+@@ -1646,16 +1646,16 @@ mod tests {
+         let executed = Arc::new(AtomicBool::new(false));
+         let plan: Arc<dyn ExecutionPlan> = Arc::new(NeedsExtensionExec::new(executed.clone()));
+ 
+-        // Default context lacks the extension: the node errors during execute
+-        // (never reaching the `executed` flag), but AnalyzeExec absorbs that
+-        // per-partition failure and reports an empty, unexecuted plan tree
+-        // rather than propagating the error. This is the regression symptom.
+-        let report = analyze_plan(plan.clone(), LanceExecutionOptions::default())
++        // The default context lacks the extension, so execution must fail.
++        let error = analyze_plan(plan.clone(), LanceExecutionOptions::default())
+             .await
+-            .expect("AnalyzeExec swallows the node's execute error into an Ok report");
++            .unwrap_err();
++        assert!(matches!(error, Error::Execution { .. }), "{error:?}");
+         assert!(
+-            report.contains("NeedsExtensionExec, metrics=[]"),
+-            "expected an empty, unexecuted NeedsExtensionExec node, got: {report}"
++            error
++                .to_string()
++                .contains("missing required session-config extension"),
++            "{error}"
+         );
+         assert!(
+             !executed.load(Ordering::SeqCst),

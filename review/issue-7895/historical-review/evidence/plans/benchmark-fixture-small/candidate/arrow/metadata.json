@@ -1,0 +1,36 @@
+{
+  "label": "candidate",
+  "kind": "arrow",
+  "fixture": {
+    "rows": 8192,
+    "width": 128,
+    "arrow_bytes": 1179648,
+    "payload_sha256": "71528ca982ca40c6f3f3cbb2c51ed3bd42c6ab1d3f3f1eb23194be55008f75af",
+    "seed": 7895,
+    "source_fragments": 1,
+    "pyarrow": "25.0.1",
+    "lance": "14.0.0-beta.12"
+  },
+  "package": "/workspace/issue-7895-evidence/candidate-perf-python/lance/__init__.py",
+  "extension": "/workspace/issue-7895-evidence/candidate-perf-python/lance/lance.abi3.so",
+  "extension_sha256": "852dee3bca568063563fc9b66d2f13904b56cc796116fcdd27e5cefe71fa4114",
+  "pyarrow": "25.0.1",
+  "source_config": {
+    "type": "pyarrow.dataset.Dataset",
+    "format": "parquet"
+  },
+  "commit_versions": [],
+  "before_version": 1,
+  "after_version": 1,
+  "target_unchanged": true,
+  "operators": [
+    "MergeInsert",
+    "CoalescePartitionsExec",
+    "ProjectionExec",
+    "HashJoinExec",
+    "LanceRead",
+    "RepartitionExec",
+    "ProjectionExec",
+    "StreamingTableExec"
+  ]
+}

@@ -1,0 +1,117 @@
+{
+  "arrow-conflict.jsonl": {
+    "kind": "arrow",
+    "conflict": true,
+    "retries": 3,
+    "replay_directory_count": 1,
+    "spill_file_count": 0,
+    "commit_versions": [
+      2,
+      3
+    ],
+    "concurrent_versions": [
+      2
+    ],
+    "final_version": 3,
+    "correct": true,
+    "error": null
+  },
+  "lance-conflict.jsonl": {
+    "kind": "lance",
+    "conflict": true,
+    "retries": 3,
+    "replay_directory_count": 1,
+    "spill_file_count": 0,
+    "commit_versions": [
+      2,
+      3
+    ],
+    "concurrent_versions": [
+      2
+    ],
+    "final_version": 3,
+    "correct": true,
+    "error": null
+  },
+  "lance-zero-retry.jsonl": {
+    "kind": "lance",
+    "conflict": true,
+    "retries": 0,
+    "replay_directory_count": 0,
+    "spill_file_count": 0,
+    "commit_versions": [
+      2
+    ],
+    "concurrent_versions": [
+      2
+    ],
+    "final_version": 2,
+    "correct": true,
+    "error": {
+      "type": "OSError",
+      "message": "Too many concurrent writers. Attempted 0 retries., /workspace/lance-7895/rust/lance/src/dataset/write/retry.rs:103:9"
+    }
+  },
+  "oneshot-clean.jsonl": {
+    "kind": "oneshot",
+    "conflict": false,
+    "retries": 3,
+    "replay_directory_count": 1,
+    "spill_file_count": 0,
+    "commit_versions": [
+      2
+    ],
+    "concurrent_versions": [],
+    "final_version": 2,
+    "correct": true,
+    "error": null
+  },
+  "oneshot-conflict.jsonl": {
+    "kind": "oneshot",
+    "conflict": true,
+    "retries": 3,
+    "replay_directory_count": 1,
+    "spill_file_count": 0,
+    "commit_versions": [
+      2,
+      3
+    ],
+    "concurrent_versions": [
+      2
+    ],
+    "final_version": 3,
+    "correct": true,
+    "error": null
+  },
+  "scanner-conflict.jsonl": {
+    "kind": "scanner",
+    "conflict": true,
+    "retries": 3,
+    "replay_directory_count": 1,
+    "spill_file_count": 0,
+    "commit_versions": [
+      2,
+      3
+    ],
+    "concurrent_versions": [
+      2
+    ],
+    "final_version": 3,
+    "correct": true,
+    "error": null
+  },
+  "table-clean.jsonl": {
+    "kind": "table",
+    "conflict": false,
+    "retries": 3,
+    "replay_directory_count": 0,
+    "spill_file_count": 0,
+    "commit_versions": [
+      2
+    ],
+    "concurrent_versions": [],
+    "final_version": 2,
+    "correct": true,
+    "error": null
+  }
+}

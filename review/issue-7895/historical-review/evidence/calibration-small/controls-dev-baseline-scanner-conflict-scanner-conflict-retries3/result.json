@@ -1,0 +1,59 @@
+{
+  "label": "controls-dev-baseline",
+  "kind": "scanner",
+  "trial": "scanner-conflict-retries3",
+  "conflict": true,
+  "retries": 3,
+  "elapsed_s": 0.03200757499962492,
+  "wall_start_ns": 1791724331222871946,
+  "wall_end_ns": 1791724331254883136,
+  "user_s": 0.012212,
+  "system_s": 0.004070000000000004,
+  "max_rss_kib": 234140,
+  "io_delta": {
+    "rchar": 5840,
+    "wchar": 4398,
+    "syscr": 21,
+    "syscw": 51,
+    "read_bytes": 0,
+    "write_bytes": 53248,
+    "cancelled_write_bytes": 12288
+  },
+  "replay_directory_count": 1,
+  "spill_file_count": 0,
+  "spill_file_unlink_bytes": 0,
+  "commit_versions": [
+    2,
+    3
+  ],
+  "concurrent_versions": [
+    2
+  ],
+  "final_version": 3,
+  "final_rows": 8,
+  "stats": {
+    "num_inserted_rows": 7,
+    "num_updated_rows": 1,
+    "num_deleted_rows": 0
+  },
+  "error": null,
+  "correct": true,
+  "payload_sha256": "3d276bfbc6dcf15d2eea2cccfa7f3783f74c46c57881ea51f95e1af289f3f627",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "pyarrow": "25.0.1",
+  "lance": "14.0.0-beta.12",
+  "package": "/workspace/issue-7895-evidence/baseline-perf-python/lance/__init__.py",
+  "extension": "/workspace/issue-7895-evidence/baseline-perf-python/lance/lance.abi3.so",
+  "extension_sha256": "cdfc0093f978a131a608fec65ac15f1526655832a3b571ca7b01e4ba1a53c6b6",
+  "fixture": {
+    "rows": 8,
+    "width": 16,
+    "arrow_bytes": 256,
+    "payload_sha256": "3d276bfbc6dcf15d2eea2cccfa7f3783f74c46c57881ea51f95e1af289f3f627",
+    "seed": 7895,
+    "source_fragments": 1,
+    "pyarrow": "25.0.1",
+    "lance": "14.0.0-beta.12"
+  },
+  "cache": "source files explicitly read before timing to warm OS page cache; target fixture copied before timing; no eviction"
+}

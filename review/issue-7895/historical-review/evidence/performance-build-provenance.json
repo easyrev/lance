@@ -1,0 +1,26 @@
+{
+  "base": "4ac2f7c88be1ea2ab2c0fbb61d02238883fc18b9",
+  "candidate": "26632629ca162cdbfd82dabad1d80e3e6c92b364",
+  "patch_sha256": "9694eb0eaf38d30a9ea87556163b4403ea88d7a4b54e0da6d8e8907306658ed5",
+  "python": "3.12.14 (main, Aug 25 2026, 14:00:49) [Clang 22.1.3 ]",
+  "kernel": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)\nbinary: rustc\ncommit-hash: 48a229ceaefd4985c50990b14116b6d856af0985\ncommit-date: 2026-09-01\nhost: x86_64-unknown-linux-gnu\nrelease: 1.98.1\nLLVM version: 22.1.8\n",
+  "profile": "release-with-debug",
+  "cargo_command": "cargo build --locked --profile release-with-debug --manifest-path python/Cargo.toml",
+  "build_cwd": "/workspace/lance-7895",
+  "PYO3_PYTHON": "/workspace/lance-7895/python/.venv/bin/python",
+  "PYO3_ENVIRONMENT_SIGNATURE": null,
+  "baseline_jobs": 2,
+  "candidate_jobs": 3,
+  "linker_adjustment": "Both final cdylib links use --compress-debug-sections=zstd; no optimization override. Execution copies strip nonloaded debug sections, with every SHF_ALLOC section compared.",
+  "initial_candidate_attempt": "Stopped after about40s because a DEV-only PyO3 environment signature was set. Restarted with that variable unset to match baseline; raw attempt log retained.",
+  "baseline_execution_sha256": "cdfc0093f978a131a608fec65ac15f1526655832a3b571ca7b01e4ba1a53c6b6",
+  "candidate_execution_sha256": "852dee3bca568063563fc9b66d2f13904b56cc796116fcdd27e5cefe71fa4114",
+  "config_hashes": {
+    "../.cargo/config.toml": "3a91fd668c40a72fc8f5e4e9051bac3aff1bd4c3c151f0e61bc43d3e56504406",
+    "../Cargo.toml": "9d12e1468d3dfbcf02ddc86182e583452064a75269d45be9bdeeb6ed28b1ba22",
+    "Cargo.toml": "f721a9f34c6360cc6fde1e5ea90cf447385b4adb50e0e58bb9c6f218d30bdd03",
+    "Cargo.lock": "cbbba75dc9061fabfd8809607e644864120399209d82ba466e50b82e965ec8a6"
+  },
+  "candidate_build_result": "exit0,45m54s"
+}

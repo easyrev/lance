@@ -1,0 +1,711 @@
+{
+  "passed": true,
+  "primary_samples": 120,
+  "controls": 14,
+  "followup_samples": 20,
+  "native_hashes_recomputed": {
+    "baseline": "cdfc0093f978a131a608fec65ac15f1526655832a3b571ca7b01e4ba1a53c6b6",
+    "candidate": "852dee3bca568063563fc9b66d2f13904b56cc796116fcdd27e5cefe71fa4114"
+  },
+  "git_source_files_verified": {
+    "baseline": 56,
+    "candidate": 56
+  },
+  "primary_comparisons": [
+    {
+      "fixture": "benchmark-fixture-small",
+      "kind": "lance",
+      "conflict": false,
+      "medians": {
+        "elapsed_s": [
+          0.00927976400089392,
+          0.011933297000723542
+        ],
+        "first_commit_elapsed_s": [
+          0.008534952999980305,
+          0.011165255000378238
+        ],
+        "first_commit_cpu_s": [
+          0.013023999999999952,
+          0.012876999999999993
+        ],
+        "cpu_s": [
+          0.013782000000000016,
+          0.01361300000000007
+        ],
+        "concurrent_update_elapsed_s": [
+          0,
+          0
+        ],
+        "max_rss_kib": [
+          232988,
+          233692
+        ],
+        "replay_directory_count": [
+          1,
+          0
+        ],
+        "spill_file_count": [
+          0,
+          0
+        ],
+        "spill_file_unlink_bytes": [
+          0,
+          0
+        ]
+      },
+      "paired_elapsed_ratios": [
+        1.2109538706816718,
+        1.1263994992261308,
+        1.1581981816699227,
+        1.2859483279503667,
+        1.5827714497575833
+      ]
+    },
+    {
+      "fixture": "benchmark-fixture-small",
+      "kind": "lance",
+      "conflict": true,
+      "medians": {
+        "elapsed_s": [
+          0.10260272400046233,
+          0.08086913699844445
+        ],
+        "first_commit_elapsed_s": [
+          0.009528083999612136,
+          0.01323167500049749
+        ],
+        "first_commit_cpu_s": [
+          0.014107000000000036,
+          0.015226999999999921
+        ],
+        "cpu_s": [
+          0.02828399999999999,
+          0.03172399999999988
+        ],
+        "concurrent_update_elapsed_s": [
+          0.00392490600097517,
+          0.0037597459995595273
+        ],
+        "max_rss_kib": [
+          241680,
+          244844
+        ],
+        "replay_directory_count": [
+          1,
+          0
+        ],
+        "spill_file_count": [
+          0,
+          0
+        ],
+        "spill_file_unlink_bytes": [
+          0,
+          0
+        ]
+      },
+      "paired_elapsed_ratios": [
+        1.3579243118555986,
+        0.788177290478955,
+        0.3332938517366887,
+        0.8714549532962286,
+        0.8203929016470192
+      ]
+    },
+    {
+      "fixture": "benchmark-fixture-small",
+      "kind": "arrow",
+      "conflict": false,
+      "medians": {
+        "elapsed_s": [
+          0.011268532000030973,
+          0.010642033999829437
+        ],
+        "first_commit_elapsed_s": [
+          0.009980077000363963,
+          0.0100132030001987
+        ],
+        "first_commit_cpu_s": [
+          0.014930999999999958,
+          0.013676999999999967
+        ],
+        "cpu_s": [
+          0.016623999999999965,
+          0.01432499999999988
+        ],
+        "concurrent_update_elapsed_s": [
+          0,
+          0
+        ],
+        "max_rss_kib": [
+          239368,
+          240324
+        ],
+        "replay_directory_count": [
+          1,
+          0
+        ],
+        "spill_file_count": [
+          0,
+          0
+        ],
+        "spill_file_unlink_bytes": [
+          0,
+          0
+        ]
+      },
+      "paired_elapsed_ratios": [
+        1.0384576492156612,
+        1.1039277139480208,
+        0.9062404790005273,
+        0.9444028734000299,
+        0.945920850524028
+      ]
+    },
+    {
+      "fixture": "benchmark-fixture-small",
+      "kind": "arrow",
+      "conflict": true,
+      "medians": {
+        "elapsed_s": [
+          0.06647886599967023,
+          0.07065895199957595
+        ],
+        "first_commit_elapsed_s": [
+          0.009622842999306158,
+          0.01068393700006709
+        ],
+        "first_commit_cpu_s": [
+          0.013619000000000069,
+          0.014188999999999952
+        ],
+        "cpu_s": [
+          0.02891299999999989,
+          0.032310999999999965
+        ],
+        "concurrent_update_elapsed_s": [
+          0.003976343999966048,
+          0.003254522000133875
+        ],
+        "max_rss_kib": [
+          249768,
+          252948
+        ],
+        "replay_directory_count": [
+          1,
+          0
+        ],
+        "spill_file_count": [
+          0,
+          0
+        ],
+        "spill_file_unlink_bytes": [
+          0,
+          0
+        ]
+      },
+      "paired_elapsed_ratios": [
+        2.978341458545978,
+        0.7795816397868346,
+        0.6367994363125259,
+        1.0706354708237145,
+        1.4497455902351142
+      ]
+    },
+    {
+      "fixture": "benchmark-fixture-small",
+      "kind": "scanner",
+      "conflict": false,
+      "medians": {
+        "elapsed_s": [
+          0.010959062999972957,
+          0.010520329999053502
+        ],
+        "first_commit_elapsed_s": [
+          0.010073734998513828,
+          0.009543481999571668
+        ],
+        "first_commit_cpu_s": [
+          0.014522999999999966,
+          0.014447000000000064
+        ],
+        "cpu_s": [
+          0.015245000000000009,
+          0.015373999999999964
+        ],
+        "concurrent_update_elapsed_s": [
+          0,
+          0
+        ],
+        "max_rss_kib": [
+          246276,
+          240304
+        ],
+        "replay_directory_count": [
+          1,
+          1
+        ],
+        "spill_file_count": [
+          0,
+          0
+        ],
+        "spill_file_unlink_bytes": [
+          0,
+          0
+        ]
+      },
+      "paired_elapsed_ratios": [
+        0.8537258732350272,
+        1.0431536548695501,
+        1.2092781250196605,
+        0.965160160102872,
+        0.9008535575276394
+      ]
+    },
+    {
+      "fixture": "benchmark-fixture-small",
+      "kind": "scanner",
+      "conflict": true,
+      "medians": {
+        "elapsed_s": [
+          0.05652041699977417,
+          0.07913336399906257
+        ],
+        "first_commit_elapsed_s": [
+          0.011215241000172682,
+          0.009456286001295666
+        ],
+        "first_commit_cpu_s": [
+          0.016503000000000045,
+          0.013768999999999906
+        ],
+        "cpu_s": [
+          0.03471300000000001,
+          0.030189000000000063
+        ],
+        "concurrent_update_elapsed_s": [
+          0.004560726998533937,
+          0.004035977999592433
+        ],
+        "max_rss_kib": [
+          251960,
+          250196
+        ],
+        "replay_directory_count": [
+          1,
+          1
+        ],
+        "spill_file_count": [
+          0,
+          0
+        ],
+        "spill_file_unlink_bytes": [
+          0,
+          0
+        ]
+      },
+      "paired_elapsed_ratios": [
+        2.168170132227636,
+        1.4439773013330808,
+        2.7724848125586425,
+        0.5922760256527773,
+        0.6411161872756561
+      ]
+    },
+    {
+      "fixture": "benchmark-fixture",
+      "kind": "lance",
+      "conflict": false,
+      "medians": {
+        "elapsed_s": [
+          0.23082416699980968,
+          0.2181747170016024
+        ],
+        "first_commit_elapsed_s": [
+          0.22401988199999323,
+          0.21706661600001098
+        ],
+        "first_commit_cpu_s": [
+          0.48070899999999994,
+          0.38374099999999994
+        ],
+        "cpu_s": [
+          0.4888629999999999,
+          0.3845040000000001
+        ],
+        "concurrent_update_elapsed_s": [
+          0,
+          0
+        ],
+        "max_rss_kib": [
+          556196,
+          445364
+        ],
+        "replay_directory_count": [
+          1,
+          0
+        ],
+        "spill_file_count": [
+          1,
+          0
+        ],
+        "spill_file_unlink_bytes": [
+          138518792,
+          0
+        ]
+      },
+      "paired_elapsed_ratios": [
+        0.8961583050264862,
+        0.9592990118885187,
+        0.8540988945028465,
+        0.7931675759037486,
+        0.9779112215126895
+      ]
+    },
+    {
+      "fixture": "benchmark-fixture",
+      "kind": "lance",
+      "conflict": true,
+      "medians": {
+        "elapsed_s": [
+          0.8132892150006228,
+          0.9820396380000602
+        ],
+        "first_commit_elapsed_s": [
+          0.21960628399938287,
+          0.19743884700073977
+        ],
+        "first_commit_cpu_s": [
+          0.49254400000000004,
+          0.391236
+        ],
+        "cpu_s": [
+          0.6851059999999999,
+          0.7320220000000001
+        ],
+        "concurrent_update_elapsed_s": [
+          0.004049193999890122,
+          0.004688100001658313
+        ],
+        "max_rss_kib": [
+          583820,
+          623732
+        ],
+        "replay_directory_count": [
+          1,
+          0
+        ],
+        "spill_file_count": [
+          1,
+          0
+        ],
+        "spill_file_unlink_bytes": [
+          138518792,
+          0
+        ]
+      },
+      "paired_elapsed_ratios": [
+        0.42066629316306786,
+        1.536698184987894,
+        1.149921412404116,
+        1.3045077402142498,
+        1.386311926716118
+      ]
+    },
+    {
+      "fixture": "benchmark-fixture",
+      "kind": "arrow",
+      "conflict": false,
+      "medians": {
+        "elapsed_s": [
+          0.20176405799975328,
+          0.1932589009993535
+        ],
+        "first_commit_elapsed_s": [
+          0.19328748999942036,
+          0.19252955299998575
+        ],
+        "first_commit_cpu_s": [
+          0.410169,
+          0.34641500000000003
+        ],
+        "cpu_s": [
+          0.4187659999999999,
+          0.3471290000000001
+        ],
+        "concurrent_update_elapsed_s": [
+          0,
+          0
+        ],
+        "max_rss_kib": [
+          765252,
+          647076
+        ],
+        "replay_directory_count": [
+          1,
+          0
+        ],
+        "spill_file_count": [
+          1,
+          0
+        ],
+        "spill_file_unlink_bytes": [
+          138526984,
+          0
+        ]
+      },
+      "paired_elapsed_ratios": [
+        0.8816005237815623,
+        0.9419895882568681,
+        1.0870729215809276,
+        1.0635074743778175,
+        0.8386676948015704
+      ]
+    },
+    {
+      "fixture": "benchmark-fixture",
+      "kind": "arrow",
+      "conflict": true,
+      "medians": {
+        "elapsed_s": [
+          0.39077769499999704,
+          0.8346187030001602
+        ],
+        "first_commit_elapsed_s": [
+          0.19674352499896486,
+          0.20080398699974467
+        ],
+        "first_commit_cpu_s": [
+          0.40581899999999993,
+          0.35095099999999996
+        ],
+        "cpu_s": [
+          0.6496630000000001,
+          0.6484750000000004
+        ],
+        "concurrent_update_elapsed_s": [
+          0.004560796998703154,
+          0.004381636999823968
+        ],
+        "max_rss_kib": [
+          829812,
+          756152
+        ],
+        "replay_directory_count": [
+          1,
+          0
+        ],
+        "spill_file_count": [
+          1,
+          0
+        ],
+        "spill_file_unlink_bytes": [
+          138526984,
+          0
+        ]
+      },
+      "paired_elapsed_ratios": [
+        2.3079139471670005,
+        3.5309005743754063,
+        0.3233884361119164,
+        1.3637791585203267,
+        0.9596292900005242
+      ]
+    },
+    {
+      "fixture": "benchmark-fixture",
+      "kind": "scanner",
+      "conflict": false,
+      "medians": {
+        "elapsed_s": [
+          0.20586223499958578,
+          0.21227393400113215
+        ],
+        "first_commit_elapsed_s": [
+          0.1965744370008906,
+          0.20619967700076813
+        ],
+        "first_commit_cpu_s": [
+          0.407308,
+          0.41809899999999994
+        ],
+        "cpu_s": [
+          0.414683,
+          0.4237579999999999
+        ],
+        "concurrent_update_elapsed_s": [
+          0,
+          0
+        ],
+        "max_rss_kib": [
+          736568,
+          760768
+        ],
+        "replay_directory_count": [
+          1,
+          1
+        ],
+        "spill_file_count": [
+          1,
+          1
+        ],
+        "spill_file_unlink_bytes": [
+          138526984,
+          138526984
+        ]
+      },
+      "paired_elapsed_ratios": [
+        0.9923593853940428,
+        1.108894875069272,
+        0.9299659457579033,
+        1.1772596807686244,
+        1.173759114562696
+      ]
+    },
+    {
+      "fixture": "benchmark-fixture",
+      "kind": "scanner",
+      "conflict": true,
+      "medians": {
+        "elapsed_s": [
+          0.739052612998421,
+          0.8406355129991425
+        ],
+        "first_commit_elapsed_s": [
+          0.21645084400006454,
+          0.2039156909995654
+        ],
+        "first_commit_cpu_s": [
+          0.42571999999999993,
+          0.421231
+        ],
+        "cpu_s": [
+          0.6595890000000001,
+          0.660647
+        ],
+        "concurrent_update_elapsed_s": [
+          0.004578364001645241,
+          0.004026309001346817
+        ],
+        "max_rss_kib": [
+          809488,
+          811036
+        ],
+        "replay_directory_count": [
+          1,
+          1
+        ],
+        "spill_file_count": [
+          1,
+          1
+        ],
+        "spill_file_unlink_bytes": [
+          138526984,
+          138526984
+        ]
+      },
+      "paired_elapsed_ratios": [
+        1.143584953404224,
+        1.7299350326057512,
+        0.32977683957365467,
+        1.325898279820345,
+        0.5565249913332915
+      ]
+    }
+  ],
+  "plans": [
+    {
+      "fixture": "benchmark-fixture-small",
+      "kind": "lance",
+      "topology_and_row_batch_metrics_equal": true
+    },
+    {
+      "fixture": "benchmark-fixture-small",
+      "kind": "arrow",
+      "topology_and_row_batch_metrics_equal": true
+    },
+    {
+      "fixture": "benchmark-fixture-small",
+      "kind": "scanner",
+      "topology_and_row_batch_metrics_equal": true
+    },
+    {
+      "fixture": "benchmark-fixture",
+      "kind": "lance",
+      "topology_and_row_batch_metrics_equal": true
+    },
+    {
+      "fixture": "benchmark-fixture",
+      "kind": "arrow",
+      "topology_and_row_batch_metrics_equal": true
+    },
+    {
+      "fixture": "benchmark-fixture",
+      "kind": "scanner",
+      "topology_and_row_batch_metrics_equal": true
+    }
+  ],
+  "followup": {
+    "elapsed_s": {
+      "baseline": {
+        "median": 0.011200105000170879,
+        "min": 0.008802583000942832,
+        "max": 0.01452321199940343
+      },
+      "candidate": {
+        "median": 0.011948848500651366,
+        "min": 0.010385796000264236,
+        "max": 0.01337009999951988
+      }
+    },
+    "cpu_s": {
+      "baseline": {
+        "median": 0.01589450000000002,
+        "min": 0.012527000000000066,
+        "max": 0.018699000000000007
+      },
+      "candidate": {
+        "median": 0.01386250000000002,
+        "min": 0.012530999999999952,
+        "max": 0.015198999999999983
+      }
+    },
+    "first_commit_elapsed_s": {
+      "baseline": {
+        "median": 0.010340768000787648,
+        "min": 0.008066049000262865,
+        "max": 0.012483638000048813
+      },
+      "candidate": {
+        "median": 0.01126986899998883,
+        "min": 0.009680328999820631,
+        "max": 0.01269402199977776
+      }
+    },
+    "first_commit_cpu_s": {
+      "baseline": {
+        "median": 0.014921499999999935,
+        "min": 0.011822000000000082,
+        "max": 0.017494000000000016
+      },
+      "candidate": {
+        "median": 0.013151500000000003,
+        "min": 0.011852999999999933,
+        "max": 0.014574999999999935
+      }
+    }
+  },
+  "followup_paired_elapsed_ratios": [
+    0.9963853523334063,
+    0.8484855829752761,
+    1.0225747628540247,
+    0.8558518493464936,
+    1.184037230466904,
+    1.2057715351202842,
+    1.1023559849913815,
+    1.005849080109449,
+    1.1432180055706394,
+    1.1798577757405784
+  ],
+  "followup_slower_candidate_pairs": 7
+}

@@ -1,0 +1,12 @@
+{
+  "finding": "The shared analyze helper discarded stream errors and returned a successful metrics report after a replayable factory failed.",
+  "observed_evidence": "probe-factory-error-thread.log: analyze invokes the failing factory and returns a zero-row plan report.",
+  "scope": "rust/lance-datafusion/src/exec.rs only; parent owns Python regressions for factory, schema, and batch failures.",
+  "production_change": "Propagate each stream item's error while draining AnalyzeExec; preserve the existing typed DataFusion-to-Lance error conversion. Use LogicalPlan::explain_schema() for AnalyzeExec's two-string-column report instead of the input plan schema.",
+  "documentation_change": "Replace the stale error-swallowing description with the propagation contract.",
+  "test_change": "Existing test_analyze_plan_uses_provided_task_context now requires Error::Execution and the missing-extension message for the default context; the supplied-context success and execution assertions remain unchanged.",
+  "first_test_result": "The missing-context error assertions passed, but the supplied-context success assertion exposed the pre-existing incorrect AnalyzeExec output schema. Failure preserved in root-core-tests.attempt1.log; schema corrected before rerunning.",
+  "validation_completed": ["cargo fmt --all -- --check", "cargo fmt --all", "cargo test --profile ci --locked -p lance-datafusion --lib test_analyze_plan_uses_provided_task_context: 1 passed", "cargo clippy --profile ci --locked --all --tests --benches -- -D warnings: passed in 9m40s"],
+  "validation_pending": ["Parent candidate rebuild and Python regressions"],
+  "source_boundaries": "Only the authorized current checkout and pinned dependency sources were read. Phase1 and excluded PR-derived sources were not consulted."
+}
