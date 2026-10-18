@@ -1,0 +1,35 @@
+{
+  "command": [
+    "/root/.local/bin/uv",
+    "run",
+    "--no-sync",
+    "python",
+    "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/bench.py",
+    "worker",
+    "validate",
+    "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/runs/g3-F16-materialized-b5-Ccore"
+  ],
+  "variant": "U",
+  "operation": "validate",
+  "exit_code": 0,
+  "timeout": false,
+  "before": {
+    "memory.max": "8589934592",
+    "memory.swap.max": "0",
+    "memory.current": "0",
+    "memory.peak": "0",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "cpu.max": "max 100000",
+    "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+  },
+  "after": {
+    "memory.max": "8589934592",
+    "memory.swap.max": "0",
+    "memory.current": "1282048",
+    "memory.peak": "789520384",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "cpu.max": "max 100000",
+    "cpu.stat": "usage_usec 19855586\nuser_usec 18154997\nsystem_usec 1700589\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+  },
+  "confirmed_oom": false
+}

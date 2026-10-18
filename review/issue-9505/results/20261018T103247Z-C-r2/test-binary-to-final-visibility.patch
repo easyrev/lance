@@ -1,0 +1,20 @@
+--- test-binary/rust/lance/src/dataset/write/merge_insert/candidate.rs
++++ final-source/rust/lance/src/dataset/write/merge_insert/candidate.rs
+@@ -88,7 +88,7 @@
+ }
+ 
+ #[derive(Debug)]
+-pub(crate) struct MergeScanPolicy {
++pub struct MergeScanPolicy {
+     pub partitions: usize,
+     pub decode_tasks: usize,
+     pub io_bytes: Option<u64>,
+@@ -304,7 +304,7 @@
+     })
+ }
+ 
+-pub(crate) fn evidence(mut value: Value) {
++pub fn evidence(mut value: Value) {
+     if let Some(path) = std::env::var_os("LANCE_MERGE_EVIDENCE") {
+         if let Some(object) = value.as_object_mut() {
+             object.insert(

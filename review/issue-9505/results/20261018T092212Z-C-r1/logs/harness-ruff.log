@@ -1,0 +1,534 @@
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:58:89: E501 Line too long (90 > 88)
+   |
+56 |     import pyarrow as pa
+57 |     if source and not spec["full"]:
+58 |         names = ["id", "new_payload"] if spec.get("source_binary") else ["id", "c0", "c1"]
+   |                                                                                         ^^ E501
+59 |     else:
+60 |         names = ["id"] + [f"c{i}" for i in range(spec["columns"]-1)]
+   |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:63:89: E501 Line too long (121 > 88)
+   |
+61 |         if spec["binary"]:
+62 |             names += ["payload", "new_payload", "row_marker"]
+63 |     return pa.schema([(name, pa.large_binary() if name in ("payload", "new_payload") else pa.int64()) for name in names])
+   |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+   |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:82:89: E501 Line too long (96 > 88)
+   |
+81 | def payload_size(marker, spec):
+82 |     return 128 + (int(marker)*104729 % (2048-128+1)) if spec.get("variable") else spec["binary"]
+   |                                                                                         ^^^^^^^^ E501
+   |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:99:89: E501 Line too long (91 > 88)
+    |
+ 97 |     import numpy as np
+ 98 |     import pyarrow as pa
+ 99 |     row_batch = min(spec["batch_rows"], 4 if spec["binary"] >= MIB else spec["batch_rows"])
+    |                                                                                         ^^^ E501
+100 |     for start in range(0, spec["rows"], row_batch):
+101 |         marker = np.arange(start, min(start+row_batch, spec["rows"]), dtype=np.int64)
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:105:89: E501 Line too long (91 > 88)
+    |
+103 |                        marker+100) if spec["dense"] else marker
+104 |         columns = {"id": pa.array(ids)}
+105 |         columns |= {f"c{i}": pa.array(values(marker, i)) for i in range(spec["columns"]-1)}
+    |                                                                                         ^^^ E501
+106 |         if spec["binary"]:
+107 |             columns |= {"payload": pa.array([payload(row, payload_size(row, spec)) for row in marker], type=pa.large_binary()),
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:107:89: E501 Line too long (127 > 88)
+    |
+105 |         columns |= {f"c{i}": pa.array(values(marker, i)) for i in range(spec["columns"]-1)}
+106 |         if spec["binary"]:
+107 |             columns |= {"payload": pa.array([payload(row, payload_size(row, spec)) for row in marker], type=pa.large_binary()),
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+108 |                         "new_payload": pa.array([b""]*len(marker), type=pa.large_binary()),
+109 |                         "row_marker": pa.array(marker)}
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:108:89: E501 Line too long (91 > 88)
+    |
+106 |         if spec["binary"]:
+107 |             columns |= {"payload": pa.array([payload(row, payload_size(row, spec)) for row in marker], type=pa.large_binary()),
+108 |                         "new_payload": pa.array([b""]*len(marker), type=pa.large_binary()),
+    |                                                                                         ^^^ E501
+109 |                         "row_marker": pa.array(marker)}
+110 |         yield pa.RecordBatch.from_pydict(columns, schema= schema(spec))
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:121:89: E501 Line too long (113 > 88)
+    |
+119 |     for copy in range(copies):
+120 |         for number, start in enumerate(range(0, count, spec["batch_rows"])):
+121 |             append(directory / "producer.jsonl", dict(event="next", t=time.monotonic(), batch=number, copy=copy))
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+122 |             delay = spec.get("delays", {}).get(str(number), 0)
+123 |             if delay:
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:126:89: E501 Line too long (95 > 88)
+    |
+124 |                 time.sleep(delay)
+125 |             if spec.get("pending_after") == number:
+126 |                 append(directory / "producer.jsonl", dict(event="pending", t=time.monotonic()))
+    |                                                                                         ^^^^^^^ E501
+127 |                 while True:
+128 |                     time.sleep(1)
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:129:89: E501 Line too long (146 > 88)
+    |
+127 | …
+128 | …
+129 | …ch_rows"], count), dtype=np.int64) if spec["full"] else keys[start:start+spec["batch_rows"]]
+    |                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+130 | …
+131 | …{i}": pa.array(values(ids, i, spec["epoch"])) for i in range(spec["columns"]-1)}
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:131:89: E501 Line too long (134 > 88)
+    |
+129 | …c["batch_rows"], count), dtype=np.int64) if spec["full"] else keys[start:start+spec["batch_rows"]]
+130 | …
+131 | …| {f"c{i}": pa.array(values(ids, i, spec["epoch"])) for i in range(spec["columns"]-1)}
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+132 | …
+133 | …"new_payload": pa.array([payload(row, spec["source_binary"], 1) for row in ids], type=pa.large_binary())}
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:133:89: E501 Line too long (153 > 88)
+    |
+131 | …": pa.array(values(ids, i, spec["epoch"])) for i in range(spec["columns"]-1)}
+132 | …
+133 | …oad": pa.array([payload(row, spec["source_binary"], 1) for row in ids], type=pa.large_binary())}
+    |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+134 | …
+135 | …array(np.full(len(ids), -9505 if copy == 0 else -12345, dtype=np.int64)),
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:135:89: E501 Line too long (130 > 88)
+    |
+133 | …, "new_payload": pa.array([payload(row, spec["source_binary"], 1) for row in ids], type=pa.large_binary())}
+134 | …
+135 | …, "c0": pa.array(np.full(len(ids), -9505 if copy == 0 else -12345, dtype=np.int64)),
+    |                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+136 | …ull(len(ids), -10077, dtype=np.int64))}
+137 | …(columns, schema=schema(spec, source=True))
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:137:89: E501 Line too long (89 > 88)
+    |
+135 | …         columns = {"id": pa.array(ids), "c0": pa.array(np.full(len(ids), -9505 if copy == 0 else -12345, dtype=np.int64)),
+136 | …                    "c1": pa.array(np.full(len(ids), -10077, dtype=np.int64))}
+137 | …     batch = pa.RecordBatch.from_pydict(columns, schema=schema(spec, source=True))
+    |                                                                                   ^ E501
+138 | …     append(directory / "producer.jsonl", dict(event="ready", t=time.monotonic(), batch=number, rows=batch.num_rows, bytes=batch.nby…
+139 | …     yield batch
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:138:89: E501 Line too long (155 > 88)
+    |
+136 | …, -10077, dtype=np.int64))}
+137 | …hema=schema(spec, source=True))
+138 | …t="ready", t=time.monotonic(), batch=number, rows=batch.num_rows, bytes=batch.nbytes, copy=copy))
+    |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+139 | …
+140 | … t=time.monotonic()))
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:151:89: E501 Line too long (109 > 88)
+    |
+149 |         assert metadata["spec"] == spec, (metadata["spec"], spec)
+150 |         return
+151 |     ds = lance.write_dataset(pa.RecordBatchReader.from_batches(schema(spec), target_batches(spec)), str(uri),
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^^^ E501
+152 |                              data_storage_version="2.2", max_rows_per_file=spec["fragment_rows"], max_rows_per_group=spec["batch_rows…
+153 |     files = sorted({str(uri / "data" / file.path) for fragment in ds.get_fragments() for file in fragment.data_files()})
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:152:89: E501 Line too long (136 > 88)
+    |
+150 | …
+151 | ….from_batches(schema(spec), target_batches(spec)), str(uri),
+152 | …="2.2", max_rows_per_file=spec["fragment_rows"], max_rows_per_group=spec["batch_rows"])
+    |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+153 | … for fragment in ds.get_fragments() for file in fragment.data_files()})
+154 | …rsion=ds.version, rows=ds.count_rows(), fragments=len(ds.get_fragments()), files=files))
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:153:89: E501 Line too long (120 > 88)
+    |
+151 |     ds = lance.write_dataset(pa.RecordBatchReader.from_batches(schema(spec), target_batches(spec)), str(uri),
+152 |                              data_storage_version="2.2", max_rows_per_file=spec["fragment_rows"], max_rows_per_group=spec["batch_rows…
+153 |     files = sorted({str(uri / "data" / file.path) for fragment in ds.get_fragments() for file in fragment.data_files()})
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+154 |     save(uri / "fixture.json", dict(spec=spec, version=ds.version, rows=ds.count_rows(), fragments=len(ds.get_fragments()), files=fil…
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:154:89: E501 Line too long (137 > 88)
+    |
+152 | …="2.2", max_rows_per_file=spec["fragment_rows"], max_rows_per_group=spec["batch_rows"])
+153 | … for fragment in ds.get_fragments() for file in fragment.data_files()})
+154 | …rsion=ds.version, rows=ds.count_rows(), fragments=len(ds.get_fragments()), files=files))
+    |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:169:89: E501 Line too long (106 > 88)
+    |
+167 |                   module=lance.__file__, version=lance.__version__, snapshot=ds.version,
+168 |                   baseline_rss_bytes=rss(os.getpid()).get("VmRSS", 0))
+169 |     reader = pa.RecordBatchReader.from_batches(schema(spec, source=True), source_batches(spec, directory))
+    |                                                                                         ^^^^^^^^^^^^^^^^^^ E501
+170 |     started = time.perf_counter()
+171 |     source = reader.read_all() if spec["source"] == "materialized" else reader
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:173:89: E501 Line too long (125 > 88)
+    |
+171 |     source = reader.read_all() if spec["source"] == "materialized" else reader
+172 |     result["input_materialization_seconds"] = time.perf_counter()-started
+173 |     builder = ds.merge_insert("id").when_matched_update_all().use_index(False).write_mode("rewrite_rows").conflict_retries(0)
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+174 |     if spec["full"]:
+175 |         builder = builder.when_not_matched_insert_all()
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:187:89: E501 Line too long (228 > 88)
+    |
+185 | …
+186 | …
+187 | …resources exhausted", "resource exhausted", "failed to allocate")) else "source_error" if "source-test-failure" in message else "execution_error"
+    |       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+188 | …))
+189 | …
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:191:89: E501 Line too long (99 > 88)
+    |
+189 |     result["merge_seconds"] = time.perf_counter()-started
+190 |     cpu_end = resource.getrusage(resource.RUSAGE_SELF)
+191 |     result["cpu_seconds"] = cpu_end.ru_utime+cpu_end.ru_stime-cpu_start.ru_utime-cpu_start.ru_stime
+    |                                                                                         ^^^^^^^^^^^ E501
+192 |     result["average_cpu_cores"] = result["cpu_seconds"]/result["merge_seconds"]
+193 |     result["ru_maxrss_bytes"] = cpu_end.ru_maxrss*1024
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:196:89: E501 Line too long (90 > 88)
+    |
+194 |     result["stage"] = "execute_finished"
+195 |     save(directory / "metrics.json", result)
+196 |     append(directory / "stages.jsonl", dict(stage="execute_finished", t=time.monotonic()))
+    |                                                                                         ^^ E501
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:209:89: E501 Line too long (92 > 88)
+    |
+207 |     keys = keys_for(spec)
+208 |     keys = np.sort(keys) if keys is not None else None
+209 |     expected_rows = max(spec["rows"], spec["source_rows"]) if spec["full"] else spec["rows"]
+    |                                                                                         ^^^^ E501
+210 |     # Count and moments identify the expected unique physical markers without collecting batches.
+211 |     marker_sum = 0
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:210:89: E501 Line too long (97 > 88)
+    |
+208 |     keys = np.sort(keys) if keys is not None else None
+209 |     expected_rows = max(spec["rows"], spec["source_rows"]) if spec["full"] else spec["rows"]
+210 |     # Count and moments identify the expected unique physical markers without collecting batches.
+    |                                                                                         ^^^^^^^^^ E501
+211 |     marker_sum = 0
+212 |     marker_square_sum = 0
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:213:89: E501 Line too long (100 > 88)
+    |
+211 |     marker_sum = 0
+212 |     marker_square_sum = 0
+213 |     for batch in ds.to_batches(batch_size=4 if spec["binary"] >= MIB else 32768, batch_readahead=1):
+    |                                                                                         ^^^^^^^^^^^^ E501
+214 |         ids = batch["id"].to_numpy()
+215 |         marker = batch["row_marker"].to_numpy() if spec["binary"] else ids
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:227:89: E501 Line too long (90 > 88)
+    |
+225 |                 expected = values(marker, number)
+226 |                 if spec["full"]:
+227 |                     expected = np.where(hit, values(ids, number, spec["epoch"]), expected)
+    |                                                                                         ^^ E501
+228 |                 elif not spec.get("source_binary") and number < 2:
+229 |                     expected = np.where(hit, -9505 if number == 0 else -10077, expected)
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:231:89: E501 Line too long (109 > 88)
+    |
+229 |                     expected = np.where(hit, -9505 if number == 0 else -10077, expected)
+230 |                 actual = array.to_numpy()
+231 |                 assert np.array_equal(actual, expected), (name, ids[np.flatnonzero(actual != expected)[:10]])
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^^^ E501
+232 |                 hashes[name].update(actual.tobytes())
+233 |             elif name in ("payload", "new_payload"):
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:236:89: E501 Line too long (193 > 88)
+    |
+234 | …
+235 | …
+236 | …== "payload" else payload(ids[index], spec["source_binary"], 1) if spec.get("source_binary") and hit[index] else b""
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+237 | …expected).digest(), (name, int(row))
+238 | …
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:237:89: E501 Line too long (113 > 88)
+    |
+235 | …             actual = array[index].as_py()
+236 | …             expected = payload(row, payload_size(row, spec)) if name == "payload" else payload(ids[index], spec["source_binary"], 1…
+237 | …             assert hashlib.sha256(actual).digest() == hashlib.sha256(expected).digest(), (name, int(row))
+    |                                                                                   ^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+238 | …             hashes[name].update(actual)
+239 | …     else:
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:247:89: E501 Line too long (143 > 88)
+    |
+245 | …s-1)//2
+246 | …ted_rows-1)*(2*expected_rows-1)//6
+247 | …e_rows"]) if spec["full"] else spec["rows"]*9//10 if spec["dense"] else spec["source_rows"]
+    |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+248 | …
+249 | …pected_updated)
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:254:89: E501 Line too long (126 > 88)
+    |
+252 |     assert stats["num_inserted_rows"] == expected_rows-spec["rows"], stats
+253 |     assert ds.version > metrics["snapshot"]
+254 |     save(directory / "validation.json", dict(validated=True, rows=count, updated=updated, inserted=expected_rows-spec["rows"],
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+255 |                                               deleted=0, hashes={name: value.hexdigest() for name, value in hashes.items()},
+256 |                                               oracle="splitmix64-v1-all-fields", values_changed=True, version=ds.version))
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:255:89: E501 Line too long (124 > 88)
+    |
+253 |     assert ds.version > metrics["snapshot"]
+254 |     save(directory / "validation.json", dict(validated=True, rows=count, updated=updated, inserted=expected_rows-spec["rows"],
+255 |                                               deleted=0, hashes={name: value.hexdigest() for name, value in hashes.items()},
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+256 |                                               oracle="splitmix64-v1-all-fields", values_changed=True, version=ds.version))
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:256:89: E501 Line too long (122 > 88)
+    |
+254 |     save(directory / "validation.json", dict(validated=True, rows=count, updated=updated, inserted=expected_rows-spec["rows"],
+255 |                                               deleted=0, hashes={name: value.hexdigest() for name, value in hashes.items()},
+256 |                                               oracle="splitmix64-v1-all-fields", values_changed=True, version=ds.version))
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:273:89: E501 Line too long (123 > 88)
+    |
+271 | def controls(path):
+272 |     result = {}
+273 |     for name in ["memory.max", "memory.swap.max", "memory.current", "memory.peak", "memory.events", "cpu.max", "cpu.stat"]:
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+274 |         try:
+275 |             result[name] = (path / name).read_text().strip()
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:276:9: PERF203 `try`-`except` within a loop incurs performance overhead
+    |
+274 |           try:
+275 |               result[name] = (path / name).read_text().strip()
+276 | /         except FileNotFoundError:
+277 | |             result[name] = None
+    | |_______________________________^ PERF203
+278 |       return result
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:294:89: E501 Line too long (99 > 88)
+    |
+292 |     if variant.startswith("C"):
+293 |         environment["LANCE_MERGE_EXPERIMENT"] = variant
+294 |     checkout = "C" if variant.startswith("C") else "P" if variant == "P_reconstructed" else variant
+    |                                                                                         ^^^^^^^^^^^ E501
+295 |     command = ["/root/.local/bin/uv", "run", "--no-sync", "python", str(Path(__file__).resolve()), "worker", operation, str(directory…
+296 |     def enter():
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:295:89: E501 Line too long (135 > 88)
+    |
+293 | …variant
+294 | …se "P" if variant == "P_reconstructed" else variant
+295 | …no-sync", "python", str(Path(__file__).resolve()), "worker", operation, str(directory)]
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+296 | …
+297 | …
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:303:89: E501 Line too long (135 > 88)
+    |
+301 | …
+302 | …
+303 | …w") as log, (directory / f"{operation}-memory.jsonl").open("w", buffering=1) as memory:
+    |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+304 | …CHECKOUTS / checkout / "python", env=environment,
+305 | …tderr=subprocess.STDOUT, preexec_fn=enter)
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:304:89: E501 Line too long (97 > 88)
+    |
+302 |     cancelled = False
+303 |     with (directory / f"{operation}.log").open("w") as log, (directory / f"{operation}-memory.jsonl").open("w", buffering=1) as memor…
+304 |         process = subprocess.Popen(command, cwd=CHECKOUTS / checkout / "python", env=environment,
+    |                                                                                         ^^^^^^^^^ E501
+305 |                                    stdout=log, stderr=subprocess.STDOUT, preexec_fn=enter)
+306 |         while process.poll() is None:
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:305:89: E501 Line too long (90 > 88)
+    |
+303 |     with (directory / f"{operation}.log").open("w") as log, (directory / f"{operation}-memory.jsonl").open("w", buffering=1) as memor…
+304 |         process = subprocess.Popen(command, cwd=CHECKOUTS / checkout / "python", env=environment,
+305 |                                    stdout=log, stderr=subprocess.STDOUT, preexec_fn=enter)
+    |                                                                                         ^^ E501
+306 |         while process.poll() is None:
+307 |             sample = dict(t=time.monotonic(), pid=process.pid, **rss(process.pid))
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:308:89: E501 Line too long (139 > 88)
+    |
+306 | …
+307 | …process.pid, **rss(process.pid))
+308 | …p / "memory.current").read_text()), cgroup_peak=int((group / "memory.peak").read_text()))
+    |                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+309 | …
+310 | …
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:316:89: E501 Line too long (102 > 88)
+    |
+314 |     after = controls(group)
+315 |     events = dict(line.split() for line in after["memory.events"].splitlines())
+316 |     result = dict(command=command, variant=variant, operation=operation, exit_code=process.returncode,
+    |                                                                                         ^^^^^^^^^^^^^^ E501
+317 |                   timeout=cancelled, before=before, after=after, confirmed_oom=int(events["oom_kill"]) > 0)
+318 |     save(directory / f"{operation}-resource-events.json", result)
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:317:89: E501 Line too long (107 > 88)
+    |
+315 |     events = dict(line.split() for line in after["memory.events"].splitlines())
+316 |     result = dict(command=command, variant=variant, operation=operation, exit_code=process.returncode,
+317 |                   timeout=cancelled, before=before, after=after, confirmed_oom=int(events["oom_kill"]) > 0)
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^ E501
+318 |     save(directory / f"{operation}-resource-events.json", result)
+319 |     group.rmdir()
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:323:89: E501 Line too long (90 > 88)
+    |
+323 | def run(variant, spec, run_id, block=0, limit=8*GIB, pool=GIB, timeout=600, formal=False):
+    |                                                                                         ^^ E501
+324 |     if any(Path("/proc", entry, "comm").read_text().strip() in ("cargo", "rustc")
+325 |            for entry in os.listdir("/proc") if entry.isdigit() and Path("/proc", entry, "comm").exists()):
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:325:89: E501 Line too long (106 > 88)
+    |
+323 | def run(variant, spec, run_id, block=0, limit=8*GIB, pool=GIB, timeout=600, formal=False):
+324 |     if any(Path("/proc", entry, "comm").read_text().strip() in ("cargo", "rustc")
+325 |            for entry in os.listdir("/proc") if entry.isdigit() and Path("/proc", entry, "comm").exists()):
+    |                                                                                         ^^^^^^^^^^^^^^^^^^ E501
+326 |         raise RuntimeError("Compilation is active. Measurements must wait.")
+327 |     directory = ROOT / "runs" / run_id
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:330:89: E501 Line too long (94 > 88)
+    |
+328 |     if directory.exists():
+329 |         raise RuntimeError(f"Refusing to overwrite {directory}")
+330 |     plan = dict(run_id=run_id, block=block, variant=variant, workload=spec["name"], spec=spec,
+    |                                                                                         ^^^^^^ E501
+331 |                 pool_bytes=pool, memory_max_bytes=limit, swap_max_bytes=0, cache="hot", formal=formal,
+332 |                 status="planned")
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:331:89: E501 Line too long (102 > 88)
+    |
+329 |         raise RuntimeError(f"Refusing to overwrite {directory}")
+330 |     plan = dict(run_id=run_id, block=block, variant=variant, workload=spec["name"], spec=spec,
+331 |                 pool_bytes=pool, memory_max_bytes=limit, swap_max_bytes=0, cache="hot", formal=formal,
+    |                                                                                         ^^^^^^^^^^^^^^ E501
+332 |                 status="planned")
+333 |     append(ROOT / "run-manifest.jsonl", plan)
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:334:89: E501 Line too long (90 > 88)
+    |
+332 |                 status="planned")
+333 |     append(ROOT / "run-manifest.jsonl", plan)
+334 |     metadata = json.loads((ROOT / "fixtures" / spec["name"] / "fixture.json").read_text())
+    |                                                                                         ^^ E501
+335 |     for name in metadata["files"]:
+336 |         with open(name, "rb") as file:
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:350:89: E501 Line too long (137 > 88)
+    |
+348 | …
+349 | …ec, directory, 8*GIB, pool)
+350 | …n["exit_code"] == 0 and (directory / "validation.json").exists() else "validation_error"
+    |                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+351 | …
+352 | …cture_error")
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:355:89: E501 Line too long (95 > 88)
+    |
+353 |         if status == "started":
+354 |             status = "infrastructure_error"
+355 |     metrics.update(status=status, validated=status == "validated_success", execution=execution,
+    |                                                                                         ^^^^^^^ E501
+356 |                    run_id=run_id, variant=variant, block=block, formal=formal)
+357 |     save(metric_path, metrics)
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:358:89: E501 Line too long (105 > 88)
+    |
+356 |                    run_id=run_id, variant=variant, block=block, formal=formal)
+357 |     save(metric_path, metrics)
+358 |     append(ROOT / "run-manifest.jsonl", plan | dict(status=status, seconds=metrics.get("merge_seconds")))
+    |                                                                                         ^^^^^^^^^^^^^^^^^ E501
+359 |     print(json.dumps(dict(run_id=run_id, status=status, seconds=metrics.get("merge_seconds"))), flush=True)
+360 |     return status
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:359:89: E501 Line too long (107 > 88)
+    |
+357 |     save(metric_path, metrics)
+358 |     append(ROOT / "run-manifest.jsonl", plan | dict(status=status, seconds=metrics.get("merge_seconds")))
+359 |     print(json.dumps(dict(run_id=run_id, status=status, seconds=metrics.get("merge_seconds"))), flush=True)
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^ E501
+360 |     return status
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:392:89: E501 Line too long (118 > 88)
+    |
+390 |             validate(spec, args.directory)
+391 |     else:
+392 |         run(args.variant, workload(args.workload), args.run_id, args.block, args.limit, args.pool, formal=args.formal)
+    |                                                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ E501
+    |
+
+Found 56 errors (1 fixed, 55 remaining).
+1 file reformatted

@@ -1,0 +1,237 @@
+uv sync --frozen --config-settings-package "pylance:build-args=--profile release-with-debug --locked"
+Using CPython 3.12.3 interpreter at: /usr/bin/python3.12
+Creating virtual environment at: .venv
+   Building pylance @ file:///mnt/lance/checkouts/C/python
+error: Failed to build `pylance @ file:///mnt/lance/checkouts/C/python`
+  cause: The build backend returned an error
+  cause: Call to `maturin.build_editable` failed (exit status: 1)
+
+         [stdout]
+         Running `maturin pep517 build-wheel -i /mnt/lance/cache/uv/builds-v0/.tmpJxLsbH/bin/python --compatibility off --editable --profile release-with-debug --locked`
+
+         [stderr]
+         🍹 Building a mixed python/rust project
+         🐍 Found CPython 3.12 at /mnt/lance/cache/uv/builds-v0/.tmpJxLsbH/bin/python
+         🔗 Found pyo3 bindings with abi3-py3.10 support
+            Compiling pyo3-build-config v0.28.3
+            Compiling lance-jsonb v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-jsonb)
+            Compiling lance-derive v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-derive)
+            Compiling lance-encoding v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-encoding)
+            Compiling lance-bitpacking v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/compression/bitpacking)
+            Compiling lance-file v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-file)
+            Compiling fsst v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/compression/fsst)
+            Compiling lance-datafusion v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-datafusion)
+            Compiling lance-table v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-table)
+            Compiling lance-linalg v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-linalg)
+            Compiling lance-index v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-index)
+            Compiling lance-arrow-scalar v58.0.0 (/mnt/lance/checkouts/C/rust/arrow-scalar)
+            Compiling lance-tokenizer v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-tokenizer)
+            Compiling lance-arrow-stats v58.0.0 (/mnt/lance/checkouts/C/rust/arrow-stats)
+            Compiling lance v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance)
+            Compiling pyo3-ffi v0.28.3
+            Compiling pyo3-macros-backend v0.28.3
+            Compiling pyo3 v0.28.3
+         warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+         warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+         warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+         warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+            Compiling lance-arrow v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-arrow)
+            Compiling pyo3-macros v0.28.3
+            Compiling arrow-pyarrow v58.4.0
+            Compiling pythonize v0.28.0
+            Compiling arrow v58.4.0
+            Compiling datafusion-common v54.1.0
+            Compiling datafusion-expr-common v54.1.0
+            Compiling datafusion-proto-common v54.1.0
+            Compiling datafusion-physical-expr-common v54.1.0
+            Compiling datafusion-functions-window-common v54.1.0
+            Compiling datafusion-functions-aggregate-common v54.1.0
+            Compiling datafusion-expr v54.1.0
+            Compiling datafusion-physical-expr v54.1.0
+            Compiling datafusion-execution v54.1.0
+            Compiling datafusion-functions v54.1.0
+            Compiling datafusion-functions-aggregate v54.1.0
+            Compiling datafusion-physical-plan v54.1.0
+            Compiling datafusion-physical-expr-adapter v54.1.0
+            Compiling datafusion-functions-nested v54.1.0
+            Compiling datafusion-sql v54.1.0
+            Compiling datafusion-session v54.1.0
+            Compiling datafusion-datasource v54.1.0
+            Compiling datafusion-pruning v54.1.0
+            Compiling datafusion-catalog v54.1.0
+            Compiling lance-core v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-core)
+            Compiling datafusion-datasource-csv v54.1.0
+            Compiling datafusion-datasource-arrow v54.1.0
+            Compiling datafusion-datasource-json v54.1.0
+            Compiling datafusion-physical-optimizer v54.1.0
+            Compiling datafusion-functions-window v54.1.0
+            Compiling datafusion-optimizer v54.1.0
+            Compiling lance-namespace v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-namespace)
+            Compiling lance-io v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-io)
+            Compiling lance-select v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-select)
+            Compiling datafusion-datasource-parquet v54.1.0
+            Compiling datafusion-catalog-listing v54.1.0
+            Compiling datafusion-functions-table v54.1.0
+            Compiling datafusion v54.1.0
+            Compiling datafusion-proto v54.1.0
+            Compiling datafusion-ffi v54.1.0
+            Compiling geodatafusion v0.5.0
+            Compiling datafusion-substrait v54.1.0
+            Compiling lance-index-core v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-index-core)
+            Compiling lance-geo v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance-geo)
+         error[E0365]: `MergePayloadExec` is private, and cannot be re-exported
+           --> /mnt/lance/checkouts/C/rust/lance/src/dataset/write/merge_insert/exec.rs:21:16
+            |
+         21 | pub(super) use payload::MergePayloadExec;
+            |                ^^^^^^^^^^^^^^^^^^^^^^^^^ re-export of private `MergePayloadExec`
+            |
+            = note: consider declaring type or module `MergePayloadExec` with `pub`
+
+         error[E0603]: struct import `MergePayloadExec` is private
+            --> /mnt/lance/checkouts/C/rust/lance/src/dataset/write/merge_insert/logical_plan.rs:451:51
+             |
+         451 |                     input = Arc::new(super::exec::MergePayloadExec::try_new(
+             |                                                   ^^^^^^^^^^^^^^^^ private struct import
+             |
+         note: the struct import `MergePayloadExec` is defined here...
+            --> /mnt/lance/checkouts/C/rust/lance/src/dataset/write/merge_insert/exec.rs:21:16
+             |
+          21 | pub(super) use payload::MergePayloadExec;
+             |                ^^^^^^^^^^^^^^^^^^^^^^^^^
+         note: ...and refers to the struct `MergePayloadExec` which is defined here
+            --> /mnt/lance/checkouts/C/rust/lance/src/dataset/write/merge_insert/exec/payload.rs:32:1
+             |
+          32 | pub(super) struct MergePayloadExec {
+             | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         help: import `MergePayloadExec` directly
+             |
+         451 -                     input = Arc::new(super::exec::MergePayloadExec::try_new(
+         451 +                     input = Arc::new(payload::MergePayloadExec(
+             |
+
+         error[E0277]: the trait bound `std::sync::Arc<dyn MemoryPool>: MemoryPool` is not satisfied
+            --> /mnt/lance/checkouts/C/rust/lance/src/dataset/write/merge_insert/candidate.rs:176:17
+             |
+         175 |             .with_memory_pool(Arc::new(TrackConsumersPool::new(
+             |                                        ----------------------- required by a bound introduced by this call
+         176 |                 pool,
+             |                 ^^^^ the trait `MemoryPool` is not implemented for `std::sync::Arc<dyn MemoryPool>`
+             |
+         help: the following other types implement trait `MemoryPool`
+            --> /mnt/lance/cache/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/datafusion-execution-54.1.0/src/memory_pool/pool.rs:37:1
+             |
+          37 | impl MemoryPool for UnboundedMemoryPool {
+             | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `UnboundedMemoryPool`
+         ...
+          93 | impl MemoryPool for GreedyMemoryPool {
+             | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `GreedyMemoryPool`
+         ...
+         202 | impl MemoryPool for FairSpillPool {
+             | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `FairSpillPool`
+         ...
+         520 | impl<I: MemoryPool> MemoryPool for TrackConsumersPool<I> {
+             | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `TrackConsumersPool<I>`
+         note: required by a bound in `TrackConsumersPool::<I>::new`
+            --> /mnt/lance/cache/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/datafusion-execution-54.1.0/src/memory_pool/pool.rs:426:9
+             |
+         426 | impl<I: MemoryPool> TrackConsumersPool<I> {
+             |         ^^^^^^^^^^ required by this bound in `TrackConsumersPool::<I>::new`
+         ...
+         463 |     pub fn new(inner: I, top: NonZeroUsize) -> Self {
+             |            --- required by a bound in this associated function
+
+         error[E0277]: the trait bound `std::sync::Arc<dyn MemoryPool>: MemoryPool` is not satisfied
+            --> /mnt/lance/checkouts/C/rust/lance/src/dataset/write/merge_insert/candidate.rs:175:31
+             |
+         175 |               .with_memory_pool(Arc::new(TrackConsumersPool::new(
+             |  _______________________________^
+         176 | |                 pool,
+         177 | |                 NonZero::<usize>::MIN.saturating_add(15),
+         178 | |             )))
+             | |______________^ the trait `MemoryPool` is not implemented for `std::sync::Arc<dyn MemoryPool>`
+             |
+         help: the following other types implement trait `MemoryPool`
+            --> /mnt/lance/cache/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/datafusion-execution-54.1.0/src/memory_pool/pool.rs:37:1
+             |
+          37 | impl MemoryPool for UnboundedMemoryPool {
+             | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `UnboundedMemoryPool`
+         ...
+          93 | impl MemoryPool for GreedyMemoryPool {
+             | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `GreedyMemoryPool`
+         ...
+         202 | impl MemoryPool for FairSpillPool {
+             | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `FairSpillPool`
+         ...
+         520 | impl<I: MemoryPool> MemoryPool for TrackConsumersPool<I> {
+             | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `TrackConsumersPool<I>`
+             = note: required for `TrackConsumersPool<std::sync::Arc<dyn MemoryPool>>` to implement `MemoryPool`
+             = note: required for the cast from `std::sync::Arc<TrackConsumersPool<std::sync::Arc<dyn MemoryPool>>>` to `std::sync::Arc<(dyn MemoryPool + 'static)>`
+
+         error[E0599]: the method `as_any` exists for reference `&std::sync::Arc<dyn PhysicalExpr>`, but its trait bounds were not satisfied
+            --> /mnt/lance/checkouts/C/rust/lance/src/dataset/write/merge_insert/logical_plan.rs:342:30
+             |
+         342 |                         left.as_any()
+             |                              ^^^^^^ method cannot be called on `&std::sync::Arc<dyn PhysicalExpr>` due to unsatisfied trait bounds
+             |
+            ::: /mnt/lance/cache/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/datafusion-physical-expr-common-54.1.0/src/physical_expr.rs:75:1
+             |
+          75 | pub trait PhysicalExpr: Any + Send + Sync + Display + Debug + DynEq + DynHash {
+             | ----------------------------------------------------------------------------- doesn't satisfy `dyn PhysicalExpr: Sized`, `dyn PhysicalExpr: UserDefinedLogicalNodeCore` or `dyn PhysicalExpr: UserDefinedLogicalNode`
+             |
+             = note: the following trait bounds were not satisfied:
+                     `std::sync::Arc<dyn PhysicalExpr>: UserDefinedLogicalNodeCore`
+                     which is required by `std::sync::Arc<dyn PhysicalExpr>: UserDefinedLogicalNode`
+                     `&std::sync::Arc<dyn PhysicalExpr>: UserDefinedLogicalNodeCore`
+                     which is required by `&std::sync::Arc<dyn PhysicalExpr>: UserDefinedLogicalNode`
+                     `dyn PhysicalExpr: Sized`
+                     which is required by `dyn PhysicalExpr: UserDefinedLogicalNode`
+                     `dyn PhysicalExpr: UserDefinedLogicalNodeCore`
+                     which is required by `dyn PhysicalExpr: UserDefinedLogicalNode`
+             = help: items from traits can only be used if the trait is implemented and in scope
+         note: `MemQuery` defines an item `as_any`, perhaps you need to implement it
+            --> /mnt/lance/checkouts/C/rust/lance/src/dataset/mem_wal/index/query.rs:22:1
+             |
+          22 | pub trait MemQuery: Debug + Send + Sync {
+             | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+         error[E0599]: the method `as_any` exists for reference `&std::sync::Arc<dyn PhysicalExpr>`, but its trait bounds were not satisfied
+            --> /mnt/lance/checkouts/C/rust/lance/src/dataset/write/merge_insert/logical_plan.rs:346:34
+             |
+         345 |   ...                   && right
+             |  __________________________-
+         346 | | ...                       .as_any()
+             | |                           -^^^^^^ method cannot be called on `&std::sync::Arc<dyn PhysicalExpr>` due to unsatisfied trait bounds
+             | |___________________________|
+             |
+             |
+            ::: /mnt/lance/cache/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/datafusion-physical-expr-common-54.1.0/src/physical_expr.rs:75:1
+             |
+          75 |   pub trait PhysicalExpr: Any + Send + Sync + Display + Debug + DynEq + DynHash {
+             |   ----------------------------------------------------------------------------- doesn't satisfy `dyn PhysicalExpr: Sized`, `dyn PhysicalExpr: UserDefinedLogicalNodeCore` or `dyn PhysicalExpr: UserDefinedLogicalNode`
+             |
+             = note: the following trait bounds were not satisfied:
+                     `std::sync::Arc<dyn PhysicalExpr>: UserDefinedLogicalNodeCore`
+                     which is required by `std::sync::Arc<dyn PhysicalExpr>: UserDefinedLogicalNode`
+                     `&std::sync::Arc<dyn PhysicalExpr>: UserDefinedLogicalNodeCore`
+                     which is required by `&std::sync::Arc<dyn PhysicalExpr>: UserDefinedLogicalNode`
+                     `dyn PhysicalExpr: Sized`
+                     which is required by `dyn PhysicalExpr: UserDefinedLogicalNode`
+                     `dyn PhysicalExpr: UserDefinedLogicalNodeCore`
+                     which is required by `dyn PhysicalExpr: UserDefinedLogicalNode`
+             = help: items from traits can only be used if the trait is implemented and in scope
+         note: `MemQuery` defines an item `as_any`, perhaps you need to implement it
+            --> /mnt/lance/checkouts/C/rust/lance/src/dataset/mem_wal/index/query.rs:22:1
+             |
+          22 | pub trait MemQuery: Debug + Send + Sync {
+             | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+         Some errors have detailed explanations: E0277, E0365, E0599, E0603.
+         For more information about an error, try `rustc --explain E0277`.
+         error: could not compile `lance` (lib) due to 6 previous errors
+         💥 maturin failed
+           Caused by: Failed to build a native library through cargo
+           Caused by: Cargo build finished with "exit status: 101": `env -u CARGO PYO3_BUILD_EXTENSION_MODULE="1" PYO3_ENVIRONMENT_SIGNATURE="cpython-3.12-64bit" PYO3_PYTHON="/mnt/lance/cache/uv/builds-v0/.tmpJxLsbH/bin/python" PYTHON_SYS_EXECUTABLE="/mnt/lance/cache/uv/builds-v0/.tmpJxLsbH/bin/python" "cargo" "rustc" "--profile" "release-with-debug" "--message-format" "json-render-diagnostics" "--locked" "--manifest-path" "/mnt/lance/checkouts/C/python/Cargo.toml" "--lib"`
+         Error: command ['maturin', 'pep517', 'build-wheel', '-i', '/mnt/lance/cache/uv/builds-v0/.tmpJxLsbH/bin/python', '--compatibility', 'off', '--editable', '--profile', 'release-with-debug', '--locked'] returned non-zero exit status 1
+
+hint: Build failures usually indicate a problem with the package or the build environment
+make: *** [Makefile:37: install] Error 1

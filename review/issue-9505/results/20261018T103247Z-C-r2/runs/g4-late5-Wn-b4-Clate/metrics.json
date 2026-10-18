@@ -1,0 +1,233 @@
+{
+  "status": "validated_success",
+  "validated": true,
+  "pid": 115478,
+  "spec": {
+    "seed": 9505,
+    "epoch": 1,
+    "source_rows": 25,
+    "batch_rows": 32768,
+    "source": "reader",
+    "full": false,
+    "binary": 5242880,
+    "dense": false,
+    "first_seen": false,
+    "rows": 400,
+    "columns": 3,
+    "fragment_rows": 25,
+    "name": "Wn",
+    "oracle": "splitmix64-v1"
+  },
+  "module": "/mnt/lance/checkouts/C/python/python/lance/__init__.py",
+  "version": "14.0.0-beta.19",
+  "snapshot": 25,
+  "baseline_rss_bytes": 172261376,
+  "input_materialization_seconds": 6.499994924524799e-07,
+  "stage": "execute_finished",
+  "source_lazy_at_execute_start": true,
+  "execute_started_monotonic": 15722.834970228,
+  "execute_started_wall_ns": 1792326498314919946,
+  "merge_stats": {
+    "num_inserted_rows": 0,
+    "num_updated_rows": 25,
+    "num_deleted_rows": 0
+  },
+  "execute_returned": true,
+  "merge_seconds": 0.5653892120008095,
+  "cpu_seconds": 0.6532659999999997,
+  "average_cpu_cores": 1.1554270688827086,
+  "ru_maxrss_bytes": 797044736,
+  "execution": {
+    "command": [
+      "/root/.local/bin/uv",
+      "run",
+      "--no-sync",
+      "python",
+      "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/bench.py",
+      "worker",
+      "execute",
+      "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/runs/g4-late5-Wn-b4-Clate"
+    ],
+    "variant": "Clate",
+    "operation": "execute",
+    "exit_code": 0,
+    "timeout": false,
+    "before": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "0",
+      "memory.peak": "0",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+    },
+    "after": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "137056256",
+      "memory.peak": "647798784",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 2589250\nuser_usec 2017885\nsystem_usec 571365\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+    },
+    "confirmed_oom": false,
+    "cleanup": {
+      "removed": true,
+      "group_empty": true,
+      "attempts": 1
+    }
+  },
+  "run_id": "g4-late5-Wn-b4-Clate",
+  "variant": "Clate",
+  "block": 4,
+  "formal": true,
+  "resources": {
+    "phase": "resources",
+    "revision": "C-r2",
+    "mode": "Late",
+    "policy_bytes": 1073741824,
+    "pool": "FairSpillPool",
+    "requested_p": 16,
+    "effective_p": 14,
+    "decode_tasks": 14,
+    "prefix_bytes": 104857600,
+    "prefix_rows": 131072,
+    "prefix_batches": 1024,
+    "small_target_bytes": 33554432,
+    "width": 27,
+    "width_source": "fixed_projection",
+    "io_bytes": 268435456,
+    "decode_bytes": 268435456,
+    "row_cap": 8192,
+    "context": "0x7fb670002eb0",
+    "unix_seconds": 1792326498.3170362
+  },
+  "source_prepared": {
+    "phase": "source_prepared",
+    "seconds": 0.000839238,
+    "rows": 25,
+    "arrow_bytes": 888,
+    "batches": 1,
+    "stop": "eof",
+    "unix_seconds": 1792326498.318005
+  },
+  "execute_complete": {
+    "phase": "execute_complete",
+    "pool_reserved_bytes": 2364,
+    "reservation_observed_peak_bytes": 396308,
+    "counts": {
+      "rows_scanned": 400,
+      "input_batches": 16,
+      "input_rows": 400,
+      "num_files_written": 1,
+      "payload_take_rows": 25,
+      "num_deleted_rows": 0,
+      "build_input_rows": 25,
+      "build_input_batches": 1,
+      "array_map_created_count": 1,
+      "payload_take_arrow_bytes": 131072952,
+      "num_updated_rows": 25,
+      "bytes_written": 131077584,
+      "scan_initializations": 1,
+      "num_inserted_rows": 0,
+      "ranges_scanned": 16,
+      "num_skipped_duplicates": 0,
+      "fragments_scanned": 16
+    },
+    "times": {
+      "expr_5_eval_time": 156,
+      "ProjectionExec_elapsed_compute": 33539,
+      "RepartitionExec_elapsed_compute": 12136,
+      "FilteredReadExec_elapsed_compute": 1757973,
+      "expr_6_eval_time": 23935,
+      "CoalescePartitionsExec_elapsed_compute": 29622,
+      "join_time": 131169,
+      "fetch_time": 2528467,
+      "HashJoinExec_elapsed_compute": 218068,
+      "task_wait_time": 1756561,
+      "send_time": 31230,
+      "repartition_time": 0,
+      "expr_1_eval_time": 219,
+      "expr_2_eval_time": 169,
+      "expr_0_eval_time": 1673,
+      "build_time": 86897,
+      "expr_4_eval_time": 114,
+      "FullSchemaMergeInsertExec_elapsed_compute": 1,
+      "expr_3_eval_time": 2169
+    },
+    "scan_take_bytes": 70816,
+    "requests": 64,
+    "iops": 64,
+    "gauges": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 1
+      },
+      {
+        "kind": "join",
+        "mode": "CollectLeft",
+        "build_fields": [
+          "id",
+          "c0",
+          "c1",
+          "__merge_source_sentinel"
+        ],
+        "probe_fields": [
+          "id",
+          "_rowid",
+          "_rowaddr"
+        ]
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 0,
+        "name": "build_mem_used",
+        "value": 2264
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 1
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "active_read_tasks",
+        "value": 0
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 14
+      }
+    ],
+    "unix_seconds": 1792326498.8791106
+  },
+  "join_policy": {
+    "phase": "join_policy",
+    "decision": "source_default",
+    "target_width": 27,
+    "target_rows": "Exact(400)",
+    "model_bytes": 1095776,
+    "threshold_bytes": 33554432,
+    "source_evidence": "Complete",
+    "target_schema": "Schema { fields: [Field { name: \"id\", data_type: Int64, nullable: true }, Field { name: \"_rowid\", data_type: UInt64, nullable: true }, Field { name: \"_rowaddr\", data_type: UInt64, nullable: true }], metadata: {} }",
+    "stats_guard": false,
+    "unix_seconds": 1792326498.3214068
+  },
+  "sampled_peak_rss_bytes": 782270464,
+  "sampled_peak_anon_bytes": 613015552,
+  "detailed_diagnostics_enabled": false
+}

@@ -1,0 +1,63 @@
+--- harness-r0/bench.py
++++ bench.py
+@@ -1,6 +1,7 @@
+ """Frozen #9505 worker and coordinator. Invoke through a checkout's uv environment."""
+ 
+ import argparse
++import errno
+ import hashlib
+ import json
+ import os
+@@ -598,6 +599,16 @@
+     operation, variant, spec, directory, limit, pool, timeout=600, diagnostics=False,
+     command_override=None,
+ ):
++    for existing in CGROUP_ROOT.iterdir():
++        events_path = existing / "cgroup.events"
++        if not existing.is_dir():
++            continue
++        try:
++            existing_events = dict(line.split() for line in events_path.read_text().splitlines())
++        except FileNotFoundError:
++            continue
++        if existing_events.get("populated") != "0":
++            raise RuntimeError(f"Previous worker group is still populated: {existing}")
+     group = CGROUP_ROOT / f"{directory.name}-{operation}"
+     group.mkdir()
+     (group / "memory.max").write_text(str(limit))
+@@ -686,7 +697,26 @@
+         confirmed_oom=int(events["oom_kill"]) > 0,
+     )
+     save(directory / f"{operation}-resource-events.json", result)
+-    group.rmdir()
++    # OOM group teardown can outlive the reaped uv parent. Preserve its resource
++    # result even when the empty cgroup remains temporarily busy in the kernel.
++    cleanup_started = time.monotonic()
++    attempts = 0
++    while True:
++        attempts += 1
++        try:
++            group.rmdir()
++            result["cleanup"] = dict(removed=True, group_empty=True, attempts=attempts)
++            break
++        except OSError as error:
++            if error.errno != errno.EBUSY:
++                raise
++            if time.monotonic() - cleanup_started >= 5:
++                empty = dict(line.split() for line in (group / "cgroup.events").read_text().splitlines()).get("populated") == "0"
++                result["cleanup"] = dict(removed=False, group_empty=empty, attempts=attempts,
++                                         errno=error.errno, path=str(group))
++                break
++            time.sleep(0.05)
++    save(directory / f"{operation}-resource-events.json", result)
+     return result
+ 
+ 
+@@ -707,6 +737,7 @@
+         raise RuntimeError(f"Refusing to overwrite {directory}")
+     plan = dict(
+         run_id=run_id,
++        harness_revision="h1",
+         block=block,
+         variant=variant,
+         workload=spec["name"],

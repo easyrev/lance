@@ -1,0 +1,391 @@
+{
+  "status": "validated_success",
+  "validated": true,
+  "pid": 112419,
+  "spec": {
+    "seed": 9505,
+    "epoch": 1,
+    "source_rows": 100000,
+    "batch_rows": 32768,
+    "source": "reader",
+    "full": false,
+    "binary": 0,
+    "dense": false,
+    "first_seen": false,
+    "rows": 4000000,
+    "columns": 44,
+    "fragment_rows": 100000,
+    "name": "F4",
+    "oracle": "splitmix64-v1"
+  },
+  "module": "/mnt/lance/checkouts/C/python/python/lance/__init__.py",
+  "version": "14.0.0-beta.19",
+  "snapshot": 15,
+  "baseline_rss_bytes": 171577344,
+  "input_materialization_seconds": 5.490001058205962e-07,
+  "stage": "execute_finished",
+  "source_lazy_at_execute_start": true,
+  "execute_started_monotonic": 15033.217595794,
+  "execute_started_wall_ns": 1792325808697545653,
+  "merge_stats": {
+    "num_inserted_rows": 0,
+    "num_updated_rows": 100000,
+    "num_deleted_rows": 0
+  },
+  "execute_returned": true,
+  "merge_seconds": 0.3842758449991379,
+  "cpu_seconds": 3.295156,
+  "average_cpu_cores": 8.574975614216378,
+  "ru_maxrss_bytes": 965521408,
+  "execution": {
+    "command": [
+      "/root/.local/bin/uv",
+      "run",
+      "--no-sync",
+      "python",
+      "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/bench.py",
+      "worker",
+      "execute",
+      "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/runs/g3-F4-source100000-Ccore"
+    ],
+    "variant": "Ccore",
+    "operation": "execute",
+    "exit_code": 0,
+    "timeout": false,
+    "before": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "0",
+      "memory.peak": "0",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+    },
+    "after": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "24358912",
+      "memory.peak": "813572096",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 5247077\nuser_usec 3742820\nsystem_usec 1504257\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+    },
+    "confirmed_oom": false
+  },
+  "run_id": "g3-F4-source100000-Ccore",
+  "variant": "Ccore",
+  "block": 0,
+  "formal": false,
+  "resources": {
+    "phase": "resources",
+    "revision": "C-r2",
+    "mode": "Core",
+    "policy_bytes": 1073741824,
+    "pool": "FairSpillPool",
+    "requested_p": 16,
+    "effective_p": 14,
+    "decode_tasks": 14,
+    "prefix_bytes": 104857600,
+    "prefix_rows": 131072,
+    "prefix_batches": 1024,
+    "small_target_bytes": 33554432,
+    "width": 396,
+    "width_source": "fixed_projection",
+    "io_bytes": 268435456,
+    "decode_bytes": 268435456,
+    "row_cap": 8192,
+    "context": "0x70d18c0079c0",
+    "unix_seconds": 1792325808.6997252
+  },
+  "source_prepared": {
+    "phase": "source_prepared",
+    "seconds": 0.003941008,
+    "rows": 100000,
+    "arrow_bytes": 2401152,
+    "batches": 4,
+    "stop": "eof",
+    "unix_seconds": 1792325808.703797
+  },
+  "execute_complete": {
+    "phase": "execute_complete",
+    "pool_reserved_bytes": 0,
+    "reservation_observed_peak_bytes": 37317392,
+    "counts": {
+      "input_batches": 490,
+      "build_input_batches": 14,
+      "num_updated_rows": 100000,
+      "rows_scanned": 4000000,
+      "input_rows": 4000000,
+      "ranges_scanned": 40,
+      "build_input_rows": 100000,
+      "num_deleted_rows": 0,
+      "array_map_created_count": 0,
+      "num_files_written": 1,
+      "scan_initializations": 1,
+      "fragments_scanned": 40,
+      "bytes_written": 20934751,
+      "num_inserted_rows": 0,
+      "num_skipped_duplicates": 0
+    },
+    "times": {
+      "expr_43_eval_time": 1511,
+      "expr_22_eval_time": 967,
+      "expr_12_eval_time": 1257,
+      "expr_38_eval_time": 1084,
+      "expr_30_eval_time": 1208,
+      "expr_26_eval_time": 1340,
+      "expr_28_eval_time": 1068,
+      "expr_5_eval_time": 1449,
+      "ProjectionExec_elapsed_compute": 666382,
+      "build_time": 5245749,
+      "expr_36_eval_time": 1141,
+      "expr_17_eval_time": 1149,
+      "expr_16_eval_time": 1228,
+      "expr_19_eval_time": 1234,
+      "fetch_time": 1129930641,
+      "expr_42_eval_time": 1375,
+      "expr_46_eval_time": 1944,
+      "expr_44_eval_time": 1137,
+      "expr_18_eval_time": 1408,
+      "expr_3_eval_time": 18450,
+      "expr_32_eval_time": 1238,
+      "send_time": 2443813603,
+      "repartition_time": 716802948,
+      "expr_29_eval_time": 1030,
+      "expr_39_eval_time": 1410,
+      "expr_2_eval_time": 2293,
+      "expr_45_eval_time": 1109,
+      "expr_15_eval_time": 1302,
+      "expr_25_eval_time": 1097,
+      "expr_40_eval_time": 1250,
+      "expr_14_eval_time": 1628,
+      "expr_31_eval_time": 1084,
+      "expr_11_eval_time": 1372,
+      "expr_41_eval_time": 1160,
+      "HashJoinExec_elapsed_compute": 179694007,
+      "expr_23_eval_time": 1136,
+      "expr_4_eval_time": 1265,
+      "expr_24_eval_time": 1168,
+      "expr_35_eval_time": 1166,
+      "RepartitionExec_elapsed_compute": 1573426,
+      "FullSchemaMergeInsertExec_elapsed_compute": 1,
+      "task_wait_time": 471305433,
+      "expr_1_eval_time": 2332,
+      "expr_47_eval_time": 378884,
+      "expr_21_eval_time": 1054,
+      "expr_20_eval_time": 1107,
+      "CoalescePartitionsExec_elapsed_compute": 31743,
+      "expr_33_eval_time": 1614,
+      "expr_13_eval_time": 1258,
+      "expr_6_eval_time": 1184,
+      "expr_37_eval_time": 1264,
+      "join_time": 172637741,
+      "expr_9_eval_time": 1603,
+      "FilteredReadExec_elapsed_compute": 1120140079,
+      "expr_10_eval_time": 1128,
+      "expr_0_eval_time": 10184,
+      "expr_7_eval_time": 1227,
+      "expr_34_eval_time": 1392,
+      "expr_8_eval_time": 1255,
+      "expr_27_eval_time": 1439
+    },
+    "scan_take_bytes": 837532520,
+    "requests": 240,
+    "iops": 2320,
+    "gauges": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 14
+      },
+      {
+        "kind": "join",
+        "mode": "Partitioned",
+        "build_fields": [
+          "id",
+          "c0",
+          "c1",
+          "__merge_source_sentinel"
+        ],
+        "probe_fields": [
+          "id",
+          "c2",
+          "c3",
+          "c4",
+          "c5",
+          "c6",
+          "c7",
+          "c8",
+          "c9",
+          "c10",
+          "c11",
+          "c12",
+          "c13",
+          "c14",
+          "c15",
+          "c16",
+          "c17",
+          "c18",
+          "c19",
+          "c20",
+          "c21",
+          "c22",
+          "c23",
+          "c24",
+          "c25",
+          "c26",
+          "c27",
+          "c28",
+          "c29",
+          "c30",
+          "c31",
+          "c32",
+          "c33",
+          "c34",
+          "c35",
+          "c36",
+          "c37",
+          "c38",
+          "c39",
+          "c40",
+          "c41",
+          "c42",
+          "_rowid",
+          "_rowaddr"
+        ]
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 4,
+        "name": "build_mem_used",
+        "value": 476152
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 0,
+        "name": "build_mem_used",
+        "value": 336824
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 1,
+        "name": "build_mem_used",
+        "value": 336824
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 3,
+        "name": "build_mem_used",
+        "value": 336824
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 8,
+        "name": "build_mem_used",
+        "value": 476152
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 2,
+        "name": "build_mem_used",
+        "value": 336824
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 7,
+        "name": "build_mem_used",
+        "value": 336824
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 11,
+        "name": "build_mem_used",
+        "value": 476152
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 6,
+        "name": "build_mem_used",
+        "value": 476152
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 12,
+        "name": "build_mem_used",
+        "value": 476152
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 5,
+        "name": "build_mem_used",
+        "value": 336824
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 10,
+        "name": "build_mem_used",
+        "value": 336824
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 9,
+        "name": "build_mem_used",
+        "value": 476152
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 13,
+        "name": "build_mem_used",
+        "value": 336824
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 14
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "active_read_tasks",
+        "value": 0
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 13
+      }
+    ],
+    "unix_seconds": 1792325809.079178
+  },
+  "join_policy": {
+    "phase": "join_policy",
+    "decision": "source_default",
+    "target_width": 396,
+    "target_rows": "Exact(4000000)",
+    "model_bytes": 3425048576,
+    "threshold_bytes": 33554432,
+    "source_evidence": "Complete",
+    "target_schema": "Schema { fields: [Field { name: \"id\", data_type: Int64, nullable: true }, Field { name: \"c2\", data_type: Int64, nullable: true }, Field { name: \"c3\", data_type: Int64, nullable: true }, Field { name: \"c4\", data_type: Int64, nullable: true }, Field { name: \"c5\", data_type: Int64, nullable: true }, Field { name: \"c6\", data_type: Int64, nullable: true }, Field { name: \"c7\", data_type: Int64, nullable: true }, Field { name: \"c8\", data_type: Int64, nullable: true }, Field { name: \"c9\", data_type: Int64, nullable: true }, Field { name: \"c10\", data_type: Int64, nullable: true }, Field { name: \"c11\", data_type: Int64, nullable: true }, Field { name: \"c12\", data_type: Int64, nullable: true }, Field { name: \"c13\", data_type: Int64, nullable: true }, Field { name: \"c14\", data_type: Int64, nullable: true }, Field { name: \"c15\", data_type: Int64, nullable: true }, Field { name: \"c16\", data_type: Int64, nullable: true }, Field { name: \"c17\", data_type: Int64, nullable: true }, Field { name: \"c18\", data_type: Int64, nullable: true }, Field { name: \"c19\", data_type: Int64, nullable: true }, Field { name: \"c20\", data_type: Int64, nullable: true }, Field { name: \"c21\", data_type: Int64, nullable: true }, Field { name: \"c22\", data_type: Int64, nullable: true }, Field { name: \"c23\", data_type: Int64, nullable: true }, Field { name: \"c24\", data_type: Int64, nullable: true }, Field { name: \"c25\", data_type: Int64, nullable: true }, Field { name: \"c26\", data_type: Int64, nullable: true }, Field { name: \"c27\", data_type: Int64, nullable: true }, Field { name: \"c28\", data_type: Int64, nullable: true }, Field { name: \"c29\", data_type: Int64, nullable: true }, Field { name: \"c30\", data_type: Int64, nullable: true }, Field { name: \"c31\", data_type: Int64, nullable: true }, Field { name: \"c32\", data_type: Int64, nullable: true }, Field { name: \"c33\", data_type: Int64, nullable: true }, Field { name: \"c34\", data_type: Int64, nullable: true }, Field { name: \"c35\", data_type: Int64, nullable: true }, Field { name: \"c36\", data_type: Int64, nullable: true }, Field { name: \"c37\", data_type: Int64, nullable: true }, Field { name: \"c38\", data_type: Int64, nullable: true }, Field { name: \"c39\", data_type: Int64, nullable: true }, Field { name: \"c40\", data_type: Int64, nullable: true }, Field { name: \"c41\", data_type: Int64, nullable: true }, Field { name: \"c42\", data_type: Int64, nullable: true }, Field { name: \"_rowid\", data_type: UInt64, nullable: true }, Field { name: \"_rowaddr\", data_type: UInt64, nullable: true }], metadata: {} }",
+    "stats_guard": false,
+    "unix_seconds": 1792325808.7100072
+  },
+  "sampled_peak_rss_bytes": 942989312,
+  "sampled_peak_anon_bytes": 775610368,
+  "detailed_diagnostics_enabled": true
+}

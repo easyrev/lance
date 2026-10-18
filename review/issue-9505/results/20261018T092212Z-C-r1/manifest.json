@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "revision": "C-r1",
+  "variants": {
+    "U": {
+      "commit": "dc53d5d174af62c49ddd98d1024a64488c1e4404",
+      "lock_sha256": "3d60abf2a8ebad18ccab83cf5675bc277d5afc5f4dd713ac58e7ad3877891ad8",
+      "worktree": "/mnt/lance/checkouts/U",
+      "target": "/mnt/lance/targets/U"
+    },
+    "B": {
+      "commit": "793e4e27119540a17ae37ce78d4f5f4d52060a93",
+      "lock_sha256": "3d60abf2a8ebad18ccab83cf5675bc277d5afc5f4dd713ac58e7ad3877891ad8",
+      "worktree": "/mnt/lance/checkouts/B",
+      "target": "/mnt/lance/targets/B"
+    },
+    "C": {
+      "commit": "dc53d5d174af62c49ddd98d1024a64488c1e4404",
+      "lock_sha256": "3d60abf2a8ebad18ccab83cf5675bc277d5afc5f4dd713ac58e7ad3877891ad8",
+      "worktree": "/mnt/lance/checkouts/C",
+      "target": "/mnt/lance/targets/C"
+    },
+    "P_reconstructed": {
+      "commit": "90d981870c960e3bb55bfa46b206853ea4282fdb",
+      "lock_sha256": "3d60abf2a8ebad18ccab83cf5675bc277d5afc5f4dd713ac58e7ad3877891ad8",
+      "worktree": "/mnt/lance/checkouts/P",
+      "target": "/mnt/lance/targets/P"
+    }
+  },
+  "design_sha256": "e28864913fc15f619906cd103ce8ca5491d6f4b5da50895f9afaacc8beef1471",
+  "profile": "release-with-debug",
+  "toolchain": "1.98.1",
+  "cpu_target": "haswell; +avx2,+fma,+f16c",
+  "units": "integer bytes, seconds",
+  "thresholds": {
+    "prefix_bytes": "min(100 MiB, Mpolicy/8)",
+    "prefix_rows": "session hash_join_single_partition_threshold_rows, default 131072",
+    "prefix_batches": 1024,
+    "small_target": "min(32 MiB, Mpolicy/4)",
+    "native_retention_median_improvement": 0.1,
+    "regression_investigation": 0.1
+  },
+  "status": "implementation; not frozen",
+  "historical_P_equivalence": "unverified",
+  "pool_ablation": "same fresh canonical context; only pool implementation changes"
+}

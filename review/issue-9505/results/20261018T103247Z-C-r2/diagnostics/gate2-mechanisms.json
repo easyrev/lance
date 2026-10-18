@@ -1,0 +1,719 @@
+[
+  {
+    "run": "g2-F4-B",
+    "status": "validated_success",
+    "pool": null,
+    "P": null,
+    "N": null,
+    "width": null,
+    "io": null,
+    "stop": null,
+    "rows": null,
+    "bytes": null,
+    "decision": null,
+    "guard": null,
+    "peak": null,
+    "counts": {},
+    "topology": []
+  },
+  {
+    "run": "g2-F4-Cbudget",
+    "status": "validated_success",
+    "pool": "FairSpillPool",
+    "P": 14,
+    "N": 14,
+    "width": 396,
+    "io": 268435456,
+    "stop": "eof",
+    "rows": 100,
+    "bytes": 2688,
+    "decision": "source_default",
+    "guard": false,
+    "peak": 17331544,
+    "counts": {
+      "build_input_rows": 100,
+      "num_updated_rows": 100,
+      "scan_initializations": 1,
+      "num_inserted_rows": 0
+    },
+    "topology": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 14
+      },
+      {
+        "kind": "join",
+        "mode": "CollectLeft"
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 1
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 14
+      }
+    ]
+  },
+  {
+    "run": "g2-F4-Ccore",
+    "status": "validated_success",
+    "pool": "FairSpillPool",
+    "P": 14,
+    "N": 14,
+    "width": 396,
+    "io": 268435456,
+    "stop": "eof",
+    "rows": 100,
+    "bytes": 2688,
+    "decision": "source_default",
+    "guard": false,
+    "peak": 4696,
+    "counts": {
+      "num_updated_rows": 100,
+      "scan_initializations": 1,
+      "build_input_rows": 100,
+      "num_inserted_rows": 0
+    },
+    "topology": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 14
+      },
+      {
+        "kind": "join",
+        "mode": "CollectLeft"
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 14
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 13
+      }
+    ]
+  },
+  {
+    "run": "g2-F4-Cprep",
+    "status": "validated_success",
+    "pool": "FairSpillPool",
+    "P": 14,
+    "N": 14,
+    "width": 396,
+    "io": 268435456,
+    "stop": "eof",
+    "rows": 100,
+    "bytes": 2688,
+    "decision": "source_default",
+    "guard": false,
+    "peak": 23107160,
+    "counts": {
+      "num_updated_rows": 100,
+      "build_input_rows": 100,
+      "scan_initializations": 1,
+      "num_inserted_rows": 0
+    },
+    "topology": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 14
+      },
+      {
+        "kind": "join",
+        "mode": "CollectLeft"
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 1
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 14
+      }
+    ]
+  },
+  {
+    "run": "g2-F4-P_reconstructed",
+    "status": "validated_success",
+    "pool": null,
+    "P": null,
+    "N": null,
+    "width": null,
+    "io": null,
+    "stop": null,
+    "rows": null,
+    "bytes": null,
+    "decision": null,
+    "guard": null,
+    "peak": null,
+    "counts": {},
+    "topology": []
+  },
+  {
+    "run": "g2-F4-U",
+    "status": "validated_success",
+    "pool": null,
+    "P": null,
+    "N": null,
+    "width": null,
+    "io": null,
+    "stop": null,
+    "rows": null,
+    "bytes": null,
+    "decision": null,
+    "guard": null,
+    "peak": null,
+    "counts": {},
+    "topology": []
+  },
+  {
+    "run": "g2-R-B",
+    "status": "validated_success",
+    "pool": null,
+    "P": null,
+    "N": null,
+    "width": null,
+    "io": null,
+    "stop": null,
+    "rows": null,
+    "bytes": null,
+    "decision": null,
+    "guard": null,
+    "peak": null,
+    "counts": {},
+    "topology": []
+  },
+  {
+    "run": "g2-R-Ccore",
+    "status": "validated_success",
+    "pool": "FairSpillPool",
+    "P": 14,
+    "N": 14,
+    "width": 27,
+    "io": 268435456,
+    "stop": "rows",
+    "rows": 163840,
+    "bytes": 57692800,
+    "decision": "small_fixed_target",
+    "guard": false,
+    "peak": 48733112,
+    "counts": {
+      "num_updated_rows": 100000,
+      "build_input_rows": 100000,
+      "scan_initializations": 1,
+      "num_inserted_rows": 2900000
+    },
+    "topology": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 14
+      },
+      {
+        "kind": "join",
+        "mode": "Partitioned"
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 14
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 5
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      }
+    ]
+  },
+  {
+    "run": "g2-R-P_reconstructed",
+    "status": "resource_exhausted",
+    "pool": null,
+    "P": null,
+    "N": null,
+    "width": null,
+    "io": null,
+    "stop": null,
+    "rows": null,
+    "bytes": null,
+    "decision": null,
+    "guard": null,
+    "peak": null,
+    "counts": {},
+    "topology": []
+  },
+  {
+    "run": "g2-Wauto-Ccore",
+    "status": "validated_success",
+    "pool": "FairSpillPool",
+    "P": 14,
+    "N": 14,
+    "width": 5243173,
+    "io": 268435456,
+    "stop": "bytes",
+    "rows": 25,
+    "bytes": 262144624,
+    "decision": "source_default",
+    "guard": true,
+    "peak": 346821140,
+    "counts": {
+      "scan_initializations": 1,
+      "num_inserted_rows": 0,
+      "num_updated_rows": 25,
+      "build_input_rows": 25
+    },
+    "topology": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 14
+      },
+      {
+        "kind": "join",
+        "mode": "Partitioned"
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 1
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 14
+      }
+    ]
+  },
+  {
+    "run": "g2-Wn-Cbudget",
+    "status": "validated_success",
+    "pool": "FairSpillPool",
+    "P": 14,
+    "N": 14,
+    "width": 5243173,
+    "io": 268435456,
+    "stop": "eof",
+    "rows": 25,
+    "bytes": 888,
+    "decision": "source_default",
+    "guard": true,
+    "peak": 2364,
+    "counts": {
+      "num_inserted_rows": 0,
+      "num_updated_rows": 25,
+      "build_input_rows": 25,
+      "scan_initializations": 1
+    },
+    "topology": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 14
+      },
+      {
+        "kind": "join",
+        "mode": "CollectLeft"
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 1
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 14
+      }
+    ]
+  },
+  {
+    "run": "g2-Wn-Ccore",
+    "status": "validated_success",
+    "pool": "FairSpillPool",
+    "P": 14,
+    "N": 14,
+    "width": 5243173,
+    "io": 268435456,
+    "stop": "eof",
+    "rows": 25,
+    "bytes": 888,
+    "decision": "source_default",
+    "guard": true,
+    "peak": 2364,
+    "counts": {
+      "scan_initializations": 1,
+      "build_input_rows": 25,
+      "num_inserted_rows": 0,
+      "num_updated_rows": 25
+    },
+    "topology": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 1
+      },
+      {
+        "kind": "join",
+        "mode": "CollectLeft"
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 1
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 14
+      }
+    ]
+  },
+  {
+    "run": "g2-Wn-Cprep",
+    "status": "validated_success",
+    "pool": "FairSpillPool",
+    "P": 14,
+    "N": 14,
+    "width": 5243173,
+    "io": 268435456,
+    "stop": "eof",
+    "rows": 25,
+    "bytes": 888,
+    "decision": "source_default",
+    "guard": true,
+    "peak": 2364,
+    "counts": {
+      "build_input_rows": 25,
+      "scan_initializations": 1,
+      "num_inserted_rows": 0,
+      "num_updated_rows": 25
+    },
+    "topology": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 14
+      },
+      {
+        "kind": "join",
+        "mode": "CollectLeft"
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 1
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 3
+      }
+    ]
+  },
+  {
+    "run": "g2-Wn-P_reconstructed",
+    "status": "validated_success",
+    "pool": null,
+    "P": null,
+    "N": null,
+    "width": null,
+    "io": null,
+    "stop": null,
+    "rows": null,
+    "bytes": null,
+    "decision": null,
+    "guard": null,
+    "peak": null,
+    "counts": {},
+    "topology": []
+  },
+  {
+    "run": "g2-Ws-Cbudget",
+    "status": "validated_success",
+    "pool": "FairSpillPool",
+    "P": 14,
+    "N": 14,
+    "width": 5243173,
+    "io": 268435456,
+    "stop": "bytes",
+    "rows": 25,
+    "bytes": 262144624,
+    "decision": "source_default",
+    "guard": true,
+    "peak": 262151456,
+    "counts": {
+      "num_inserted_rows": 0,
+      "build_input_rows": 25,
+      "num_updated_rows": 25,
+      "scan_initializations": 1
+    },
+    "topology": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 14
+      },
+      {
+        "kind": "join",
+        "mode": "Partitioned"
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 1
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 14
+      }
+    ]
+  },
+  {
+    "run": "g2-Ws-Ccore",
+    "status": "validated_success",
+    "pool": "FairSpillPool",
+    "P": 14,
+    "N": 14,
+    "width": 5243173,
+    "io": 268435456,
+    "stop": "bytes",
+    "rows": 25,
+    "bytes": 262144624,
+    "decision": "source_default",
+    "guard": true,
+    "peak": 262151456,
+    "counts": {
+      "build_input_rows": 25,
+      "num_updated_rows": 25,
+      "num_inserted_rows": 0,
+      "scan_initializations": 1
+    },
+    "topology": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 14
+      },
+      {
+        "kind": "join",
+        "mode": "Partitioned"
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 1
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 14
+      }
+    ]
+  },
+  {
+    "run": "g2-Ws-Cprep",
+    "status": "validated_success",
+    "pool": "FairSpillPool",
+    "P": 14,
+    "N": 14,
+    "width": 5243173,
+    "io": 268435456,
+    "stop": "bytes",
+    "rows": 25,
+    "bytes": 262144624,
+    "decision": "source_default",
+    "guard": true,
+    "peak": 262151456,
+    "counts": {
+      "scan_initializations": 1,
+      "num_inserted_rows": 0,
+      "build_input_rows": 25,
+      "num_updated_rows": 25
+    },
+    "topology": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 14
+      },
+      {
+        "kind": "join",
+        "mode": "Partitioned"
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 1
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "run": "g2-Ws-P_reconstructed",
+    "status": "validated_success",
+    "pool": null,
+    "P": null,
+    "N": null,
+    "width": null,
+    "io": null,
+    "stop": null,
+    "rows": null,
+    "bytes": null,
+    "decision": null,
+    "guard": null,
+    "peak": null,
+    "counts": {},
+    "topology": []
+  }
+]

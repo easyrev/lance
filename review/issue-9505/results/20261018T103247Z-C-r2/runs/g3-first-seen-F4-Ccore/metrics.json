@@ -1,0 +1,68 @@
+{
+  "execute_returned": true,
+  "merge_seconds": 0.426308369,
+  "snapshot": 20,
+  "source_rows": 200,
+  "merge_stats": {
+    "num_updated_rows": 100,
+    "num_inserted_rows": 0,
+    "num_deleted_rows": 0,
+    "num_skipped_duplicates": 100
+  },
+  "run_id": "g3-first-seen-F4-Ccore",
+  "variant": "Ccore",
+  "spec": {
+    "seed": 9505,
+    "epoch": 1,
+    "source_rows": 100,
+    "batch_rows": 32768,
+    "source": "reader",
+    "full": false,
+    "binary": 0,
+    "dense": false,
+    "first_seen": true,
+    "rows": 4000000,
+    "columns": 44,
+    "fragment_rows": 100000,
+    "name": "F4",
+    "oracle": "splitmix64-v1"
+  },
+  "block": 0,
+  "formal": false,
+  "pool_bytes": 1073741824,
+  "memory_max_bytes": 8589934592,
+  "execution_surface": "Rust test binary; mechanism smoke, not Python latency comparison",
+  "execution": {
+    "command": [
+      "/mnt/lance/targets/C/release-with-debug/deps/lance-31a368c8670aef12",
+      "dataset::write::merge_insert::tests::candidate_source::first_seen_preparation_keeps_batch_order",
+      "--exact",
+      "--test-threads=1"
+    ],
+    "variant": "Ccore",
+    "operation": "first_seen",
+    "exit_code": 0,
+    "timeout": false,
+    "before": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "0",
+      "memory.peak": "0",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+    },
+    "after": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "2666496",
+      "memory.peak": "100032512",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 791523\nuser_usec 497991\nsystem_usec 293531\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+    },
+    "confirmed_oom": false
+  },
+  "status": "validated_success",
+  "validated": true
+}

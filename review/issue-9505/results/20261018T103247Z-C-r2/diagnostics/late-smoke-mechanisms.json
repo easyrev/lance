@@ -1,0 +1,177 @@
+[
+  {
+    "workload": "V_sparse",
+    "variant": "Ccore",
+    "status": "validated_success",
+    "seconds": 2.036940501000572,
+    "rss": 1523564544,
+    "anon": 1363238912,
+    "cgroup_peak": "1384128512",
+    "counts": {
+      "scan_initializations": 1
+    },
+    "scan_take_bytes": 2209583560,
+    "scan_runtime": [
+      {
+        "phase": "scan_runtime_initialized",
+        "scheduler_id": "0x7963e402acb0",
+        "threading": "MultiplePartitions(14)",
+        "fragment_readahead": 16,
+        "batch_rows": 8192,
+        "io_bytes": 268435456,
+        "projection": [
+          "id",
+          "payload",
+          "new_payload",
+          "row_marker"
+        ],
+        "unix_seconds": 1792325879.8358958
+      }
+    ]
+  },
+  {
+    "workload": "V_sparse",
+    "variant": "Clate",
+    "status": "validated_success",
+    "seconds": 0.028453531000195653,
+    "rss": 259952640,
+    "anon": 84209664,
+    "cgroup_peak": "96694272",
+    "counts": {
+      "payload_take_arrow_bytes": 39979,
+      "payload_take_rows": 25,
+      "scan_initializations": 1
+    },
+    "scan_take_bytes": 5129552,
+    "scan_runtime": [
+      {
+        "phase": "scan_runtime_initialized",
+        "scheduler_id": "0x7bc2d8029800",
+        "threading": "MultiplePartitions(14)",
+        "fragment_readahead": 16,
+        "batch_rows": 8192,
+        "io_bytes": 268435456,
+        "projection": [
+          "id"
+        ],
+        "unix_seconds": 1792325955.4414291
+      }
+    ]
+  },
+  {
+    "workload": "Wn",
+    "variant": "Ccore",
+    "status": "validated_success",
+    "seconds": 2.0398235239990754,
+    "rss": 2633211904,
+    "anon": 2464755712,
+    "cgroup_peak": "2495578112",
+    "counts": {
+      "scan_initializations": 1
+    },
+    "scan_take_bytes": 2097314032,
+    "scan_runtime": [
+      {
+        "phase": "scan_runtime_initialized",
+        "scheduler_id": "0x7e6c04089860",
+        "threading": "OnePartitionMultipleThreads(14)",
+        "fragment_readahead": 16,
+        "batch_rows": 3,
+        "io_bytes": 268435456,
+        "projection": [
+          "id",
+          "payload",
+          "new_payload",
+          "row_marker"
+        ],
+        "unix_seconds": 1792326027.832441
+      }
+    ]
+  },
+  {
+    "workload": "Wn",
+    "variant": "Clate",
+    "status": "validated_success",
+    "seconds": 0.5626143339995906,
+    "rss": 742473728,
+    "anon": 572899328,
+    "cgroup_peak": "598614016",
+    "counts": {
+      "payload_take_rows": 25,
+      "payload_take_arrow_bytes": 131072952,
+      "scan_initializations": 1
+    },
+    "scan_take_bytes": 70816,
+    "scan_runtime": [
+      {
+        "phase": "scan_runtime_initialized",
+        "scheduler_id": "0x767d7c00c790",
+        "threading": "OnePartitionMultipleThreads(14)",
+        "fragment_readahead": 16,
+        "batch_rows": 8192,
+        "io_bytes": 268435456,
+        "projection": [
+          "id"
+        ],
+        "unix_seconds": 1792326038.1422932
+      }
+    ]
+  },
+  {
+    "workload": "W_dense",
+    "variant": "Ccore",
+    "status": "confirmed_oom",
+    "seconds": null,
+    "rss": 8726061056,
+    "anon": 8563122176,
+    "cgroup_peak": "8589934592",
+    "counts": {},
+    "scan_take_bytes": null,
+    "scan_runtime": [
+      {
+        "phase": "scan_runtime_initialized",
+        "scheduler_id": "0x79d58c066280",
+        "threading": "OnePartitionMultipleThreads(14)",
+        "fragment_readahead": 16,
+        "batch_rows": 3,
+        "io_bytes": 268435456,
+        "projection": [
+          "id",
+          "payload",
+          "new_payload",
+          "row_marker"
+        ],
+        "unix_seconds": 1792326046.7977562
+      }
+    ]
+  },
+  {
+    "workload": "W_dense",
+    "variant": "Clate",
+    "status": "validated_success",
+    "seconds": 8.790002718000324,
+    "rss": 7263481856,
+    "anon": 7099060224,
+    "cgroup_peak": "7184232448",
+    "counts": {
+      "payload_take_arrow_bytes": 1887445792,
+      "payload_take_rows": 360,
+      "scan_initializations": 1
+    },
+    "scan_take_bytes": 70816,
+    "scan_runtime": [
+      {
+        "phase": "scan_runtime_initialized",
+        "scheduler_id": "0x7253fc00c1b0",
+        "threading": "OnePartitionMultipleThreads(14)",
+        "fragment_readahead": 16,
+        "batch_rows": 8192,
+        "io_bytes": 268435456,
+        "projection": [
+          "id"
+        ],
+        "unix_seconds": 1792326400.9282227
+      }
+    ]
+  }
+]

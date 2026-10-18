@@ -1,0 +1,11 @@
+{
+  "status": "resource_exhausted",
+  "snapshot": 1,
+  "rows": 1,
+  "source_rows": 100000,
+  "source": "materialized",
+  "execute_returned": false,
+  "purpose": "known build exceeds pool; no matches",
+  "error": "Resources exhausted: Additional allocation failed for HashJoinInput with top memory consumers (across reservations) as:\n  HashJoinInput#0(can spill: false) consumed 98.7 KB, peak 98.7 KB.\nError: Failed to allocate additional 98.7 KB for HashJoinInput with 98.7 KB already allocated for this reservation - 29.3 KB remain available for the total memory pool: fair(pool_size: 128.0 KB)",
+  "merge_seconds": 0.006517854999401607
+}

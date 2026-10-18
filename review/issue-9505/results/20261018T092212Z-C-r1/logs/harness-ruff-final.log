@@ -1,0 +1,21 @@
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:377:89: E501 Line too long (97 > 88)
+    |
+375 |         max(spec["rows"], spec["source_rows"]) if spec["full"] else spec["rows"]
+376 |     )
+377 |     # Count and moments identify the expected unique physical markers without collecting batches.
+    |                                                                                         ^^^^^^^^^ E501
+378 |     marker_sum = 0
+379 |     marker_square_sum = 0
+    |
+
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py:487:9: PERF203 `try`-`except` within a loop incurs performance overhead
+    |
+485 |           try:
+486 |               result[name] = (path / name).read_text().strip()
+487 | /         except FileNotFoundError:
+488 | |             result[name] = None
+    | |_______________________________^ PERF203
+489 |       return result
+    |
+
+Found 2 errors.

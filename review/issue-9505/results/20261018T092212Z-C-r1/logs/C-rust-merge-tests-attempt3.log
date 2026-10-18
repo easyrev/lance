@@ -1,0 +1,13 @@
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance)
+error[E0507]: cannot move out of a shared reference
+   --> rust/lance/src/dataset/write/merge_insert/exec/payload.rs:274:9
+    |
+274 |         assert_eq!(output[0]["__action"], batch["__action"]);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ move occurs because value has type `std::sync::Arc<dyn arrow_array::Array>`, which does not implement the `Copy` trait
+
+For more information about this error, try `rustc --explain E0507`.
+error: could not compile `lance` (lib test) due to 1 previous error

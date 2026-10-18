@@ -1,0 +1,82 @@
+{
+  "status": "validated_success",
+  "validated": true,
+  "pid": 110191,
+  "spec": {
+    "seed": 9505,
+    "epoch": 1,
+    "source_rows": 100,
+    "batch_rows": 32768,
+    "source": "reader",
+    "full": false,
+    "binary": 0,
+    "dense": false,
+    "first_seen": false,
+    "rows": 16000000,
+    "columns": 44,
+    "fragment_rows": 100000,
+    "name": "F16",
+    "oracle": "splitmix64-v1"
+  },
+  "module": "/mnt/lance/checkouts/B/python/python/lance/__init__.py",
+  "version": "14.0.0-beta.19",
+  "snapshot": 47,
+  "baseline_rss_bytes": 172421120,
+  "input_materialization_seconds": 6.629998097196221e-07,
+  "stage": "execute_finished",
+  "source_lazy_at_execute_start": true,
+  "execute_started_monotonic": 14739.883088734,
+  "execute_started_wall_ns": 1792325515363038674,
+  "merge_stats": {
+    "num_inserted_rows": 0,
+    "num_updated_rows": 100,
+    "num_deleted_rows": 0
+  },
+  "execute_returned": true,
+  "merge_seconds": 1.5567380780012172,
+  "cpu_seconds": 5.901688,
+  "average_cpu_cores": 3.7910603481720613,
+  "ru_maxrss_bytes": 1146822656,
+  "execution": {
+    "command": [
+      "/root/.local/bin/uv",
+      "run",
+      "--no-sync",
+      "python",
+      "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/bench.py",
+      "worker",
+      "execute",
+      "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/runs/g3-F16-reader-b4-B"
+    ],
+    "variant": "B",
+    "operation": "execute",
+    "exit_code": 0,
+    "timeout": false,
+    "before": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "0",
+      "memory.peak": "0",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+    },
+    "after": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "3145728",
+      "memory.peak": "996642816",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 7860110\nuser_usec 5552564\nsystem_usec 2307546\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+    },
+    "confirmed_oom": false
+  },
+  "run_id": "g3-F16-reader-b4-B",
+  "variant": "B",
+  "block": 4,
+  "formal": true,
+  "sampled_peak_rss_bytes": 1146281984,
+  "sampled_peak_anon_bytes": 980279296,
+  "detailed_diagnostics_enabled": false
+}

@@ -1,0 +1,24 @@
+    Blocking waiting for file lock on build directory
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v14.0.0-beta.19 (/mnt/lance/checkouts/C/rust/lance)
+error[E0308]: mismatched types
+    --> rust/lance/src/io/exec/filtered_read.rs:4084:60
+     |
+4084 |         let options = FilteredReadOptions::basic_full_read(&dataset);
+     |                       ------------------------------------ ^^^^^^^^ expected `&Arc<Dataset>`, found `&Dataset`
+     |                       |
+     |                       arguments to this function are incorrect
+     |
+     = note: expected reference `&std::sync::Arc<dataset::Dataset>`
+                found reference `&dataset::Dataset`
+note: associated function defined here
+    --> rust/lance/src/io/exec/filtered_read.rs:1977:12
+     |
+1977 |     pub fn basic_full_read(dataset: &Arc<Dataset>) -> Self {
+     |            ^^^^^^^^^^^^^^^ ----------------------
+
+
+Coordinator: stopped known failed compiler with SIGINT after E0308; corrected fixture uses Arc<Dataset>. See C-final-tests-rerun.log.

@@ -1,0 +1,2668 @@
+diff --git a/rust/lance/src/datafusion/dataframe.rs b/rust/lance/src/datafusion/dataframe.rs
+index 10d961ba..158cad22 100644
+--- a/rust/lance/src/datafusion/dataframe.rs
++++ b/rust/lance/src/datafusion/dataframe.rs
+@@ -43,6 +43,7 @@ pub struct LanceTableProvider {
+     blob_handling: Option<lance_core::datatypes::BlobHandling>,
+     batch_size: Option<usize>,
+     batch_size_bytes: Option<u64>,
++    merge_scan_policy: Option<Arc<crate::dataset::write::merge_insert::candidate::MergeScanPolicy>>,
+ }
+ 
+ impl LanceTableProvider {
+@@ -77,6 +78,7 @@ impl LanceTableProvider {
+             blob_handling: None,
+             batch_size: None,
+             batch_size_bytes: None,
++            merge_scan_policy: None,
+         }
+     }
+ 
+@@ -140,6 +142,14 @@ impl LanceTableProvider {
+     pub fn dataset(&self) -> Arc<Dataset> {
+         self.dataset.clone()
+     }
++
++    pub(crate) fn with_merge_scan_policy(
++        mut self,
++        policy: Arc<crate::dataset::write::merge_insert::candidate::MergeScanPolicy>,
++    ) -> Self {
++        self.merge_scan_policy = Some(policy);
++        self
++    }
+ }
+ 
+ #[async_trait]
+@@ -160,6 +170,10 @@ impl TableProvider for LanceTableProvider {
+         limit: Option<usize>,
+     ) -> datafusion::common::Result<Arc<dyn ExecutionPlan>> {
+         let mut scan = self.dataset.scan();
++        if let Some(policy) = &self.merge_scan_policy {
++            scan.target_parallelism(state.config().target_partitions());
++            scan.merge_scan_policy(policy.clone());
++        }
+         if let Some(handling) = self.blob_handling.clone() {
+             scan.blob_handling(handling);
+         }
+diff --git a/rust/lance/src/dataset/scanner.rs b/rust/lance/src/dataset/scanner.rs
+index fdc0f299..c3be7925 100644
+--- a/rust/lance/src/dataset/scanner.rs
++++ b/rust/lance/src/dataset/scanner.rs
+@@ -1256,6 +1256,7 @@ pub struct Scanner {
+     ///
+     /// Defaults to `get_num_compute_intensive_cpus()`.
+     target_parallelism: Option<usize>,
++    merge_scan_policy: Option<Arc<crate::dataset::write::merge_insert::candidate::MergeScanPolicy>>,
+ 
+     // Legacy fields to help migrate some old projection behavior to new behavior
+     //
+@@ -1704,6 +1705,7 @@ impl Scanner {
+             autoproject_scoring_columns: true,
+             relational_algebra_version: LANCE_RELATIONAL_ALGEBRA_VERSION,
+             target_parallelism: None,
++            merge_scan_policy: None,
+         };
+         scanner.apply_blob_handling();
+         scanner
+@@ -2238,6 +2240,13 @@ impl Scanner {
+         self
+     }
+ 
++    pub(crate) fn merge_scan_policy(
++        &mut self,
++        policy: Arc<crate::dataset::write::merge_insert::candidate::MergeScanPolicy>,
++    ) {
++        self.merge_scan_policy = Some(policy);
++    }
++
+     /// Set whether to read data in order (default: true)
+     ///
+     /// A scan will always read from the disk concurrently.  If this property
+@@ -4162,6 +4171,35 @@ impl Scanner {
+                 read_options.with_materialization_readahead_bytes(materialization_readahead_bytes);
+         }
+ 
++        if let Some(policy) = &self.merge_scan_policy {
++            read_options.threading_mode =
++                FilteredReadThreadingMode::OnePartitionMultipleThreads(policy.decode_tasks);
++            // Both variants use the same inner and outer P. Only Ccore opts into native outputs.
++            if policy.use_budget {
++                if let Some(width) = policy.width {
++                    let cap = read_options
++                        .batch_size
++                        .map(usize::try_from)
++                        .transpose()
++                        .map_err(|e| Error::invalid_input(e.to_string()))?
++                        .or_else(get_default_batch_size)
++                        .unwrap_or_else(|| {
++                            (self.dataset.object_store.block_size() / 4).max(BATCH_SIZE_FALLBACK)
++                        });
++                    let rows = (policy.decode_bytes / policy.partitions as u64 / width.max(1))
++                        .max(1)
++                        .min(cap as u64);
++                    read_options.batch_size = Some(validate_batch_size(rows as usize)?);
++                }
++                if let Some(io) = policy.io_bytes {
++                    read_options.io_buffer_size_bytes = Some(io);
++                }
++            }
++            if policy.use_native && !self.ordered && self.batch_size_bytes.is_none() {
++                read_options.native_partitions = Some(policy.partitions);
++            }
++        }
++
+         Ok(read_options)
+     }
+ 
+@@ -9077,6 +9115,54 @@ mod test {
+         DatagenExt, FragmentCount, FragmentRowCount, ThrottledStoreWrapper, assert_plan_node_equals,
+     };
+ 
++    #[rstest]
++    #[case::two_outputs(2)]
++    #[case::one_output(1)]
++    #[tokio::test]
++    async fn native_merge_policy_preserves_reduced_partitions(#[case] partitions: usize) {
++        let dataset = Arc::new(
++            gen_batch()
++                .col("key", array::step::<UInt64Type>())
++                .into_ram_dataset(FragmentCount::from(2), FragmentRowCount::from(2))
++                .await
++                .unwrap(),
++        );
++        let mut scanner = Scanner::new(dataset.clone());
++        scanner.scan_in_order(false).target_parallelism(partitions);
++        scanner.merge_scan_policy(Arc::new(
++            crate::dataset::write::merge_insert::candidate::MergeScanPolicy {
++                partitions,
++                decode_tasks: 4,
++                io_bytes: Some(16 * 1024 * 1024),
++                decode_bytes: 64,
++                width: Some(if partitions == 1 { 65 } else { 22 }),
++                use_budget: true,
++                use_native: true,
++            },
++        ));
++        let options = scanner.read_options(dataset.full_projection()).unwrap();
++        assert_eq!(options.native_partitions, Some(partitions));
++        assert_eq!(options.batch_size, Some(1));
++        assert_eq!(options.io_buffer_size_bytes, Some(16 * 1024 * 1024));
++        assert_eq!(scanner.target_parallelism, Some(partitions));
++        let plan = FilteredReadExec::try_new(dataset, options, None).unwrap();
++        let native = plan
++            .repartitioned(partitions, &ConfigOptions::new())
++            .unwrap();
++        if partitions > 1 {
++            assert!(native.is_some());
++        }
++        let outputs = native.as_ref().map_or(1, |plan| {
++            plan.properties().output_partitioning().partition_count()
++        });
++        assert_eq!(outputs, partitions);
++        assert!(
++            plan.repartitioned(16, &ConfigOptions::new())
++                .unwrap()
++                .is_none()
++        );
++    }
++
+     #[test]
+     fn test_fts_query_contract_rejects_invalid_values() {
+         let negative_match = FtsQuery::Match(MatchQuery::new("hello".to_string()).with_boost(-1.0));
+diff --git a/rust/lance/src/dataset/write/merge_insert.rs b/rust/lance/src/dataset/write/merge_insert.rs
+index f7fb2804..989bd94c 100644
+--- a/rust/lance/src/dataset/write/merge_insert.rs
++++ b/rust/lance/src/dataset/write/merge_insert.rs
+@@ -85,6 +85,7 @@ use arrow_array::{
+ };
+ use arrow_schema::{ArrowError, DataType, Field, Fields, Schema};
+ use arrow_select::take::take_record_batch;
++use candidate::{MergeResources, PreparedMergeSource, SourceEvidence};
+ use datafusion::common::tree_node::{Transformed, TreeNode};
+ use datafusion::common::{Column as DFColumn, NullEquality, TableReference};
+ use datafusion::error::DataFusionError;
+@@ -121,7 +122,7 @@ use lance_arrow::{RecordBatchExt, SchemaExt, interleave_batches};
+ use lance_core::datatypes::NullabilityComparison;
+ use lance_core::utils::address::RowAddress;
+ use lance_core::{
+-    Error, ROW_ADDR, ROW_ADDR_FIELD, ROW_ID, ROW_ID_FIELD, Result,
++    Error, ROW_ADDR, ROW_ADDR_FIELD, ROW_CREATED_AT_VERSION_FIELD, ROW_ID, ROW_ID_FIELD, Result,
+     datatypes::{OnMissing, OnTypeMismatch, SchemaCompareOptions},
+     error::{InvalidInputSnafu, box_error},
+     utils::{futures::Capacity, tokio::get_num_compute_intensive_cpus},
+@@ -158,8 +159,10 @@ use tokio::task::JoinSet;
+ use tracing::error;
+ 
+ mod assign_action;
++pub(crate) mod candidate;
+ mod exec;
+ mod logical_plan;
++mod stats_guard;
+ 
+ /// Check a merge source against the target schema. As on append, a legacy
+ /// blob input matches a Blob v2 target column; the writer converts it.
+@@ -773,6 +776,8 @@ pub struct MergeInsertJob {
+     dataset: Arc<Dataset>,
+     // The parameters controlling how to merge the two streams
+     params: MergeInsertParams,
++    resources: Option<Arc<MergeResources>>,
++    source_evidence: SourceEvidence,
+ }
+ 
+ /// Build a merge insert operation.
+@@ -1138,6 +1143,8 @@ impl MergeInsertBuilder {
+         Ok(MergeInsertJob {
+             dataset: self.dataset.clone(),
+             params,
++            resources: None,
++            source_evidence: SourceEvidence::ProviderStatsOnly,
+         })
+     }
+ }
+@@ -2353,11 +2360,15 @@ impl MergeInsertJob {
+     /// [`Self::execute_batches`] / [`Self::execute_provider`] for re-scannable
+     /// sources that never spill.
+     pub async fn execute(
+-        self,
++        mut self,
+         source: SendableRecordBatchStream,
+     ) -> Result<(Arc<Dataset>, MergeStats)> {
+-        let (provider, replayable) = self.stream_source_to_provider(source).await?;
+-        self.execute_inner(provider, replayable).await
++        self.prepare_resources(source.schema().as_ref()).await?;
++        let allow_replay = self.params.conflict_retries > 0 && self.params.spill_for_retry;
++        let prepared = self.stream_source_to_provider(source, allow_replay).await?;
++        self.source_evidence = prepared.evidence;
++        self.execute_inner(prepared.provider, prepared.allow_replay)
++            .await
+     }
+ 
+     /// Executes the merge insert job from a re-scannable [`TableProvider`].
+@@ -2385,10 +2396,12 @@ impl MergeInsertJob {
+     /// the merge join. This is the preferred entry point when the full source is
+     /// already in memory.
+     pub async fn execute_batches(
+-        self,
++        mut self,
+         batches: Vec<RecordBatch>,
+     ) -> Result<(Arc<Dataset>, MergeStats)> {
+         let provider = self.batches_to_provider(batches)?;
++        self.prepare_resources(provider.schema().as_ref()).await?;
++        self.source_evidence = SourceEvidence::Complete;
+         self.execute_inner(provider, true).await
+     }
+ 
+@@ -2396,10 +2409,12 @@ impl MergeInsertJob {
+     ///
+     /// Use [`CommitBuilder`] to commit the returned transaction.
+     pub async fn execute_uncommitted_batches(
+-        self,
++        mut self,
+         batches: Vec<RecordBatch>,
+     ) -> Result<UncommittedMergeInsert> {
+         let provider = self.batches_to_provider(batches)?;
++        self.prepare_resources(provider.schema().as_ref()).await?;
++        self.source_evidence = SourceEvidence::Complete;
+         self.execute_uncommitted_impl(provider).await
+     }
+ 
+@@ -2435,20 +2450,174 @@ impl MergeInsertJob {
+     /// Wrap a one-shot stream source in a provider, returning whether it can be
+     /// replayed across retries.
+     ///
+-    /// With retries enabled and spilling allowed, the stream is drained into a
+-    /// replayable spill (memory up to 100MB, then disk). Otherwise the stream is
+-    /// wrapped in a non-replayable one-shot provider and any conflict fails fast.
++    /// Small supported inputs retain statistics only after observed EOF. Prefixes
++    /// retain their original order and use the operation's replay memory budget.
++    /// Replay permission remains independent of whether the source was buffered.
+     async fn stream_source_to_provider(
+         &self,
+-        source: SendableRecordBatchStream,
+-    ) -> Result<(Arc<dyn TableProvider>, bool)> {
+-        if self.params.conflict_retries > 0 && self.params.spill_for_retry {
+-            // Allow buffering up to 100MB in memory before spilling to disk.
+-            let provider = spilling_table_provider(source, 100 * 1024 * 1024).await?;
+-            Ok((provider, true))
++        mut source: SendableRecordBatchStream,
++        allow_replay: bool,
++    ) -> Result<PreparedMergeSource> {
++        let mut evidence = SourceEvidence::ProviderStatsOnly;
++        let memory_limit = self
++            .resources
++            .as_ref()
++            .map_or(100 * 1024 * 1024, |r| r.prefix_bytes);
++        if let Some(resources) = &self.resources {
++            let schema = source.schema();
++            let start = std::time::Instant::now();
++            let mut rows = 0usize;
++            let mut bytes = 0usize;
++            let mut batches = Vec::new();
++            let reason = loop {
++                let Some(batch) = source.next().await else {
++                    candidate::preparation_evidence(start, rows, bytes, batches.len(), "eof");
++                    // Keep encounter order until FirstSeen has selected its winners.
++                    let partitions =
++                        if self.params.source_dedupe_behavior == SourceDedupeBehavior::FirstSeen {
++                            vec![batches]
++                        } else {
++                            Self::batches_into_partitions(batches)
++                        };
++                    return Ok(PreparedMergeSource {
++                        provider: Arc::new(MemTable::try_new(schema, partitions)?),
++                        evidence: SourceEvidence::Complete,
++                        allow_replay,
++                    });
++                };
++                let batch = batch?;
++                rows = rows.saturating_add(batch.num_rows());
++                bytes = bytes.saturating_add(batch.get_array_memory_size());
++                batches.push(batch);
++                if bytes > resources.prefix_bytes {
++                    break "bytes";
++                }
++                if rows > resources.prefix_rows {
++                    break "rows";
++                }
++                if batches.len() >= 1024 {
++                    break "batches";
++                }
++            };
++            candidate::preparation_evidence(start, rows, bytes, batches.len(), reason);
++            evidence = SourceEvidence::Prefix;
++            source = Box::pin(RecordBatchStreamAdapter::new(
++                schema,
++                stream::iter(batches.into_iter().map(Ok)).chain(source),
++            ));
++        }
++        let provider = if allow_replay {
++            spilling_table_provider(source, memory_limit).await?
+         } else {
+-            Ok((one_shot_provider(source)?, false))
++            one_shot_provider(source)?
++        };
++        Ok(PreparedMergeSource {
++            provider,
++            evidence,
++            allow_replay,
++        })
++    }
++
++    async fn prepare_resources(&mut self, schema: &Schema) -> Result<()> {
++        // Validate before source consumption. Unsupported entry paths keep their existing behavior.
++        let sink = self.select_write_sink(schema)?;
++        self.check_compatible_schema(schema)?;
++        for key in &self.params.on {
++            if schema.field_with_name(key).is_err() {
++                return Err(Error::invalid_input(format!(
++                    "Merge source is missing join key {key:?}; source schema: {schema:?}"
++                )));
++            }
++        }
++        if !self.can_use_create_plan(schema).await? {
++            candidate::evidence(
++                serde_json::json!({"phase":"source_policy", "decision":"existing_unsupported_entry"}),
++            );
++            return Ok(());
++        }
++        let dataset_schema = Schema::from(self.dataset.schema());
++        parse_update_condition(&self.params, &dataset_schema)?;
++        parse_delete_condition(&self.params)?;
++        let carry_lineage = sink == WriteSink::RewriteRows
++            && self
++                .params
++                .carried_lineage_spill_budget(&self.dataset)?
++                .is_some();
++        let deferred =
++            self.deferred_payload_columns(schema, candidate::ExperimentMode::from_env()?)?;
++        let mut fields = dataset_schema
++            .fields()
++            .iter()
++            .filter(|field| {
++                self.params.on.contains(field.name())
++                    || (schema.field_with_name(field.name()).is_err()
++                        && !deferred.contains(field.name()))
++            })
++            .cloned()
++            .chain([
++                Arc::new(ROW_ADDR_FIELD.clone()),
++                Arc::new(ROW_ID_FIELD.clone()),
++            ])
++            .collect::<Vec<_>>();
++        if carry_lineage {
++            fields.push(Arc::new(ROW_CREATED_AT_VERSION_FIELD.clone()));
+         }
++        self.resources = Some(Arc::new(MergeResources::new(
++            &self.dataset,
++            &Schema::new(fields),
++        )?));
++        Ok(())
++    }
++
++    fn deferred_payload_columns(
++        &self,
++        schema: &Schema,
++        mode: candidate::ExperimentMode,
++    ) -> Result<Vec<String>> {
++        if !mode.late() {
++            return Ok(Vec::new());
++        }
++        if self.select_write_sink(schema)? != WriteSink::RewriteRows {
++            candidate::evidence(
++                serde_json::json!({"phase":"payload_policy", "decision":"early_rewrite_columns"}),
++            );
++            return Ok(Vec::new());
++        }
++        if self.dataset.schema().fields.iter().any(subtree_has_blob) {
++            candidate::evidence(
++                serde_json::json!({"phase":"payload_policy", "decision":"early_blob_representation"}),
++            );
++            return Ok(Vec::new());
++        }
++        let target = Schema::from(self.dataset.schema());
++        let missing = target
++            .fields()
++            .iter()
++            .filter(|f| schema.field_with_name(f.name()).is_err())
++            .collect::<Vec<_>>();
++        if missing.is_empty() {
++            candidate::evidence(
++                serde_json::json!({"phase":"payload_policy", "decision":"early_full_source"}),
++            );
++        }
++        if missing.iter().any(|f| {
++            !matches!(
++                f.data_type(),
++                DataType::Null
++                    | DataType::Boolean
++                    | DataType::Utf8
++                    | DataType::LargeUtf8
++                    | DataType::Binary
++                    | DataType::LargeBinary
++                    | DataType::FixedSizeBinary(_)
++            ) && !f.data_type().is_primitive()
++        }) {
++            candidate::evidence(
++                serde_json::json!({"phase":"payload_policy", "decision":"early_unsupported_type"}),
++            );
++            return Ok(Vec::new());
++        }
++        Ok(missing.into_iter().map(|f| f.name().clone()).collect())
+     }
+ 
+     /// Run the retry loop against a provider, re-scanning it on each attempt.
+@@ -2485,12 +2654,14 @@ impl MergeInsertJob {
+     ///
+     /// Use [`CommitBuilder`] to commit the returned transaction.
+     pub async fn execute_uncommitted(
+-        self,
++        mut self,
+         source: impl StreamingWriteSource,
+     ) -> Result<UncommittedMergeInsert> {
+         let stream = source.into_stream();
+-        self.execute_uncommitted_impl(one_shot_provider(stream)?)
+-            .await
++        self.prepare_resources(stream.schema().as_ref()).await?;
++        let prepared = self.stream_source_to_provider(stream, false).await?;
++        self.source_evidence = prepared.evidence;
++        self.execute_uncommitted_impl(prepared.provider).await
+     }
+ 
+     fn create_plan_join_type(&self) -> JoinType {
+@@ -2604,7 +2775,16 @@ impl MergeInsertJob {
+         // Goal: we shouldn't have to add new branches in this code to handle
+         //       indexed vs non-indexed cases. That should be handled by optimizer rules.
+         let write_sink = self.select_write_sink(provider.schema().as_ref())?;
+-        let session_ctx = SessionContext::new();
++        let deferred_payload = self
++            .resources
++            .as_ref()
++            .map(|r| self.deferred_payload_columns(provider.schema().as_ref(), r.mode))
++            .transpose()?
++            .unwrap_or_default();
++        let session_ctx = self
++            .resources
++            .as_ref()
++            .map_or_else(SessionContext::new, |r| r.context.clone());
+         let mut target_provider =
+             crate::datafusion::dataframe::LanceTableProvider::new_with_ordering(
+                 self.dataset.clone(),
+@@ -2613,6 +2793,9 @@ impl MergeInsertJob {
+                 false,
+             )
+             .with_blob_handling(target_blob_handling(&self.dataset));
++        if let Some(resources) = &self.resources {
++            target_provider = target_provider.with_merge_scan_policy(resources.scan.clone());
++        }
+         if write_sink == WriteSink::RewriteRows
+             && self
+                 .params
+@@ -2636,18 +2819,37 @@ impl MergeInsertJob {
+         // directly against the provider so its statistics reach the optimizer.
+         let deduplicate_source =
+             self.params.source_dedupe_behavior == SourceDedupeBehavior::FirstSeen;
++        let mut planning_evidence = self.source_evidence.clone();
+         let source_skipped_duplicates = Arc::new(AtomicU64::new(0));
+         let source_df = if deduplicate_source {
+             let source_plan = provider.scan(&session_ctx.state(), None, &[], None).await?;
++            let source_stats = source_plan.partition_statistics(None)?;
++            let small_complete_source = self.resources.as_ref().is_some_and(|r| {
++                matches!((source_stats.num_rows, source_stats.total_byte_size), (datafusion::common::stats::Precision::Exact(rows), datafusion::common::stats::Precision::Exact(bytes)) if rows <= r.prefix_rows && bytes <= r.prefix_bytes)
++            });
+             let deduplicated_partition = Arc::new(DeduplicatingSourcePartitionStream::new(
+                 source_plan,
+                 self.params.on.clone(),
+                 source_skipped_duplicates.clone(),
+             ));
+-            let deduplicated_provider = Arc::new(StreamingTable::try_new(
+-                deduplicated_partition.schema().clone(),
+-                vec![deduplicated_partition],
+-            )?);
++            let schema = deduplicated_partition.schema().clone();
++            let deduplicated_provider: Arc<dyn TableProvider> = if matches!(
++                self.source_evidence,
++                SourceEvidence::Complete
++            ) && small_complete_source
++            {
++                let batches = deduplicated_partition
++                    .execute(session_ctx.task_ctx())
++                    .try_collect::<Vec<_>>()
++                    .await?;
++                Arc::new(MemTable::try_new(schema, vec![batches])?)
++            } else {
++                planning_evidence = SourceEvidence::Prefix;
++                Arc::new(StreamingTable::try_new(
++                    schema,
++                    vec![deduplicated_partition],
++                )?)
++            };
+             session_ctx.read_table(deduplicated_provider)?
+         } else {
+             session_ctx.read_table(provider)?
+@@ -2716,7 +2918,7 @@ impl MergeInsertJob {
+         // already hold the matched rows, so the missing columns keep their
+         // stored values and must not be filled here. Skipping the fill is also
+         // what keeps them out of the target scan's projection.
+-        if write_sink == WriteSink::RewriteRows {
++        if write_sink == WriteSink::RewriteRows && deferred_payload.is_empty() {
+             df = fill_missing_target_columns(df, &dataset_schema, &source_field_names)?;
+         }
+ 
+@@ -2733,7 +2935,8 @@ impl MergeInsertJob {
+                 update_if: deferred_update_if,
+                 delete_if: deferred_delete_if,
+             },
+-        );
++        )
++        .with_deferred_target_columns(deferred_payload);
+         let logical_plan = LogicalPlan::Extension(Extension {
+             node: Arc::new(write_node),
+         });
+@@ -2741,12 +2944,21 @@ impl MergeInsertJob {
+         let logical_plan = session_state.optimize(&logical_plan)?;
+ 
+         let planner =
+-            DefaultPhysicalPlanner::with_extension_planners(vec![Arc::new(MergeInsertPlanner {})]);
++            DefaultPhysicalPlanner::with_extension_planners(vec![Arc::new(MergeInsertPlanner {
++                source_evidence: planning_evidence,
++                policy_bytes: self.resources.as_ref().map(|r| r.policy_bytes),
++            })]);
+         // This method already does the optimization for us.
+         let physical_plan = planner
+             .create_physical_plan(&logical_plan, &session_state)
+             .await?;
+ 
++        if std::env::var_os("LANCE_MERGE_DIAGNOSTICS").is_some() {
++            candidate::evidence(
++                serde_json::json!({"phase":"physical_plan", "plan":DisplayableExecutionPlan::new(physical_plan.as_ref()).indent(true).to_string()}),
++            );
++        }
++
+         Ok(physical_plan)
+     }
+ 
+@@ -2759,6 +2971,7 @@ impl MergeInsertJob {
+         Option<RowAddrTreeMap>,
+         Option<KeyExistenceFilter>,
+     )> {
++        let task_context = self.resources.as_ref().map(|r| r.context.task_ctx());
+         let plan = self.create_plan(provider).await?;
+ 
+         // Execute the plan
+@@ -2773,12 +2986,19 @@ impl MergeInsertJob {
+         }
+ 
+         // Execute partition 0 (the only partition)
+-        let task_context = Arc::new(datafusion::execution::TaskContext::default());
+-        let mut stream = plan.execute(0, task_context)?;
++        let task_context =
++            task_context.unwrap_or_else(|| Arc::new(datafusion::execution::TaskContext::default()));
++        let pool = task_context.memory_pool();
++        let mut stream = plan.execute(0, task_context.clone())?;
+ 
+         // Assert that the execution produces no output (this is a write operation)
+-        if let Some(batch) = stream.next().await {
+-            let batch = batch?;
++        while let Some(batch) = stream.next().await {
++            let batch = batch.inspect_err(|error| {
++                candidate::evidence(serde_json::json!({"phase":"execute_error", "error":error.to_string(), "pool_reserved_bytes":pool.reserved()}));
++                if std::env::var_os("LANCE_MERGE_DIAGNOSTICS").is_some() {
++                    candidate::evidence(serde_json::json!({"phase":"operator_metrics", "plan":DisplayableExecutionPlan::with_metrics(plan.as_ref()).indent(true).to_string()}));
++                }
++            })?;
+             if batch.num_rows() > 0 {
+                 return Err(Error::invalid_input(format!(
+                     "Expected no output from write operation, got {} rows",
+@@ -2786,6 +3006,19 @@ impl MergeInsertJob {
+                 )));
+             }
+         }
++        let mut counts = lance_datafusion::exec::ExecutionSummaryCounts::default();
++        lance_datafusion::exec::collect_execution_metrics(plan.as_ref(), &mut counts);
++        let mut gauges = Vec::new();
++        candidate::resource_gauges(plan.as_ref(), &mut gauges);
++        candidate::evidence(
++            serde_json::json!({"phase":"execute_complete", "pool_reserved_bytes":pool.reserved(), "reservation_observed_peak_bytes":pool.downcast_ref::<candidate::PeakMemoryPool>().map(|pool|pool.peak()), "counts":counts.all_counts,
++            "times":counts.all_times, "scan_take_bytes":counts.bytes_read, "requests":counts.requests, "iops":counts.iops, "gauges":gauges}),
++        );
++        if std::env::var_os("LANCE_MERGE_DIAGNOSTICS").is_some() {
++            candidate::evidence(
++                serde_json::json!({"phase":"operator_metrics", "plan":DisplayableExecutionPlan::with_metrics(plan.as_ref()).indent(true).to_string()}),
++            );
++        }
+ 
+         // Extract merge stats from the execution plan
+         let (stats, transaction, affected_rows, inserted_rows_filter) = if let Some(full_exec) =
+@@ -4033,6 +4266,322 @@ impl Merger {
+ 
+ #[cfg(test)]
+ mod tests {
++    mod candidate_source {
++        use super::super::*;
++        use crate::utils::test::{DatagenExt, FragmentCount, FragmentRowCount};
++        use arrow_array::record_batch;
++        use std::sync::atomic::AtomicUsize;
++
++        async fn source_job() -> MergeInsertJob {
++            let dataset = Arc::new(
++                lance_datagen::gen_batch()
++                    .col("key", lance_datagen::array::step::<UInt64Type>())
++                    .col("value", lance_datagen::array::step::<UInt64Type>())
++                    .into_ram_dataset(FragmentCount::from(2), FragmentRowCount::from(2))
++                    .await
++                    .unwrap(),
++            );
++            let mut job = MergeInsertBuilder::try_new(dataset, vec!["key".into()])
++                .unwrap()
++                .when_matched(WhenMatched::UpdateAll)
++                .when_not_matched(WhenNotMatched::DoNothing)
++                .conflict_retries(0)
++                .try_build()
++                .unwrap();
++            let schema = Schema::new(vec![Field::new("key", DataType::UInt64, true)]);
++            job.prepare_resources(&schema).await.unwrap();
++            job
++        }
++
++        #[tokio::test]
++        async fn projection_budget_reduces_context_partitions_without_resizing_pool() {
++            let job = source_job().await;
++            let original = job.resources.as_ref().unwrap();
++            let decode_bytes = original.scan.decode_bytes;
++            for (width, expected) in [(decode_bytes / 3 + 1, 2usize), (decode_bytes + 1, 1)] {
++                // Describe a wide projection without allocating any payload buffers.
++                let mut remaining = width;
++                let mut fields = Vec::new();
++                while remaining > 0 {
++                    let field_width = remaining.min(i32::MAX as u64 + 1);
++                    let data_type = if field_width == 1 {
++                        DataType::Null
++                    } else {
++                        DataType::FixedSizeBinary((field_width - 1) as i32)
++                    };
++                    fields.push(Field::new(format!("wide{}", fields.len()), data_type, true));
++                    remaining -= field_width;
++                }
++                let resources = MergeResources::new(&job.dataset, &Schema::new(fields)).unwrap();
++                assert_eq!(resources.policy_bytes, original.policy_bytes);
++                assert_eq!(resources.scan.width, Some(width));
++                let expected = expected
++                    .min(original.scan.decode_tasks)
++                    .min(SessionConfig::new().target_partitions());
++                assert_eq!(resources.scan.partitions, expected);
++                assert_eq!(
++                    resources.context.copied_config().target_partitions(),
++                    expected
++                );
++                assert_eq!(resources.prefix_bytes, original.prefix_bytes);
++                assert!(resources.scan.partitions <= resources.scan.decode_tasks);
++            }
++        }
++
++        #[tokio::test]
++        async fn missing_join_key_fails_before_source_poll() {
++            let job = source_job().await;
++            let polls = Arc::new(AtomicUsize::new(0));
++            let counter = polls.clone();
++            let source = stream::poll_fn(move |_| {
++                counter.fetch_add(1, Ordering::SeqCst);
++                std::task::Poll::Pending
++            });
++            // This is a compatible subset, but it omits the ON column.
++            let schema = Arc::new(Schema::new(vec![Field::new(
++                "value",
++                DataType::UInt64,
++                true,
++            )]));
++            let error = job
++                .execute(Box::pin(RecordBatchStreamAdapter::new(schema, source)))
++                .await
++                .unwrap_err();
++            assert!(matches!(error, Error::InvalidInput { .. }));
++            assert!(error.to_string().contains("missing join key"));
++            assert_eq!(polls.load(Ordering::SeqCst), 0);
++        }
++
++        /// The external runner can supply its F4 fixture. The normal unit fixture stays small.
++        #[tokio::test]
++        async fn first_seen_preparation_keeps_batch_order() {
++            let dataset = if let Ok(uri) = std::env::var("LANCE_CANDIDATE_FIRST_SEEN_FIXTURE") {
++                Arc::new(Dataset::open(&uri).await.unwrap())
++            } else {
++                Arc::new(
++                    lance_datagen::gen_batch()
++                        .col(
++                            "id",
++                            lance_datagen::array::step::<arrow_array::types::Int64Type>(),
++                        )
++                        .col(
++                            "c0",
++                            lance_datagen::array::step::<arrow_array::types::Int64Type>(),
++                        )
++                        .col(
++                            "c1",
++                            lance_datagen::array::step::<arrow_array::types::Int64Type>(),
++                        )
++                        .into_ram_dataset(FragmentCount::from(2), FragmentRowCount::from(8))
++                        .await
++                        .unwrap(),
++                )
++            };
++            let rows = dataset.count_rows(None).await.unwrap();
++            let count = rows.min(100);
++            let keys = (0..count)
++                .map(|i| (i * (rows - 1) / (count - 1)) as i64)
++                .collect::<Vec<_>>();
++            let first = record_batch!(
++                ("id", Int64, keys.clone()),
++                ("c0", Int64, vec![-9505; count]),
++                ("c1", Int64, vec![-10077; count])
++            )
++            .unwrap();
++            let second = record_batch!(
++                ("id", Int64, keys),
++                ("c0", Int64, vec![-12345; count]),
++                ("c1", Int64, vec![-54321; count])
++            )
++            .unwrap();
++            let mut builder =
++                MergeInsertBuilder::try_new(dataset.clone(), vec!["id".into()]).unwrap();
++            let job = builder
++                .when_matched(WhenMatched::UpdateAll)
++                .when_not_matched(WhenNotMatched::DoNothing)
++                .source_dedupe_behavior(SourceDedupeBehavior::FirstSeen)
++                .use_index(false)
++                .conflict_retries(0)
++                .try_build()
++                .unwrap();
++            let source = RecordBatchIterator::new([Ok(first.clone()), Ok(second)], first.schema());
++            let started = std::time::Instant::now();
++            let (updated, stats) = job.execute_reader(source).await.unwrap();
++            let seconds = started.elapsed().as_secs_f64();
++            if let Ok(path) = std::env::var("LANCE_CANDIDATE_FIRST_SEEN_METRICS") {
++                std::fs::write(path, serde_json::to_vec_pretty(&serde_json::json!({"execute_returned":true, "merge_seconds":seconds, "snapshot":dataset.version().version,
++                    "source_rows":count * 2, "merge_stats":{"num_updated_rows":stats.num_updated_rows, "num_inserted_rows":stats.num_inserted_rows, "num_deleted_rows":stats.num_deleted_rows,
++                    "num_skipped_duplicates":stats.num_skipped_duplicates}})).unwrap()).unwrap();
++            }
++            assert_eq!(stats.num_updated_rows, count as u64);
++            assert_eq!(stats.num_skipped_duplicates, count as u64);
++            assert_eq!(
++                updated
++                    .count_rows(Some("c0 = -9505 AND c1 = -10077".into()))
++                    .await
++                    .unwrap(),
++                count
++            );
++        }
++
++        #[rstest::rstest]
++        #[case::below(3, true)]
++        #[case::exact(2, true)]
++        #[case::crossing(1, false)]
++        #[tokio::test]
++        async fn row_limit_requires_observed_eof(#[case] limit: usize, #[case] complete: bool) {
++            let mut job = source_job().await;
++            Arc::get_mut(job.resources.as_mut().unwrap())
++                .unwrap()
++                .prefix_rows = limit;
++            let batch = record_batch!(("key", UInt64, [11, 12])).unwrap();
++            let polls = Arc::new(AtomicUsize::new(0));
++            let counter = polls.clone();
++            let batches = stream::iter([Ok(batch.clone())]).inspect(move |_| {
++                counter.fetch_add(1, Ordering::SeqCst);
++            });
++            let source = Box::pin(RecordBatchStreamAdapter::new(batch.schema(), batches));
++            let prepared = job.stream_source_to_provider(source, false).await.unwrap();
++            assert_eq!(
++                matches!(prepared.evidence, SourceEvidence::Complete),
++                complete
++            );
++            assert!(!prepared.allow_replay);
++            let output = provider_to_stream(prepared.provider)
++                .await
++                .unwrap()
++                .try_collect::<Vec<_>>()
++                .await
++                .unwrap();
++            assert_eq!(output, vec![batch]);
++            assert_eq!(polls.load(Ordering::SeqCst), 1);
++        }
++
++        #[rstest::rstest]
++        #[case::below(1, true)]
++        #[case::exact(0, true)]
++        #[case::crossing(-1, false)]
++        #[tokio::test]
++        async fn byte_limit_preserves_crossing_batch(
++            #[case] difference: isize,
++            #[case] complete: bool,
++        ) {
++            let mut job = source_job().await;
++            let batch = record_batch!(("key", UInt64, [21, 22])).unwrap();
++            Arc::get_mut(job.resources.as_mut().unwrap())
++                .unwrap()
++                .prefix_bytes = batch
++                .get_array_memory_size()
++                .checked_add_signed(difference)
++                .unwrap();
++            let source = Box::pin(RecordBatchStreamAdapter::new(
++                batch.schema(),
++                stream::iter([Ok(batch.clone())]),
++            ));
++            let prepared = job.stream_source_to_provider(source, false).await.unwrap();
++            assert_eq!(
++                matches!(prepared.evidence, SourceEvidence::Complete),
++                complete
++            );
++            let output = provider_to_stream(prepared.provider)
++                .await
++                .unwrap()
++                .try_collect::<Vec<_>>()
++                .await
++                .unwrap();
++            assert_eq!(output, vec![batch]);
++        }
++
++        #[tokio::test]
++        async fn empty_batch_limit_keeps_unconsumed_tail_and_schema() {
++            let job = source_job().await;
++            let schema = Arc::new(Schema::new(vec![Field::new("key", DataType::UInt64, true)]));
++            let empty = RecordBatch::new_empty(schema.clone());
++            let polls = Arc::new(AtomicUsize::new(0));
++            let counter = polls.clone();
++            let batches =
++                stream::iter((0..1025).map(move |_| Ok(empty.clone()))).inspect(move |_| {
++                    counter.fetch_add(1, Ordering::SeqCst);
++                });
++            let prepared = job
++                .stream_source_to_provider(
++                    Box::pin(RecordBatchStreamAdapter::new(schema.clone(), batches)),
++                    false,
++                )
++                .await
++                .unwrap();
++            assert!(matches!(prepared.evidence, SourceEvidence::Prefix));
++            assert_eq!(polls.load(Ordering::SeqCst), 1024);
++            assert_eq!(prepared.provider.schema(), schema);
++            let output = provider_to_stream(prepared.provider)
++                .await
++                .unwrap()
++                .try_collect::<Vec<_>>()
++                .await
++                .unwrap();
++            assert_eq!(output.len(), 1025);
++            assert_eq!(polls.load(Ordering::SeqCst), 1025);
++        }
++
++        #[tokio::test]
++        async fn source_error_after_prefix_remains_an_error() {
++            let mut job = source_job().await;
++            Arc::get_mut(job.resources.as_mut().unwrap())
++                .unwrap()
++                .prefix_rows = 1;
++            let batch = record_batch!(("key", UInt64, [31, 32])).unwrap();
++            let batches = stream::iter([
++                Ok(batch.clone()),
++                Err(DataFusionError::Execution("source-test-failure".into())),
++            ]);
++            let prepared = job
++                .stream_source_to_provider(
++                    Box::pin(RecordBatchStreamAdapter::new(batch.schema(), batches)),
++                    false,
++                )
++                .await
++                .unwrap();
++            let mut output = provider_to_stream(prepared.provider).await.unwrap();
++            assert_eq!(output.next().await.unwrap().unwrap(), batch);
++            let error = output.next().await.unwrap().unwrap_err();
++            assert!(matches!(error.find_root(), DataFusionError::Execution(_)));
++            assert!(error.to_string().contains("source-test-failure"));
++        }
++
++        #[rstest::rstest]
++        #[case::before_first_batch(false)]
++        #[case::after_prefix(true)]
++        #[tokio::test]
++        async fn pending_preparation_cancels_and_drops_source(#[case] has_prefix: bool) {
++            struct DropCount(Arc<AtomicUsize>);
++            impl Drop for DropCount {
++                fn drop(&mut self) {
++                    self.0.fetch_add(1, Ordering::SeqCst);
++                }
++            }
++            let job = source_job().await;
++            let drops = Arc::new(AtomicUsize::new(0));
++            let guard = DropCount(drops.clone());
++            let schema = Arc::new(Schema::new(vec![Field::new("key", DataType::UInt64, true)]));
++            let pending = stream::poll_fn(move |_| {
++                let _ = &guard;
++                std::task::Poll::Pending
++            });
++            let prefix = if has_prefix {
++                vec![Ok(record_batch!(("key", UInt64, [1, 2])).unwrap())]
++            } else {
++                Vec::new()
++            };
++            let source = stream::iter(prefix).chain(pending);
++            let mut future = Box::pin(job.stream_source_to_provider(
++                Box::pin(RecordBatchStreamAdapter::new(schema, source)),
++                false,
++            ));
++            assert!(futures::poll!(&mut future).is_pending());
++            drop(future);
++            assert_eq!(drops.load(Ordering::SeqCst), 1);
++        }
++    }
+     use super::*;
+     use crate::dataset::scanner::ColumnOrdering;
+     use crate::dataset::write::merge_insert::inserted_rows::{
+diff --git a/rust/lance/src/dataset/write/merge_insert/exec.rs b/rust/lance/src/dataset/write/merge_insert/exec.rs
+index 66bf0b18..14a88be1 100644
+--- a/rust/lance/src/dataset/write/merge_insert/exec.rs
++++ b/rust/lance/src/dataset/write/merge_insert/exec.rs
+@@ -4,6 +4,7 @@
+ mod condition;
+ mod delete;
+ mod in_place;
++mod payload;
+ mod write;
+ 
+ use std::collections::BTreeMap;
+@@ -17,6 +18,7 @@ use roaring::RoaringTreemap;
+ pub use condition::MergeConditionExec;
+ pub use delete::DeleteOnlyMergeInsertExec;
+ pub use in_place::InPlaceMergeInsertExec;
++pub(super) use payload::MergePayloadExec;
+ pub use write::FullSchemaMergeInsertExec;
+ 
+ use super::MergeStats;
+diff --git a/rust/lance/src/dataset/write/merge_insert/logical_plan.rs b/rust/lance/src/dataset/write/merge_insert/logical_plan.rs
+index 9d970f38..1ca015f5 100644
+--- a/rust/lance/src/dataset/write/merge_insert/logical_plan.rs
++++ b/rust/lance/src/dataset/write/merge_insert/logical_plan.rs
+@@ -23,7 +23,16 @@ use crate::dataset::write::merge_insert::exec::{
+ };
+ use crate::dataset::{WhenMatched, WhenNotMatchedBySource};
+ 
++use super::candidate::{SourceEvidence, evidence, fixed_schema_width};
++use super::stats_guard::MergeTargetStatsGuardExec;
+ use super::{MERGE_ACTION_COLUMN, MERGE_SOURCE_SENTINEL, MergeInsertParams};
++use datafusion::common::stats::Precision;
++use datafusion::physical_plan::{
++    filter::FilterExec,
++    joins::{HashJoinExec, PartitionMode},
++    projection::ProjectionExec,
++};
++use serde_json::json;
+ 
+ /// Which write half a planned merge insert will use.
+ ///
+@@ -71,6 +80,7 @@ pub struct MergeInsertWriteNode {
+     /// Blob columns supplied by the source, excluding target-filled columns.
+     pub(crate) source_blob_columns: Vec<String>,
+     pub(crate) deferred: DeferredConditions,
++    deferred_target_columns: Vec<String>,
+     schema: Arc<DFSchema>,
+ }
+ 
+@@ -80,6 +90,7 @@ impl PartialEq for MergeInsertWriteNode {
+             && self.write_sink == other.write_sink
+             && self.source_blob_columns == other.source_blob_columns
+             && self.deferred == other.deferred
++            && self.deferred_target_columns == other.deferred_target_columns
+             && self.input == other.input
+             && self.dataset.base == other.dataset.base
+     }
+@@ -93,6 +104,7 @@ impl std::hash::Hash for MergeInsertWriteNode {
+         self.write_sink.hash(state);
+         self.source_blob_columns.hash(state);
+         self.deferred.hash(state);
++        self.deferred_target_columns.hash(state);
+         self.input.hash(state);
+         self.dataset.base.hash(state);
+     }
+@@ -104,7 +116,13 @@ impl PartialOrd for MergeInsertWriteNode {
+             Some(Ordering::Equal) => match self.write_sink.cmp(&other.write_sink) {
+                 Ordering::Equal => match self.source_blob_columns.cmp(&other.source_blob_columns) {
+                     Ordering::Equal => match self.deferred.partial_cmp(&other.deferred) {
+-                        Some(Ordering::Equal) => self.input.partial_cmp(&other.input),
++                        Some(Ordering::Equal) => match self
++                            .deferred_target_columns
++                            .cmp(&other.deferred_target_columns)
++                        {
++                            Ordering::Equal => self.input.partial_cmp(&other.input),
++                            cmp => Some(cmp),
++                        },
+                         cmp => cmp,
+                     },
+                     cmp => Some(cmp),
+@@ -136,9 +154,15 @@ impl MergeInsertWriteNode {
+             write_sink,
+             source_blob_columns,
+             deferred,
++            deferred_target_columns: Vec::new(),
+             schema,
+         }
+     }
++
++    pub(super) fn with_deferred_target_columns(mut self, columns: Vec<String>) -> Self {
++        self.deferred_target_columns = columns;
++        self
++    }
+ }
+ 
+ impl UserDefinedLogicalNodeCore for MergeInsertWriteNode {
+@@ -213,7 +237,8 @@ impl UserDefinedLogicalNodeCore for MergeInsertWriteNode {
+             self.write_sink,
+             self.source_blob_columns.clone(),
+             self.deferred.clone(),
+-        ))
++        )
++        .with_deferred_target_columns(self.deferred_target_columns.clone()))
+     }
+ 
+     fn necessary_children_exprs(&self, _output_columns: &[usize]) -> Option<Vec<Vec<usize>>> {
+@@ -286,9 +311,104 @@ impl UserDefinedLogicalNodeCore for MergeInsertWriteNode {
+ }
+ 
+ /// Physical planner for MergeInsertWriteNode.
+-pub struct MergeInsertPlanner {}
++pub struct MergeInsertPlanner {
++    pub(super) source_evidence: SourceEvidence,
++    pub(super) policy_bytes: Option<usize>,
++}
+ 
+ impl MergeInsertPlanner {
++    fn prepare_join(
++        &self,
++        input: Arc<dyn ExecutionPlan>,
++        params: &MergeInsertParams,
++    ) -> DFResult<Arc<dyn ExecutionPlan>> {
++        let Some(policy_bytes) = self.policy_bytes else {
++            return Ok(input);
++        };
++        if let Some(join) = input.downcast_ref::<HashJoinExec>() {
++            let target = join.left();
++            let source = join.right();
++            // This is the first join under only the merge's Projection/Filter chain.
++            // Verify both identities and all keys before touching it. Do not enter a provider's join.
++            let recognized = target.schema().column_with_name(ROW_ADDR).is_some()
++                && source
++                    .schema()
++                    .column_with_name(MERGE_SOURCE_SENTINEL)
++                    .is_some()
++                && target
++                    .schema()
++                    .column_with_name(MERGE_SOURCE_SENTINEL)
++                    .is_none()
++                && join.on().len() == params.on.len()
++                && join
++                    .on()
++                    .iter()
++                    .zip(&params.on)
++                    .all(|((left, right), name)| {
++                        left.as_ref()
++                            .downcast_ref::<datafusion::physical_expr::expressions::Column>()
++                            .is_some_and(|c| c.name() == name)
++                            && right
++                                .as_ref()
++                                .downcast_ref::<datafusion::physical_expr::expressions::Column>()
++                                .is_some_and(|c| c.name() == name)
++                    });
++            if !recognized {
++                evidence(json!({"phase":"join_policy", "decision":"skipped_unrecognized_join"}));
++                return Ok(input);
++            }
++            let stats = target.partition_statistics(None)?;
++            let width = fixed_schema_width(target.schema().as_ref());
++            let model = match (width, stats.num_rows) {
++                (Some(width), Precision::Exact(rows)) => (rows as u64)
++                    .checked_mul(width)
++                    .and_then(|bytes| bytes.checked_mul(2))
++                    .and_then(|bytes| {
++                        (rows as u64)
++                            .checked_mul(64)
++                            .and_then(|hash| bytes.checked_add(hash))
++                    })
++                    .and_then(|bytes| bytes.checked_add(1024 * 1024)),
++                _ => None,
++            };
++            let threshold = (32 * 1024 * 1024).min(policy_bytes / 4) as u64;
++            let target_left = !matches!(self.source_evidence, SourceEvidence::Complete)
++                && model.is_some_and(|bytes| bytes <= threshold);
++            let guarded_target: Arc<dyn ExecutionPlan> = if width.is_none() {
++                Arc::new(MergeTargetStatsGuardExec::new(target.clone()))
++            } else {
++                target.clone()
++            };
++            let guarded = input
++                .clone()
++                .with_new_children(vec![guarded_target, source.clone()])?;
++            evidence(
++                json!({"phase":"join_policy", "decision":if target_left {"small_fixed_target"} else {"source_default"}, "target_width":width,
++                "target_rows":format!("{:?}", stats.num_rows), "model_bytes":model, "threshold_bytes":threshold,
++                "source_evidence":format!("{:?}", self.source_evidence), "target_schema":format!("{:?}",target.schema()), "stats_guard":width.is_none()}),
++            );
++            if target_left {
++                return Ok(guarded);
++            }
++            let Some(join) = guarded.downcast_ref::<HashJoinExec>() else {
++                return Ok(guarded);
++            };
++            return join.swap_inputs(PartitionMode::Auto);
++        }
++        if input.downcast_ref::<ProjectionExec>().is_some()
++            || input.downcast_ref::<FilterExec>().is_some()
++        {
++            let children = input.children();
++            if children.len() == 1 {
++                let child = self.prepare_join(children[0].clone(), params)?;
++                return input.with_new_children(vec![child]);
++            }
++        }
++        evidence(
++            json!({"phase":"join_policy", "decision":"skipped_unrecognized_chain", "node":input.name()}),
++        );
++        Ok(input)
++    }
+     /// Check if this is a delete-only operation that can use the optimized path.
+     ///
+     /// Delete-only operations are when:
+@@ -320,7 +440,8 @@ impl ExtensionPlanner for MergeInsertPlanner {
+                 assert_eq!(logical_inputs.len(), 1, "Inconsistent number of inputs");
+                 assert_eq!(physical_inputs.len(), 1, "Inconsistent number of inputs");
+ 
+-                let mut input = physical_inputs[0].clone();
++                let mut input =
++                    self.prepare_join(physical_inputs[0].clone(), &write_node.params)?;
+                 let update_if_deferred = write_node.deferred.update_if.is_some();
+                 if write_node.deferred != DeferredConditions::default() {
+                     input = Arc::new(MergeConditionExec::try_new(
+@@ -332,6 +453,13 @@ impl ExtensionPlanner for MergeInsertPlanner {
+                         session_state,
+                     )?);
+                 }
++                if !write_node.deferred_target_columns.is_empty() {
++                    input = Arc::new(super::exec::MergePayloadExec::try_new(
++                        input,
++                        write_node.dataset.clone(),
++                        write_node.deferred_target_columns.clone(),
++                    )?);
++                }
+ 
+                 let exec: Arc<dyn ExecutionPlan> = if Self::is_delete_only(&write_node.params) {
+                     Arc::new(DeleteOnlyMergeInsertExec::try_new(
+@@ -371,3 +499,87 @@ impl ExtensionPlanner for MergeInsertPlanner {
+         )
+     }
+ }
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::utils::test::{DatagenExt, FragmentCount, FragmentRowCount};
++    use arrow_array::{record_batch, types::UInt64Type};
++    use datafusion::common::NullEquality;
++    use datafusion::datasource::memory::MemorySourceConfig;
++    use datafusion::logical_expr::JoinType;
++    use datafusion::physical_expr::expressions::Column;
++    use lance_datafusion::exec::OneShotExec;
++    use lance_datagen::{array, gen_batch};
++
++    fn join_in(plan: &Arc<dyn ExecutionPlan>) -> &HashJoinExec {
++        if let Some(join) = plan.downcast_ref::<HashJoinExec>() {
++            return join;
++        }
++        join_in(plan.children()[0])
++    }
++
++    #[rstest::rstest]
++    #[case::below_threshold(1, SourceEvidence::Prefix, true)]
++    #[case::exact_threshold(0, SourceEvidence::Prefix, true)]
++    #[case::above_threshold(-1, SourceEvidence::Prefix, false)]
++    #[case::complete_source(0, SourceEvidence::Complete, false)]
++    #[tokio::test]
++    async fn initial_direction_obeys_small_fixed_target_boundary(
++        #[case] threshold_delta: i64,
++        #[case] source_evidence: SourceEvidence,
++        #[case] target_left: bool,
++    ) {
++        let dataset = Arc::new(
++            gen_batch()
++                .col("key", array::step::<UInt64Type>())
++                .into_ram_dataset(FragmentCount::from(1), FragmentRowCount::from(1))
++                .await
++                .unwrap(),
++        );
++        let job = super::super::MergeInsertBuilder::try_new(dataset, vec!["key".into()])
++            .unwrap()
++            .try_build()
++            .unwrap();
++        let target = record_batch!(("key", UInt64, [1]), (ROW_ADDR, UInt64, [0])).unwrap();
++        let model = 2 * fixed_schema_width(target.schema().as_ref()).unwrap() + 64 + 1024 * 1024;
++        let threshold = model.checked_add_signed(threshold_delta).unwrap();
++        let target =
++            MemorySourceConfig::try_new_exec(&[vec![target.clone()]], target.schema(), None)
++                .unwrap();
++        let source = record_batch!(
++            ("key", UInt64, [1]),
++            (MERGE_SOURCE_SENTINEL, Boolean, [true])
++        )
++        .unwrap();
++        let source: Arc<dyn ExecutionPlan> = Arc::new(OneShotExec::from_batch(source));
++        let join: Arc<dyn ExecutionPlan> = Arc::new(
++            HashJoinExec::try_new(
++                target,
++                source,
++                vec![(
++                    Arc::new(Column::new("key", 0)),
++                    Arc::new(Column::new("key", 0)),
++                )],
++                None,
++                &JoinType::Full,
++                None,
++                PartitionMode::Auto,
++                NullEquality::NullEqualsNothing,
++                false,
++            )
++            .unwrap(),
++        );
++        let planner = MergeInsertPlanner {
++            source_evidence,
++            policy_bytes: Some(threshold as usize * 4),
++        };
++        let planned = planner.prepare_join(join, &job.params).unwrap();
++        let join = join_in(&planned);
++        assert_eq!(
++            join.left().schema().column_with_name(ROW_ADDR).is_some(),
++            target_left
++        );
++        assert_eq!(*join.partition_mode(), PartitionMode::Auto);
++    }
++}
+diff --git a/rust/lance/src/io/exec/filtered_read.rs b/rust/lance/src/io/exec/filtered_read.rs
+index 05072ee8..b1e6edc9 100644
+--- a/rust/lance/src/io/exec/filtered_read.rs
++++ b/rust/lance/src/io/exec/filtered_read.rs
+@@ -31,7 +31,7 @@ use datafusion_physical_expr::projection::project_ordering;
+ use datafusion_physical_expr::{EquivalenceProperties, Partitioning, PhysicalExpr};
+ use datafusion_physical_plan::Statistics;
+ use datafusion_physical_plan::filter::FilterExec;
+-use datafusion_physical_plan::metrics::{BaselineMetrics, Count, MetricsSet, Time};
++use datafusion_physical_plan::metrics::{BaselineMetrics, Count, Gauge, MetricsSet, Time};
+ use futures::stream::BoxStream;
+ use futures::{FutureExt, Stream, StreamExt, TryFutureExt, TryStreamExt, future};
+ use lance_arrow::{DataTypeExt, RecordBatchExt};
+@@ -322,6 +322,9 @@ impl<I: Iterator<Item = u64> + Send> Iterator for DvToValidRanges<I> {
+ /// These represent work that is not divisible by partition and this work is always
+ /// reported on partition 0
+ pub struct FilteredReadGlobalMetrics {
++    scan_initializations: Count,
++    active_read_tasks: Gauge,
++    peak_read_tasks: Gauge,
+     fragments_scanned: Count,
+     ranges_scanned: Count,
+     rows_scanned: Count,
+@@ -331,6 +334,9 @@ pub struct FilteredReadGlobalMetrics {
+ impl FilteredReadGlobalMetrics {
+     pub fn new(metrics: &ExecutionPlanMetricsSet) -> Self {
+         Self {
++            scan_initializations: metrics.new_count("scan_initializations", 0),
++            active_read_tasks: metrics.new_gauge("active_read_tasks", 0),
++            peak_read_tasks: metrics.new_gauge("peak_read_tasks", 0),
+             fragments_scanned: metrics.new_count(FRAGMENTS_SCANNED_METRIC, 0),
+             ranges_scanned: metrics.new_count(RANGES_SCANNED_METRIC, 0),
+             rows_scanned: metrics.new_count(ROWS_SCANNED_METRIC, 0),
+@@ -339,6 +345,14 @@ impl FilteredReadGlobalMetrics {
+     }
+ }
+ 
++struct ActiveReadTask(Arc<FilteredReadGlobalMetrics>);
++
++impl Drop for ActiveReadTask {
++    fn drop(&mut self) {
++        self.0.active_read_tasks.sub(1);
++    }
++}
++
+ /// Partition metrics for the FilteredReadExec node
+ ///
+ /// These represent work that is divisible by partition and this work is reported on the
+@@ -599,6 +613,7 @@ impl FilteredReadStream {
+         materialization_context: Arc<BlobMaterializationContext>,
+         materialize_blob_v2_binary: bool,
+     ) -> Self {
++        global_metrics.scan_initializations.add(1);
+         let scan_scheduler =
+             scan_scheduler.unwrap_or_else(|| Self::make_scan_scheduler(&dataset, &options));
+         let base_schedulers =
+@@ -610,6 +625,13 @@ impl FilteredReadStream {
+             .fragment_readahead
+             .unwrap_or_else(|| (*DEFAULT_FRAGMENT_READAHEAD).unwrap_or(io_parallelism * 2))
+             .max(1);
++        if std::env::var_os("LANCE_MERGE_DIAGNOSTICS").is_some() {
++            crate::dataset::write::merge_insert::candidate::evidence(
++                serde_json::json!({"phase":"scan_runtime_initialized", "scheduler_id":format!("{:p}", scan_scheduler.as_ref()),
++                "threading":format!("{threading_mode:?}"), "fragment_readahead":fragment_readahead, "batch_rows":options.batch_size, "io_bytes":options.io_buffer_size_bytes,
++                "projection":projected_column_names(&options.projection)}),
++            );
++        }
+ 
+         let fragment_descriptors = options
+             .fragments
+@@ -673,7 +695,22 @@ impl FilteredReadStream {
+                 }
+             })
+             .buffered(fragment_readahead);
+-        let task_stream = fragment_streams.try_flatten().boxed();
++        let task_metrics = global_metrics.clone();
++        let task_stream = fragment_streams
++            .try_flatten()
++            .map_ok(move |task| {
++                let metrics = task_metrics.clone();
++                async move {
++                    metrics.active_read_tasks.add(1);
++                    metrics
++                        .peak_read_tasks
++                        .set_max(metrics.active_read_tasks.value());
++                    let _active = ActiveReadTask(metrics);
++                    task.await
++                }
++                .boxed()
++            })
++            .boxed();
+ 
+         // A batch never spans fragments, so a plan touching many fragments
+         // with few rows each emits one tiny batch per fragment. Fragments
+@@ -1884,6 +1921,8 @@ fn projected_column_names(projection: &Projection) -> Vec<String> {
+ /// Options for a filtered read.
+ #[derive(Debug, Clone)]
+ pub struct FilteredReadOptions {
++    /// Merge-local opt-in, with the same partition count as both optimizer sessions.
++    pub(crate) native_partitions: Option<usize>,
+     /// The range of rows to read before applying the filter.
+     pub scan_range_before_filter: Option<Range<u64>>,
+     /// The range of rows to read after applying the filter.
+@@ -1941,6 +1980,7 @@ impl FilteredReadOptions {
+ 
+     pub fn new(projection: Projection) -> Self {
+         Self {
++            native_partitions: None,
+             scan_range_before_filter: None,
+             scan_range_after_filter: None,
+             with_deleted_rows: false,
+@@ -3632,6 +3672,55 @@ impl ExecutionPlan for FilteredReadExec {
+         &self.properties
+     }
+ 
++    fn repartitioned(
++        &self,
++        target_partitions: usize,
++        _config: &datafusion::config::ConfigOptions,
++    ) -> datafusion::common::Result<Option<Arc<dyn ExecutionPlan>>> {
++        let options = &self.options;
++        let eligible = options.native_partitions == Some(target_partitions)
++            && matches!(self.input, RowSelector::AllRows)
++            && options.scan_range_before_filter.is_none()
++            && options.scan_range_after_filter.is_none()
++            && options.full_filter.is_none()
++            && options.refine_filter.is_none()
++            && options.physical_filters.is_empty()
++            && options.physical_row_addr_prefilter.is_none()
++            && !options.with_deleted_rows
++            && !options.only_indexed_fragments
++            && options.overlay_block.is_none()
++            && options
++                .file_reader_options
++                .as_ref()
++                .is_none_or(|o| o.batch_size_bytes.is_none())
++            && self.plan.get().is_none()
++            && !crate::dataset::blob::schema_has_blob_v2_binary_view(
++                &options.projection.to_bare_schema(),
++            )
++            && self.dataset.fragments().iter().all(|fragment| {
++                fragment.overlays.is_empty()
++                    && fragment.files.iter().all(|file| file.base_id.is_none())
++            });
++        if !eligible {
++            return Ok(None);
++        }
++        let FilteredReadThreadingMode::OnePartitionMultipleThreads(decode_tasks) =
++            options.threading_mode
++        else {
++            return Ok(None);
++        };
++        if target_partitions == 0 || target_partitions > decode_tasks {
++            return Ok(None);
++        }
++        let mut options = options.clone();
++        options.threading_mode = FilteredReadThreadingMode::MultiplePartitions(target_partitions);
++        Ok(Some(Arc::new(Self::try_new(
++            self.dataset.clone(),
++            options,
++            None,
++        )?)))
++    }
++
+     fn children(&self) -> Vec<&Arc<dyn ExecutionPlan>> {
+         if let Some(child) = self.input.child() {
+             vec![child]
+@@ -3743,7 +3832,12 @@ impl ExecutionPlan for FilteredReadExec {
+             let nothing_selects = self.input.row_set_plan().is_none()
+                 && self.options.refine_filter.is_none()
+                 && self.options.physical_row_addr_prefilter.is_none();
+-            let num_rows = if nothing_selects {
++            let num_rows = if nothing_selects
++                && !(partition.is_some()
++                    && matches!(
++                        self.options.threading_mode,
++                        FilteredReadThreadingMode::MultiplePartitions(_)
++                    )) {
+                 Precision::Exact(total_rows as usize)
+             } else {
+                 Precision::Inexact(total_rows as usize)
+@@ -3971,6 +4065,198 @@ impl ExecutionPlan for FilteredReadExec {
+ 
+ #[cfg(test)]
+ mod tests {
++    #[rstest::rstest]
++    #[case::cancel_pending(false)]
++    #[case::worker_failure(true)]
++    #[tokio::test]
++    async fn native_workers_release_pending_tasks(#[case] fail_second: bool) {
++        struct DroppedTask(Arc<AtomicUsize>);
++        impl Drop for DroppedTask {
++            fn drop(&mut self) {
++                self.0.fetch_add(1, Ordering::SeqCst);
++            }
++        }
++        let dataset = gen_batch()
++            .col("key", array::step::<UInt64Type>())
++            .into_ram_dataset(FragmentCount::from(1), FragmentRowCount::from(1))
++            .await
++            .unwrap();
++        let dataset = Arc::new(dataset);
++        let options = FilteredReadOptions::basic_full_read(&dataset);
++        let polls = Arc::new(AtomicUsize::new(0));
++        let drops = Arc::new(AtomicUsize::new(0));
++        let tasks = (0..2)
++            .map(|index| {
++                let guard = DroppedTask(drops.clone());
++                let polls = polls.clone();
++                let task: MaterializedReadBatchesFut = Box::pin(async move {
++                    let _guard = guard;
++                    polls.fetch_add(1, Ordering::SeqCst);
++                    if fail_second && index == 1 {
++                        return Err(Error::invalid_input("native-task-failure"));
++                    }
++                    futures::future::pending().await
++                });
++                Ok(task)
++            })
++            .collect::<Vec<_>>();
++        let metrics = ExecutionPlanMetricsSet::new();
++        let running = FilteredReadStream {
++            output_schema: Arc::new(arrow_schema::Schema::new(vec![arrow_schema::Field::new(
++                "key",
++                arrow_schema::DataType::UInt64,
++                false,
++            )])),
++            task_stream: Arc::new(AsyncMutex::new(futures::stream::iter(tasks).boxed())),
++            scan_scheduler: FilteredReadStream::make_scan_scheduler(&dataset, &options),
++            metrics: Arc::new(FilteredReadGlobalMetrics::new(&metrics)),
++            active_partitions_counter: Arc::new(AtomicUsize::new(0)),
++            threading_mode: FilteredReadThreadingMode::MultiplePartitions(2),
++            scan_range_after_filter: None,
++            touched_fragments: 0,
++            planned_rows: 0,
++        };
++        let mut first = running.get_stream(&metrics, 0);
++        let mut second = running.get_stream(&metrics, 1);
++        let mut first_next = Box::pin(first.next());
++        assert!(futures::poll!(&mut first_next).is_pending());
++        let mut second_next = Box::pin(second.next());
++        if fail_second {
++            let error = second_next.await.unwrap().unwrap_err();
++            assert!(matches!(error, DataFusionError::External(_)));
++            assert!(error.to_string().contains("native-task-failure"));
++        } else {
++            assert!(futures::poll!(&mut second_next).is_pending());
++            drop(second_next);
++        }
++        assert_eq!(polls.load(Ordering::SeqCst), 2);
++        drop(first_next);
++        drop(first);
++        drop(second);
++        assert_eq!(drops.load(Ordering::SeqCst), 2);
++    }
++
++    #[tokio::test]
++    async fn merge_native_outputs_share_scan_and_keep_global_statistics() {
++        let dataset = Arc::new(
++            gen_batch()
++                .col("key", array::step::<UInt64Type>())
++                .into_ram_dataset(FragmentCount::from(2), FragmentRowCount::from(3))
++                .await
++                .unwrap(),
++        );
++        let mut options = FilteredReadOptions::basic_full_read(&dataset)
++            .with_threading_mode(FilteredReadThreadingMode::OnePartitionMultipleThreads(4));
++        let plain = FilteredReadExec::try_new(dataset.clone(), options.clone(), None).unwrap();
++        let config = datafusion::config::ConfigOptions::new();
++        assert!(plain.repartitioned(4, &config).unwrap().is_none());
++        options.native_partitions = Some(4);
++        let plan = FilteredReadExec::try_new(dataset, options.clone(), None).unwrap();
++        assert!(plan.repartitioned(3, &config).unwrap().is_none());
++        let native = plan.repartitioned(4, &config).unwrap().unwrap();
++        assert_eq!(
++            native.properties().output_partitioning().partition_count(),
++            4
++        );
++        assert_eq!(
++            native.partition_statistics(None).unwrap().num_rows,
++            Precision::Exact(6)
++        );
++        assert!(matches!(
++            native.partition_statistics(Some(0)).unwrap().num_rows,
++            Precision::Inexact(_)
++        ));
++        let output = futures::future::try_join_all((0..4).map(|partition| {
++            native
++                .execute(partition, Arc::new(TaskContext::default()))
++                .unwrap()
++                .try_collect::<Vec<_>>()
++        }))
++        .await
++        .unwrap();
++        let mut keys = output
++            .iter()
++            .flatten()
++            .flat_map(|batch| batch["key"].as_primitive::<UInt64Type>().values().to_vec())
++            .collect::<Vec<_>>();
++        keys.sort_unstable();
++        assert_eq!(keys, vec![0, 1, 2, 3, 4, 5]);
++        let metrics = native.metrics().unwrap();
++        let initializations = metrics
++            .iter()
++            .find(|metric| metric.value().name() == "scan_initializations")
++            .unwrap()
++            .value()
++            .as_usize();
++        assert_eq!(initializations, 1);
++        options.scan_range_before_filter = Some(0..2);
++        let ranged = FilteredReadExec::try_new(plan.dataset.clone(), options, None).unwrap();
++        assert!(ranged.repartitioned(4, &config).unwrap().is_none());
++    }
++
++    #[tokio::test]
++    async fn merge_native_worker_error_propagates_and_cancelled_state_resets() {
++        let dataset = Arc::new(
++            gen_batch()
++                .col("key", array::step::<UInt64Type>())
++                .into_ram_dataset(FragmentCount::from(2), FragmentRowCount::from(3))
++                .await
++                .unwrap(),
++        );
++        let mut options = FilteredReadOptions::basic_full_read(&dataset)
++            .with_threading_mode(FilteredReadThreadingMode::OnePartitionMultipleThreads(4));
++        options.native_partitions = Some(4);
++        let plan = FilteredReadExec::try_new(dataset.clone(), options.clone(), None).unwrap();
++        let config = datafusion::config::ConfigOptions::new();
++        let native = plan.repartitioned(4, &config).unwrap().unwrap();
++        let state = Arc::downgrade(
++            &native
++                .downcast_ref::<FilteredReadExec>()
++                .unwrap()
++                .running_stream,
++        );
++        let mut stream = native.execute(0, Arc::new(TaskContext::default())).unwrap();
++        assert!(stream.next().await.unwrap().is_ok());
++        drop(stream);
++        let reset = native.clone().reset_state().unwrap();
++        drop(native);
++        assert!(state.upgrade().is_none());
++        let outputs = futures::future::try_join_all((0..4).map(|partition| {
++            reset
++                .execute(partition, Arc::new(TaskContext::default()))
++                .unwrap()
++                .try_collect::<Vec<_>>()
++        }))
++        .await
++        .unwrap();
++        assert_eq!(
++            outputs
++                .iter()
++                .flatten()
++                .map(RecordBatch::num_rows)
++                .sum::<usize>(),
++            6
++        );
++
++        let mut fragments = dataset.fragments().as_ref().clone();
++        fragments[1].files[0].path = "native-worker-error.lance".into();
++        options.fragments = Some(Arc::new(fragments));
++        let broken = FilteredReadExec::try_new(dataset, options, None)
++            .unwrap()
++            .repartitioned(4, &config)
++            .unwrap()
++            .unwrap();
++        let error = futures::future::try_join_all((0..4).map(|partition| {
++            broken
++                .execute(partition, Arc::new(TaskContext::default()))
++                .unwrap()
++                .try_collect::<Vec<_>>()
++        }))
++        .await
++        .unwrap_err();
++        assert!(matches!(error, DataFusionError::External(_)));
++        assert!(error.to_string().contains("native-worker-error.lance"));
++    }
+     use std::collections::{HashMap, HashSet};
+     use std::sync::atomic::{AtomicUsize, Ordering};
+ 
+diff --git a/rust/lance/src/dataset/write/merge_insert/candidate.rs b/rust/lance/src/dataset/write/merge_insert/candidate.rs
+new file mode 100644
+index 00000000..152fd3af
+--- /dev/null
++++ b/rust/lance/src/dataset/write/merge_insert/candidate.rs
+@@ -0,0 +1,372 @@
++// SPDX-License-Identifier: Apache-2.0
++// SPDX-FileCopyrightText: Copyright The Lance Authors
++
++//! Internal controls for the frozen #9505 experiment. These are not public tuning APIs.
++
++use std::io::Write;
++use std::num::NonZero;
++use std::sync::Arc;
++use std::sync::atomic::{AtomicUsize, Ordering};
++use std::time::Instant;
++
++use arrow_schema::{DataType, Schema};
++use datafusion::catalog::TableProvider;
++use datafusion::execution::{
++    context::{SessionConfig, SessionContext},
++    disk_manager::DiskManagerBuilder,
++    memory_pool::{
++        FairSpillPool, MemoryConsumer, MemoryLimit, MemoryPool, MemoryReservation,
++        TrackConsumersPool, UnboundedMemoryPool,
++    },
++    runtime_env::RuntimeEnvBuilder,
++};
++use datafusion::physical_plan::{ExecutionPlan, metrics::MetricValue};
++use lance_core::utils::tokio::get_num_compute_intensive_cpus;
++use lance_core::{Error, Result};
++use lance_datafusion::exec::LanceExecutionOptions;
++use serde_json::{Value, json};
++
++use crate::Dataset;
++use crate::dataset::scanner::{
++    BATCH_SIZE_FALLBACK, get_default_batch_size, get_default_io_buffer_size_override,
++};
++use lance_io::scheduler::SchedulerConfig;
++
++#[derive(Debug, Clone, Copy, PartialEq, Eq)]
++pub(super) enum ExperimentMode {
++    PrepUnbounded,
++    Prep,
++    Budget,
++    Core,
++    Late,
++    BudgetLate,
++}
++
++impl ExperimentMode {
++    pub fn from_env() -> Result<Self> {
++        match std::env::var("LANCE_MERGE_EXPERIMENT").as_deref() {
++            Err(std::env::VarError::NotPresent) | Ok("Ccore") => Ok(Self::Core),
++            Ok("Cprep_infinite") => Ok(Self::PrepUnbounded),
++            Ok("Cprep") => Ok(Self::Prep),
++            Ok("Cbudget") => Ok(Self::Budget),
++            Ok("Clate") => Ok(Self::Late),
++            Ok("Cbudget_late") => Ok(Self::BudgetLate),
++            value => Err(Error::invalid_input(format!(
++                "Invalid LANCE_MERGE_EXPERIMENT: {value:?}"
++            ))),
++        }
++    }
++
++    pub fn late(self) -> bool {
++        matches!(self, Self::Late | Self::BudgetLate)
++    }
++
++    pub fn budget(self) -> bool {
++        matches!(
++            self,
++            Self::Budget | Self::Core | Self::Late | Self::BudgetLate
++        )
++    }
++
++    pub fn native(self) -> bool {
++        matches!(self, Self::Core | Self::Late)
++    }
++}
++
++#[derive(Debug, Clone, Default)]
++pub(super) enum SourceEvidence {
++    Complete,
++    Prefix,
++    #[default]
++    ProviderStatsOnly,
++}
++
++pub(super) struct PreparedMergeSource {
++    pub provider: Arc<dyn TableProvider>,
++    pub evidence: SourceEvidence,
++    pub allow_replay: bool,
++}
++
++#[derive(Debug)]
++pub struct MergeScanPolicy {
++    pub partitions: usize,
++    pub decode_tasks: usize,
++    pub io_bytes: Option<u64>,
++    pub decode_bytes: u64,
++    pub width: Option<u64>,
++    pub use_budget: bool,
++    pub use_native: bool,
++}
++
++pub(super) struct MergeResources {
++    pub context: SessionContext,
++    pub mode: ExperimentMode,
++    pub policy_bytes: usize,
++    pub prefix_bytes: usize,
++    pub prefix_rows: usize,
++    pub scan: Arc<MergeScanPolicy>,
++}
++
++/// Observes accepted reservation changes. Concurrent operations can make this
++/// peak lower than the inner pool's instantaneous peak. It is not a process limit.
++#[derive(Debug)]
++pub(super) struct PeakMemoryPool {
++    inner: Arc<dyn MemoryPool>,
++    current: AtomicUsize,
++    peak: AtomicUsize,
++}
++
++impl PeakMemoryPool {
++    pub fn peak(&self) -> usize {
++        self.peak.load(Ordering::Relaxed)
++    }
++    fn record_growth(&self, bytes: usize) {
++        let current = self.current.fetch_add(bytes, Ordering::Relaxed) + bytes;
++        self.peak.fetch_max(current, Ordering::Relaxed);
++    }
++}
++
++impl std::fmt::Display for PeakMemoryPool {
++    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
++        std::fmt::Display::fmt(self.inner.as_ref(), f)
++    }
++}
++
++impl MemoryPool for PeakMemoryPool {
++    fn name(&self) -> &str {
++        self.inner.name()
++    }
++    fn register(&self, consumer: &MemoryConsumer) {
++        self.inner.register(consumer);
++    }
++    fn unregister(&self, consumer: &MemoryConsumer) {
++        self.inner.unregister(consumer);
++    }
++    fn grow(&self, reservation: &MemoryReservation, bytes: usize) {
++        self.inner.grow(reservation, bytes);
++        self.record_growth(bytes);
++    }
++    fn try_grow(
++        &self,
++        reservation: &MemoryReservation,
++        bytes: usize,
++    ) -> datafusion::common::Result<()> {
++        self.inner.try_grow(reservation, bytes)?;
++        self.record_growth(bytes);
++        Ok(())
++    }
++    fn shrink(&self, reservation: &MemoryReservation, bytes: usize) {
++        self.current.fetch_sub(bytes, Ordering::Relaxed);
++        self.inner.shrink(reservation, bytes);
++    }
++    fn reserved(&self) -> usize {
++        self.inner.reserved()
++    }
++    fn memory_limit(&self) -> MemoryLimit {
++        self.inner.memory_limit()
++    }
++}
++
++impl MergeResources {
++    pub fn new(dataset: &Dataset, target_schema: &Schema) -> Result<Self> {
++        let mode = ExperimentMode::from_env()?;
++        if std::env::var_os("LANCE_BYPASS_SPILLING").is_some() {
++            return Err(Error::invalid_input(
++                "C experiments require LANCE_BYPASS_SPILLING to be unset",
++            ));
++        }
++        let original_config = SessionConfig::new();
++        let requested = original_config.target_partitions();
++        let options = LanceExecutionOptions {
++            use_spilling: true,
++            target_partition: Some(requested),
++            ..Default::default()
++        };
++        let policy_bytes = usize::try_from(options.mem_pool_size())
++            .map_err(|_| Error::invalid_input("Merge pool size exceeds usize"))?;
++        if policy_bytes == 0 {
++            return Err(Error::invalid_input(
++                "Merge policy pool bytes must be greater than 0",
++            ));
++        }
++        let fixed_width = fixed_schema_width(target_schema);
++        let width = fixed_width.or_else(|| {
++            let (rows, bytes) =
++                dataset
++                    .fragments()
++                    .iter()
++                    .try_fold((0u64, 0u64), |(rows, bytes), fragment| {
++                        let bytes_in_fragment =
++                            fragment.files.iter().try_fold(0u64, |sum, file| {
++                                sum.checked_add(file.file_size_bytes.get()?.get())
++                            })?;
++                        Some((
++                            rows.checked_add(fragment.physical_rows? as u64)?,
++                            bytes.checked_add(bytes_in_fragment)?,
++                        ))
++                    })?;
++            (rows > 0).then(|| bytes.div_ceil(rows).max(1))
++        });
++        let decode_tasks = get_num_compute_intensive_cpus().max(1);
++        let decode_bytes = policy_bytes as u64 / 4;
++        let memory_partitions = width
++            .map(|width| (decode_bytes / width.max(1)).max(1) as usize)
++            .unwrap_or(usize::MAX);
++        let partitions = requested.min(decode_tasks).min(memory_partitions).max(1);
++        let configured_io = get_default_io_buffer_size_override().unwrap_or_else(|| {
++            SchedulerConfig::max_bandwidth(dataset.object_store.as_ref()).io_buffer_size_bytes
++        });
++        let io_bytes = (configured_io != 0).then(|| {
++            (policy_bytes as u64 / 4)
++                .max(16 * 1024 * 1024)
++                .min(configured_io)
++        });
++        let mut config = original_config
++            .with_target_partitions(partitions)
++            .with_sort_spill_reservation_bytes((policy_bytes / 3).min(40 * 1024 * 1024));
++        // Keep normal JoinSelection, repartitioning and round-robin rules enabled.
++        let prefix_rows = config
++            .options()
++            .optimizer
++            .hash_join_single_partition_threshold_rows;
++        let prefix_bytes = (100 * 1024 * 1024).min(policy_bytes / 8);
++        config.options_mut().execution.target_partitions = partitions;
++        let pool: Arc<dyn MemoryPool> = if mode == ExperimentMode::PrepUnbounded {
++            Arc::new(TrackConsumersPool::new(
++                UnboundedMemoryPool::default(),
++                NonZero::<usize>::MIN.saturating_add(15),
++            ))
++        } else {
++            Arc::new(TrackConsumersPool::new(
++                FairSpillPool::new(policy_bytes),
++                NonZero::<usize>::MIN.saturating_add(15),
++            ))
++        };
++        let runtime = RuntimeEnvBuilder::new()
++            .with_disk_manager_builder(
++                DiskManagerBuilder::default()
++                    .with_max_temp_directory_size(options.max_temp_directory_size()),
++            )
++            .with_memory_pool(Arc::new(PeakMemoryPool {
++                inner: pool,
++                current: AtomicUsize::new(0),
++                peak: AtomicUsize::new(0),
++            }))
++            .build_arc()?;
++        let context = SessionContext::new_with_config_rt(config, runtime);
++        lance_datafusion::udf::register_functions(&context);
++        let scan = Arc::new(MergeScanPolicy {
++            partitions,
++            decode_tasks,
++            io_bytes,
++            decode_bytes,
++            width,
++            use_budget: mode.budget(),
++            use_native: mode.native() && width.is_some() && io_bytes.is_some(),
++        });
++        evidence(
++            json!({"phase":"resources", "revision":"C-r2", "mode":format!("{mode:?}"), "policy_bytes":policy_bytes,
++            "pool": if mode == ExperimentMode::PrepUnbounded {"unbounded"} else {"FairSpillPool"},
++            "requested_p":requested, "effective_p":partitions, "decode_tasks":decode_tasks,
++            "prefix_bytes":prefix_bytes, "prefix_rows":prefix_rows, "prefix_batches":1024,
++            "small_target_bytes":(32 * 1024 * 1024).min(policy_bytes / 4), "width":width,
++            "width_source":if fixed_width.is_some() {"fixed_projection"} else if width.is_some() {"file_bytes_per_physical_row"} else {"unavailable"},
++            "io_bytes":io_bytes, "decode_bytes":decode_bytes,
++            "row_cap":get_default_batch_size().unwrap_or_else(|| (dataset.object_store.block_size()/4).max(BATCH_SIZE_FALLBACK)),
++            "context":format!("{:p}", context.runtime_env())}),
++        );
++        Ok(Self {
++            context,
++            mode,
++            policy_bytes,
++            prefix_bytes,
++            prefix_rows,
++            scan,
++        })
++    }
++}
++
++// Include a conservative byte per validity bitmap, including non-nullable fields.
++// Nested and variable-width fields stay unmodeled until their accounting is tested.
++pub(super) fn fixed_schema_width(schema: &Schema) -> Option<u64> {
++    schema.fields().iter().try_fold(0u64, |width, field| {
++        if field.metadata().contains_key("ARROW:extension:name") {
++            return None;
++        }
++        let bytes = match field.data_type() {
++            DataType::Null => 0,
++            DataType::Boolean => 1,
++            DataType::FixedSizeBinary(size) if *size >= 0 => *size as u64,
++            data_type if data_type.is_primitive() => data_type.primitive_width()? as u64,
++            _ => return None,
++        };
++        width.checked_add(bytes)?.checked_add(1)
++    })
++}
++
++pub fn evidence(mut value: Value) {
++    if let Some(path) = std::env::var_os("LANCE_MERGE_EVIDENCE") {
++        if let Some(object) = value.as_object_mut() {
++            object.insert(
++                "unix_seconds".into(),
++                json!(
++                    std::time::SystemTime::now()
++                        .duration_since(std::time::UNIX_EPOCH)
++                        .ok()
++                        .map(|elapsed| elapsed.as_secs_f64())
++                ),
++            );
++        }
++        let write = || -> std::io::Result<()> {
++            let mut file = std::fs::OpenOptions::new()
++                .append(true)
++                .create(true)
++                .open(path)?;
++            writeln!(file, "{value}")
++        };
++        if let Err(error) = write() {
++            log::warn!("Could not write merge experiment evidence: {error}");
++        }
++    }
++}
++
++pub(super) fn resource_gauges(plan: &dyn ExecutionPlan, output: &mut Vec<Value>) {
++    if matches!(
++        plan.name(),
++        "FilteredReadExec" | "HashJoinExec" | "RepartitionExec" | "CoalescePartitionsExec"
++    ) {
++        output.push(json!({"kind":"topology", "operator":plan.name(), "output_p":plan.properties().output_partitioning().partition_count()}));
++    }
++    if let Some(join) = plan.downcast_ref::<datafusion::physical_plan::joins::HashJoinExec>() {
++        output.push(json!({"kind":"join", "mode":format!("{:?}", join.partition_mode()),
++            "build_fields":join.left().schema().fields().iter().map(|field| field.name()).collect::<Vec<_>>(),
++            "probe_fields":join.right().schema().fields().iter().map(|field| field.name()).collect::<Vec<_>>()}));
++    }
++    if let Some(metrics) = plan.metrics() {
++        for metric in metrics.iter() {
++            if let MetricValue::Gauge { name, gauge } = metric.value()
++                && matches!(
++                    name.as_ref(),
++                    "build_mem_used" | "active_read_tasks" | "peak_read_tasks"
++                )
++            {
++                output.push(json!({"operator":plan.name(), "partition":metric.partition(), "name":name, "value":gauge.value()}));
++            }
++        }
++    }
++    for child in plan.children() {
++        resource_gauges(child.as_ref(), output);
++    }
++}
++
++pub(super) fn preparation_evidence(
++    start: Instant,
++    rows: usize,
++    bytes: usize,
++    batches: usize,
++    reason: &str,
++) {
++    evidence(
++        json!({"phase":"source_prepared", "seconds":start.elapsed().as_secs_f64(), "rows":rows, "arrow_bytes":bytes, "batches":batches, "stop":reason}),
++    );
++}
+diff --git a/rust/lance/src/dataset/write/merge_insert/exec/payload.rs b/rust/lance/src/dataset/write/merge_insert/exec/payload.rs
+new file mode 100644
+index 00000000..b6a27ea8
+--- /dev/null
++++ b/rust/lance/src/dataset/write/merge_insert/exec/payload.rs
+@@ -0,0 +1,362 @@
++// SPDX-License-Identifier: Apache-2.0
++// SPDX-FileCopyrightText: Copyright The Lance Authors
++
++use std::sync::Arc;
++
++use arrow_array::{
++    Array, RecordBatch, UInt32Array,
++    cast::AsArray,
++    types::{UInt8Type, UInt64Type},
++};
++use arrow_schema::{Schema, SchemaRef};
++use arrow_select::take::take;
++use datafusion::common::{DataFusionError, Result};
++use datafusion::execution::TaskContext;
++use datafusion::physical_expr::{EquivalenceProperties, Partitioning};
++use datafusion::physical_plan::{
++    DisplayAs, DisplayFormatType, Distribution, ExecutionPlan, PlanProperties,
++    SendableRecordBatchStream,
++    execution_plan::{Boundedness, EmissionType},
++    metrics::{ExecutionPlanMetricsSet, MetricBuilder, MetricsSet},
++    stream::RecordBatchStreamAdapter,
++};
++use futures::TryStreamExt;
++use lance_core::ROW_ADDR;
++use lance_datafusion::projection::ProjectionPlan;
++
++use super::super::{MERGE_ACTION_COLUMN, assign_action::Action};
++use crate::{Dataset, dataset::TakeBuilder};
++
++/// Serial, action-aware payload retrieval from the same snapshot that produced the addresses.
++#[derive(Debug)]
++pub(in crate::dataset::write::merge_insert) struct MergePayloadExec {
++    input: Arc<dyn ExecutionPlan>,
++    dataset: Arc<Dataset>,
++    columns: Vec<String>,
++    take: Arc<ProjectionPlan>,
++    schema: SchemaRef,
++    properties: Arc<PlanProperties>,
++    metrics: ExecutionPlanMetricsSet,
++}
++
++impl MergePayloadExec {
++    pub fn try_new(
++        input: Arc<dyn ExecutionPlan>,
++        dataset: Arc<Dataset>,
++        columns: Vec<String>,
++    ) -> Result<Self> {
++        let projection = dataset.schema().project(&columns)?;
++        let take = Arc::new(ProjectionPlan::from_schema(dataset.clone(), &projection)?);
++        let taken_schema = take.output_schema()?;
++        let fields = input
++            .schema()
++            .fields()
++            .iter()
++            .cloned()
++            .chain(
++                taken_schema
++                    .fields()
++                    .iter()
++                    .map(|field| Arc::new(field.as_ref().clone().with_nullable(true))),
++            )
++            .collect::<Vec<_>>();
++        let schema = Arc::new(Schema::new(fields));
++        let properties = Arc::new(PlanProperties::new(
++            EquivalenceProperties::new(schema.clone()),
++            Partitioning::UnknownPartitioning(1),
++            EmissionType::Incremental,
++            Boundedness::Bounded,
++        ));
++        Ok(Self {
++            input,
++            dataset,
++            columns,
++            take,
++            schema,
++            properties,
++            metrics: ExecutionPlanMetricsSet::new(),
++        })
++    }
++}
++
++impl DisplayAs for MergePayloadExec {
++    fn fmt_as(&self, _: DisplayFormatType, f: &mut std::fmt::Formatter) -> std::fmt::Result {
++        write!(
++            f,
++            "MergePayload: columns={:?}, snapshot={}",
++            self.columns,
++            self.dataset.version().version
++        )
++    }
++}
++
++impl ExecutionPlan for MergePayloadExec {
++    fn name(&self) -> &str {
++        "MergePayloadExec"
++    }
++    fn properties(&self) -> &Arc<PlanProperties> {
++        &self.properties
++    }
++    fn children(&self) -> Vec<&Arc<dyn ExecutionPlan>> {
++        vec![&self.input]
++    }
++    fn required_input_distribution(&self) -> Vec<Distribution> {
++        vec![Distribution::SinglePartition]
++    }
++    fn benefits_from_input_partitioning(&self) -> Vec<bool> {
++        vec![false]
++    }
++    fn with_new_children(
++        self: Arc<Self>,
++        children: Vec<Arc<dyn ExecutionPlan>>,
++    ) -> Result<Arc<dyn ExecutionPlan>> {
++        let [input]: [Arc<dyn ExecutionPlan>; 1] =
++            children.try_into().map_err(|children: Vec<_>| {
++                DataFusionError::Internal(format!(
++                    "MergePayload expected 1 child, got {}",
++                    children.len()
++                ))
++            })?;
++        Ok(Arc::new(Self::try_new(
++            input,
++            self.dataset.clone(),
++            self.columns.clone(),
++        )?))
++    }
++    fn metrics(&self) -> Option<MetricsSet> {
++        Some(self.metrics.clone_inner())
++    }
++    fn execute(
++        &self,
++        partition: usize,
++        context: Arc<TaskContext>,
++    ) -> Result<SendableRecordBatchStream> {
++        if partition != 0 {
++            return Err(DataFusionError::Internal(format!(
++                "MergePayload expected partition 0, got {partition}"
++            )));
++        }
++        let dataset = self.dataset.clone();
++        let projection = self.take.clone();
++        let names = self.columns.clone();
++        let schema = self.schema.clone();
++        let rows_metric = MetricBuilder::new(&self.metrics).counter("payload_take_rows", partition);
++        let bytes_metric =
++            MetricBuilder::new(&self.metrics).counter("payload_take_arrow_bytes", partition);
++        let output_schema = schema.clone();
++        let stream = self
++            .input
++            .execute(partition, context)?
++            .and_then(move |batch| {
++                let dataset = dataset.clone();
++                let projection = projection.clone();
++                let names = names.clone();
++                let schema = schema.clone();
++                let rows_metric = rows_metric.clone();
++                let bytes_metric = bytes_metric.clone();
++                async move {
++                    let actions = batch
++                        .column_by_name(MERGE_ACTION_COLUMN)
++                        .and_then(|a| a.as_primitive_opt::<UInt8Type>())
++                        .ok_or_else(|| {
++                            DataFusionError::Internal("MergePayload requires UInt8 actions".into())
++                        })?;
++                    let addresses = batch
++                        .column_by_name(ROW_ADDR)
++                        .and_then(|a| a.as_primitive_opt::<UInt64Type>())
++                        .ok_or_else(|| {
++                            DataFusionError::Internal(
++                                "MergePayload requires UInt64 row addresses".into(),
++                            )
++                        })?;
++                    let mut addrs = Vec::new();
++                    let mut gather = vec![None; batch.num_rows()];
++                    for (row, index) in gather.iter_mut().enumerate() {
++                        if actions.value(row) == Action::UpdateAll as u8 {
++                            if addresses.is_null(row) {
++                                return Err(DataFusionError::Internal(
++                                    "MergePayload update has no target address".into(),
++                                ));
++                            }
++                            *index = Some(
++                                u32::try_from(addrs.len())
++                                    .map_err(|e| DataFusionError::Internal(e.to_string()))?,
++                            );
++                            addrs.push(addresses.value(row));
++                        }
++                    }
++                    let mut columns = batch.columns().to_vec();
++                    if addrs.is_empty() {
++                        columns.extend(schema.fields()[columns.len()..].iter().map(|field| {
++                            arrow_array::new_null_array(field.data_type(), batch.num_rows())
++                        }));
++                    } else {
++                        let expected = addrs.len();
++                        let taken =
++                            TakeBuilder::try_new_from_addresses(dataset, addrs, projection)?
++                                .execute()
++                                .await?;
++                        if taken.num_rows() != expected {
++                            return Err(DataFusionError::Internal(format!(
++                                "MergePayload took {} of {expected} rows",
++                                taken.num_rows()
++                            )));
++                        }
++                        rows_metric.add(expected);
++                        bytes_metric.add(taken.get_array_memory_size());
++                        let indices = UInt32Array::from(gather);
++                        for name in &names {
++                            let column = taken.column_by_name(name).ok_or_else(|| {
++                                DataFusionError::Internal(format!(
++                                    "MergePayload take omitted {name}"
++                                ))
++                            })?;
++                            columns.push(take(column, &indices, None)?);
++                        }
++                    }
++                    Ok(RecordBatch::try_new(schema, columns)?)
++                }
++            });
++        Ok(Box::pin(RecordBatchStreamAdapter::new(
++            output_schema,
++            stream,
++        )))
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use crate::utils::test::{DatagenExt, FragmentCount, FragmentRowCount};
++    use arrow_array::record_batch;
++    use datafusion::datasource::memory::MemorySourceConfig;
++    use datafusion::physical_plan::collect;
++    use lance_core::utils::address::RowAddress;
++    use lance_datagen::{array, gen_batch};
++
++    #[tokio::test(start_paused = true)]
++    async fn payload_pending_take_is_released_on_cancel() {
++        use crate::utils::test::ThrottledStoreWrapper;
++        use futures::StreamExt;
++        use lance_io::object_store::WrappingObjectStore;
++        use object_store::throttle::ThrottleConfig;
++        use std::time::Duration;
++
++        let original = Arc::new(
++            gen_batch()
++                .col("key", array::step::<UInt64Type>())
++                .col("old", array::step::<UInt64Type>())
++                .into_ram_dataset(FragmentCount::from(1), FragmentRowCount::from(1))
++                .await
++                .unwrap(),
++        );
++        let wrapper: Arc<dyn WrappingObjectStore> = Arc::new(ThrottledStoreWrapper {
++            config: ThrottleConfig {
++                wait_get_per_call: Duration::from_secs(60),
++                ..Default::default()
++            },
++        });
++        let dataset = Arc::new(original.with_object_store_wrappers([wrapper]));
++        let snapshot = Arc::downgrade(&dataset);
++        let batch = record_batch!(
++            ("key", UInt64, [0]),
++            ("_rowaddr", UInt64, [0]),
++            ("__action", UInt8, [1])
++        )
++        .unwrap();
++        let input =
++            MemorySourceConfig::try_new_exec(&[vec![batch.clone()]], batch.schema(), None).unwrap();
++        let plan = MergePayloadExec::try_new(input, dataset, vec!["old".into()]).unwrap();
++        let mut stream = plan.execute(0, Arc::new(TaskContext::default())).unwrap();
++        let mut next = Box::pin(stream.next());
++        assert!(futures::poll!(&mut next).is_pending());
++        drop(next);
++        drop(stream);
++        drop(plan);
++        assert!(snapshot.upgrade().is_none());
++        assert_eq!(original.latest_version_id().await.unwrap(), 1);
++        let unchanged = original.scan().try_into_batch().await.unwrap();
++        assert_eq!(unchanged["old"].as_primitive::<UInt64Type>().value(0), 0);
++        assert_eq!(unchanged.num_rows(), 1);
++    }
++
++    #[tokio::test]
++    async fn payload_uses_physical_addresses_and_keeps_insert_rows() {
++        let dataset = Arc::new(
++            gen_batch()
++                .col("key", array::step::<UInt64Type>())
++                .col("old", array::step::<UInt64Type>())
++                .into_ram_dataset(FragmentCount::from(2), FragmentRowCount::from(3))
++                .await
++                .unwrap(),
++        );
++        let addresses = [
++            Some(u64::from(RowAddress::new_from_parts(1, 0))),
++            Some(u64::from(RowAddress::new_from_parts(0, 1))),
++            None,
++            Some(0),
++            Some(2),
++        ];
++        let batch = record_batch!(
++            ("key", UInt64, [8, 8, 9, 10, 11]),
++            ("_rowaddr", UInt64, addresses.to_vec()),
++            ("__action", UInt8, [1, 1, 2, 3, 0])
++        )
++        .unwrap();
++        let input =
++            MemorySourceConfig::try_new_exec(&[vec![batch.clone()]], batch.schema(), None).unwrap();
++        let plan: Arc<dyn ExecutionPlan> =
++            Arc::new(MergePayloadExec::try_new(input, dataset, vec!["old".into()]).unwrap());
++        let output = collect(plan, Arc::new(TaskContext::default()))
++            .await
++            .unwrap();
++        assert_eq!(output.len(), 1);
++        assert_eq!(output[0].num_rows(), 5);
++        let old = output[0]["old"].as_primitive::<UInt64Type>();
++        assert_eq!(
++            old.iter().collect::<Vec<_>>(),
++            vec![Some(3), Some(1), None, None, None]
++        );
++        assert_eq!(output[0]["__action"].to_data(), batch["__action"].to_data());
++        assert!(
++            output[0]
++                .schema()
++                .field_with_name("old")
++                .unwrap()
++                .is_nullable()
++        );
++    }
++
++    #[tokio::test]
++    async fn payload_take_error_is_not_an_empty_success() {
++        let dataset = Arc::new(
++            gen_batch()
++                .col("key", array::step::<UInt64Type>())
++                .col("old", array::step::<UInt64Type>())
++                .into_ram_dataset(FragmentCount::from(1), FragmentRowCount::from(1))
++                .await
++                .unwrap(),
++        );
++        let address = u64::from(RowAddress::new_from_parts(99, 0));
++        let batch = record_batch!(
++            ("key", UInt64, [1]),
++            ("_rowaddr", UInt64, [address]),
++            ("__action", UInt8, [1])
++        )
++        .unwrap();
++        let input =
++            MemorySourceConfig::try_new_exec(&[vec![batch.clone()]], batch.schema(), None).unwrap();
++        let plan: Arc<dyn ExecutionPlan> = Arc::new(
++            MergePayloadExec::try_new(input, dataset.clone(), vec!["old".into()]).unwrap(),
++        );
++        let error = collect(plan, Arc::new(TaskContext::default()))
++            .await
++            .unwrap_err();
++        assert!(matches!(error, DataFusionError::External(_)));
++        assert!(
++            error.to_string().contains("non-existent fragment: 99"),
++            "{error}"
++        );
++        assert_eq!(dataset.version().version, 1);
++    }
++}
+diff --git a/rust/lance/src/dataset/write/merge_insert/stats_guard.rs b/rust/lance/src/dataset/write/merge_insert/stats_guard.rs
+new file mode 100644
+index 00000000..38ed7538
+--- /dev/null
++++ b/rust/lance/src/dataset/write/merge_insert/stats_guard.rs
+@@ -0,0 +1,254 @@
++// SPDX-License-Identifier: Apache-2.0
++// SPDX-FileCopyrightText: Copyright The Lance Authors
++
++use std::sync::Arc;
++
++use datafusion::common::{Result, Statistics, config::ConfigOptions, stats::Precision};
++use datafusion::execution::TaskContext;
++use datafusion::physical_plan::{
++    DisplayAs, DisplayFormatType, ExecutionPlan, PhysicalExpr, PlanProperties,
++    SendableRecordBatchStream,
++    filter_pushdown::{FilterDescription, FilterPushdownPhase},
++};
++
++/// Withdraws unsafe size and cardinality hints only at the merge target boundary.
++/// CardinalityEffect deliberately stays Unknown: the statistics registry must call us.
++#[derive(Debug)]
++pub(super) struct MergeTargetStatsGuardExec {
++    input: Arc<dyn ExecutionPlan>,
++}
++
++impl MergeTargetStatsGuardExec {
++    pub fn new(input: Arc<dyn ExecutionPlan>) -> Self {
++        Self { input }
++    }
++}
++
++impl DisplayAs for MergeTargetStatsGuardExec {
++    fn fmt_as(&self, _: DisplayFormatType, f: &mut std::fmt::Formatter) -> std::fmt::Result {
++        write!(f, "MergeTargetStatsGuard: rows=Absent, bytes=Absent")
++    }
++}
++
++impl ExecutionPlan for MergeTargetStatsGuardExec {
++    fn name(&self) -> &str {
++        "MergeTargetStatsGuardExec"
++    }
++    fn properties(&self) -> &Arc<PlanProperties> {
++        self.input.properties()
++    }
++    fn children(&self) -> Vec<&Arc<dyn ExecutionPlan>> {
++        vec![&self.input]
++    }
++    fn maintains_input_order(&self) -> Vec<bool> {
++        vec![true]
++    }
++    fn with_new_children(
++        self: Arc<Self>,
++        children: Vec<Arc<dyn ExecutionPlan>>,
++    ) -> Result<Arc<dyn ExecutionPlan>> {
++        let [input]: [Arc<dyn ExecutionPlan>; 1] =
++            children.try_into().map_err(|children: Vec<_>| {
++                datafusion::common::DataFusionError::Internal(format!(
++                    "StatsGuard expected 1 child, got {}",
++                    children.len()
++                ))
++            })?;
++        Ok(Arc::new(Self::new(input)))
++    }
++    fn partition_statistics(&self, partition: Option<usize>) -> Result<Arc<Statistics>> {
++        let mut stats = self.input.partition_statistics(partition)?.as_ref().clone();
++        stats.num_rows = Precision::Absent;
++        stats.total_byte_size = Precision::Absent;
++        Ok(Arc::new(stats))
++    }
++    fn execute(
++        &self,
++        partition: usize,
++        context: Arc<TaskContext>,
++    ) -> Result<SendableRecordBatchStream> {
++        self.input.execute(partition, context)
++    }
++
++    fn reset_state(self: Arc<Self>) -> Result<Arc<dyn ExecutionPlan>> {
++        Ok(Arc::new(Self::new(self.input.clone().reset_state()?)))
++    }
++
++    fn try_swapping_with_projection(
++        &self,
++        projection: &datafusion::physical_plan::projection::ProjectionExec,
++    ) -> Result<Option<Arc<dyn ExecutionPlan>>> {
++        let projection = datafusion::physical_plan::projection::ProjectionExec::try_new(
++            projection.expr().to_vec(),
++            self.input.clone(),
++        )?;
++        let input = self
++            .input
++            .try_swapping_with_projection(&projection)?
++            .unwrap_or_else(|| Arc::new(projection));
++        // A later physical projection can narrow the schema. Retain the conservative mask.
++        Ok(Some(Arc::new(Self::new(input))))
++    }
++    fn repartitioned(
++        &self,
++        partitions: usize,
++        config: &ConfigOptions,
++    ) -> Result<Option<Arc<dyn ExecutionPlan>>> {
++        Ok(self
++            .input
++            .repartitioned(partitions, config)?
++            .map(|input| Arc::new(Self::new(input)) as Arc<dyn ExecutionPlan>))
++    }
++    fn gather_filters_for_pushdown(
++        &self,
++        _: FilterPushdownPhase,
++        filters: Vec<Arc<dyn PhysicalExpr>>,
++        _: &ConfigOptions,
++    ) -> Result<FilterDescription> {
++        FilterDescription::from_children(filters, &self.children())
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++    use arrow_array::record_batch;
++    use datafusion::common::NullEquality;
++    use datafusion::datasource::memory::MemorySourceConfig;
++    use datafusion::logical_expr::JoinType;
++    use datafusion::physical_expr::expressions::Column;
++    use datafusion::physical_optimizer::{PhysicalOptimizerRule, join_selection::JoinSelection};
++    use datafusion::physical_plan::collect;
++    use datafusion::physical_plan::joins::{HashJoinExec, PartitionMode};
++    use datafusion::physical_plan::operator_statistics::StatisticsRegistry;
++    use lance_datafusion::exec::OneShotExec;
++
++    #[tokio::test]
++    async fn guard_survives_registry_and_preserves_rows() {
++        let batch = record_batch!(
++            ("key", Int64, [1, 2]),
++            ("payload", Utf8, ["old-one", "old-two"])
++        )
++        .unwrap();
++        let input =
++            MemorySourceConfig::try_new_exec(&[vec![batch.clone()]], batch.schema(), None).unwrap();
++        let plan: Arc<dyn ExecutionPlan> = Arc::new(MergeTargetStatsGuardExec::new(input));
++        for registry in [
++            StatisticsRegistry::new(),
++            StatisticsRegistry::default_with_builtin_providers(),
++        ] {
++            let stats = registry.compute(plan.as_ref()).unwrap();
++            assert_eq!(stats.base().num_rows, Precision::Absent);
++            assert_eq!(stats.base().total_byte_size, Precision::Absent);
++        }
++        let stats = plan.partition_statistics(None).unwrap();
++        assert_eq!(stats.num_rows, Precision::Absent);
++        assert_eq!(stats.total_byte_size, Precision::Absent);
++        let rebuilt = plan.clone().reset_state().unwrap();
++        let output = collect(rebuilt, Arc::new(TaskContext::default()))
++            .await
++            .unwrap();
++        assert_eq!(output, vec![batch]);
++    }
++
++    #[derive(Debug)]
++    struct BytesOnly(Arc<dyn ExecutionPlan>);
++    impl DisplayAs for BytesOnly {
++        fn fmt_as(&self, _: DisplayFormatType, f: &mut std::fmt::Formatter) -> std::fmt::Result {
++            write!(f, "BytesOnlyCounterfactual")
++        }
++    }
++    impl ExecutionPlan for BytesOnly {
++        fn name(&self) -> &str {
++            "BytesOnlyCounterfactual"
++        }
++        fn properties(&self) -> &Arc<PlanProperties> {
++            self.0.properties()
++        }
++        fn children(&self) -> Vec<&Arc<dyn ExecutionPlan>> {
++            vec![&self.0]
++        }
++        fn with_new_children(
++            self: Arc<Self>,
++            children: Vec<Arc<dyn ExecutionPlan>>,
++        ) -> Result<Arc<dyn ExecutionPlan>> {
++            Ok(Arc::new(Self(children[0].clone())))
++        }
++        fn partition_statistics(&self, _: Option<usize>) -> Result<Arc<Statistics>> {
++            let mut stats = self.0.partition_statistics(None)?.as_ref().clone();
++            stats.num_rows = Precision::Exact(200);
++            stats.total_byte_size = Precision::Absent;
++            Ok(Arc::new(stats))
++        }
++        fn execute(
++            &self,
++            partition: usize,
++            context: Arc<TaskContext>,
++        ) -> Result<SendableRecordBatchStream> {
++            self.0.execute(partition, context)
++        }
++    }
++
++    fn hash_join(plan: &Arc<dyn ExecutionPlan>) -> &HashJoinExec {
++        if let Some(join) = plan.downcast_ref::<HashJoinExec>() {
++            return join;
++        }
++        hash_join(plan.children()[0])
++    }
++
++    #[rstest::rstest]
++    #[case::registry_off(false)]
++    #[case::registry_on(true)]
++    #[test]
++    fn dual_absent_prevents_auto_collect_row_fallback(#[case] registry: bool) {
++        let mut config = ConfigOptions::new();
++        // This is DataFusion 54.1's actual JoinSelection registry switch.
++        config.optimizer.use_statistics_registry = registry;
++        for guarded in [false, true] {
++            let source = record_batch!(("key", Int64, [1]), ("source_marker", Int64, [7])).unwrap();
++            let source: Arc<dyn ExecutionPlan> = Arc::new(OneShotExec::from_batch(source));
++            let target = record_batch!(("key", Int64, [1]), ("payload", Utf8, ["old"])).unwrap();
++            let target =
++                MemorySourceConfig::try_new_exec(&[vec![target.clone()]], target.schema(), None)
++                    .unwrap();
++            let mut target: Arc<dyn ExecutionPlan> = Arc::new(BytesOnly(target));
++            if guarded {
++                target = Arc::new(MergeTargetStatsGuardExec::new(target));
++            }
++            let join: Arc<dyn ExecutionPlan> = Arc::new(
++                HashJoinExec::try_new(
++                    source,
++                    target,
++                    vec![(
++                        Arc::new(Column::new("key", 0)),
++                        Arc::new(Column::new("key", 0)),
++                    )],
++                    None,
++                    &JoinType::Full,
++                    None,
++                    PartitionMode::Auto,
++                    NullEquality::NullEqualsNothing,
++                    false,
++                )
++                .unwrap(),
++            );
++            let optimized = JoinSelection::new().optimize(join, &config).unwrap();
++            let join = hash_join(&optimized);
++            assert_eq!(
++                join.left()
++                    .schema()
++                    .column_with_name("source_marker")
++                    .is_some(),
++                guarded
++            );
++            assert_eq!(
++                *join.partition_mode(),
++                if guarded {
++                    PartitionMode::Partitioned
++                } else {
++                    PartitionMode::CollectLeft
++                }
++            );
++        }
++    }
++}

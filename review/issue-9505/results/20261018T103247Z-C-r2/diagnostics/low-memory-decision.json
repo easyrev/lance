@@ -1,0 +1,75 @@
+{
+  "results": [
+    {
+      "run_id": "g4-low-F4-Ccore",
+      "status": "validated_success",
+      "seconds": 0.14690067199990153,
+      "pool_bytes": 268435456,
+      "cgroup_limit": "2147483648",
+      "cgroup_peak": "370458624",
+      "oom_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "rss": 524476416,
+      "payload_take_rows": null,
+      "unchanged_manifest": null
+    },
+    {
+      "run_id": "g4-low-Wn-Ccore",
+      "status": "confirmed_oom",
+      "seconds": null,
+      "pool_bytes": 1073741824,
+      "cgroup_limit": "2147483648",
+      "cgroup_peak": "2147483648",
+      "oom_events": "low 0\nhigh 0\nmax 45\noom 2\noom_kill 3\noom_group_kill 1",
+      "rss": 2275438592,
+      "payload_take_rows": null,
+      "unchanged_manifest": {
+        "no_commit": true,
+        "version": 33,
+        "rows": 400,
+        "scope": "unchanged manifest and row count; no workload success claim"
+      }
+    },
+    {
+      "run_id": "g4-low-Wn-Clate",
+      "status": "validated_success",
+      "seconds": 0.5517709890009428,
+      "pool_bytes": 1073741824,
+      "cgroup_limit": "2147483648",
+      "cgroup_peak": "625291264",
+      "oom_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "rss": 762503168,
+      "payload_take_rows": 25,
+      "unchanged_manifest": null
+    },
+    {
+      "run_id": "g4-low-Ws-Ccore",
+      "status": "confirmed_oom",
+      "seconds": null,
+      "pool_bytes": 1073741824,
+      "cgroup_limit": "2147483648",
+      "cgroup_peak": "2147483648",
+      "oom_events": "low 0\nhigh 0\nmax 176\noom 8\noom_kill 3\noom_group_kill 1",
+      "rss": 2294743040,
+      "payload_take_rows": null,
+      "unchanged_manifest": {
+        "no_commit": true,
+        "version": 9,
+        "rows": 400,
+        "scope": "unchanged manifest and row count; no workload success claim"
+      }
+    },
+    {
+      "run_id": "g4-low-Ws-Clate",
+      "status": "validated_success",
+      "seconds": 2.204037581999728,
+      "pool_bytes": 1073741824,
+      "cgroup_limit": "2147483648",
+      "cgroup_peak": "1941757952",
+      "oom_events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "rss": 1935691776,
+      "payload_take_rows": 25,
+      "unchanged_manifest": null
+    }
+  ],
+  "decision": "fixed low-memory gate passed; Early wide controlled-memory claim fails; eligible forced Late passed both wide low-memory cells; do not generalize to arbitrary workloads"
+}

@@ -1,0 +1,40 @@
+{
+  "command": [
+    "/root/.local/bin/uv",
+    "run",
+    "--no-sync",
+    "python",
+    "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/bench.py",
+    "worker",
+    "execute",
+    "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/runs/g4-low-Wn-Ccore"
+  ],
+  "variant": "Ccore",
+  "operation": "execute",
+  "exit_code": -9,
+  "timeout": false,
+  "before": {
+    "memory.max": "2147483648",
+    "memory.swap.max": "0",
+    "memory.current": "0",
+    "memory.peak": "0",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "cpu.max": "max 100000",
+    "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+  },
+  "after": {
+    "memory.max": "2147483648",
+    "memory.swap.max": "0",
+    "memory.current": "2103980032",
+    "memory.peak": "2147483648",
+    "memory.events": "low 0\nhigh 0\nmax 45\noom 2\noom_kill 3\noom_group_kill 1",
+    "cpu.max": "max 100000",
+    "cpu.stat": "usage_usec 4660766\nuser_usec 2717016\nsystem_usec 1943750\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+  },
+  "confirmed_oom": true,
+  "cleanup": {
+    "removed": true,
+    "group_empty": true,
+    "attempts": 3
+  }
+}

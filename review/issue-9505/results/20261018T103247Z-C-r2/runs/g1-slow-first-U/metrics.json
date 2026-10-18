@@ -1,0 +1,99 @@
+{
+  "status": "validated_success",
+  "validated": true,
+  "pid": 116587,
+  "spec": {
+    "seed": 9505,
+    "epoch": 1,
+    "source_rows": 4,
+    "batch_rows": 1,
+    "source": "reader",
+    "full": false,
+    "binary": 0,
+    "dense": false,
+    "first_seen": false,
+    "rows": 64,
+    "columns": 8,
+    "fragment_rows": 16,
+    "name": "tiny",
+    "oracle": "splitmix64-v1",
+    "delays": {
+      "0": 0.25
+    },
+    "strace": true
+  },
+  "module": "/mnt/lance/checkouts/U/python/python/lance/__init__.py",
+  "version": "14.0.0-beta.19",
+  "snapshot": 3,
+  "baseline_rss_bytes": 171851776,
+  "input_materialization_seconds": 5.689998943125829e-07,
+  "stage": "execute_finished",
+  "source_lazy_at_execute_start": true,
+  "execute_started_monotonic": 15870.267881143,
+  "execute_started_wall_ns": 1792326645747830848,
+  "merge_stats": {
+    "num_inserted_rows": 0,
+    "num_updated_rows": 4,
+    "num_deleted_rows": 0
+  },
+  "execute_returned": true,
+  "merge_seconds": 0.27181035300054646,
+  "cpu_seconds": 0.023110000000000006,
+  "average_cpu_cores": 0.08502251568009091,
+  "ru_maxrss_bytes": 242233344,
+  "execution": {
+    "command": [
+      "strace",
+      "-ff",
+      "-ttt",
+      "-yy",
+      "-e",
+      "trace=read,pread64,write,openat",
+      "-o",
+      "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/runs/g1-slow-first-U/io.trace",
+      "/root/.local/bin/uv",
+      "run",
+      "--no-sync",
+      "python",
+      "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/bench.py",
+      "worker",
+      "execute",
+      "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/runs/g1-slow-first-U"
+    ],
+    "variant": "U",
+    "operation": "execute",
+    "exit_code": 0,
+    "timeout": false,
+    "before": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "0",
+      "memory.peak": "0",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+    },
+    "after": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "3100672",
+      "memory.peak": "86421504",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 2107430\nuser_usec 1923081\nsystem_usec 184349\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+    },
+    "confirmed_oom": false,
+    "cleanup": {
+      "removed": true,
+      "group_empty": true,
+      "attempts": 1
+    }
+  },
+  "run_id": "g1-slow-first-U",
+  "variant": "U",
+  "block": 0,
+  "formal": false,
+  "sampled_peak_rss_bytes": 243896320,
+  "sampled_peak_anon_bytes": 72839168,
+  "detailed_diagnostics_enabled": true
+}

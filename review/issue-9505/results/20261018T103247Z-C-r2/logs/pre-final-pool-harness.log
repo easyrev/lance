@@ -1,0 +1,44 @@
+Cprep_infinite False 0 0 {
+  "status": "execute_returned",
+  "snapshot": 1,
+  "rows": 1,
+  "source_rows": 100000,
+  "source": "materialized",
+  "execute_returned": true,
+  "purpose": "known build exceeds pool; no matches",
+  "merge_stats": {
+    "num_inserted_rows": 0,
+    "num_updated_rows": 0,
+    "num_deleted_rows": 0
+  },
+  "merge_seconds": 0.008902682999178069
+}
+
+Cprep False 0 0 {
+  "status": "resource_exhausted",
+  "snapshot": 1,
+  "rows": 1,
+  "source_rows": 100000,
+  "source": "materialized",
+  "execute_returned": false,
+  "purpose": "known build exceeds pool; no matches",
+  "error": "Resources exhausted: Additional allocation failed for HashJoinInput with top memory consumers (across reservations) as:\n  HashJoinInput#0(can spill: false) consumed 98.7 KB, peak 98.7 KB.\nError: Failed to allocate additional 98.7 KB for HashJoinInput with 98.7 KB already allocated for this reservation - 29.3 KB remain available for the total memory pool: fair(pool_size: 128.0 KB)",
+  "merge_seconds": 0.006517854999401607
+}
+
+Cprep True 0 0 {
+  "status": "execute_returned",
+  "snapshot": 1,
+  "rows": 1,
+  "source_rows": 1,
+  "source": "materialized",
+  "execute_returned": true,
+  "purpose": "small matched source",
+  "merge_stats": {
+    "num_inserted_rows": 0,
+    "num_updated_rows": 1,
+    "num_deleted_rows": 0
+  },
+  "merge_seconds": 0.008720674000869622
+}
+

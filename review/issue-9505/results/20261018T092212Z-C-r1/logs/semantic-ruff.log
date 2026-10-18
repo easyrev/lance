@@ -1,0 +1,17 @@
+1 file reformatted
+/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/semantic.py:104:13: E731 Do not assign a `lambda` expression, use a `def`
+    |
+102 |                       {"id": None, "value": 800, "old": None, "row_marker": None},
+103 |                   ]
+104 | /             canonical = lambda rows: sorted(
+105 | |                 json.dumps(row, sort_keys=True, default=lambda value: value.hex())
+106 | |                 for row in rows
+107 | |             )
+    | |_____________^ E731
+108 |               assert canonical(actual) == canonical(expected), (
+109 |                   mode,
+    |
+    = help: Rewrite `canonical` as a `def`
+
+Found 1 error.
+No fixes available (1 hidden fix can be enabled with the `--unsafe-fixes` option).

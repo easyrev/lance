@@ -1,0 +1,681 @@
+{
+  "seed": 9505,
+  "formal_blocks": 5,
+  "maximum_blocks_near_threshold": 9,
+  "native_retention_ratio": 0.9,
+  "conditional_late_branch": "If native is valid but below retention, compare Cbudget_late vs Cbudget on Wn; use W_dense as the coverage counterexample.",
+  "runs": [
+    {
+      "gate": 2,
+      "workload": "F4",
+      "variant": "U",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "F4",
+      "variant": "B",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "F4",
+      "variant": "P_reconstructed",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "F4",
+      "variant": "Cprep",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "F4",
+      "variant": "Cbudget",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "F4",
+      "variant": "Ccore",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "R",
+      "variant": "B",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 17179869184,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "R",
+      "variant": "P_reconstructed",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 17179869184,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "R",
+      "variant": "Ccore",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 17179869184,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "Wn",
+      "variant": "Cprep",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "Wn",
+      "variant": "Cbudget",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "Wn",
+      "variant": "Ccore",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "Wn",
+      "variant": "P_reconstructed",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "Ws",
+      "variant": "Cprep",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "Ws",
+      "variant": "Cbudget",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "Ws",
+      "variant": "Ccore",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "Ws",
+      "variant": "P_reconstructed",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 2,
+      "workload": "Wauto",
+      "variant": "Ccore",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Cprep",
+      "block": 1,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Cbudget",
+      "block": 1,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "P_reconstructed",
+      "block": 1,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "B",
+      "block": 1,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Ccore",
+      "block": 1,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Ccore",
+      "block": 1,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "materialized"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "B",
+      "block": 1,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "materialized"
+    },
+    {
+      "gate": 3,
+      "workload": "R",
+      "variant": "B",
+      "block": 1,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 17179869184,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "R",
+      "variant": "Ccore",
+      "block": 1,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 17179869184,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Ccore",
+      "block": 2,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "P_reconstructed",
+      "block": 2,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Cbudget",
+      "block": 2,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Cprep",
+      "block": 2,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "B",
+      "block": 2,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "B",
+      "block": 2,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "materialized"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Ccore",
+      "block": 2,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "materialized"
+    },
+    {
+      "gate": 3,
+      "workload": "R",
+      "variant": "B",
+      "block": 2,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 17179869184,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "R",
+      "variant": "Ccore",
+      "block": 2,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 17179869184,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Cprep",
+      "block": 3,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "P_reconstructed",
+      "block": 3,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "B",
+      "block": 3,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Ccore",
+      "block": 3,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Cbudget",
+      "block": 3,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "B",
+      "block": 3,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "materialized"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Ccore",
+      "block": 3,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "materialized"
+    },
+    {
+      "gate": 3,
+      "workload": "R",
+      "variant": "Ccore",
+      "block": 3,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 17179869184,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "R",
+      "variant": "B",
+      "block": 3,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 17179869184,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Cprep",
+      "block": 4,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Ccore",
+      "block": 4,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "B",
+      "block": 4,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Cbudget",
+      "block": 4,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "P_reconstructed",
+      "block": 4,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Ccore",
+      "block": 4,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "materialized"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "B",
+      "block": 4,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "materialized"
+    },
+    {
+      "gate": 3,
+      "workload": "R",
+      "variant": "B",
+      "block": 4,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 17179869184,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "R",
+      "variant": "Ccore",
+      "block": 4,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 17179869184,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Cbudget",
+      "block": 5,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "B",
+      "block": 5,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "P_reconstructed",
+      "block": 5,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Cprep",
+      "block": 5,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Ccore",
+      "block": 5,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "B",
+      "block": 5,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "materialized"
+    },
+    {
+      "gate": 3,
+      "workload": "F16",
+      "variant": "Ccore",
+      "block": 5,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "source": "materialized"
+    },
+    {
+      "gate": 3,
+      "workload": "R",
+      "variant": "Ccore",
+      "block": 5,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 17179869184,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 3,
+      "workload": "R",
+      "variant": "B",
+      "block": 5,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 17179869184,
+      "status": "planned",
+      "source": "reader"
+    },
+    {
+      "gate": 4,
+      "workload": "V_sparse",
+      "variant": "Ccore",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "smoke": true
+    },
+    {
+      "gate": 4,
+      "workload": "V_sparse",
+      "variant": "Clate",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "smoke": true
+    },
+    {
+      "gate": 4,
+      "workload": "Wn",
+      "variant": "Ccore",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "smoke": true
+    },
+    {
+      "gate": 4,
+      "workload": "Wn",
+      "variant": "Clate",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "smoke": true
+    },
+    {
+      "gate": 4,
+      "workload": "W_dense",
+      "variant": "Ccore",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "smoke": true
+    },
+    {
+      "gate": 4,
+      "workload": "W_dense",
+      "variant": "Clate",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "memory_max_bytes": 8589934592,
+      "status": "planned",
+      "smoke": true
+    }
+  ]
+}

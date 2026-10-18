@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py", line 401, in <module>
+    main()
+  File "/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py", line 388, in main
+    fixture(spec)
+  File "/mnt/lance/validation-9505/results/20261018T092212Z-C-r1/bench.py", line 158, in fixture
+    files = sorted({str(uri / "data" / file.path) for fragment in ds.get_fragments() for file in fragment.metadata.data_files})
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: 'method' object is not iterable

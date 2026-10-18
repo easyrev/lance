@@ -1,0 +1,20 @@
+{"run_id": "g4-smoke-V_sparse-Ccore", "status": "validated_success", "seconds": 2.036940501000572}
+{"run_id": "g4-smoke-V_sparse-Clate", "status": "validated_success", "seconds": 0.028453531000195653}
+{"run_id": "g4-smoke-Wn-Ccore", "status": "validated_success", "seconds": 2.0398235239990754}
+{"run_id": "g4-smoke-Wn-Clate", "status": "validated_success", "seconds": 0.5626143339995906}
+Traceback (most recent call last):
+  File "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/finite.py", line 124, in <module>
+    main(parser.parse_args().stage)
+  File "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/finite.py", line 84, in main
+    measured(variant, bench.workload(name), f"g4-smoke-{name}-{variant}")
+  File "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/finite.py", line 22, in measured
+    status = bench.run(variant, spec, name, block=block, formal=formal, limit=limit, pool=pool)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/bench.py", line 731, in run
+    execution = isolated(
+                ^^^^^^^^^
+  File "/mnt/lance/validation-9505/results/20261018T103247Z-C-r2/bench.py", line 689, in isolated
+    group.rmdir()
+  File "/usr/lib/python3.12/pathlib.py", line 1353, in rmdir
+    os.rmdir(self)
+OSError: [Errno 16] Device or resource busy: '/sys/fs/cgroup/lance9505-validation/g4-smoke-W_dense-Ccore-execute'
