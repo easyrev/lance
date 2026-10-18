@@ -59,6 +59,8 @@ pub struct DeferredConditions {
     pub update_if: Option<Expr>,
     /// `DeleteIf`, on the target-only rows.
     pub delete_if: Option<Expr>,
+    /// Old columns needed only when a matched row is actually rewritten.
+    pub payload_columns: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -324,14 +326,17 @@ impl ExtensionPlanner for MergeInsertPlanner {
                 let mut input = physical_inputs[0].clone();
                 let update_if_deferred = write_node.deferred.update_if.is_some();
                 if write_node.deferred != DeferredConditions::default() {
-                    input = Arc::new(MergeConditionExec::try_new(
-                        input,
-                        logical_inputs[0].schema(),
-                        write_node.dataset.clone(),
-                        write_node.deferred.update_if.clone(),
-                        write_node.deferred.delete_if.clone(),
-                        session_state,
-                    )?);
+                    input = Arc::new(
+                        MergeConditionExec::try_new(
+                            input,
+                            logical_inputs[0].schema(),
+                            write_node.dataset.clone(),
+                            write_node.deferred.update_if.clone(),
+                            write_node.deferred.delete_if.clone(),
+                            session_state,
+                        )?
+                        .with_payload_columns(write_node.deferred.payload_columns.clone())?,
+                    );
                 }
 
                 let exec: Arc<dyn ExecutionPlan> = if Self::is_delete_only(&write_node.params) {
