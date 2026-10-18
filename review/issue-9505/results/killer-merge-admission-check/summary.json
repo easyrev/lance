@@ -1,0 +1,40 @@
+{
+  "scope": "R_admission: one execution per variant, separate from the frozen main benchmark",
+  "configured_pool_bytes": 268435456,
+  "cgroup_limit_bytes": 8589934592,
+  "pool_enforcement": "U_main may use an unbounded pool; configuration alone is not proof",
+  "completed": true,
+  "candidate_passed": false,
+  "baseline_success_candidate_resource_failure": false,
+  "results": [
+    {
+      "run_id": "admission-R_admission-K-rewrite_rows-b0",
+      "stage": "admission",
+      "block": 0,
+      "workload": "R_admission",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "status": "infrastructure_error",
+      "merge_seconds": 0.4736496459954651,
+      "cpu_seconds": 0.5105170000000004,
+      "new_data_file_bytes": 0,
+      "sampled_peak_rss_bytes": 583192576,
+      "cgroup_peak_bytes": 492261376
+    },
+    {
+      "run_id": "admission-R_admission-U_main-rewrite_rows-b0",
+      "stage": "admission",
+      "block": 0,
+      "workload": "R_admission",
+      "variant": "U_main",
+      "write_mode": "rewrite_rows",
+      "status": "validated_success",
+      "merge_seconds": 1.924739355003112,
+      "cpu_seconds": 6.115446,
+      "new_data_file_bytes": 703789239,
+      "sampled_peak_rss_bytes": 2093285376,
+      "cgroup_peak_bytes": 2626486272
+    }
+  ],
+  "interpretation": "A resource-failure contrast does not prove the join choice caused it; retain the exact error and execution evidence"
+}

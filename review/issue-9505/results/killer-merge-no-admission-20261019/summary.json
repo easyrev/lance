@@ -1,0 +1,39 @@
+{
+  "scope": "F16 without the admission selector: one K execution per write mode",
+  "configured_pool_bytes": 1073741824,
+  "cgroup_limit_bytes": 8589934592,
+  "pool_enforcement": "The DataFusion pool does not bound every process allocation",
+  "completed": true,
+  "candidate_passed": true,
+  "results": [
+    {
+      "run_id": "ablation-F16-K-rewrite_columns-b0",
+      "stage": "ablation",
+      "block": 0,
+      "workload": "F16",
+      "variant": "K",
+      "write_mode": "rewrite_columns",
+      "status": "validated_success",
+      "merge_seconds": 0.5767198250032379,
+      "cpu_seconds": 2.9468389999999998,
+      "new_data_file_bytes": 101415500,
+      "sampled_peak_rss_bytes": 1516306432,
+      "cgroup_peak_bytes": 1416069120
+    },
+    {
+      "run_id": "ablation-F16-K-rewrite_rows-b0",
+      "stage": "ablation",
+      "block": 0,
+      "workload": "F16",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "status": "validated_success",
+      "merge_seconds": 0.5349175009978353,
+      "cpu_seconds": 2.54257,
+      "new_data_file_bytes": 44782,
+      "sampled_peak_rss_bytes": 1558511616,
+      "cgroup_peak_bytes": 1444106240
+    }
+  ],
+  "interpretation": "Compare with the frozen K result only after checking that production changes remove the selector alone; one run does not establish a stable speedup"
+}

@@ -1,0 +1,19 @@
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+    Checking lance v14.0.0-beta.19 (/mnt/lance/checkouts/K_check/rust/lance)
+error: pub(crate) function inside private module
+  --> rust/lance/src/dataset/write/merge_insert/exec/join.rs:27:1
+   |
+27 | pub(crate) fn prepare_merge_join(
+   | ----------^^^^^^^^^^^^^^^^^^^^^^
+   | |
+   | help: consider using: `pub`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#redundant_pub_crate
+   = note: requested on the command line with `-D clippy::redundant-pub-crate`
+
+error: could not compile `lance` (lib) due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `lance` (lib test) due to 1 previous error

@@ -1,0 +1,15 @@
+{
+  "seed": 9505,
+  "epoch": 1,
+  "source_rows": 64,
+  "batch_rows": 32768,
+  "full": false,
+  "binary": 262144,
+  "dense": false,
+  "rows": 64,
+  "columns": 3,
+  "fragment_rows": 16,
+  "condition": "target.payload != X'' AND target.row_marker % 8 = 0",
+  "predicate_modulus": 8,
+  "name": "condition_overlap"
+}

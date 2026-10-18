@@ -1,0 +1,1381 @@
+{
+  "status": "passed",
+  "mode": "live-files-and-artifacts",
+  "result_root": "/mnt/lance/killer-merge-final-20261019",
+  "freeze_sha256": "d55f19225c9d3f782f91be440c182ba54e1eed86609fa4982b0edb159c7176ae",
+  "audit_script_sha256": "ed1135984842d386663c6773edf57d9ea4299989d77eba3db4b7866beabfff71",
+  "planned_cells": 49,
+  "new_executions": 45,
+  "new_validated_successes": 45,
+  "independent_oracles": 45,
+  "inherited_references": 4,
+  "historical_resource_failures": 1,
+  "fixture_count": 9,
+  "fixture_files": 263,
+  "live_source_binary_fixture_hashes_verified": true,
+  "paired_comparisons": [
+    {
+      "workload": "F16",
+      "comparison": "K/rewrite_rows / U_main/rewrite_rows",
+      "planned_pairs": 3,
+      "valid_pairs": 0,
+      "ratios": [],
+      "median_ratio": null,
+      "ratio_of_medians": null
+    },
+    {
+      "workload": "F16",
+      "comparison": "K/rewrite_columns / K/rewrite_rows",
+      "planned_pairs": 3,
+      "valid_pairs": 3,
+      "ratios": [
+        {
+          "block": 1,
+          "ratio": 1.0946632725710526
+        },
+        {
+          "block": 2,
+          "ratio": 1.0856381869730451
+        },
+        {
+          "block": 3,
+          "ratio": 1.1004824289886637
+        }
+      ],
+      "median_ratio": 1.0946632725710526,
+      "ratio_of_medians": 1.0968725511809434
+    },
+    {
+      "workload": "Wn",
+      "comparison": "K/rewrite_rows / U_main/rewrite_rows",
+      "planned_pairs": 3,
+      "valid_pairs": 3,
+      "ratios": [
+        {
+          "block": 1,
+          "ratio": 0.07025269331487659
+        },
+        {
+          "block": 2,
+          "ratio": 0.06940613187184907
+        },
+        {
+          "block": 3,
+          "ratio": 0.07086765212744914
+        }
+      ],
+      "median_ratio": 0.07025269331487659,
+      "ratio_of_medians": 0.06978356632861747
+    },
+    {
+      "workload": "Wn",
+      "comparison": "K/rewrite_columns / K/rewrite_rows",
+      "planned_pairs": 3,
+      "valid_pairs": 3,
+      "ratios": [
+        {
+          "block": 1,
+          "ratio": 0.05545787186145101
+        },
+        {
+          "block": 2,
+          "ratio": 0.055389418886885
+        },
+        {
+          "block": 3,
+          "ratio": 0.057841596184843615
+        }
+      ],
+      "median_ratio": 0.05545787186145101,
+      "ratio_of_medians": 0.055830692937522
+    },
+    {
+      "workload": "Ws",
+      "comparison": "K/rewrite_rows / U_main/rewrite_rows",
+      "planned_pairs": 3,
+      "valid_pairs": 3,
+      "ratios": [
+        {
+          "block": 1,
+          "ratio": 0.38587894813221374
+        },
+        {
+          "block": 2,
+          "ratio": 0.39344020988128836
+        },
+        {
+          "block": 3,
+          "ratio": 0.3969318512810396
+        }
+      ],
+      "median_ratio": 0.39344020988128836,
+      "ratio_of_medians": 0.39344020988128836
+    },
+    {
+      "workload": "Ws",
+      "comparison": "K/rewrite_columns / K/rewrite_rows",
+      "planned_pairs": 3,
+      "valid_pairs": 3,
+      "ratios": [
+        {
+          "block": 1,
+          "ratio": 1.9934831459659965
+        },
+        {
+          "block": 2,
+          "ratio": 1.9822181226841404
+        },
+        {
+          "block": 3,
+          "ratio": 1.9336046542553946
+        }
+      ],
+      "median_ratio": 1.9822181226841404,
+      "ratio_of_medians": 1.9757036466068008
+    }
+  ],
+  "distributions": [
+    {
+      "stage": "correctness",
+      "workload": "condition_overlap",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "correctness-condition_overlap-K-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.053327116002037656,
+          "minimum": 0.053327116002037656,
+          "maximum": 0.053327116002037656
+        },
+        "cpu_seconds": {
+          "median": 0.06922300000000026,
+          "minimum": 0.06922300000000026,
+          "maximum": 0.06922300000000026
+        },
+        "new_data_file_bytes": {
+          "median": 2098953,
+          "minimum": 2098953,
+          "maximum": 2098953
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 262619136,
+          "minimum": 262619136,
+          "maximum": 262619136
+        },
+        "cgroup_peak_bytes": {
+          "median": 103628800,
+          "minimum": 103628800,
+          "maximum": 103628800
+        }
+      }
+    },
+    {
+      "stage": "correctness",
+      "workload": "condition_overlap",
+      "variant": "U_main",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "correctness-condition_overlap-U_main-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.06012456600001315,
+          "minimum": 0.06012456600001315,
+          "maximum": 0.06012456600001315
+        },
+        "cpu_seconds": {
+          "median": 0.0799909999999997,
+          "minimum": 0.0799909999999997,
+          "maximum": 0.0799909999999997
+        },
+        "new_data_file_bytes": {
+          "median": 2098953,
+          "minimum": 2098953,
+          "maximum": 2098953
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 280850432,
+          "minimum": 280850432,
+          "maximum": 280850432
+        },
+        "cgroup_peak_bytes": {
+          "median": 137588736,
+          "minimum": 137588736,
+          "maximum": 137588736
+        }
+      }
+    },
+    {
+      "stage": "correctness",
+      "workload": "condition_reject",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "correctness-condition_reject-K-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.04407215499668382,
+          "minimum": 0.04407215499668382,
+          "maximum": 0.04407215499668382
+        },
+        "cpu_seconds": {
+          "median": 0.05685300000000004,
+          "minimum": 0.05685300000000004,
+          "maximum": 0.05685300000000004
+        },
+        "new_data_file_bytes": {
+          "median": 0,
+          "minimum": 0,
+          "maximum": 0
+        },
+        "new_data_file_count": {
+          "median": 0,
+          "minimum": 0,
+          "maximum": 0
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 246972416,
+          "minimum": 246972416,
+          "maximum": 246972416
+        },
+        "cgroup_peak_bytes": {
+          "median": 95707136,
+          "minimum": 95707136,
+          "maximum": 95707136
+        }
+      }
+    },
+    {
+      "stage": "correctness",
+      "workload": "condition_reject",
+      "variant": "U_main",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "correctness-condition_reject-U_main-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.053953934999299236,
+          "minimum": 0.053953934999299236,
+          "maximum": 0.053953934999299236
+        },
+        "cpu_seconds": {
+          "median": 0.07431500000000002,
+          "minimum": 0.07431500000000002,
+          "maximum": 0.07431500000000002
+        },
+        "new_data_file_bytes": {
+          "median": 0,
+          "minimum": 0,
+          "maximum": 0
+        },
+        "new_data_file_count": {
+          "median": 0,
+          "minimum": 0,
+          "maximum": 0
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 277946368,
+          "minimum": 277946368,
+          "maximum": 277946368
+        },
+        "cgroup_peak_bytes": {
+          "median": 137465856,
+          "minimum": 137465856,
+          "maximum": 137465856
+        }
+      }
+    },
+    {
+      "stage": "correctness",
+      "workload": "string_null",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "correctness-string_null-K-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.0117388229991775,
+          "minimum": 0.0117388229991775,
+          "maximum": 0.0117388229991775
+        },
+        "cpu_seconds": {
+          "median": 0.019291999999999865,
+          "minimum": 0.019291999999999865,
+          "maximum": 0.019291999999999865
+        },
+        "new_data_file_bytes": {
+          "median": 1299,
+          "minimum": 1299,
+          "maximum": 1299
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 245456896,
+          "minimum": 245456896,
+          "maximum": 245456896
+        },
+        "cgroup_peak_bytes": {
+          "median": 84250624,
+          "minimum": 84250624,
+          "maximum": 84250624
+        }
+      }
+    },
+    {
+      "stage": "correctness",
+      "workload": "string_null",
+      "variant": "U_main",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "correctness-string_null-U_main-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.011335465002048295,
+          "minimum": 0.011335465002048295,
+          "maximum": 0.011335465002048295
+        },
+        "cpu_seconds": {
+          "median": 0.01648300000000069,
+          "minimum": 0.01648300000000069,
+          "maximum": 0.01648300000000069
+        },
+        "new_data_file_bytes": {
+          "median": 1299,
+          "minimum": 1299,
+          "maximum": 1299
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 245092352,
+          "minimum": 245092352,
+          "maximum": 245092352
+        },
+        "cgroup_peak_bytes": {
+          "median": 83968000,
+          "minimum": 83968000,
+          "maximum": 83968000
+        }
+      }
+    },
+    {
+      "stage": "correctness",
+      "workload": "tiny",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "correctness-tiny-K-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.012362002998997923,
+          "minimum": 0.012362002998997923,
+          "maximum": 0.012362002998997923
+        },
+        "cpu_seconds": {
+          "median": 0.019431999999999894,
+          "minimum": 0.019431999999999894,
+          "maximum": 0.019431999999999894
+        },
+        "new_data_file_bytes": {
+          "median": 2073,
+          "minimum": 2073,
+          "maximum": 2073
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 245407744,
+          "minimum": 245407744,
+          "maximum": 245407744
+        },
+        "cgroup_peak_bytes": {
+          "median": 83898368,
+          "minimum": 83898368,
+          "maximum": 83898368
+        }
+      }
+    },
+    {
+      "stage": "correctness",
+      "workload": "tiny",
+      "variant": "U_main",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "correctness-tiny-U_main-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.012136497003666591,
+          "minimum": 0.012136497003666591,
+          "maximum": 0.012136497003666591
+        },
+        "cpu_seconds": {
+          "median": 0.01878700000000033,
+          "minimum": 0.01878700000000033,
+          "maximum": 0.01878700000000033
+        },
+        "new_data_file_bytes": {
+          "median": 2073,
+          "minimum": 2073,
+          "maximum": 2073
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 241573888,
+          "minimum": 241573888,
+          "maximum": 241573888
+        },
+        "cgroup_peak_bytes": {
+          "median": 84176896,
+          "minimum": 84176896,
+          "maximum": 84176896
+        }
+      }
+    },
+    {
+      "stage": "pairs",
+      "workload": "F16",
+      "variant": "K",
+      "write_mode": "rewrite_columns",
+      "n": 3,
+      "run_ids": [
+        "pairs-F16-K-rewrite_columns-b1",
+        "pairs-F16-K-rewrite_columns-b2",
+        "pairs-F16-K-rewrite_columns-b3"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.5671724580024602,
+          "minimum": 0.5660300809977343,
+          "maximum": 0.5713331969964202
+        },
+        "cpu_seconds": {
+          "median": 2.9197549999999994,
+          "minimum": 2.9069400000000005,
+          "maximum": 2.9430949999999996
+        },
+        "new_data_file_bytes": {
+          "median": 101415500,
+          "minimum": 101415500,
+          "maximum": 101415500
+        },
+        "new_data_file_count": {
+          "median": 100,
+          "minimum": 100,
+          "maximum": 100
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 1513013248,
+          "minimum": 1500295168,
+          "maximum": 1542860800
+        },
+        "cgroup_peak_bytes": {
+          "median": 1437233152,
+          "minimum": 1431154688,
+          "maximum": 1441910784
+        }
+      }
+    },
+    {
+      "stage": "pairs",
+      "workload": "F16",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "n": 3,
+      "run_ids": [
+        "pairs-F16-K-rewrite_rows-b1",
+        "pairs-F16-K-rewrite_rows-b2",
+        "pairs-F16-K-rewrite_rows-b3"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.5170814579978469,
+          "minimum": 0.5153852919975179,
+          "maximum": 0.5262648310017539
+        },
+        "cpu_seconds": {
+          "median": 2.5004500000000003,
+          "minimum": 2.4733399999999994,
+          "maximum": 2.5009279999999996
+        },
+        "new_data_file_bytes": {
+          "median": 44782,
+          "minimum": 44782,
+          "maximum": 44782
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 1586159616,
+          "minimum": 1581961216,
+          "maximum": 1596063744
+        },
+        "cgroup_peak_bytes": {
+          "median": 1453707264,
+          "minimum": 1437761536,
+          "maximum": 1461460992
+        }
+      }
+    },
+    {
+      "stage": "pairs",
+      "workload": "Wn",
+      "variant": "K",
+      "write_mode": "rewrite_columns",
+      "n": 3,
+      "run_ids": [
+        "pairs-Wn-K-rewrite_columns-b1",
+        "pairs-Wn-K-rewrite_columns-b2",
+        "pairs-Wn-K-rewrite_columns-b3"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.013783262002107222,
+          "minimum": 0.013674321999133099,
+          "maximum": 0.013982308002596255
+        },
+        "cpu_seconds": {
+          "median": 0.038997999999999755,
+          "minimum": 0.03844299999999956,
+          "maximum": 0.039629000000000136
+        },
+        "new_data_file_bytes": {
+          "median": 16288,
+          "minimum": 16288,
+          "maximum": 16288
+        },
+        "new_data_file_count": {
+          "median": 16,
+          "minimum": 16,
+          "maximum": 16
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 242851840,
+          "minimum": 242802688,
+          "maximum": 244174848
+        },
+        "cgroup_peak_bytes": {
+          "median": 86294528,
+          "minimum": 86159360,
+          "maximum": 87056384
+        }
+      }
+    },
+    {
+      "stage": "pairs",
+      "workload": "Wn",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "n": 3,
+      "run_ids": [
+        "pairs-Wn-K-rewrite_rows-b1",
+        "pairs-Wn-K-rewrite_rows-b2",
+        "pairs-Wn-K-rewrite_rows-b3"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.24687606900261017,
+          "minimum": 0.2417344770001364,
+          "maximum": 0.24853571800485952
+        },
+        "cpu_seconds": {
+          "median": 0.4179360000000001,
+          "minimum": 0.41769199999999973,
+          "maximum": 0.42262199999999994
+        },
+        "new_data_file_bytes": {
+          "median": 131079501,
+          "minimum": 131079501,
+          "maximum": 131079501
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 486842368,
+          "minimum": 472129536,
+          "maximum": 500776960
+        },
+        "cgroup_peak_bytes": {
+          "median": 464539648,
+          "minimum": 451182592,
+          "maximum": 484950016
+        }
+      }
+    },
+    {
+      "stage": "pairs",
+      "workload": "Wn",
+      "variant": "U_main",
+      "write_mode": "rewrite_rows",
+      "n": 3,
+      "run_ids": [
+        "pairs-Wn-U_main-rewrite_rows-b1",
+        "pairs-Wn-U_main-rewrite_rows-b2",
+        "pairs-Wn-U_main-rewrite_rows-b3"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 3.5377393559974735,
+          "minimum": 3.4110693630063906,
+          "maximum": 3.5569777819982846
+        },
+        "cpu_seconds": {
+          "median": 7.111662999999999,
+          "minimum": 6.996886,
+          "maximum": 7.144152
+        },
+        "new_data_file_bytes": {
+          "median": 131077584,
+          "minimum": 131077584,
+          "maximum": 131077584
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 6624354304,
+          "minimum": 5988851712,
+          "maximum": 6893723648
+        },
+        "cgroup_peak_bytes": {
+          "median": 6505967616,
+          "minimum": 5864894464,
+          "maximum": 6763364352
+        }
+      }
+    },
+    {
+      "stage": "pairs",
+      "workload": "Ws",
+      "variant": "K",
+      "write_mode": "rewrite_columns",
+      "n": 3,
+      "run_ids": [
+        "pairs-Ws-K-rewrite_columns-b1",
+        "pairs-Ws-K-rewrite_columns-b2",
+        "pairs-Ws-K-rewrite_columns-b3"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 3.464636905999214,
+          "minimum": 3.417567898002744,
+          "maximum": 3.47606083300343
+        },
+        "cpu_seconds": {
+          "median": 3.4600860000000013,
+          "minimum": 3.3811120000000012,
+          "maximum": 3.464789999999999
+        },
+        "new_data_file_bytes": {
+          "median": 262166736,
+          "minimum": 262166736,
+          "maximum": 262166736
+        },
+        "new_data_file_count": {
+          "median": 16,
+          "minimum": 16,
+          "maximum": 16
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 2222764032,
+          "minimum": 2203332608,
+          "maximum": 2234044416
+        },
+        "cgroup_peak_bytes": {
+          "median": 2399916032,
+          "minimum": 2399416320,
+          "maximum": 2400096256
+        }
+      }
+    },
+    {
+      "stage": "pairs",
+      "workload": "Ws",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "n": 3,
+      "run_ids": [
+        "pairs-Ws-K-rewrite_rows-b1",
+        "pairs-Ws-K-rewrite_rows-b2",
+        "pairs-Ws-K-rewrite_rows-b3"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 1.7536217599990778,
+          "minimum": 1.7379815390013391,
+          "maximum": 1.76745949099859
+        },
+        "cpu_seconds": {
+          "median": 1.7951039999999998,
+          "minimum": 1.7854629999999991,
+          "maximum": 1.8084540000000002
+        },
+        "new_data_file_bytes": {
+          "median": 393227226,
+          "minimum": 393227226,
+          "maximum": 393227226
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 1612767232,
+          "minimum": 1607737344,
+          "maximum": 1613086720
+        },
+        "cgroup_peak_bytes": {
+          "median": 1847357440,
+          "minimum": 1810214912,
+          "maximum": 1852563456
+        }
+      }
+    },
+    {
+      "stage": "pairs",
+      "workload": "Ws",
+      "variant": "U_main",
+      "write_mode": "rewrite_rows",
+      "n": 3,
+      "run_ids": [
+        "pairs-Ws-U_main-rewrite_rows-b1",
+        "pairs-Ws-U_main-rewrite_rows-b2",
+        "pairs-Ws-U_main-rewrite_rows-b3"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 4.457149310001114,
+          "minimum": 4.452803385000152,
+          "maximum": 4.5039553140013595
+        },
+        "cpu_seconds": {
+          "median": 8.255079,
+          "minimum": 8.227717,
+          "maximum": 8.283327
+        },
+        "new_data_file_bytes": {
+          "median": 393229021,
+          "minimum": 393229021,
+          "maximum": 393229021
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 6975512576,
+          "minimum": 6432817152,
+          "maximum": 6991753216
+        },
+        "cgroup_peak_bytes": {
+          "median": 6845329408,
+          "minimum": 6316838912,
+          "maximum": 6862376960
+        }
+      }
+    },
+    {
+      "stage": "smoke",
+      "workload": "F16",
+      "variant": "K",
+      "write_mode": "rewrite_columns",
+      "n": 1,
+      "run_ids": [
+        "smoke-F16-K-rewrite_columns-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.5665352190044359,
+          "minimum": 0.5665352190044359,
+          "maximum": 0.5665352190044359
+        },
+        "cpu_seconds": {
+          "median": 2.902833000000001,
+          "minimum": 2.902833000000001,
+          "maximum": 2.902833000000001
+        },
+        "new_data_file_bytes": {
+          "median": 101415500,
+          "minimum": 101415500,
+          "maximum": 101415500
+        },
+        "new_data_file_count": {
+          "median": 100,
+          "minimum": 100,
+          "maximum": 100
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 1583890432,
+          "minimum": 1583890432,
+          "maximum": 1583890432
+        },
+        "cgroup_peak_bytes": {
+          "median": 1447735296,
+          "minimum": 1447735296,
+          "maximum": 1447735296
+        }
+      }
+    },
+    {
+      "stage": "smoke",
+      "workload": "F16",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "smoke-F16-K-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.5156449860005523,
+          "minimum": 0.5156449860005523,
+          "maximum": 0.5156449860005523
+        },
+        "cpu_seconds": {
+          "median": 2.468924,
+          "minimum": 2.468924,
+          "maximum": 2.468924
+        },
+        "new_data_file_bytes": {
+          "median": 44782,
+          "minimum": 44782,
+          "maximum": 44782
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 1603854336,
+          "minimum": 1603854336,
+          "maximum": 1603854336
+        },
+        "cgroup_peak_bytes": {
+          "median": 1462992896,
+          "minimum": 1462992896,
+          "maximum": 1462992896
+        }
+      }
+    },
+    {
+      "stage": "smoke",
+      "workload": "R",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "smoke-R-K-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 1.8104624590050662,
+          "minimum": 1.8104624590050662,
+          "maximum": 1.8104624590050662
+        },
+        "cpu_seconds": {
+          "median": 5.975323999999999,
+          "minimum": 5.975323999999999,
+          "maximum": 5.975323999999999
+        },
+        "new_data_file_bytes": {
+          "median": 703789239,
+          "minimum": 703789239,
+          "maximum": 703789239
+        },
+        "new_data_file_count": {
+          "median": 3,
+          "minimum": 3,
+          "maximum": 3
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 1852739584,
+          "minimum": 1852739584,
+          "maximum": 1852739584
+        },
+        "cgroup_peak_bytes": {
+          "median": 2366152704,
+          "minimum": 2366152704,
+          "maximum": 2366152704
+        }
+      }
+    },
+    {
+      "stage": "smoke",
+      "workload": "R",
+      "variant": "U_main",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "smoke-R-U_main-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 1.8783397669976694,
+          "minimum": 1.8783397669976694,
+          "maximum": 1.8783397669976694
+        },
+        "cpu_seconds": {
+          "median": 6.103079999999999,
+          "minimum": 6.103079999999999,
+          "maximum": 6.103079999999999
+        },
+        "new_data_file_bytes": {
+          "median": 703789239,
+          "minimum": 703789239,
+          "maximum": 703789239
+        },
+        "new_data_file_count": {
+          "median": 3,
+          "minimum": 3,
+          "maximum": 3
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 1848442880,
+          "minimum": 1848442880,
+          "maximum": 1848442880
+        },
+        "cgroup_peak_bytes": {
+          "median": 2361090048,
+          "minimum": 2361090048,
+          "maximum": 2361090048
+        }
+      }
+    },
+    {
+      "stage": "smoke",
+      "workload": "Wn",
+      "variant": "K",
+      "write_mode": "rewrite_columns",
+      "n": 1,
+      "run_ids": [
+        "smoke-Wn-K-rewrite_columns-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.013965354002721142,
+          "minimum": 0.013965354002721142,
+          "maximum": 0.013965354002721142
+        },
+        "cpu_seconds": {
+          "median": 0.03933899999999957,
+          "minimum": 0.03933899999999957,
+          "maximum": 0.03933899999999957
+        },
+        "new_data_file_bytes": {
+          "median": 16288,
+          "minimum": 16288,
+          "maximum": 16288
+        },
+        "new_data_file_count": {
+          "median": 16,
+          "minimum": 16,
+          "maximum": 16
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 245022720,
+          "minimum": 245022720,
+          "maximum": 245022720
+        },
+        "cgroup_peak_bytes": {
+          "median": 86515712,
+          "minimum": 86515712,
+          "maximum": 86515712
+        }
+      }
+    },
+    {
+      "stage": "smoke",
+      "workload": "Wn",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "smoke-Wn-K-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.23484510100388434,
+          "minimum": 0.23484510100388434,
+          "maximum": 0.23484510100388434
+        },
+        "cpu_seconds": {
+          "median": 0.40098999999999996,
+          "minimum": 0.40098999999999996,
+          "maximum": 0.40098999999999996
+        },
+        "new_data_file_bytes": {
+          "median": 131079501,
+          "minimum": 131079501,
+          "maximum": 131079501
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 474714112,
+          "minimum": 474714112,
+          "maximum": 474714112
+        },
+        "cgroup_peak_bytes": {
+          "median": 451588096,
+          "minimum": 451588096,
+          "maximum": 451588096
+        }
+      }
+    },
+    {
+      "stage": "smoke",
+      "workload": "Wn",
+      "variant": "U_main",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "smoke-Wn-U_main-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 3.696691566001391,
+          "minimum": 3.696691566001391,
+          "maximum": 3.696691566001391
+        },
+        "cpu_seconds": {
+          "median": 7.275466999999999,
+          "minimum": 7.275466999999999,
+          "maximum": 7.275466999999999
+        },
+        "new_data_file_bytes": {
+          "median": 131077584,
+          "minimum": 131077584,
+          "maximum": 131077584
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 6510551040,
+          "minimum": 6510551040,
+          "maximum": 6510551040
+        },
+        "cgroup_peak_bytes": {
+          "median": 6394335232,
+          "minimum": 6394335232,
+          "maximum": 6394335232
+        }
+      }
+    },
+    {
+      "stage": "smoke",
+      "workload": "Ws",
+      "variant": "K",
+      "write_mode": "rewrite_columns",
+      "n": 1,
+      "run_ids": [
+        "smoke-Ws-K-rewrite_columns-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 3.4558558350036037,
+          "minimum": 3.4558558350036037,
+          "maximum": 3.4558558350036037
+        },
+        "cpu_seconds": {
+          "median": 3.446670000000001,
+          "minimum": 3.446670000000001,
+          "maximum": 3.446670000000001
+        },
+        "new_data_file_bytes": {
+          "median": 262166736,
+          "minimum": 262166736,
+          "maximum": 262166736
+        },
+        "new_data_file_count": {
+          "median": 16,
+          "minimum": 16,
+          "maximum": 16
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 2208526336,
+          "minimum": 2208526336,
+          "maximum": 2208526336
+        },
+        "cgroup_peak_bytes": {
+          "median": 2400354304,
+          "minimum": 2400354304,
+          "maximum": 2400354304
+        }
+      }
+    },
+    {
+      "stage": "smoke",
+      "workload": "Ws",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "smoke-Ws-K-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 1.7387602570015588,
+          "minimum": 1.7387602570015588,
+          "maximum": 1.7387602570015588
+        },
+        "cpu_seconds": {
+          "median": 1.7974920000000003,
+          "minimum": 1.7974920000000003,
+          "maximum": 1.7974920000000003
+        },
+        "new_data_file_bytes": {
+          "median": 393227226,
+          "minimum": 393227226,
+          "maximum": 393227226
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 1466265600,
+          "minimum": 1466265600,
+          "maximum": 1466265600
+        },
+        "cgroup_peak_bytes": {
+          "median": 1705873408,
+          "minimum": 1705873408,
+          "maximum": 1705873408
+        }
+      }
+    },
+    {
+      "stage": "smoke",
+      "workload": "Ws",
+      "variant": "U_main",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "smoke-Ws-U_main-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 4.587327223998727,
+          "minimum": 4.587327223998727,
+          "maximum": 4.587327223998727
+        },
+        "cpu_seconds": {
+          "median": 8.346452000000001,
+          "minimum": 8.346452000000001,
+          "maximum": 8.346452000000001
+        },
+        "new_data_file_bytes": {
+          "median": 393229021,
+          "minimum": 393229021,
+          "maximum": 393229021
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 6964940800,
+          "minimum": 6964940800,
+          "maximum": 6964940800
+        },
+        "cgroup_peak_bytes": {
+          "median": 6842200064,
+          "minimum": 6842200064,
+          "maximum": 6842200064
+        }
+      }
+    },
+    {
+      "stage": "smoke",
+      "workload": "dense_safe",
+      "variant": "K",
+      "write_mode": "rewrite_columns",
+      "n": 1,
+      "run_ids": [
+        "smoke-dense_safe-K-rewrite_columns-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.013154888001736253,
+          "minimum": 0.013154888001736253,
+          "maximum": 0.013154888001736253
+        },
+        "cpu_seconds": {
+          "median": 0.032008999999999066,
+          "minimum": 0.032008999999999066,
+          "maximum": 0.032008999999999066
+        },
+        "new_data_file_bytes": {
+          "median": 5866,
+          "minimum": 5866,
+          "maximum": 5866
+        },
+        "new_data_file_count": {
+          "median": 15,
+          "minimum": 15,
+          "maximum": 15
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 242507776,
+          "minimum": 242507776,
+          "maximum": 242507776
+        },
+        "cgroup_peak_bytes": {
+          "median": 86601728,
+          "minimum": 86601728,
+          "maximum": 86601728
+        }
+      }
+    },
+    {
+      "stage": "smoke",
+      "workload": "dense_safe",
+      "variant": "K",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "smoke-dense_safe-K-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.09361055900080828,
+          "minimum": 0.09361055900080828,
+          "maximum": 0.09361055900080828
+        },
+        "cpu_seconds": {
+          "median": 0.15843699999999894,
+          "minimum": 0.15843699999999894,
+          "maximum": 0.15843699999999894
+        },
+        "new_data_file_bytes": {
+          "median": 23606715,
+          "minimum": 23606715,
+          "maximum": 23606715
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 327983104,
+          "minimum": 327983104,
+          "maximum": 327983104
+        },
+        "cgroup_peak_bytes": {
+          "median": 193671168,
+          "minimum": 193671168,
+          "maximum": 193671168
+        }
+      }
+    },
+    {
+      "stage": "smoke",
+      "workload": "dense_safe",
+      "variant": "U_main",
+      "write_mode": "rewrite_rows",
+      "n": 1,
+      "run_ids": [
+        "smoke-dense_safe-U_main-rewrite_rows-b0"
+      ],
+      "measures": {
+        "merge_seconds": {
+          "median": 0.13138797699502902,
+          "minimum": 0.13138797699502902,
+          "maximum": 0.13138797699502902
+        },
+        "cpu_seconds": {
+          "median": 0.17973699999999948,
+          "minimum": 0.17973699999999948,
+          "maximum": 0.17973699999999948
+        },
+        "new_data_file_bytes": {
+          "median": 23606458,
+          "minimum": 23606458,
+          "maximum": 23606458
+        },
+        "new_data_file_count": {
+          "median": 1,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "sampled_peak_rss_bytes": {
+          "median": 366030848,
+          "minimum": 366030848,
+          "maximum": 366030848
+        },
+        "cgroup_peak_bytes": {
+          "median": 218787840,
+          "minimum": 218787840,
+          "maximum": 218787840
+        }
+      }
+    }
+  ],
+  "limitations": [
+    "The 1 GiB pool is configured; it is not a total RSS limit or proof of U_main pool enforcement.",
+    "Four F16/U_main references represent one old OOM; there is no new F16 baseline timing or speedup.",
+    "New .lance file bytes exclude manifests, deletion files, transient writes and future maintenance.",
+    "RSS samples and cgroup charged memory are separate measures; neither is an allocation attribution.",
+    "An oracle artifact records a completed separate validation; this audit does not rescan dataset values.",
+    "Frozen source, extension and build logs establish identity, not an independent build attestation."
+  ]
+}

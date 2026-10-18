@@ -1,0 +1,18 @@
++ make -f Makefile -f /mnt/lance/validation-9505/review/issue-9505/harness/profile.mk build 'UV_RUN=uv run --no-sync'
+/mnt/lance/validation-9505/review/issue-9505/harness/profile.mk:3: warning: overriding recipe for target 'build'
+Makefile:44: warning: ignoring old recipe for target 'build'
+uv run --no-sync maturin develop --uv --profile release-with-debug --locked
+🍹 Building a mixed python/rust project
+🐍 Found CPython 3.12 at /mnt/lance/checkouts/K_check/python/.venv/bin/python
+🔗 Found pyo3 bindings with abi3 support
+Checked 23 packages in 1ms
+Resolved 5 packages in 252ms
+Checked 5 packages in 0.12ms
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+    Finished `release-with-debug` profile [optimized + debuginfo] target(s) in 0.43s
+📦 Built wheel for abi3 Python ≥ 3.10 to /mnt/lance/tmp/.tmprhrUut/pylance-14.0.0b19-cp310-abi3-linux_x86_64.whl
+✏️ Setting installed package as editable
+🛠 Installed pylance-14.0.0b19

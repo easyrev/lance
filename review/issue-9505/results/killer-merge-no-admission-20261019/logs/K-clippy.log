@@ -1,0 +1,35 @@
++ cargo fmt --all -- --check
++ git diff --check
++ cargo clippy --all --tests --benches --profile release-with-debug -- -D warnings
+    Checking lance-jsonb v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-jsonb)
+   Compiling lance-derive v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-derive)
+   Compiling lance-encoding v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-encoding)
+    Checking fsst v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/compression/fsst)
+    Checking lance-bitpacking v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/compression/bitpacking)
+    Checking lance-datagen v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-datagen)
+   Compiling lance-file v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-file)
+   Compiling lance-linalg v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-linalg)
+   Compiling lance-table v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-table)
+   Compiling lance-datafusion v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-datafusion)
+    Checking lance-arrow-scalar v58.0.0 (/mnt/lance/checkouts/K_noadmission_tests/rust/arrow-scalar)
+   Compiling lance-index v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-index)
+    Checking lance-tokenizer v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-tokenizer)
+    Checking lance-arrow-stats v58.0.0 (/mnt/lance/checkouts/K_noadmission_tests/rust/arrow-stats)
+   Compiling lance v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance)
+   Compiling lance-test-macros v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-test-macros)
+    Checking lance-arrow v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-arrow)
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+    Checking lance-core v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-core)
+    Checking lance-testing v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-testing)
+    Checking lance-namespace v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-namespace)
+    Checking lance-select v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-select)
+    Checking lance-geo v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-geo)
+    Checking lance-io v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-io)
+    Checking lance-index-core v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-index-core)
+    Checking lance-tools v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-tools)
+    Checking lance-namespace-impls v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-namespace-impls)
+    Checking lance-namespace-datafusion v14.0.0-beta.19 (/mnt/lance/checkouts/K_noadmission_tests/rust/lance-namespace-datafusion)
+    Finished `release-with-debug` profile [optimized + debuginfo] target(s) in 5m 28s

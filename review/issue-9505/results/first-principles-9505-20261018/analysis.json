@@ -1,0 +1,238 @@
+{
+  "scope": "Exploratory comparison, 9 diagnostic runs plus 27 randomized paired runs, n=3 per cell; not the historical C-r2 formal study",
+  "verified": "All 36 runs independently read back every row and field using frozen U; C/U source and extension hashes unchanged",
+  "upstream_main_checked": "0a0d327082988018a25f56147d3b6d02f6c79ecc",
+  "benchmark_base": "dc53d5d174af62c49ddd98d1024a64488c1e4404 plus frozen C-r2 patch",
+  "conditions": "Local NVMe, hot initial files, fresh worker cgroup, 1 GiB DF pool, 8 GiB cgroup, lazy source, index disabled, retry disabled",
+  "timer": "Merge API includes lazy source production, planning, reads, writes and commit; restore, prewarming and independent validation excluded",
+  "storage_size_scope": "Final size of newly created .lance files only; not complete read/write traffic, temporary spill, metadata, cloud requests or future maintenance",
+  "groups": [
+    {
+      "workload": "F16",
+      "variant": "Ccore",
+      "write_mode": "rewrite_columns",
+      "n": 3,
+      "median_seconds": 0.12903362799988827,
+      "range_seconds": [
+        0.12735935100135976,
+        0.12977573799798847
+      ],
+      "median_new_data_file_bytes": 101415500,
+      "median_new_data_files": 100,
+      "median_sampled_peak_rss_bytes": 350527488,
+      "median_cpu_seconds": 1.1430319999999996
+    },
+    {
+      "workload": "F16",
+      "variant": "Ccore",
+      "write_mode": "rewrite_rows",
+      "n": 3,
+      "median_seconds": 0.4756365309985995,
+      "range_seconds": [
+        0.4724425189997419,
+        0.47617918299874873
+      ],
+      "median_new_data_file_bytes": 44782,
+      "median_new_data_files": 1,
+      "median_sampled_peak_rss_bytes": 827314176,
+      "median_cpu_seconds": 4.606209
+    },
+    {
+      "workload": "F16",
+      "variant": "Clate",
+      "write_mode": "rewrite_rows",
+      "n": 3,
+      "median_seconds": 0.15240968799844268,
+      "range_seconds": [
+        0.1511191690005944,
+        0.1529717180019361
+      ],
+      "median_new_data_file_bytes": 44782,
+      "median_new_data_files": 1,
+      "median_sampled_peak_rss_bytes": 302120960,
+      "median_cpu_seconds": 0.6510809999999999
+    },
+    {
+      "workload": "Wn",
+      "variant": "Ccore",
+      "write_mode": "rewrite_columns",
+      "n": 3,
+      "median_seconds": 0.015729149999970105,
+      "range_seconds": [
+        0.015624987998307915,
+        0.017894436001370195
+      ],
+      "median_new_data_file_bytes": 16288,
+      "median_new_data_files": 16,
+      "median_sampled_peak_rss_bytes": 248213504,
+      "median_cpu_seconds": 0.03950499999999976
+    },
+    {
+      "workload": "Wn",
+      "variant": "Ccore",
+      "write_mode": "rewrite_rows",
+      "n": 3,
+      "median_seconds": 2.1058651989987993,
+      "range_seconds": [
+        2.0718532930004585,
+        2.1696225390005566
+      ],
+      "median_new_data_file_bytes": 131077584,
+      "median_new_data_files": 1,
+      "median_sampled_peak_rss_bytes": 2692124672,
+      "median_cpu_seconds": 4.154978
+    },
+    {
+      "workload": "Wn",
+      "variant": "Clate",
+      "write_mode": "rewrite_rows",
+      "n": 3,
+      "median_seconds": 0.56083000000217,
+      "range_seconds": [
+        0.5453975909986184,
+        0.5652350669988664
+      ],
+      "median_new_data_file_bytes": 131077584,
+      "median_new_data_files": 1,
+      "median_sampled_peak_rss_bytes": 776114176,
+      "median_cpu_seconds": 0.6455630000000002
+    },
+    {
+      "workload": "Ws",
+      "variant": "Ccore",
+      "write_mode": "rewrite_columns",
+      "n": 3,
+      "median_seconds": 3.3750213100029214,
+      "range_seconds": [
+        3.3411061570004676,
+        3.4654729680005403
+      ],
+      "median_new_data_file_bytes": 262166736,
+      "median_new_data_files": 16,
+      "median_sampled_peak_rss_bytes": 2105409536,
+      "median_cpu_seconds": 3.36171
+    },
+    {
+      "workload": "Ws",
+      "variant": "Ccore",
+      "write_mode": "rewrite_rows",
+      "n": 3,
+      "median_seconds": 8.825758085000416,
+      "range_seconds": [
+        8.645577692001098,
+        8.922087481001654
+      ],
+      "median_new_data_file_bytes": 393231288,
+      "median_new_data_files": 1,
+      "median_sampled_peak_rss_bytes": 6132379648,
+      "median_cpu_seconds": 10.954935
+    },
+    {
+      "workload": "Ws",
+      "variant": "Clate",
+      "write_mode": "rewrite_rows",
+      "n": 3,
+      "median_seconds": 2.2309937330028333,
+      "range_seconds": [
+        2.187604986000224,
+        2.2395470649971685
+      ],
+      "median_new_data_file_bytes": 393229021,
+      "median_new_data_files": 1,
+      "median_sampled_peak_rss_bytes": 1937502208,
+      "median_cpu_seconds": 2.3511160000000006
+    }
+  ],
+  "paired_ratios": [
+    {
+      "workload": "Wn",
+      "ratio": "late/early",
+      "median": 0.2632414142647974,
+      "values": [
+        0.2632414142647974,
+        0.2663180911431595,
+        0.2605223059948684
+      ]
+    },
+    {
+      "workload": "Wn",
+      "ratio": "columns/early",
+      "median": 0.007591826145755304,
+      "values": [
+        0.007591826145755304,
+        0.0074197474775387195,
+        0.008247718522325696
+      ]
+    },
+    {
+      "workload": "Wn",
+      "ratio": "columns/late",
+      "median": 0.028839786349569612,
+      "values": [
+        0.028839786349569612,
+        0.027860471084370415,
+        0.03165839673815935
+      ]
+    },
+    {
+      "workload": "Ws",
+      "ratio": "late/early",
+      "median": 0.25278210795222905,
+      "values": [
+        0.25278210795222905,
+        0.25101155640605105,
+        0.25303167283132505
+      ]
+    },
+    {
+      "workload": "Ws",
+      "ratio": "columns/early",
+      "median": 0.37856307920775173,
+      "values": [
+        0.37856307920775173,
+        0.37827709234969514,
+        0.40083764109907905
+      ]
+    },
+    {
+      "workload": "Ws",
+      "ratio": "columns/late",
+      "median": 1.507010664233211,
+      "values": [
+        1.4975865272841735,
+        1.507010664233211,
+        1.584140185352542
+      ]
+    },
+    {
+      "workload": "F16",
+      "ratio": "late/early",
+      "median": 0.320067935432707,
+      "values": [
+        0.32378905761024374,
+        0.320067935432707,
+        0.3177198536103178
+      ]
+    },
+    {
+      "workload": "F16",
+      "ratio": "columns/early",
+      "median": 0.2709770452107885,
+      "values": [
+        0.27469106352398265,
+        0.2709770452107885,
+        0.26776612539404543
+      ]
+    },
+    {
+      "workload": "F16",
+      "ratio": "columns/late",
+      "median": 0.8466235296092643,
+      "values": [
+        0.8483642577404142,
+        0.8466235296092643,
+        0.8427742942449531
+      ]
+    }
+  ]
+}

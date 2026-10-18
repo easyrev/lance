@@ -1,0 +1,22 @@
++ cargo fmt --all -- --check
++ git diff --check
++ cargo clippy --all --tests --benches --profile release-with-debug -- -D warnings
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+    Checking lance v14.0.0-beta.19 (/mnt/lance/checkouts/K_check/rust/lance)
+    Checking lance-namespace-impls v14.0.0-beta.19 (/mnt/lance/checkouts/K_check/rust/lance-namespace-impls)
+    Checking lance-namespace-datafusion v14.0.0-beta.19 (/mnt/lance/checkouts/K_check/rust/lance-namespace-datafusion)
+error: this assertion has a constant value
+     --> rust/lance/src/dataset/write/merge_insert.rs:11400:9
+      |
+11400 |         assert!(SOURCE_ROWS * VALUE_BYTES > POOL_BYTES);
+      |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+      |
+      = help: consider moving this into a const block: `const { assert!(..) }`
+      = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#assertions_on_constants
+      = note: `-D clippy::assertions-on-constants` implied by `-D clippy::all`
+      = help: to override `-D clippy::all` add `#[allow(clippy::assertions_on_constants)]`
+
+error: could not compile `lance` (lib test) due to 1 previous error

@@ -1,0 +1,311 @@
+{
+  "status": "validated_success",
+  "validated": true,
+  "pid": 121282,
+  "spec": {
+    "seed": 9505,
+    "epoch": 1,
+    "source_rows": 25,
+    "batch_rows": 32768,
+    "source": "reader",
+    "full": false,
+    "binary": 5242880,
+    "dense": false,
+    "first_seen": false,
+    "rows": 400,
+    "columns": 3,
+    "fragment_rows": 25,
+    "source_binary": 10485760,
+    "name": "Ws",
+    "oracle": "splitmix64-v1",
+    "write_mode": "rewrite_columns"
+  },
+  "module": "/mnt/lance/checkouts/C/python/python/lance/__init__.py",
+  "version": "14.0.0-beta.19",
+  "snapshot": 16,
+  "baseline_rss_bytes": 172216320,
+  "input_materialization_seconds": 5.120018613524735e-07,
+  "stage": "execute_finished",
+  "source_lazy_at_execute_start": true,
+  "execute_started_monotonic": 23377.370308665,
+  "execute_started_wall_ns": 1792334152850258438,
+  "merge_stats": {
+    "num_inserted_rows": 0,
+    "num_updated_rows": 25,
+    "num_deleted_rows": 0
+  },
+  "execute_returned": true,
+  "merge_seconds": 3.351648571999249,
+  "cpu_seconds": 3.30577,
+  "average_cpu_cores": 0.9863116400739227,
+  "ru_maxrss_bytes": 2083618816,
+  "new_data_file_bytes": 262166736,
+  "new_data_file_count": 16,
+  "execution": {
+    "command": [
+      "/root/.local/bin/uv",
+      "run",
+      "--no-sync",
+      "python",
+      "/mnt/lance/first-principles-9505-20261018/bench.py",
+      "worker",
+      "execute",
+      "/mnt/lance/first-principles-9505-20261018/runs/smoke-Ws-Ccore-rewrite_columns-b0"
+    ],
+    "variant": "Ccore",
+    "operation": "execute",
+    "exit_code": 0,
+    "timeout": false,
+    "before": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "0",
+      "memory.peak": "0",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+    },
+    "after": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "271810560",
+      "memory.peak": "2273144832",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 5260000\nuser_usec 2667507\nsystem_usec 2592493\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+    },
+    "confirmed_oom": false,
+    "cleanup": {
+      "removed": true,
+      "group_empty": true,
+      "attempts": 1
+    }
+  },
+  "run_id": "smoke-Ws-Ccore-rewrite_columns-b0",
+  "variant": "Ccore",
+  "block": 0,
+  "formal": false,
+  "resources": {
+    "phase": "resources",
+    "revision": "C-r2",
+    "mode": "Core",
+    "policy_bytes": 1073741824,
+    "pool": "FairSpillPool",
+    "requested_p": 16,
+    "effective_p": 14,
+    "decode_tasks": 14,
+    "prefix_bytes": 104857600,
+    "prefix_rows": 131072,
+    "prefix_batches": 1024,
+    "small_target_bytes": 33554432,
+    "width": 5243173,
+    "width_source": "file_bytes_per_physical_row",
+    "io_bytes": 268435456,
+    "decode_bytes": 268435456,
+    "row_cap": 8192,
+    "context": "0x759ec8004b40",
+    "unix_seconds": 1792334152.8528457
+  },
+  "source_prepared": {
+    "phase": "source_prepared",
+    "seconds": 0.445311484,
+    "rows": 25,
+    "arrow_bytes": 262144624,
+    "batches": 1,
+    "stop": "bytes",
+    "unix_seconds": 1792334153.2983057
+  },
+  "execute_complete": {
+    "phase": "execute_complete",
+    "pool_reserved_bytes": 9600,
+    "reservation_observed_peak_bytes": 9600,
+    "counts": {
+      "fragments_scanned": 16,
+      "bytes_written": 262166736,
+      "num_inserted_rows": 0,
+      "num_deleted_rows": 0,
+      "array_map_created_count": 1,
+      "num_files_written": 16,
+      "ranges_scanned": 16,
+      "input_rows": 25,
+      "build_input_rows": 400,
+      "input_batches": 1,
+      "rows_scanned": 400,
+      "build_input_batches": 144,
+      "num_skipped_duplicates": 0,
+      "num_updated_rows": 25,
+      "scan_initializations": 1
+    },
+    "times": {
+      "InPlaceMergeInsertExec_elapsed_compute": 1,
+      "expr_5_eval_time": 35251,
+      "expr_2_eval_time": 2534,
+      "build_time": 2501469,
+      "HashJoinExec_elapsed_compute": 121562284,
+      "repartition_time": 0,
+      "send_time": 17626,
+      "RepartitionExec_elapsed_compute": 23901,
+      "task_wait_time": 2101496,
+      "expr_3_eval_time": 120,
+      "expr_4_eval_time": 94,
+      "ProjectionExec_elapsed_compute": 49027,
+      "CoalescePartitionsExec_elapsed_compute": 30126,
+      "fetch_time": 264894,
+      "expr_1_eval_time": 397,
+      "join_time": 119000493,
+      "expr_0_eval_time": 2594,
+      "FilteredReadExec_elapsed_compute": 2112789
+    },
+    "scan_take_bytes": 70816,
+    "requests": 64,
+    "iops": 64,
+    "gauges": [
+      {
+        "kind": "topology",
+        "operator": "CoalescePartitionsExec",
+        "output_p": 1
+      },
+      {
+        "kind": "topology",
+        "operator": "HashJoinExec",
+        "output_p": 14
+      },
+      {
+        "kind": "join",
+        "mode": "CollectLeft",
+        "build_fields": [
+          "id",
+          "_rowid",
+          "_rowaddr"
+        ],
+        "probe_fields": [
+          "id",
+          "new_payload",
+          "__merge_source_sentinel"
+        ]
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 4,
+        "name": "build_mem_used",
+        "value": 8000
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 1,
+        "name": "build_mem_used",
+        "value": 0
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 2,
+        "name": "build_mem_used",
+        "value": 0
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 0,
+        "name": "build_mem_used",
+        "value": 0
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 3,
+        "name": "build_mem_used",
+        "value": 0
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 8,
+        "name": "build_mem_used",
+        "value": 0
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 10,
+        "name": "build_mem_used",
+        "value": 0
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 11,
+        "name": "build_mem_used",
+        "value": 0
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 12,
+        "name": "build_mem_used",
+        "value": 0
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 6,
+        "name": "build_mem_used",
+        "value": 0
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 5,
+        "name": "build_mem_used",
+        "value": 0
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 7,
+        "name": "build_mem_used",
+        "value": 0
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 9,
+        "name": "build_mem_used",
+        "value": 0
+      },
+      {
+        "operator": "HashJoinExec",
+        "partition": 13,
+        "name": "build_mem_used",
+        "value": 0
+      },
+      {
+        "kind": "topology",
+        "operator": "FilteredReadExec",
+        "output_p": 1
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "active_read_tasks",
+        "value": 0
+      },
+      {
+        "operator": "FilteredReadExec",
+        "partition": 0,
+        "name": "peak_read_tasks",
+        "value": 14
+      },
+      {
+        "kind": "topology",
+        "operator": "RepartitionExec",
+        "output_p": 14
+      }
+    ],
+    "unix_seconds": 1792334156.2007983
+  },
+  "join_policy": {
+    "phase": "join_policy",
+    "decision": "small_fixed_target",
+    "target_width": 27,
+    "target_rows": "Exact(400)",
+    "model_bytes": 1095776,
+    "threshold_bytes": 33554432,
+    "source_evidence": "Prefix",
+    "target_schema": "Schema { fields: [Field { name: \"id\", data_type: Int64, nullable: true }, Field { name: \"_rowid\", data_type: UInt64, nullable: true }, Field { name: \"_rowaddr\", data_type: UInt64, nullable: true }], metadata: {} }",
+    "stats_guard": false,
+    "unix_seconds": 1792334153.3019118
+  },
+  "sampled_peak_rss_bytes": 2085318656,
+  "sampled_peak_anon_bytes": 1914236928,
+  "detailed_diagnostics_enabled": true
+}

@@ -1,0 +1,11 @@
+{
+  "filesystem": "cgroup2fs",
+  "parent": "/sys/fs/cgroup/lance-killer-merge",
+  "controllers": "cpu memory",
+  "child_membership": "0::/lance-killer-merge/preflight",
+  "limits": {
+    "memory.max": "8589934592",
+    "memory.swap.max": "0",
+    "cpu.max": "max 100000"
+  }
+}

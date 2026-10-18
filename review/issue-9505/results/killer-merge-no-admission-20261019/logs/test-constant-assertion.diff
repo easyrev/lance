@@ -1,0 +1,11 @@
+--- /mnt/lance/checkouts/K_check/rust/lance/src/dataset/write/merge_insert.rs	2026-10-19 01:20:33.000000000 +0800
++++ /mnt/lance/checkouts/K_noadmission_tests/rust/lance/src/dataset/write/merge_insert.rs	2026-10-19 01:31:25.000000000 +0800
+@@ -11397,7 +11397,7 @@
+             context.memory_pool().memory_limit(),
+             datafusion::execution::memory_pool::MemoryLimit::Finite(POOL_BYTES)
+         ));
+-        assert!(SOURCE_ROWS * VALUE_BYTES > POOL_BYTES);
++        const { assert!(SOURCE_ROWS * VALUE_BYTES > POOL_BYTES) };
+         let output = plan
+             .execute(0, context)
+             .unwrap()

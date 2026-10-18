@@ -1,0 +1,80 @@
+{
+  "status": "validated_success",
+  "snapshot": 1,
+  "identity": {
+    "module": "/mnt/lance/checkouts/U_main/python/python/lance/__init__.py",
+    "extension": "/mnt/lance/checkouts/U_main/python/python/lance/lance.abi3.so",
+    "extension_sha256": "5c9e85d8804aeac54f030db6a7a0b8f02373e89c2f106777bbb2647660a1d65a",
+    "version": "14.0.0-beta.19",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "pyarrow": "25.0.1"
+  },
+  "configured_pool_bytes": 1073741824,
+  "schema": "id: int64\nc0: int64\nc1: int64\npayload: large_binary\nnew_payload: large_binary\nrow_marker: int64",
+  "merge_stats": {
+    "num_inserted_rows": 0,
+    "num_updated_rows": 25,
+    "num_deleted_rows": 0
+  },
+  "merge_seconds": 3.5569777819982846,
+  "cpu_seconds": 7.111662999999999,
+  "process_io_delta": {
+    "rchar": 2097316791,
+    "wchar": 131094756,
+    "syscr": 352,
+    "syscw": 98,
+    "read_bytes": 0,
+    "write_bytes": 131162112,
+    "cancelled_write_bytes": 0
+  },
+  "ru_maxrss_bytes": 6895476736,
+  "new_data_file_bytes": 131077584,
+  "new_data_file_count": 1,
+  "run_id": "pairs-Wn-U_main-rewrite_rows-b2",
+  "stage": "pairs",
+  "block": 2,
+  "workload": "Wn",
+  "variant": "U_main",
+  "write_mode": "rewrite_rows",
+  "execution": {
+    "operation": "execute",
+    "variant": "U_main",
+    "command": [
+      "/root/.local/bin/uv",
+      "run",
+      "--no-sync",
+      "python",
+      "/mnt/lance/killer-merge-final-20261019/harness.py",
+      "worker",
+      "execute",
+      "/mnt/lance/killer-merge-final-20261019/runs/pairs-Wn-U_main-rewrite_rows-b2"
+    ],
+    "exit_code": 0,
+    "timeout": false,
+    "confirmed_oom": false,
+    "before": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "0",
+      "memory.peak": "0",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "after": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "136335360",
+      "memory.peak": "6763364352",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 13314233\nuser_usec 6951033\nsystem_usec 6363199\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "configured_pool_bytes": 1073741824,
+    "pool_enforcement": "Not inferred from the environment setting"
+  },
+  "sampled_peak_rss_bytes": 6893723648,
+  "cgroup_peak_bytes": 6763364352
+}

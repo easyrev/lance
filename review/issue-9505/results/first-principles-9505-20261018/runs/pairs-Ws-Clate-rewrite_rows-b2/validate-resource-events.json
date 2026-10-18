@@ -1,0 +1,40 @@
+{
+  "command": [
+    "/root/.local/bin/uv",
+    "run",
+    "--no-sync",
+    "python",
+    "/mnt/lance/first-principles-9505-20261018/bench.py",
+    "worker",
+    "validate",
+    "/mnt/lance/first-principles-9505-20261018/runs/pairs-Ws-Clate-rewrite_rows-b2"
+  ],
+  "variant": "U",
+  "operation": "validate",
+  "exit_code": 0,
+  "timeout": false,
+  "before": {
+    "memory.max": "8589934592",
+    "memory.swap.max": "0",
+    "memory.current": "0",
+    "memory.peak": "0",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "cpu.max": "max 100000",
+    "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+  },
+  "after": {
+    "memory.max": "8589934592",
+    "memory.swap.max": "0",
+    "memory.current": "1429504",
+    "memory.peak": "1979228160",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "cpu.max": "max 100000",
+    "cpu.stat": "usage_usec 13165675\nuser_usec 10761282\nsystem_usec 2404392\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0"
+  },
+  "confirmed_oom": false,
+  "cleanup": {
+    "removed": true,
+    "group_empty": true,
+    "attempts": 1
+  }
+}

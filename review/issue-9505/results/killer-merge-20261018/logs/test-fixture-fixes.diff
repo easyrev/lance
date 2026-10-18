@@ -1,0 +1,99 @@
+--- K/rust/lance/src/dataset/write/merge_insert.rs
++++ K_check/rust/lance/src/dataset/write/merge_insert.rs
+@@ -8162,18 +8162,16 @@
+                 "expected HashJoinExec in plan, got: {}",
+                 plan
+             );
+-            // Evidence that the partial-schema fix is active: the target
+-            // side of the join reads the `other` column (which is missing
+-            // from the source) and an explicit projection carries it
+-            // through to the write exec alongside source columns.
++            // Matching reads only the key. The omitted `other` column is
++            // materialized after action selection for the whole-row writer.
+             assert!(
+-                plan.contains("LanceRead") && plan.contains("projection=[other"),
+-                "target-side scan should include the filled `other` column: {}",
++                plan.contains("LanceRead") && plan.contains("projection=[key]"),
++                "target-side scan should project only the join key: {}",
+                 plan
+             );
+             assert!(
+-                plan.contains("other@0 as other"),
+-                "expected post-join projection to carry `other` from the target side: {}",
++                plan.contains("MergeCondition: take=[] payload=[other]"),
++                "expected deferred materialization of the omitted `other` column: {}",
+                 plan
+             );
+         }
+@@ -16741,7 +16739,7 @@
+             .when_matched(WhenMatched::update_if(&dataset, "source.value > target.value").unwrap())
+             .when_not_matched(WhenNotMatched::InsertAll)
+             .when_not_matched_by_source(
+-                WhenNotMatchedBySource::delete_if(&dataset, "target.payload = 'delete'").unwrap(),
++                WhenNotMatchedBySource::delete_if(&dataset, "payload = 'delete'").unwrap(),
+             )
+             .write_mode(MergeInsertWriteMode::RewriteRows)
+             .source_dedupe_behavior(dedupe)
+@@ -18222,8 +18220,8 @@
+             );
+         }
+ 
+-        /// A condition over source columns alone stays in the join's action
+-        /// expression; nothing is taken.
++        /// A source-only condition stays in the join's action expression. The
++        /// materializer only takes the payload omitted by the source.
+         #[tokio::test]
+         async fn source_only_condition_is_not_deferred() {
+             let Fixture { ds, .. } = fixture().await;
+@@ -18233,7 +18231,10 @@
+                 .try_build()
+                 .unwrap();
+             let plan = explain(&job, &source).await;
+-            assert!(!plan.contains("MergeCondition:"), "{plan}");
++            assert!(
++                plan.contains("MergeCondition: take=[] payload=[other]"),
++                "{plan}"
++            );
+             assert!(
+                 plan.contains("when_matched=UpdateIf(source.payload IS NOT NULL)"),
+                 "{plan}"
+--- K/rust/lance/src/dataset/write/merge_insert/exec/condition.rs
++++ K_check/rust/lance/src/dataset/write/merge_insert/exec/condition.rs
+@@ -1350,11 +1350,18 @@
+ 
+     #[tokio::test]
+     async fn fixed_width_null_payload_obeys_output_row_budget_without_taking() {
+-        let stored = gen_batch()
+-            .col("key", array::step::<Int32Type>())
+-            .col("payload", array::rand_fixedbin(ByteCount::from(512), true))
+-            .into_batch_rows(RowCount::from(2))
+-            .unwrap();
++        let payload = arrow_array::FixedSizeBinaryArray::try_from_iter(
++            [vec![0u8; 512], vec![1u8; 512]].into_iter(),
++        )
++        .unwrap();
++        let stored = RecordBatch::try_from_iter([
++            (
++                "key",
++                Arc::new(arrow_array::Int32Array::from(vec![0, 1])) as ArrayRef,
++            ),
++            ("payload", Arc::new(payload) as ArrayRef),
++        ])
++        .unwrap();
+         let dataset = Arc::new(
+             Dataset::write(
+                 RecordBatchIterator::new([Ok(stored.clone())], stored.schema()),
+@@ -1404,6 +1411,13 @@
+             .unwrap()
+             .with_payload_columns(vec!["payload".into()])
+             .unwrap(),
++        );
++        assert_eq!(
++            exec.schema()
++                .field_with_name("payload")
++                .unwrap()
++                .data_type(),
++            &DataType::FixedSizeBinary(512)
+         );
+         let batches = collect(exec.clone(), session.task_ctx()).await.unwrap();
+         assert_eq!(batches.len(), 8);

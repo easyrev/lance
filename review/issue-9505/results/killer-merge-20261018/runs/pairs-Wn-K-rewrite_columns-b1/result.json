@@ -1,0 +1,80 @@
+{
+  "status": "validated_success",
+  "snapshot": 1,
+  "identity": {
+    "module": "/mnt/lance/checkouts/K/python/python/lance/__init__.py",
+    "extension": "/mnt/lance/checkouts/K/python/python/lance/lance.abi3.so",
+    "extension_sha256": "08e23a4c577d505ffb41e66f6e3e5ae7d0164875480819b4bdf51d2560a3ef3f",
+    "version": "14.0.0-beta.19",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "pyarrow": "25.0.1"
+  },
+  "configured_pool_bytes": 1073741824,
+  "schema": "id: int64\nc0: int64\nc1: int64\npayload: large_binary\nnew_payload: large_binary\nrow_marker: int64",
+  "merge_stats": {
+    "num_inserted_rows": 0,
+    "num_updated_rows": 25,
+    "num_deleted_rows": 0
+  },
+  "merge_seconds": 0.013928850003139814,
+  "cpu_seconds": 0.03941699999999959,
+  "process_io_delta": {
+    "rchar": 152737,
+    "wchar": 25693,
+    "syscr": 132,
+    "syscw": 42,
+    "read_bytes": 0,
+    "write_bytes": 86016,
+    "cancelled_write_bytes": 0
+  },
+  "ru_maxrss_bytes": 241430528,
+  "new_data_file_bytes": 16288,
+  "new_data_file_count": 16,
+  "run_id": "pairs-Wn-K-rewrite_columns-b1",
+  "stage": "pairs",
+  "block": 1,
+  "workload": "Wn",
+  "variant": "K",
+  "write_mode": "rewrite_columns",
+  "execution": {
+    "operation": "execute",
+    "variant": "K",
+    "command": [
+      "/root/.local/bin/uv",
+      "run",
+      "--no-sync",
+      "python",
+      "/mnt/lance/killer-merge-20261018/harness.py",
+      "worker",
+      "execute",
+      "/mnt/lance/killer-merge-20261018/runs/pairs-Wn-K-rewrite_columns-b1"
+    ],
+    "exit_code": 0,
+    "timeout": false,
+    "confirmed_oom": false,
+    "before": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "0",
+      "memory.peak": "0",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "after": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "2097152",
+      "memory.peak": "85950464",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 6152610\nuser_usec 5354623\nsystem_usec 797987\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "configured_pool_bytes": 1073741824,
+    "pool_enforcement": "Not inferred from the environment setting"
+  },
+  "sampled_peak_rss_bytes": 243478528,
+  "cgroup_peak_bytes": 85950464
+}
