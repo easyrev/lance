@@ -4,6 +4,7 @@
 mod condition;
 mod delete;
 mod in_place;
+mod payload;
 mod write;
 
 use std::collections::BTreeMap;
@@ -17,6 +18,7 @@ use roaring::RoaringTreemap;
 pub use condition::MergeConditionExec;
 pub use delete::DeleteOnlyMergeInsertExec;
 pub use in_place::InPlaceMergeInsertExec;
+pub(super) use payload::MergePayloadExec;
 pub use write::FullSchemaMergeInsertExec;
 
 use super::MergeStats;

@@ -23,7 +23,16 @@ use crate::dataset::write::merge_insert::exec::{
 };
 use crate::dataset::{WhenMatched, WhenNotMatchedBySource};
 
+use super::candidate::{SourceEvidence, evidence, fixed_schema_width};
+use super::stats_guard::MergeTargetStatsGuardExec;
 use super::{MERGE_ACTION_COLUMN, MERGE_SOURCE_SENTINEL, MergeInsertParams};
+use datafusion::common::stats::Precision;
+use datafusion::physical_plan::{
+    filter::FilterExec,
+    joins::{HashJoinExec, PartitionMode},
+    projection::ProjectionExec,
+};
+use serde_json::json;
 
 /// Which write half a planned merge insert will use.
 ///
@@ -71,6 +80,7 @@ pub struct MergeInsertWriteNode {
     /// Blob columns supplied by the source, excluding target-filled columns.
     pub(crate) source_blob_columns: Vec<String>,
     pub(crate) deferred: DeferredConditions,
+    deferred_target_columns: Vec<String>,
     schema: Arc<DFSchema>,
 }
 
@@ -80,6 +90,7 @@ impl PartialEq for MergeInsertWriteNode {
             && self.write_sink == other.write_sink
             && self.source_blob_columns == other.source_blob_columns
             && self.deferred == other.deferred
+            && self.deferred_target_columns == other.deferred_target_columns
             && self.input == other.input
             && self.dataset.base == other.dataset.base
     }
@@ -93,6 +104,7 @@ impl std::hash::Hash for MergeInsertWriteNode {
         self.write_sink.hash(state);
         self.source_blob_columns.hash(state);
         self.deferred.hash(state);
+        self.deferred_target_columns.hash(state);
         self.input.hash(state);
         self.dataset.base.hash(state);
     }
@@ -104,7 +116,13 @@ impl PartialOrd for MergeInsertWriteNode {
             Some(Ordering::Equal) => match self.write_sink.cmp(&other.write_sink) {
                 Ordering::Equal => match self.source_blob_columns.cmp(&other.source_blob_columns) {
                     Ordering::Equal => match self.deferred.partial_cmp(&other.deferred) {
-                        Some(Ordering::Equal) => self.input.partial_cmp(&other.input),
+                        Some(Ordering::Equal) => match self
+                            .deferred_target_columns
+                            .cmp(&other.deferred_target_columns)
+                        {
+                            Ordering::Equal => self.input.partial_cmp(&other.input),
+                            cmp => Some(cmp),
+                        },
                         cmp => cmp,
                     },
                     cmp => Some(cmp),
@@ -136,8 +154,14 @@ impl MergeInsertWriteNode {
             write_sink,
             source_blob_columns,
             deferred,
+            deferred_target_columns: Vec::new(),
             schema,
         }
+    }
+
+    pub(super) fn with_deferred_target_columns(mut self, columns: Vec<String>) -> Self {
+        self.deferred_target_columns = columns;
+        self
     }
 }
 
@@ -213,7 +237,8 @@ impl UserDefinedLogicalNodeCore for MergeInsertWriteNode {
             self.write_sink,
             self.source_blob_columns.clone(),
             self.deferred.clone(),
-        ))
+        )
+        .with_deferred_target_columns(self.deferred_target_columns.clone()))
     }
 
     fn necessary_children_exprs(&self, _output_columns: &[usize]) -> Option<Vec<Vec<usize>>> {
@@ -286,9 +311,104 @@ impl UserDefinedLogicalNodeCore for MergeInsertWriteNode {
 }
 
 /// Physical planner for MergeInsertWriteNode.
-pub struct MergeInsertPlanner {}
+pub struct MergeInsertPlanner {
+    pub(super) source_evidence: SourceEvidence,
+    pub(super) policy_bytes: Option<usize>,
+}
 
 impl MergeInsertPlanner {
+    fn prepare_join(
+        &self,
+        input: Arc<dyn ExecutionPlan>,
+        params: &MergeInsertParams,
+    ) -> DFResult<Arc<dyn ExecutionPlan>> {
+        let Some(policy_bytes) = self.policy_bytes else {
+            return Ok(input);
+        };
+        if let Some(join) = input.downcast_ref::<HashJoinExec>() {
+            let target = join.left();
+            let source = join.right();
+            // This is the first join under only the merge's Projection/Filter chain.
+            // Verify both identities and all keys before touching it. Do not enter a provider's join.
+            let recognized = target.schema().column_with_name(ROW_ADDR).is_some()
+                && source
+                    .schema()
+                    .column_with_name(MERGE_SOURCE_SENTINEL)
+                    .is_some()
+                && target
+                    .schema()
+                    .column_with_name(MERGE_SOURCE_SENTINEL)
+                    .is_none()
+                && join.on().len() == params.on.len()
+                && join
+                    .on()
+                    .iter()
+                    .zip(&params.on)
+                    .all(|((left, right), name)| {
+                        left.as_ref()
+                            .downcast_ref::<datafusion::physical_expr::expressions::Column>()
+                            .is_some_and(|c| c.name() == name)
+                            && right
+                                .as_ref()
+                                .downcast_ref::<datafusion::physical_expr::expressions::Column>()
+                                .is_some_and(|c| c.name() == name)
+                    });
+            if !recognized {
+                evidence(json!({"phase":"join_policy", "decision":"skipped_unrecognized_join"}));
+                return Ok(input);
+            }
+            let stats = target.partition_statistics(None)?;
+            let width = fixed_schema_width(target.schema().as_ref());
+            let model = match (width, stats.num_rows) {
+                (Some(width), Precision::Exact(rows)) => (rows as u64)
+                    .checked_mul(width)
+                    .and_then(|bytes| bytes.checked_mul(2))
+                    .and_then(|bytes| {
+                        (rows as u64)
+                            .checked_mul(64)
+                            .and_then(|hash| bytes.checked_add(hash))
+                    })
+                    .and_then(|bytes| bytes.checked_add(1024 * 1024)),
+                _ => None,
+            };
+            let threshold = (32 * 1024 * 1024).min(policy_bytes / 4) as u64;
+            let target_left = !matches!(self.source_evidence, SourceEvidence::Complete)
+                && model.is_some_and(|bytes| bytes <= threshold);
+            let guarded_target: Arc<dyn ExecutionPlan> = if width.is_none() {
+                Arc::new(MergeTargetStatsGuardExec::new(target.clone()))
+            } else {
+                target.clone()
+            };
+            let guarded = input
+                .clone()
+                .with_new_children(vec![guarded_target, source.clone()])?;
+            evidence(
+                json!({"phase":"join_policy", "decision":if target_left {"small_fixed_target"} else {"source_default"}, "target_width":width,
+                "target_rows":format!("{:?}", stats.num_rows), "model_bytes":model, "threshold_bytes":threshold,
+                "source_evidence":format!("{:?}", self.source_evidence), "target_schema":format!("{:?}",target.schema()), "stats_guard":width.is_none()}),
+            );
+            if target_left {
+                return Ok(guarded);
+            }
+            let Some(join) = guarded.downcast_ref::<HashJoinExec>() else {
+                return Ok(guarded);
+            };
+            return join.swap_inputs(PartitionMode::Auto);
+        }
+        if input.downcast_ref::<ProjectionExec>().is_some()
+            || input.downcast_ref::<FilterExec>().is_some()
+        {
+            let children = input.children();
+            if children.len() == 1 {
+                let child = self.prepare_join(children[0].clone(), params)?;
+                return input.with_new_children(vec![child]);
+            }
+        }
+        evidence(
+            json!({"phase":"join_policy", "decision":"skipped_unrecognized_chain", "node":input.name()}),
+        );
+        Ok(input)
+    }
     /// Check if this is a delete-only operation that can use the optimized path.
     ///
     /// Delete-only operations are when:
@@ -320,7 +440,8 @@ impl ExtensionPlanner for MergeInsertPlanner {
                 assert_eq!(logical_inputs.len(), 1, "Inconsistent number of inputs");
                 assert_eq!(physical_inputs.len(), 1, "Inconsistent number of inputs");
 
-                let mut input = physical_inputs[0].clone();
+                let mut input =
+                    self.prepare_join(physical_inputs[0].clone(), &write_node.params)?;
                 let update_if_deferred = write_node.deferred.update_if.is_some();
                 if write_node.deferred != DeferredConditions::default() {
                     input = Arc::new(MergeConditionExec::try_new(
@@ -330,6 +451,13 @@ impl ExtensionPlanner for MergeInsertPlanner {
                         write_node.deferred.update_if.clone(),
                         write_node.deferred.delete_if.clone(),
                         session_state,
+                    )?);
+                }
+                if !write_node.deferred_target_columns.is_empty() {
+                    input = Arc::new(super::exec::MergePayloadExec::try_new(
+                        input,
+                        write_node.dataset.clone(),
+                        write_node.deferred_target_columns.clone(),
                     )?);
                 }
 
@@ -369,5 +497,89 @@ impl ExtensionPlanner for MergeInsertPlanner {
                 None
             },
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::utils::test::{DatagenExt, FragmentCount, FragmentRowCount};
+    use arrow_array::{record_batch, types::UInt64Type};
+    use datafusion::common::NullEquality;
+    use datafusion::datasource::memory::MemorySourceConfig;
+    use datafusion::logical_expr::JoinType;
+    use datafusion::physical_expr::expressions::Column;
+    use lance_datafusion::exec::OneShotExec;
+    use lance_datagen::{array, gen_batch};
+
+    fn join_in(plan: &Arc<dyn ExecutionPlan>) -> &HashJoinExec {
+        if let Some(join) = plan.downcast_ref::<HashJoinExec>() {
+            return join;
+        }
+        join_in(plan.children()[0])
+    }
+
+    #[rstest::rstest]
+    #[case::below_threshold(1, SourceEvidence::Prefix, true)]
+    #[case::exact_threshold(0, SourceEvidence::Prefix, true)]
+    #[case::above_threshold(-1, SourceEvidence::Prefix, false)]
+    #[case::complete_source(0, SourceEvidence::Complete, false)]
+    #[tokio::test]
+    async fn initial_direction_obeys_small_fixed_target_boundary(
+        #[case] threshold_delta: i64,
+        #[case] source_evidence: SourceEvidence,
+        #[case] target_left: bool,
+    ) {
+        let dataset = Arc::new(
+            gen_batch()
+                .col("key", array::step::<UInt64Type>())
+                .into_ram_dataset(FragmentCount::from(1), FragmentRowCount::from(1))
+                .await
+                .unwrap(),
+        );
+        let job = super::super::MergeInsertBuilder::try_new(dataset, vec!["key".into()])
+            .unwrap()
+            .try_build()
+            .unwrap();
+        let target = record_batch!(("key", UInt64, [1]), (ROW_ADDR, UInt64, [0])).unwrap();
+        let model = 2 * fixed_schema_width(target.schema().as_ref()).unwrap() + 64 + 1024 * 1024;
+        let threshold = model.checked_add_signed(threshold_delta).unwrap();
+        let target =
+            MemorySourceConfig::try_new_exec(&[vec![target.clone()]], target.schema(), None)
+                .unwrap();
+        let source = record_batch!(
+            ("key", UInt64, [1]),
+            (MERGE_SOURCE_SENTINEL, Boolean, [true])
+        )
+        .unwrap();
+        let source: Arc<dyn ExecutionPlan> = Arc::new(OneShotExec::from_batch(source));
+        let join: Arc<dyn ExecutionPlan> = Arc::new(
+            HashJoinExec::try_new(
+                target,
+                source,
+                vec![(
+                    Arc::new(Column::new("key", 0)),
+                    Arc::new(Column::new("key", 0)),
+                )],
+                None,
+                &JoinType::Full,
+                None,
+                PartitionMode::Auto,
+                NullEquality::NullEqualsNothing,
+                false,
+            )
+            .unwrap(),
+        );
+        let planner = MergeInsertPlanner {
+            source_evidence,
+            policy_bytes: Some(threshold as usize * 4),
+        };
+        let planned = planner.prepare_join(join, &job.params).unwrap();
+        let join = join_in(&planned);
+        assert_eq!(
+            join.left().schema().column_with_name(ROW_ADDR).is_some(),
+            target_left
+        );
+        assert_eq!(*join.partition_mode(), PartitionMode::Auto);
     }
 }

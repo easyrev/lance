@@ -1256,6 +1256,7 @@ pub struct Scanner {
     ///
     /// Defaults to `get_num_compute_intensive_cpus()`.
     target_parallelism: Option<usize>,
+    merge_scan_policy: Option<Arc<crate::dataset::write::merge_insert::candidate::MergeScanPolicy>>,
 
     // Legacy fields to help migrate some old projection behavior to new behavior
     //
@@ -1704,6 +1705,7 @@ impl Scanner {
             autoproject_scoring_columns: true,
             relational_algebra_version: LANCE_RELATIONAL_ALGEBRA_VERSION,
             target_parallelism: None,
+            merge_scan_policy: None,
         };
         scanner.apply_blob_handling();
         scanner
@@ -2236,6 +2238,13 @@ impl Scanner {
     pub fn target_parallelism(&mut self, n: usize) -> &mut Self {
         self.target_parallelism = Some(n);
         self
+    }
+
+    pub(crate) fn merge_scan_policy(
+        &mut self,
+        policy: Arc<crate::dataset::write::merge_insert::candidate::MergeScanPolicy>,
+    ) {
+        self.merge_scan_policy = Some(policy);
     }
 
     /// Set whether to read data in order (default: true)
@@ -4160,6 +4169,35 @@ impl Scanner {
         if let Some(materialization_readahead_bytes) = self.materialization_readahead_bytes {
             read_options =
                 read_options.with_materialization_readahead_bytes(materialization_readahead_bytes);
+        }
+
+        if let Some(policy) = &self.merge_scan_policy {
+            read_options.threading_mode =
+                FilteredReadThreadingMode::OnePartitionMultipleThreads(policy.decode_tasks);
+            // Both variants use the same inner and outer P. Only Ccore opts into native outputs.
+            if policy.use_budget {
+                if let Some(width) = policy.width {
+                    let cap = read_options
+                        .batch_size
+                        .map(usize::try_from)
+                        .transpose()
+                        .map_err(|e| Error::invalid_input(e.to_string()))?
+                        .or_else(get_default_batch_size)
+                        .unwrap_or_else(|| {
+                            (self.dataset.object_store.block_size() / 4).max(BATCH_SIZE_FALLBACK)
+                        });
+                    let rows = (policy.decode_bytes / policy.partitions as u64 / width.max(1))
+                        .max(1)
+                        .min(cap as u64);
+                    read_options.batch_size = Some(validate_batch_size(rows as usize)?);
+                }
+                if let Some(io) = policy.io_bytes {
+                    read_options.io_buffer_size_bytes = Some(io);
+                }
+            }
+            if policy.use_native && !self.ordered && self.batch_size_bytes.is_none() {
+                read_options.native_partitions = Some(policy.partitions);
+            }
         }
 
         Ok(read_options)
@@ -9076,6 +9114,54 @@ mod test {
     use crate::utils::test::{
         DatagenExt, FragmentCount, FragmentRowCount, ThrottledStoreWrapper, assert_plan_node_equals,
     };
+
+    #[rstest]
+    #[case::two_outputs(2)]
+    #[case::one_output(1)]
+    #[tokio::test]
+    async fn native_merge_policy_preserves_reduced_partitions(#[case] partitions: usize) {
+        let dataset = Arc::new(
+            gen_batch()
+                .col("key", array::step::<UInt64Type>())
+                .into_ram_dataset(FragmentCount::from(2), FragmentRowCount::from(2))
+                .await
+                .unwrap(),
+        );
+        let mut scanner = Scanner::new(dataset.clone());
+        scanner.scan_in_order(false).target_parallelism(partitions);
+        scanner.merge_scan_policy(Arc::new(
+            crate::dataset::write::merge_insert::candidate::MergeScanPolicy {
+                partitions,
+                decode_tasks: 4,
+                io_bytes: Some(16 * 1024 * 1024),
+                decode_bytes: 64,
+                width: Some(if partitions == 1 { 65 } else { 22 }),
+                use_budget: true,
+                use_native: true,
+            },
+        ));
+        let options = scanner.read_options(dataset.full_projection()).unwrap();
+        assert_eq!(options.native_partitions, Some(partitions));
+        assert_eq!(options.batch_size, Some(1));
+        assert_eq!(options.io_buffer_size_bytes, Some(16 * 1024 * 1024));
+        assert_eq!(scanner.target_parallelism, Some(partitions));
+        let plan = FilteredReadExec::try_new(dataset, options, None).unwrap();
+        let native = plan
+            .repartitioned(partitions, &ConfigOptions::new())
+            .unwrap();
+        if partitions > 1 {
+            assert!(native.is_some());
+        }
+        let outputs = native.as_ref().map_or(1, |plan| {
+            plan.properties().output_partitioning().partition_count()
+        });
+        assert_eq!(outputs, partitions);
+        assert!(
+            plan.repartitioned(16, &ConfigOptions::new())
+                .unwrap()
+                .is_none()
+        );
+    }
 
     #[test]
     fn test_fts_query_contract_rejects_invalid_values() {

@@ -43,6 +43,7 @@ pub struct LanceTableProvider {
     blob_handling: Option<lance_core::datatypes::BlobHandling>,
     batch_size: Option<usize>,
     batch_size_bytes: Option<u64>,
+    merge_scan_policy: Option<Arc<crate::dataset::write::merge_insert::candidate::MergeScanPolicy>>,
 }
 
 impl LanceTableProvider {
@@ -77,6 +78,7 @@ impl LanceTableProvider {
             blob_handling: None,
             batch_size: None,
             batch_size_bytes: None,
+            merge_scan_policy: None,
         }
     }
 
@@ -140,6 +142,14 @@ impl LanceTableProvider {
     pub fn dataset(&self) -> Arc<Dataset> {
         self.dataset.clone()
     }
+
+    pub(crate) fn with_merge_scan_policy(
+        mut self,
+        policy: Arc<crate::dataset::write::merge_insert::candidate::MergeScanPolicy>,
+    ) -> Self {
+        self.merge_scan_policy = Some(policy);
+        self
+    }
 }
 
 #[async_trait]
@@ -160,6 +170,10 @@ impl TableProvider for LanceTableProvider {
         limit: Option<usize>,
     ) -> datafusion::common::Result<Arc<dyn ExecutionPlan>> {
         let mut scan = self.dataset.scan();
+        if let Some(policy) = &self.merge_scan_policy {
+            scan.target_parallelism(state.config().target_partitions());
+            scan.merge_scan_policy(policy.clone());
+        }
         if let Some(handling) = self.blob_handling.clone() {
             scan.blob_handling(handling);
         }

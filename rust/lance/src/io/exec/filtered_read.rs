@@ -31,7 +31,7 @@ use datafusion_physical_expr::projection::project_ordering;
 use datafusion_physical_expr::{EquivalenceProperties, Partitioning, PhysicalExpr};
 use datafusion_physical_plan::Statistics;
 use datafusion_physical_plan::filter::FilterExec;
-use datafusion_physical_plan::metrics::{BaselineMetrics, Count, MetricsSet, Time};
+use datafusion_physical_plan::metrics::{BaselineMetrics, Count, Gauge, MetricsSet, Time};
 use futures::stream::BoxStream;
 use futures::{FutureExt, Stream, StreamExt, TryFutureExt, TryStreamExt, future};
 use lance_arrow::{DataTypeExt, RecordBatchExt};
@@ -322,6 +322,9 @@ impl<I: Iterator<Item = u64> + Send> Iterator for DvToValidRanges<I> {
 /// These represent work that is not divisible by partition and this work is always
 /// reported on partition 0
 pub struct FilteredReadGlobalMetrics {
+    scan_initializations: Count,
+    active_read_tasks: Gauge,
+    peak_read_tasks: Gauge,
     fragments_scanned: Count,
     ranges_scanned: Count,
     rows_scanned: Count,
@@ -331,11 +334,22 @@ pub struct FilteredReadGlobalMetrics {
 impl FilteredReadGlobalMetrics {
     pub fn new(metrics: &ExecutionPlanMetricsSet) -> Self {
         Self {
+            scan_initializations: metrics.new_count("scan_initializations", 0),
+            active_read_tasks: metrics.new_gauge("active_read_tasks", 0),
+            peak_read_tasks: metrics.new_gauge("peak_read_tasks", 0),
             fragments_scanned: metrics.new_count(FRAGMENTS_SCANNED_METRIC, 0),
             ranges_scanned: metrics.new_count(RANGES_SCANNED_METRIC, 0),
             rows_scanned: metrics.new_count(ROWS_SCANNED_METRIC, 0),
             io_metrics: IoMetrics::new(metrics, 0),
         }
+    }
+}
+
+struct ActiveReadTask(Arc<FilteredReadGlobalMetrics>);
+
+impl Drop for ActiveReadTask {
+    fn drop(&mut self) {
+        self.0.active_read_tasks.sub(1);
     }
 }
 
@@ -599,6 +613,7 @@ impl FilteredReadStream {
         materialization_context: Arc<BlobMaterializationContext>,
         materialize_blob_v2_binary: bool,
     ) -> Self {
+        global_metrics.scan_initializations.add(1);
         let scan_scheduler =
             scan_scheduler.unwrap_or_else(|| Self::make_scan_scheduler(&dataset, &options));
         let base_schedulers =
@@ -610,6 +625,13 @@ impl FilteredReadStream {
             .fragment_readahead
             .unwrap_or_else(|| (*DEFAULT_FRAGMENT_READAHEAD).unwrap_or(io_parallelism * 2))
             .max(1);
+        if std::env::var_os("LANCE_MERGE_DIAGNOSTICS").is_some() {
+            crate::dataset::write::merge_insert::candidate::evidence(
+                serde_json::json!({"phase":"scan_runtime_initialized", "scheduler_id":format!("{:p}", scan_scheduler.as_ref()),
+                "threading":format!("{threading_mode:?}"), "fragment_readahead":fragment_readahead, "batch_rows":options.batch_size, "io_bytes":options.io_buffer_size_bytes,
+                "projection":projected_column_names(&options.projection)}),
+            );
+        }
 
         let fragment_descriptors = options
             .fragments
@@ -673,7 +695,22 @@ impl FilteredReadStream {
                 }
             })
             .buffered(fragment_readahead);
-        let task_stream = fragment_streams.try_flatten().boxed();
+        let task_metrics = global_metrics.clone();
+        let task_stream = fragment_streams
+            .try_flatten()
+            .map_ok(move |task| {
+                let metrics = task_metrics.clone();
+                async move {
+                    metrics.active_read_tasks.add(1);
+                    metrics
+                        .peak_read_tasks
+                        .set_max(metrics.active_read_tasks.value());
+                    let _active = ActiveReadTask(metrics);
+                    task.await
+                }
+                .boxed()
+            })
+            .boxed();
 
         // A batch never spans fragments, so a plan touching many fragments
         // with few rows each emits one tiny batch per fragment. Fragments
@@ -1884,6 +1921,8 @@ fn projected_column_names(projection: &Projection) -> Vec<String> {
 /// Options for a filtered read.
 #[derive(Debug, Clone)]
 pub struct FilteredReadOptions {
+    /// Merge-local opt-in, with the same partition count as both optimizer sessions.
+    pub(crate) native_partitions: Option<usize>,
     /// The range of rows to read before applying the filter.
     pub scan_range_before_filter: Option<Range<u64>>,
     /// The range of rows to read after applying the filter.
@@ -1941,6 +1980,7 @@ impl FilteredReadOptions {
 
     pub fn new(projection: Projection) -> Self {
         Self {
+            native_partitions: None,
             scan_range_before_filter: None,
             scan_range_after_filter: None,
             with_deleted_rows: false,
@@ -3632,6 +3672,55 @@ impl ExecutionPlan for FilteredReadExec {
         &self.properties
     }
 
+    fn repartitioned(
+        &self,
+        target_partitions: usize,
+        _config: &datafusion::config::ConfigOptions,
+    ) -> datafusion::common::Result<Option<Arc<dyn ExecutionPlan>>> {
+        let options = &self.options;
+        let eligible = options.native_partitions == Some(target_partitions)
+            && matches!(self.input, RowSelector::AllRows)
+            && options.scan_range_before_filter.is_none()
+            && options.scan_range_after_filter.is_none()
+            && options.full_filter.is_none()
+            && options.refine_filter.is_none()
+            && options.physical_filters.is_empty()
+            && options.physical_row_addr_prefilter.is_none()
+            && !options.with_deleted_rows
+            && !options.only_indexed_fragments
+            && options.overlay_block.is_none()
+            && options
+                .file_reader_options
+                .as_ref()
+                .is_none_or(|o| o.batch_size_bytes.is_none())
+            && self.plan.get().is_none()
+            && !crate::dataset::blob::schema_has_blob_v2_binary_view(
+                &options.projection.to_bare_schema(),
+            )
+            && self.dataset.fragments().iter().all(|fragment| {
+                fragment.overlays.is_empty()
+                    && fragment.files.iter().all(|file| file.base_id.is_none())
+            });
+        if !eligible {
+            return Ok(None);
+        }
+        let FilteredReadThreadingMode::OnePartitionMultipleThreads(decode_tasks) =
+            options.threading_mode
+        else {
+            return Ok(None);
+        };
+        if target_partitions == 0 || target_partitions > decode_tasks {
+            return Ok(None);
+        }
+        let mut options = options.clone();
+        options.threading_mode = FilteredReadThreadingMode::MultiplePartitions(target_partitions);
+        Ok(Some(Arc::new(Self::try_new(
+            self.dataset.clone(),
+            options,
+            None,
+        )?)))
+    }
+
     fn children(&self) -> Vec<&Arc<dyn ExecutionPlan>> {
         if let Some(child) = self.input.child() {
             vec![child]
@@ -3743,7 +3832,12 @@ impl ExecutionPlan for FilteredReadExec {
             let nothing_selects = self.input.row_set_plan().is_none()
                 && self.options.refine_filter.is_none()
                 && self.options.physical_row_addr_prefilter.is_none();
-            let num_rows = if nothing_selects {
+            let num_rows = if nothing_selects
+                && !(partition.is_some()
+                    && matches!(
+                        self.options.threading_mode,
+                        FilteredReadThreadingMode::MultiplePartitions(_)
+                    )) {
                 Precision::Exact(total_rows as usize)
             } else {
                 Precision::Inexact(total_rows as usize)
@@ -3971,6 +4065,198 @@ impl ExecutionPlan for FilteredReadExec {
 
 #[cfg(test)]
 mod tests {
+    #[rstest::rstest]
+    #[case::cancel_pending(false)]
+    #[case::worker_failure(true)]
+    #[tokio::test]
+    async fn native_workers_release_pending_tasks(#[case] fail_second: bool) {
+        struct DroppedTask(Arc<AtomicUsize>);
+        impl Drop for DroppedTask {
+            fn drop(&mut self) {
+                self.0.fetch_add(1, Ordering::SeqCst);
+            }
+        }
+        let dataset = gen_batch()
+            .col("key", array::step::<UInt64Type>())
+            .into_ram_dataset(FragmentCount::from(1), FragmentRowCount::from(1))
+            .await
+            .unwrap();
+        let dataset = Arc::new(dataset);
+        let options = FilteredReadOptions::basic_full_read(&dataset);
+        let polls = Arc::new(AtomicUsize::new(0));
+        let drops = Arc::new(AtomicUsize::new(0));
+        let tasks = (0..2)
+            .map(|index| {
+                let guard = DroppedTask(drops.clone());
+                let polls = polls.clone();
+                let task: MaterializedReadBatchesFut = Box::pin(async move {
+                    let _guard = guard;
+                    polls.fetch_add(1, Ordering::SeqCst);
+                    if fail_second && index == 1 {
+                        return Err(Error::invalid_input("native-task-failure"));
+                    }
+                    futures::future::pending().await
+                });
+                Ok(task)
+            })
+            .collect::<Vec<_>>();
+        let metrics = ExecutionPlanMetricsSet::new();
+        let running = FilteredReadStream {
+            output_schema: Arc::new(arrow_schema::Schema::new(vec![arrow_schema::Field::new(
+                "key",
+                arrow_schema::DataType::UInt64,
+                false,
+            )])),
+            task_stream: Arc::new(AsyncMutex::new(futures::stream::iter(tasks).boxed())),
+            scan_scheduler: FilteredReadStream::make_scan_scheduler(&dataset, &options),
+            metrics: Arc::new(FilteredReadGlobalMetrics::new(&metrics)),
+            active_partitions_counter: Arc::new(AtomicUsize::new(0)),
+            threading_mode: FilteredReadThreadingMode::MultiplePartitions(2),
+            scan_range_after_filter: None,
+            touched_fragments: 0,
+            planned_rows: 0,
+        };
+        let mut first = running.get_stream(&metrics, 0);
+        let mut second = running.get_stream(&metrics, 1);
+        let mut first_next = Box::pin(first.next());
+        assert!(futures::poll!(&mut first_next).is_pending());
+        let mut second_next = Box::pin(second.next());
+        if fail_second {
+            let error = second_next.await.unwrap().unwrap_err();
+            assert!(matches!(error, DataFusionError::External(_)));
+            assert!(error.to_string().contains("native-task-failure"));
+        } else {
+            assert!(futures::poll!(&mut second_next).is_pending());
+            drop(second_next);
+        }
+        assert_eq!(polls.load(Ordering::SeqCst), 2);
+        drop(first_next);
+        drop(first);
+        drop(second);
+        assert_eq!(drops.load(Ordering::SeqCst), 2);
+    }
+
+    #[tokio::test]
+    async fn merge_native_outputs_share_scan_and_keep_global_statistics() {
+        let dataset = Arc::new(
+            gen_batch()
+                .col("key", array::step::<UInt64Type>())
+                .into_ram_dataset(FragmentCount::from(2), FragmentRowCount::from(3))
+                .await
+                .unwrap(),
+        );
+        let mut options = FilteredReadOptions::basic_full_read(&dataset)
+            .with_threading_mode(FilteredReadThreadingMode::OnePartitionMultipleThreads(4));
+        let plain = FilteredReadExec::try_new(dataset.clone(), options.clone(), None).unwrap();
+        let config = datafusion::config::ConfigOptions::new();
+        assert!(plain.repartitioned(4, &config).unwrap().is_none());
+        options.native_partitions = Some(4);
+        let plan = FilteredReadExec::try_new(dataset, options.clone(), None).unwrap();
+        assert!(plan.repartitioned(3, &config).unwrap().is_none());
+        let native = plan.repartitioned(4, &config).unwrap().unwrap();
+        assert_eq!(
+            native.properties().output_partitioning().partition_count(),
+            4
+        );
+        assert_eq!(
+            native.partition_statistics(None).unwrap().num_rows,
+            Precision::Exact(6)
+        );
+        assert!(matches!(
+            native.partition_statistics(Some(0)).unwrap().num_rows,
+            Precision::Inexact(_)
+        ));
+        let output = futures::future::try_join_all((0..4).map(|partition| {
+            native
+                .execute(partition, Arc::new(TaskContext::default()))
+                .unwrap()
+                .try_collect::<Vec<_>>()
+        }))
+        .await
+        .unwrap();
+        let mut keys = output
+            .iter()
+            .flatten()
+            .flat_map(|batch| batch["key"].as_primitive::<UInt64Type>().values().to_vec())
+            .collect::<Vec<_>>();
+        keys.sort_unstable();
+        assert_eq!(keys, vec![0, 1, 2, 3, 4, 5]);
+        let metrics = native.metrics().unwrap();
+        let initializations = metrics
+            .iter()
+            .find(|metric| metric.value().name() == "scan_initializations")
+            .unwrap()
+            .value()
+            .as_usize();
+        assert_eq!(initializations, 1);
+        options.scan_range_before_filter = Some(0..2);
+        let ranged = FilteredReadExec::try_new(plan.dataset.clone(), options, None).unwrap();
+        assert!(ranged.repartitioned(4, &config).unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn merge_native_worker_error_propagates_and_cancelled_state_resets() {
+        let dataset = Arc::new(
+            gen_batch()
+                .col("key", array::step::<UInt64Type>())
+                .into_ram_dataset(FragmentCount::from(2), FragmentRowCount::from(3))
+                .await
+                .unwrap(),
+        );
+        let mut options = FilteredReadOptions::basic_full_read(&dataset)
+            .with_threading_mode(FilteredReadThreadingMode::OnePartitionMultipleThreads(4));
+        options.native_partitions = Some(4);
+        let plan = FilteredReadExec::try_new(dataset.clone(), options.clone(), None).unwrap();
+        let config = datafusion::config::ConfigOptions::new();
+        let native = plan.repartitioned(4, &config).unwrap().unwrap();
+        let state = Arc::downgrade(
+            &native
+                .downcast_ref::<FilteredReadExec>()
+                .unwrap()
+                .running_stream,
+        );
+        let mut stream = native.execute(0, Arc::new(TaskContext::default())).unwrap();
+        assert!(stream.next().await.unwrap().is_ok());
+        drop(stream);
+        let reset = native.clone().reset_state().unwrap();
+        drop(native);
+        assert!(state.upgrade().is_none());
+        let outputs = futures::future::try_join_all((0..4).map(|partition| {
+            reset
+                .execute(partition, Arc::new(TaskContext::default()))
+                .unwrap()
+                .try_collect::<Vec<_>>()
+        }))
+        .await
+        .unwrap();
+        assert_eq!(
+            outputs
+                .iter()
+                .flatten()
+                .map(RecordBatch::num_rows)
+                .sum::<usize>(),
+            6
+        );
+
+        let mut fragments = dataset.fragments().as_ref().clone();
+        fragments[1].files[0].path = "native-worker-error.lance".into();
+        options.fragments = Some(Arc::new(fragments));
+        let broken = FilteredReadExec::try_new(dataset, options, None)
+            .unwrap()
+            .repartitioned(4, &config)
+            .unwrap()
+            .unwrap();
+        let error = futures::future::try_join_all((0..4).map(|partition| {
+            broken
+                .execute(partition, Arc::new(TaskContext::default()))
+                .unwrap()
+                .try_collect::<Vec<_>>()
+        }))
+        .await
+        .unwrap_err();
+        assert!(matches!(error, DataFusionError::External(_)));
+        assert!(error.to_string().contains("native-worker-error.lance"));
+    }
     use std::collections::{HashMap, HashSet};
     use std::sync::atomic::{AtomicUsize, Ordering};
 
