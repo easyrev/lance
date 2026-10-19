@@ -1,0 +1,56 @@
+{
+  "status": "analyze_returned",
+  "operation": "analyze",
+  "snapshot": 1,
+  "identity": {
+    "module": "/mnt/lance/checkouts/unified-9505-DP/python/python/lance/__init__.py",
+    "extension": "/mnt/lance/checkouts/unified-9505-DP/python/python/lance/lance.abi3.so",
+    "extension_sha256": "1eff3e28735a0cb8166e6c650c3eb5660fd4187477156a471e11d41cd0346409",
+    "version": "14.0.0-beta.19",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "pyarrow": "25.0.1"
+  },
+  "schema": "id: int64\nc0: int64\nc1: int64\npayload: large_binary\nnew_payload: large_binary\nrow_marker: int64",
+  "configured_pool_bytes": 1073741824,
+  "pool_policy": "Source review: P MergeBudget shares the bounded execute context; D shares the analyze context. Scan sizing remains based on whole-table physical mean width despite a narrow projection.",
+  "baseline_rss": {
+    "VmHWM": 165789696,
+    "VmRSS": 165789696,
+    "RssAnon": 68829184,
+    "RssFile": 96960512,
+    "RssShmem": 0
+  },
+  "input_materialization_seconds": 0,
+  "execute_rss_before": {
+    "VmHWM": 166199296,
+    "VmRSS": 166199296,
+    "RssAnon": 68845568,
+    "RssFile": 97353728,
+    "RssShmem": 0
+  },
+  "ru_maxrss_before_execute_bytes": 165482496,
+  "analyzed_plan_sha256": "eb64a90c4c7c2fc5e12b9fd705ed2a1456f698a19a319b7c903b2d7c688bbe74",
+  "analyze_seconds": 0.3456977210007608,
+  "cpu_seconds": 0.36102899999999927,
+  "process_io_delta": {
+    "rchar": 131233707,
+    "wchar": 131093368,
+    "syscr": 185,
+    "syscw": 101,
+    "read_bytes": 0,
+    "write_bytes": 131153920,
+    "cancelled_write_bytes": 0
+  },
+  "ru_maxrss_bytes": 421445632,
+  "ru_maxrss_after_execute_bytes": 421445632,
+  "execute_rss_after": {
+    "VmHWM": 423251968,
+    "VmRSS": 423251968,
+    "RssAnon": 257560576,
+    "RssFile": 165691392,
+    "RssShmem": 0
+  },
+  "new_data_file_bytes": 131079501,
+  "new_data_file_count": 1,
+  "input_and_api_seconds": 0.3456977210007608
+}

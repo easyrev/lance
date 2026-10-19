@@ -1,0 +1,88 @@
+{
+  "base_commit": "0a0d327082988018a25f56147d3b6d02f6c79ecc",
+  "validator": "U",
+  "uv": "/root/.local/bin/uv",
+  "cgroup_parent": "/sys/fs/cgroup/lance-unified-9505",
+  "variants": {
+    "U": {
+      "checkout": "/mnt/lance/checkouts/U_main",
+      "build_log": "/mnt/lance/killer-merge-20261018/logs/U_main-build.log",
+      "role": "baseline",
+      "pool_policy": "Source review: non-index planning uses SessionContext::new and execute uses TaskContext::default, both with unbounded pools. LANCE_MEM_POOL_SIZE is configured but is not the execution pool limit.",
+      "pool_source_files": [
+        "rust/lance/src/dataset/write/merge_insert.rs",
+        "rust/lance-datafusion/src/exec.rs"
+      ],
+      "environment": {}
+    },
+    "B": {
+      "checkout": "/mnt/lance/checkouts/unified-9505-B",
+      "build_log": "/mnt/lance/unified-9505-20261019/logs/B-build.log",
+      "role": "candidate",
+      "pool_policy": "Source review: planning and execution obtain separate bounded contexts from the spilling-enabled factory; the factory does not cache that context. The configured limit is not one shared combined peak.",
+      "pool_source_files": [
+        "rust/lance/src/dataset/write/merge_insert.rs",
+        "rust/lance-datafusion/src/exec.rs"
+      ],
+      "environment": {}
+    },
+    "P": {
+      "checkout": "/mnt/lance/checkouts/unified-9505-P",
+      "build_log": "/mnt/lance/unified-9505-20261019/logs/P-build.log",
+      "role": "candidate",
+      "pool_policy": "Source review: execute shares one bounded planning/execution context. analyze_plan uses another fresh bounded execution context. Scan sizing uses whole-table physical mean width.",
+      "pool_source_files": [
+        "rust/lance/src/dataset/write/merge_insert.rs",
+        "rust/lance-datafusion/src/exec.rs"
+      ],
+      "environment": {}
+    },
+    "D": {
+      "checkout": "/mnt/lance/checkouts/K_check",
+      "build_log": "/mnt/lance/killer-merge-no-admission-20261019/logs/K-build.log",
+      "role": "candidate",
+      "pool_policy": "Source review: planning and execute/analyze share the bounded factory context; deferred payload is not itself a hard total-RSS budget.",
+      "pool_source_files": [
+        "rust/lance/src/dataset/write/merge_insert.rs",
+        "rust/lance/src/dataset/write/merge_insert/exec/condition.rs",
+        "rust/lance-datafusion/src/exec.rs"
+      ],
+      "environment": {}
+    },
+    "CTX": {
+      "checkout": "/mnt/lance/checkouts/unified-9505-CTX",
+      "build_log": "/mnt/lance/unified-9505-20261019/logs/CTX-build.log",
+      "role": "candidate",
+      "pool_policy": "Source review: planning and execution share the bounded factory context, without deferred payload or a new join selector.",
+      "pool_source_files": [
+        "rust/lance/src/dataset/write/merge_insert.rs",
+        "rust/lance-datafusion/src/exec.rs"
+      ],
+      "environment": {}
+    },
+    "DB": {
+      "checkout": "/mnt/lance/checkouts/unified-9505-DB",
+      "build_log": "/mnt/lance/unified-9505-20261019/logs/DB-build.log",
+      "role": "candidate",
+      "pool_policy": "Source review: planning and execute/analyze share the bounded factory context; B join selection is combined with deferred payload.",
+      "pool_source_files": [
+        "rust/lance/src/dataset/write/merge_insert.rs",
+        "rust/lance/src/dataset/write/merge_insert/exec/condition.rs",
+        "rust/lance-datafusion/src/exec.rs"
+      ],
+      "environment": {}
+    },
+    "DP": {
+      "checkout": "/mnt/lance/checkouts/unified-9505-DP",
+      "build_log": "/mnt/lance/unified-9505-20261019/logs/DP-build.log",
+      "role": "candidate",
+      "pool_policy": "Source review: P MergeBudget shares the bounded execute context; D shares the analyze context. Scan sizing remains based on whole-table physical mean width despite a narrow projection.",
+      "pool_source_files": [
+        "rust/lance/src/dataset/write/merge_insert.rs",
+        "rust/lance/src/dataset/write/merge_insert/exec/condition.rs",
+        "rust/lance-datafusion/src/exec.rs"
+      ],
+      "environment": {}
+    }
+  }
+}

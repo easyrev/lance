@@ -1,0 +1,3832 @@
+{
+  "schema_version": 1,
+  "files": [
+    {
+      "path": "output/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-B-rewrite_rows-b0/analyzed-plan.txt",
+      "file_sha256": "1cd0b4c8c63651f543e3c2bd454d732b62f8e31ad472571e5f1081cb3f10db83",
+      "plans": [
+        {
+          "plan_sha256": "1cd0b4c8c63651f543e3c2bd454d732b62f8e31ad472571e5f1081cb3f10db83",
+          "execution_complete": null,
+          "completeness_reason": "Text cannot prove success: analyze_plan_with_context discards stream Err items. validated_diagnostic is not an execution-completion signal.",
+          "metric_scope": "Aggregated by name across partitions; abbreviated display values are rounded.",
+          "nodes": [
+            {
+              "id": 0,
+              "line": 1,
+              "indent": 4,
+              "parent": null,
+              "children": [
+                1
+              ],
+              "operator": "MergeInsert",
+              "attributes": {
+                "elapsed": "1.615970323s",
+                "on": "[id]",
+                "when_matched": "UpdateAll",
+                "when_not_matched": "DoNothing",
+                "when_not_matched_by_source": "Keep"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "1ns",
+                  "approximate_value": 1e-9,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "bytes_written": {
+                  "raw": "44.78 K",
+                  "approximate_value": 44780,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "num_deleted_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_files_written": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_inserted_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_skipped_duplicates": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_updated_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                }
+              },
+              "raw_line": "    MergeInsert: elapsed=1.615970323s, on=[id], when_matched=UpdateAll, when_not_matched=DoNothing, when_not_matched_by_source=Keep, metrics=[output_rows=0, elapsed_compute=1ns, output_bytes=0.0 B, output_batches=0, bytes_written=44.78 K, num_deleted_rows=0, num_files_written=1, num_inserted_rows=0, num_skipped_duplicates=0, num_updated_rows=100]"
+            },
+            {
+              "id": 1,
+              "line": 2,
+              "indent": 6,
+              "parent": 0,
+              "children": [
+                2
+              ],
+              "operator": "CoalescePartitionsExec",
+              "attributes": {
+                "elapsed": "1.615967319s"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "23.32µs",
+                  "approximate_value": 0.00002332,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "46.0 MB",
+                  "approximate_value": 48234496,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "16",
+                  "approximate_value": 16,
+                  "unit": "count",
+                  "rounded": false
+                }
+              },
+              "raw_line": "      CoalescePartitionsExec, elapsed=1.615967319s, metrics=[output_rows=100, elapsed_compute=23.32µs, output_bytes=46.0 MB, output_batches=16]"
+            },
+            {
+              "id": 2,
+              "line": 3,
+              "indent": 8,
+              "parent": 1,
+              "children": [
+                3
+              ],
+              "operator": "ProjectionExec",
+              "attributes": {
+                "elapsed": "1.613752917s",
+                "expr": "[c2@0 as c2, c3@1 as c3, c4@2 as c4, c5@3 as c5, c6@4 as c6, c7@5 as c7, c8@6 as c8, c9@7 as c9, c10@8 as c10, c11@9 as c11, c12@10 as c12, c13@11 as c13, c14@12 as c14, c15@13 as c15, c16@14 as c16, c17@15 as c17, c18@16 as c18, c19@17 as c19, c20@18 as c20, c21@19 as c21, c22@20 as c22, c23@21 as c23, c24@22 as c24, c25@23 as c25, c26@24 as c26, c27@25 as c27, c28@26 as c28, c29@27 as c29, c30@28 as c30, c31@29 as c31, c32@30 as c32, c33@31 as c33, c34@32 as c34, c35@33 as c35, c36@34 as c36, c37@35 as c37, c38@36 as c38, c39@37 as c39, c40@38 as c40, c41@39 as c41, c42@40 as c42, _rowid@41 as _rowid, _rowaddr@42 as _rowaddr, id@43 as id, c0@44 as c0, c1@45 as c1, __merge_source_sentinel@46 as __merge_source_sentinel, CASE WHEN _rowaddr@42 IS NOT NULL THEN 1 ELSE 0 END as __action]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "612.93µs",
+                  "approximate_value": 0.0006129299999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "46.0 MB",
+                  "approximate_value": 48234496,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "16",
+                  "approximate_value": 16,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "expr_0_eval_time": {
+                  "raw": "6.68µs",
+                  "approximate_value": 0.0000066799999999999996,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_10_eval_time": {
+                  "raw": "1.97µs",
+                  "approximate_value": 0.0000019699999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_11_eval_time": {
+                  "raw": "1.60µs",
+                  "approximate_value": 0.0000016,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_12_eval_time": {
+                  "raw": "1.96µs",
+                  "approximate_value": 0.00000196,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_13_eval_time": {
+                  "raw": "1.85µs",
+                  "approximate_value": 0.00000185,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_14_eval_time": {
+                  "raw": "1.65µs",
+                  "approximate_value": 0.0000016499999999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_15_eval_time": {
+                  "raw": "1.64µs",
+                  "approximate_value": 0.0000016399999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_16_eval_time": {
+                  "raw": "1.80µs",
+                  "approximate_value": 0.0000018,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_17_eval_time": {
+                  "raw": "1.71µs",
+                  "approximate_value": 0.00000171,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_18_eval_time": {
+                  "raw": "1.63µs",
+                  "approximate_value": 0.0000016299999999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_19_eval_time": {
+                  "raw": "1.64µs",
+                  "approximate_value": 0.0000016399999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_1_eval_time": {
+                  "raw": "1.78µs",
+                  "approximate_value": 0.00000178,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_20_eval_time": {
+                  "raw": "2.10µs",
+                  "approximate_value": 0.0000021,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_21_eval_time": {
+                  "raw": "1.96µs",
+                  "approximate_value": 0.00000196,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_22_eval_time": {
+                  "raw": "1.70µs",
+                  "approximate_value": 0.0000016999999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_23_eval_time": {
+                  "raw": "2.32µs",
+                  "approximate_value": 0.00000232,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_24_eval_time": {
+                  "raw": "2.52µs",
+                  "approximate_value": 0.00000252,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_25_eval_time": {
+                  "raw": "1.79µs",
+                  "approximate_value": 0.00000179,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_26_eval_time": {
+                  "raw": "1.98µs",
+                  "approximate_value": 0.00000198,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_27_eval_time": {
+                  "raw": "1.66µs",
+                  "approximate_value": 0.0000016599999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_28_eval_time": {
+                  "raw": "1.97µs",
+                  "approximate_value": 0.0000019699999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_29_eval_time": {
+                  "raw": "2.13µs",
+                  "approximate_value": 0.00000213,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_2_eval_time": {
+                  "raw": "2.44µs",
+                  "approximate_value": 0.00000244,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_30_eval_time": {
+                  "raw": "1.99µs",
+                  "approximate_value": 0.00000199,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_31_eval_time": {
+                  "raw": "1.48µs",
+                  "approximate_value": 0.00000148,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_32_eval_time": {
+                  "raw": "1.51µs",
+                  "approximate_value": 0.00000151,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_33_eval_time": {
+                  "raw": "1.89µs",
+                  "approximate_value": 0.00000189,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_34_eval_time": {
+                  "raw": "1.53µs",
+                  "approximate_value": 0.00000153,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_35_eval_time": {
+                  "raw": "1.64µs",
+                  "approximate_value": 0.0000016399999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_36_eval_time": {
+                  "raw": "2.01µs",
+                  "approximate_value": 0.00000201,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_37_eval_time": {
+                  "raw": "1.92µs",
+                  "approximate_value": 0.00000192,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_38_eval_time": {
+                  "raw": "2.03µs",
+                  "approximate_value": 0.0000020299999999999996,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_39_eval_time": {
+                  "raw": "1.67µs",
+                  "approximate_value": 0.0000016699999999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_3_eval_time": {
+                  "raw": "1.88µs",
+                  "approximate_value": 0.0000018799999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_40_eval_time": {
+                  "raw": "1.98µs",
+                  "approximate_value": 0.00000198,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_41_eval_time": {
+                  "raw": "2.10µs",
+                  "approximate_value": 0.0000021,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_42_eval_time": {
+                  "raw": "1.56µs",
+                  "approximate_value": 0.0000015599999999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_43_eval_time": {
+                  "raw": "1.59µs",
+                  "approximate_value": 0.00000159,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_44_eval_time": {
+                  "raw": "2.37µs",
+                  "approximate_value": 0.00000237,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_45_eval_time": {
+                  "raw": "1.53µs",
+                  "approximate_value": 0.00000153,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_46_eval_time": {
+                  "raw": "2.46µs",
+                  "approximate_value": 0.0000024599999999999997,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_47_eval_time": {
+                  "raw": "174.19µs",
+                  "approximate_value": 0.00017418999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_4_eval_time": {
+                  "raw": "2.19µs",
+                  "approximate_value": 0.0000021899999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_5_eval_time": {
+                  "raw": "3.01µs",
+                  "approximate_value": 0.0000030099999999999996,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_6_eval_time": {
+                  "raw": "2.03µs",
+                  "approximate_value": 0.0000020299999999999996,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_7_eval_time": {
+                  "raw": "1.99µs",
+                  "approximate_value": 0.00000199,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_8_eval_time": {
+                  "raw": "1.84µs",
+                  "approximate_value": 0.00000184,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_9_eval_time": {
+                  "raw": "2.03µs",
+                  "approximate_value": 0.0000020299999999999996,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "        ProjectionExec: elapsed=1.613752917s, expr=[c2@0 as c2, c3@1 as c3, c4@2 as c4, c5@3 as c5, c6@4 as c6, c7@5 as c7, c8@6 as c8, c9@7 as c9, c10@8 as c10, c11@9 as c11, c12@10 as c12, c13@11 as c13, c14@12 as c14, c15@13 as c15, c16@14 as c16, c17@15 as c17, c18@16 as c18, c19@17 as c19, c20@18 as c20, c21@19 as c21, c22@20 as c22, c23@21 as c23, c24@22 as c24, c25@23 as c25, c26@24 as c26, c27@25 as c27, c28@26 as c28, c29@27 as c29, c30@28 as c30, c31@29 as c31, c32@30 as c32, c33@31 as c33, c34@32 as c34, c35@33 as c35, c36@34 as c36, c37@35 as c37, c38@36 as c38, c39@37 as c39, c40@38 as c40, c41@39 as c41, c42@40 as c42, _rowid@41 as _rowid, _rowaddr@42 as _rowaddr, id@43 as id, c0@44 as c0, c1@45 as c1, __merge_source_sentinel@46 as __merge_source_sentinel, CASE WHEN _rowaddr@42 IS NOT NULL THEN 1 ELSE 0 END as __action], metrics=[output_rows=100, elapsed_compute=612.93µs, output_bytes=46.0 MB, output_batches=16, expr_0_eval_time=6.68µs, expr_10_eval_time=1.97µs, expr_11_eval_time=1.60µs, expr_12_eval_time=1.96µs, expr_13_eval_time=1.85µs, expr_14_eval_time=1.65µs, expr_15_eval_time=1.64µs, expr_16_eval_time=1.80µs, expr_17_eval_time=1.71µs, expr_18_eval_time=1.63µs, expr_19_eval_time=1.64µs, expr_1_eval_time=1.78µs, expr_20_eval_time=2.10µs, expr_21_eval_time=1.96µs, expr_22_eval_time=1.70µs, expr_23_eval_time=2.32µs, expr_24_eval_time=2.52µs, expr_25_eval_time=1.79µs, expr_26_eval_time=1.98µs, expr_27_eval_time=1.66µs, expr_28_eval_time=1.97µs, expr_29_eval_time=2.13µs, expr_2_eval_time=2.44µs, expr_30_eval_time=1.99µs, expr_31_eval_time=1.48µs, expr_32_eval_time=1.51µs, expr_33_eval_time=1.89µs, expr_34_eval_time=1.53µs, expr_35_eval_time=1.64µs, expr_36_eval_time=2.01µs, expr_37_eval_time=1.92µs, expr_38_eval_time=2.03µs, expr_39_eval_time=1.67µs, expr_3_eval_time=1.88µs, expr_40_eval_time=1.98µs, expr_41_eval_time=2.10µs, expr_42_eval_time=1.56µs, expr_43_eval_time=1.59µs, expr_44_eval_time=2.37µs, expr_45_eval_time=1.53µs, expr_46_eval_time=2.46µs, expr_47_eval_time=174.19µs, expr_4_eval_time=2.19µs, expr_5_eval_time=3.01µs, expr_6_eval_time=2.03µs, expr_7_eval_time=1.99µs, expr_8_eval_time=1.84µs, expr_9_eval_time=2.03µs]"
+            },
+            {
+              "id": 3,
+              "line": 4,
+              "indent": 10,
+              "parent": 2,
+              "children": [
+                4,
+                6
+              ],
+              "operator": "HashJoinExec",
+              "attributes": {
+                "elapsed": "1.613752917s",
+                "mode": "CollectLeft",
+                "join_type": "Inner",
+                "on": "[(id@0, id@0)]",
+                "projection": "[c2@5, c3@6, c4@7, c5@8, c6@9, c7@10, c8@11, c9@12, c10@13, c11@14, c12@15, c13@16, c14@17, c15@18, c16@19, c17@20, c18@21, c19@22, c20@23, c21@24, c22@25, c23@26, c24@27, c25@28, c26@29, c27@30, c28@31, c29@32, c30@33, c31@34, c32@35, c33@36, c34@37, c35@38, c36@39, c37@40, c38@41, c39@42, c40@43, c41@44, c42@45, _rowid@46, _rowaddr@47, id@0, c0@1, c1@2, __merge_source_sentinel@3]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "131.40ms",
+                  "approximate_value": 0.13140000000000002,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "46.0 MB",
+                  "approximate_value": 48234496,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "16",
+                  "approximate_value": 16,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "array_map_created_count": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "build_input_batches": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "build_input_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "input_batches": {
+                  "raw": "1.98 K",
+                  "approximate_value": 1980,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "input_rows": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "build_mem_used": {
+                  "raw": "4.70 K",
+                  "approximate_value": 4700,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "build_time": {
+                  "raw": "124.64µs",
+                  "approximate_value": 0.00012464,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "join_time": {
+                  "raw": "131.28ms",
+                  "approximate_value": 0.13128,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "avg_fanout": {
+                  "raw": "100% (100/100)"
+                },
+                "probe_hit_rate": {
+                  "raw": "0% (100/16.00 M)"
+                }
+              },
+              "raw_line": "          HashJoinExec: elapsed=1.613752917s, mode=CollectLeft, join_type=Inner, on=[(id@0, id@0)], projection=[c2@5, c3@6, c4@7, c5@8, c6@9, c7@10, c8@11, c9@12, c10@13, c11@14, c12@15, c13@16, c14@17, c15@18, c16@19, c17@20, c18@21, c19@22, c20@23, c21@24, c22@25, c23@26, c24@27, c25@28, c26@29, c27@30, c28@31, c29@32, c30@33, c31@34, c32@35, c33@36, c34@37, c35@38, c36@39, c37@40, c38@41, c39@42, c40@43, c41@44, c42@45, _rowid@46, _rowaddr@47, id@0, c0@1, c1@2, __merge_source_sentinel@3], metrics=[output_rows=100, elapsed_compute=131.40ms, output_bytes=46.0 MB, output_batches=16, array_map_created_count=0, build_input_batches=1, build_input_rows=100, input_batches=1.98 K, input_rows=16.00 M, build_mem_used=4.70 K, build_time=124.64µs, join_time=131.28ms, avg_fanout=100% (100/100), probe_hit_rate=0% (100/16.00 M)]"
+            },
+            {
+              "id": 4,
+              "line": 5,
+              "indent": 12,
+              "parent": 3,
+              "children": [
+                5
+              ],
+              "operator": "ProjectionExec",
+              "attributes": {
+                "elapsed": "140.148µs",
+                "expr": "[id@0 as id, c0@1 as c0, c1@2 as c1, true as __merge_source_sentinel]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "5.59µs",
+                  "approximate_value": 0.00000559,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "2.4 KB",
+                  "approximate_value": 2457.6,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "expr_0_eval_time": {
+                  "raw": "1.08µs",
+                  "approximate_value": 0.00000108,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_1_eval_time": {
+                  "raw": "171ns",
+                  "approximate_value": 1.71e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_2_eval_time": {
+                  "raw": "132ns",
+                  "approximate_value": 1.3200000000000002e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_3_eval_time": {
+                  "raw": "2.04µs",
+                  "approximate_value": 0.00000204,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "            ProjectionExec: elapsed=140.148µs, expr=[id@0 as id, c0@1 as c0, c1@2 as c1, true as __merge_source_sentinel], metrics=[output_rows=100, elapsed_compute=5.59µs, output_bytes=2.4 KB, output_batches=1, expr_0_eval_time=1.08µs, expr_1_eval_time=171ns, expr_2_eval_time=132ns, expr_3_eval_time=2.04µs]"
+            },
+            {
+              "id": 5,
+              "line": 6,
+              "indent": 14,
+              "parent": 4,
+              "children": [],
+              "operator": "DataSourceExec",
+              "attributes": {
+                "partitions": "1",
+                "partition_sizes": "[1]"
+              },
+              "metrics_present": true,
+              "metrics": {},
+              "raw_line": "              DataSourceExec: partitions=1, partition_sizes=[1], metrics=[]"
+            },
+            {
+              "id": 6,
+              "line": 7,
+              "indent": 12,
+              "parent": 3,
+              "children": [
+                7
+              ],
+              "operator": "RepartitionExec",
+              "attributes": {
+                "elapsed": "1.613349474s",
+                "partitioning": "RoundRobinBatch(16)",
+                "input_partitions": "1"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "elapsed_compute": {
+                  "raw": "4.24ms",
+                  "approximate_value": 0.004240000000000001,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "5.3 GB",
+                  "approximate_value": 5690831667.2,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "1.98 K",
+                  "approximate_value": 1980,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "spill_count": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "spilled_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "spilled_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "fetch_time": {
+                  "raw": "566.06ms",
+                  "approximate_value": 0.56606,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "repartition_time": {
+                  "raw": "1ns",
+                  "approximate_value": 1e-9,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "send_time": {
+                  "raw": "1.04s",
+                  "approximate_value": 1.04,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "            RepartitionExec: elapsed=1.613349474s, partitioning=RoundRobinBatch(16), input_partitions=1, metrics=[output_rows=16.00 M, elapsed_compute=4.24ms, output_bytes=5.3 GB, output_batches=1.98 K, spill_count=0, spilled_bytes=0.0 B, spilled_rows=0, fetch_time=566.06ms, repartition_time=1ns, send_time=1.04s]"
+            },
+            {
+              "id": 7,
+              "line": 8,
+              "indent": 14,
+              "parent": 6,
+              "children": [],
+              "operator": "LanceRead",
+              "attributes": {
+                "elapsed": "1.611751468s",
+                "uri": "mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-B-rewrite_rows-b0/dataset/data",
+                "projection": "[id, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42]",
+                "num_fragments": "160",
+                "range_before": "None",
+                "range_after": "None",
+                "row_id": "true",
+                "row_addr": "true",
+                "full_filter": "--",
+                "refine_filter": "--"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "elapsed_compute": {
+                  "raw": "272.22ms",
+                  "approximate_value": 0.27222,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "fragments_scanned": {
+                  "raw": "160",
+                  "approximate_value": 160,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "ranges_scanned": {
+                  "raw": "160",
+                  "approximate_value": 160,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "rows_scanned": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "bytes_read": {
+                  "raw": "3.35 B",
+                  "approximate_value": 3350000000,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "iops": {
+                  "raw": "9.28 K",
+                  "approximate_value": 9280,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "requests": {
+                  "raw": "960",
+                  "approximate_value": 960,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "task_wait_time": {
+                  "raw": "271.95ms",
+                  "approximate_value": 0.27194999999999997,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "              LanceRead: elapsed=1.611751468s, uri=mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-B-rewrite_rows-b0/dataset/data, projection=[id, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42], num_fragments=160, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--, metrics=[output_rows=16.00 M, elapsed_compute=272.22ms, output_bytes=0.0 B, output_batches=0, fragments_scanned=160, ranges_scanned=160, rows_scanned=16.00 M, bytes_read=3.35 B, iops=9.28 K, requests=960, task_wait_time=271.95ms]"
+            }
+          ],
+          "joins": [
+            {
+              "node": 3,
+              "mode": "CollectLeft",
+              "join_type": "Inner",
+              "build_side": "left",
+              "build": {
+                "node": 4,
+                "leaves": [
+                  {
+                    "node": 5,
+                    "operator": "DataSourceExec",
+                    "attributes": {
+                      "partitions": "1",
+                      "partition_sizes": "[1]"
+                    }
+                  }
+                ]
+              },
+              "probe": {
+                "node": 6,
+                "leaves": [
+                  {
+                    "node": 7,
+                    "operator": "LanceRead",
+                    "attributes": {
+                      "elapsed": "1.611751468s",
+                      "uri": "mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-B-rewrite_rows-b0/dataset/data",
+                      "projection": "[id, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42]",
+                      "num_fragments": "160",
+                      "range_before": "None",
+                      "range_after": "None",
+                      "row_id": "true",
+                      "row_addr": "true",
+                      "full_filter": "--",
+                      "refine_filter": "--"
+                    }
+                  }
+                ]
+              },
+              "child_count_valid": true
+            }
+          ],
+          "exchanges": [
+            {
+              "node": 6,
+              "join_node": 3,
+              "join_edge": "probe",
+              "subtree": {
+                "node": 6,
+                "leaves": [
+                  {
+                    "node": 7,
+                    "operator": "LanceRead",
+                    "attributes": {
+                      "elapsed": "1.611751468s",
+                      "uri": "mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-B-rewrite_rows-b0/dataset/data",
+                      "projection": "[id, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42]",
+                      "num_fragments": "160",
+                      "range_before": "None",
+                      "range_after": "None",
+                      "row_id": "true",
+                      "row_addr": "true",
+                      "full_filter": "--",
+                      "refine_filter": "--"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "scan_nodes": [
+            7
+          ],
+          "materialization_nodes": [],
+          "writer_nodes": [
+            0
+          ],
+          "ignored_lines": [],
+          "warnings": [
+            "Left/right identify physical HashJoin inputs. Determine source/target from leaf URI, provider and projection; do not infer it from row counts.",
+            "Missing metrics are unknown, never zero. LanceRead output_batches=0 can mean unsupported instrumentation.",
+            "Scan batch-size distribution, decode concurrency and internal Take I/O/call count are not reconstructed from aggregate text.",
+            "Writer output_rows may be zero because the writer emits no rows. Check mutation counters against an independently verified execute run."
+          ]
+        }
+      ]
+    },
+    {
+      "path": "output/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-D-rewrite_rows-b0/analyzed-plan.txt",
+      "file_sha256": "ad21109a91cbb56ba224d9a077ba6a2e336ab84cca7fac9b52bc260d27fb0e21",
+      "plans": [
+        {
+          "plan_sha256": "ad21109a91cbb56ba224d9a077ba6a2e336ab84cca7fac9b52bc260d27fb0e21",
+          "execution_complete": null,
+          "completeness_reason": "Text cannot prove success: analyze_plan_with_context discards stream Err items. validated_diagnostic is not an execution-completion signal.",
+          "metric_scope": "Aggregated by name across partitions; abbreviated display values are rounded.",
+          "nodes": [
+            {
+              "id": 0,
+              "line": 1,
+              "indent": 4,
+              "parent": null,
+              "children": [
+                1
+              ],
+              "operator": "MergeInsert",
+              "attributes": {
+                "elapsed": "498.828511ms",
+                "on": "[id]",
+                "when_matched": "UpdateAll",
+                "when_not_matched": "DoNothing",
+                "when_not_matched_by_source": "Keep"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "1ns",
+                  "approximate_value": 1e-9,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "bytes_written": {
+                  "raw": "44.78 K",
+                  "approximate_value": 44780,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "num_deleted_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_files_written": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_inserted_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_skipped_duplicates": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_updated_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                }
+              },
+              "raw_line": "    MergeInsert: elapsed=498.828511ms, on=[id], when_matched=UpdateAll, when_not_matched=DoNothing, when_not_matched_by_source=Keep, metrics=[output_rows=0, elapsed_compute=1ns, output_bytes=0.0 B, output_batches=0, bytes_written=44.78 K, num_deleted_rows=0, num_files_written=1, num_inserted_rows=0, num_skipped_duplicates=0, num_updated_rows=100]"
+            },
+            {
+              "id": 1,
+              "line": 2,
+              "indent": 6,
+              "parent": 0,
+              "children": [
+                2
+              ],
+              "operator": "CoalescePartitionsExec",
+              "attributes": {
+                "elapsed": "498.825047ms"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "20.26µs",
+                  "approximate_value": 0.00002026,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "5.0 MB",
+                  "approximate_value": 5242880,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "16",
+                  "approximate_value": 16,
+                  "unit": "count",
+                  "rounded": false
+                }
+              },
+              "raw_line": "      CoalescePartitionsExec, elapsed=498.825047ms, metrics=[output_rows=100, elapsed_compute=20.26µs, output_bytes=5.0 MB, output_batches=16]"
+            },
+            {
+              "id": 2,
+              "line": 3,
+              "indent": 8,
+              "parent": 1,
+              "children": [
+                3
+              ],
+              "operator": "MergeCondition",
+              "attributes": {
+                "elapsed": "491.253541ms",
+                "take": "[]",
+                "payload": "[c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "16ns",
+                  "approximate_value": 1.6e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "condition_take_arrow_bytes": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": false
+                },
+                "condition_take_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "payload_reused_condition_values": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "payload_take_arrow_bytes": {
+                  "raw": "95.78 K",
+                  "approximate_value": 95780,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "payload_take_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                }
+              },
+              "raw_line": "        MergeCondition: elapsed=491.253541ms, take=[] payload=[c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42], metrics=[output_rows=100, elapsed_compute=16ns, output_bytes=0.0 B, output_batches=0, condition_take_arrow_bytes=0, condition_take_rows=0, payload_reused_condition_values=0, payload_take_arrow_bytes=95.78 K, payload_take_rows=100]"
+            },
+            {
+              "id": 3,
+              "line": 4,
+              "indent": 10,
+              "parent": 2,
+              "children": [
+                4
+              ],
+              "operator": "ProjectionExec",
+              "attributes": {
+                "elapsed": "491.220252ms",
+                "expr": "[_rowid@0 as _rowid, _rowaddr@1 as _rowaddr, id@2 as id, c0@3 as c0, c1@4 as c1, __merge_source_sentinel@5 as __merge_source_sentinel, CASE WHEN _rowaddr@1 IS NOT NULL THEN 1 ELSE 0 END as __action]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "333.90µs",
+                  "approximate_value": 0.0003339,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "5.0 MB",
+                  "approximate_value": 5242880,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "16",
+                  "approximate_value": 16,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "expr_0_eval_time": {
+                  "raw": "5.10µs",
+                  "approximate_value": 0.0000050999999999999995,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_1_eval_time": {
+                  "raw": "1.54µs",
+                  "approximate_value": 0.0000015399999999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_2_eval_time": {
+                  "raw": "1.96µs",
+                  "approximate_value": 0.00000196,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_3_eval_time": {
+                  "raw": "1.49µs",
+                  "approximate_value": 0.00000149,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_4_eval_time": {
+                  "raw": "1.39µs",
+                  "approximate_value": 0.0000013899999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_5_eval_time": {
+                  "raw": "2.45µs",
+                  "approximate_value": 0.0000024500000000000003,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_6_eval_time": {
+                  "raw": "227.29µs",
+                  "approximate_value": 0.00022728999999999997,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "          ProjectionExec: elapsed=491.220252ms, expr=[_rowid@0 as _rowid, _rowaddr@1 as _rowaddr, id@2 as id, c0@3 as c0, c1@4 as c1, __merge_source_sentinel@5 as __merge_source_sentinel, CASE WHEN _rowaddr@1 IS NOT NULL THEN 1 ELSE 0 END as __action], metrics=[output_rows=100, elapsed_compute=333.90µs, output_bytes=5.0 MB, output_batches=16, expr_0_eval_time=5.10µs, expr_1_eval_time=1.54µs, expr_2_eval_time=1.96µs, expr_3_eval_time=1.49µs, expr_4_eval_time=1.39µs, expr_5_eval_time=2.45µs, expr_6_eval_time=227.29µs]"
+            },
+            {
+              "id": 4,
+              "line": 5,
+              "indent": 12,
+              "parent": 3,
+              "children": [
+                5,
+                7
+              ],
+              "operator": "HashJoinExec",
+              "attributes": {
+                "elapsed": "443.418084ms",
+                "mode": "Partitioned",
+                "join_type": "Inner",
+                "on": "[(id@0, id@0)]",
+                "projection": "[_rowid@1, _rowaddr@2, id@3, c0@4, c1@5, __merge_source_sentinel@6]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "1.62s",
+                  "approximate_value": 1.62,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "5.0 MB",
+                  "approximate_value": 5242880,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "16",
+                  "approximate_value": 16,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "array_map_created_count": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "build_input_batches": {
+                  "raw": "1.97 K",
+                  "approximate_value": 1970,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "build_input_rows": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "input_batches": {
+                  "raw": "16",
+                  "approximate_value": 16,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "input_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "build_mem_used": {
+                  "raw": "957.4 M",
+                  "approximate_value": 957400000,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "build_time": {
+                  "raw": "1.61s",
+                  "approximate_value": 1.61,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "join_time": {
+                  "raw": "1.46ms",
+                  "approximate_value": 0.00146,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "avg_fanout": {
+                  "raw": "100% (100/100)"
+                },
+                "probe_hit_rate": {
+                  "raw": "100% (100/100)"
+                }
+              },
+              "raw_line": "            HashJoinExec: elapsed=443.418084ms, mode=Partitioned, join_type=Inner, on=[(id@0, id@0)], projection=[_rowid@1, _rowaddr@2, id@3, c0@4, c1@5, __merge_source_sentinel@6], metrics=[output_rows=100, elapsed_compute=1.62s, output_bytes=5.0 MB, output_batches=16, array_map_created_count=0, build_input_batches=1.97 K, build_input_rows=16.00 M, input_batches=16, input_rows=100, build_mem_used=957.4 M, build_time=1.61s, join_time=1.46ms, avg_fanout=100% (100/100), probe_hit_rate=100% (100/100)]"
+            },
+            {
+              "id": 5,
+              "line": 6,
+              "indent": 14,
+              "parent": 4,
+              "children": [
+                6
+              ],
+              "operator": "RepartitionExec",
+              "attributes": {
+                "elapsed": "327.845409ms",
+                "partitioning": "Hash([id@0], 16)",
+                "input_partitions": "1"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "elapsed_compute": {
+                  "raw": "1.20ms",
+                  "approximate_value": 0.0012,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "369.0 MB",
+                  "approximate_value": 386924544,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "1.97 K",
+                  "approximate_value": 1970,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "spill_count": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "spilled_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "spilled_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "fetch_time": {
+                  "raw": "40.06ms",
+                  "approximate_value": 0.040060000000000005,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "repartition_time": {
+                  "raw": "91.96ms",
+                  "approximate_value": 0.09196,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "send_time": {
+                  "raw": "187.51ms",
+                  "approximate_value": 0.18750999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "              RepartitionExec: elapsed=327.845409ms, partitioning=Hash([id@0], 16), input_partitions=1, metrics=[output_rows=16.00 M, elapsed_compute=1.20ms, output_bytes=369.0 MB, output_batches=1.97 K, spill_count=0, spilled_bytes=0.0 B, spilled_rows=0, fetch_time=40.06ms, repartition_time=91.96ms, send_time=187.51ms]"
+            },
+            {
+              "id": 6,
+              "line": 7,
+              "indent": 16,
+              "parent": 5,
+              "children": [],
+              "operator": "LanceRead",
+              "attributes": {
+                "elapsed": "327.063148ms",
+                "uri": "mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-D-rewrite_rows-b0/dataset/data",
+                "projection": "[id]",
+                "num_fragments": "160",
+                "range_before": "None",
+                "range_after": "None",
+                "row_id": "true",
+                "row_addr": "true",
+                "full_filter": "--",
+                "refine_filter": "--"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "elapsed_compute": {
+                  "raw": "12.04ms",
+                  "approximate_value": 0.012039999999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "fragments_scanned": {
+                  "raw": "160",
+                  "approximate_value": 160,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "ranges_scanned": {
+                  "raw": "160",
+                  "approximate_value": 160,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "rows_scanned": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "bytes_read": {
+                  "raw": "47.05 M",
+                  "approximate_value": 47050000,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "iops": {
+                  "raw": "640",
+                  "approximate_value": 640,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "requests": {
+                  "raw": "640",
+                  "approximate_value": 640,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "task_wait_time": {
+                  "raw": "11.89ms",
+                  "approximate_value": 0.011890000000000001,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "                LanceRead: elapsed=327.063148ms, uri=mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-D-rewrite_rows-b0/dataset/data, projection=[id], num_fragments=160, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--, metrics=[output_rows=16.00 M, elapsed_compute=12.04ms, output_bytes=0.0 B, output_batches=0, fragments_scanned=160, ranges_scanned=160, rows_scanned=16.00 M, bytes_read=47.05 M, iops=640, requests=640, task_wait_time=11.89ms]"
+            },
+            {
+              "id": 7,
+              "line": 8,
+              "indent": 14,
+              "parent": 4,
+              "children": [
+                8
+              ],
+              "operator": "RepartitionExec",
+              "attributes": {
+                "elapsed": "443.35652ms",
+                "partitioning": "Hash([id@0], 16)",
+                "input_partitions": "1"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "31.01µs",
+                  "approximate_value": 0.00003101,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "3.0 MB",
+                  "approximate_value": 3145728,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "16",
+                  "approximate_value": 16,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "spill_count": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "spilled_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "spilled_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "fetch_time": {
+                  "raw": "2.40ms",
+                  "approximate_value": 0.0024,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "repartition_time": {
+                  "raw": "38.50µs",
+                  "approximate_value": 0.0000385,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "send_time": {
+                  "raw": "106.23µs",
+                  "approximate_value": 0.00010623,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "              RepartitionExec: elapsed=443.35652ms, partitioning=Hash([id@0], 16), input_partitions=1, metrics=[output_rows=100, elapsed_compute=31.01µs, output_bytes=3.0 MB, output_batches=16, spill_count=0, spilled_bytes=0.0 B, spilled_rows=0, fetch_time=2.40ms, repartition_time=38.50µs, send_time=106.23µs]"
+            },
+            {
+              "id": 8,
+              "line": 9,
+              "indent": 16,
+              "parent": 7,
+              "children": [
+                9
+              ],
+              "operator": "ProjectionExec",
+              "attributes": {
+                "elapsed": "423.156764ms",
+                "expr": "[id@0 as id, c0@1 as c0, c1@2 as c1, true as __merge_source_sentinel]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "15.37µs",
+                  "approximate_value": 0.000015369999999999997,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "2.4 KB",
+                  "approximate_value": 2457.6,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "expr_0_eval_time": {
+                  "raw": "755ns",
+                  "approximate_value": 7.550000000000001e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_1_eval_time": {
+                  "raw": "190ns",
+                  "approximate_value": 1.9e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_2_eval_time": {
+                  "raw": "160ns",
+                  "approximate_value": 1.6e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_3_eval_time": {
+                  "raw": "4.80µs",
+                  "approximate_value": 0.0000048,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "                ProjectionExec: elapsed=423.156764ms, expr=[id@0 as id, c0@1 as c0, c1@2 as c1, true as __merge_source_sentinel], metrics=[output_rows=100, elapsed_compute=15.37µs, output_bytes=2.4 KB, output_batches=1, expr_0_eval_time=755ns, expr_1_eval_time=190ns, expr_2_eval_time=160ns, expr_3_eval_time=4.80µs]"
+            },
+            {
+              "id": 9,
+              "line": 10,
+              "indent": 18,
+              "parent": 8,
+              "children": [],
+              "operator": "StreamingTableExec",
+              "attributes": {
+                "partition_sizes": "1",
+                "projection": "[id, c0, c1]"
+              },
+              "metrics_present": true,
+              "metrics": {},
+              "raw_line": "                  StreamingTableExec: partition_sizes=1, projection=[id, c0, c1], metrics=[]"
+            }
+          ],
+          "joins": [
+            {
+              "node": 4,
+              "mode": "Partitioned",
+              "join_type": "Inner",
+              "build_side": "left",
+              "build": {
+                "node": 5,
+                "leaves": [
+                  {
+                    "node": 6,
+                    "operator": "LanceRead",
+                    "attributes": {
+                      "elapsed": "327.063148ms",
+                      "uri": "mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-D-rewrite_rows-b0/dataset/data",
+                      "projection": "[id]",
+                      "num_fragments": "160",
+                      "range_before": "None",
+                      "range_after": "None",
+                      "row_id": "true",
+                      "row_addr": "true",
+                      "full_filter": "--",
+                      "refine_filter": "--"
+                    }
+                  }
+                ]
+              },
+              "probe": {
+                "node": 7,
+                "leaves": [
+                  {
+                    "node": 9,
+                    "operator": "StreamingTableExec",
+                    "attributes": {
+                      "partition_sizes": "1",
+                      "projection": "[id, c0, c1]"
+                    }
+                  }
+                ]
+              },
+              "child_count_valid": true
+            }
+          ],
+          "exchanges": [
+            {
+              "node": 5,
+              "join_node": 4,
+              "join_edge": "build",
+              "subtree": {
+                "node": 5,
+                "leaves": [
+                  {
+                    "node": 6,
+                    "operator": "LanceRead",
+                    "attributes": {
+                      "elapsed": "327.063148ms",
+                      "uri": "mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-D-rewrite_rows-b0/dataset/data",
+                      "projection": "[id]",
+                      "num_fragments": "160",
+                      "range_before": "None",
+                      "range_after": "None",
+                      "row_id": "true",
+                      "row_addr": "true",
+                      "full_filter": "--",
+                      "refine_filter": "--"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "node": 7,
+              "join_node": 4,
+              "join_edge": "probe",
+              "subtree": {
+                "node": 7,
+                "leaves": [
+                  {
+                    "node": 9,
+                    "operator": "StreamingTableExec",
+                    "attributes": {
+                      "partition_sizes": "1",
+                      "projection": "[id, c0, c1]"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "scan_nodes": [
+            6
+          ],
+          "materialization_nodes": [
+            2
+          ],
+          "writer_nodes": [
+            0
+          ],
+          "ignored_lines": [],
+          "warnings": [
+            "Left/right identify physical HashJoin inputs. Determine source/target from leaf URI, provider and projection; do not infer it from row counts.",
+            "Missing metrics are unknown, never zero. LanceRead output_batches=0 can mean unsupported instrumentation.",
+            "Scan batch-size distribution, decode concurrency and internal Take I/O/call count are not reconstructed from aggregate text.",
+            "Writer output_rows may be zero because the writer emits no rows. Check mutation counters against an independently verified execute run."
+          ]
+        }
+      ]
+    },
+    {
+      "path": "output/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-DB-rewrite_rows-b0/analyzed-plan.txt",
+      "file_sha256": "c42ac2e10a776aaba0c46ecb09992fef997ddd456737698e41d9b1f80cab737a",
+      "plans": [
+        {
+          "plan_sha256": "c42ac2e10a776aaba0c46ecb09992fef997ddd456737698e41d9b1f80cab737a",
+          "execution_complete": null,
+          "completeness_reason": "Text cannot prove success: analyze_plan_with_context discards stream Err items. validated_diagnostic is not an execution-completion signal.",
+          "metric_scope": "Aggregated by name across partitions; abbreviated display values are rounded.",
+          "nodes": [
+            {
+              "id": 0,
+              "line": 1,
+              "indent": 4,
+              "parent": null,
+              "children": [
+                1
+              ],
+              "operator": "MergeInsert",
+              "attributes": {
+                "elapsed": "176.472917ms",
+                "on": "[id]",
+                "when_matched": "UpdateAll",
+                "when_not_matched": "DoNothing",
+                "when_not_matched_by_source": "Keep"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "1ns",
+                  "approximate_value": 1e-9,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "bytes_written": {
+                  "raw": "44.78 K",
+                  "approximate_value": 44780,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "num_deleted_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_files_written": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_inserted_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_skipped_duplicates": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_updated_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                }
+              },
+              "raw_line": "    MergeInsert: elapsed=176.472917ms, on=[id], when_matched=UpdateAll, when_not_matched=DoNothing, when_not_matched_by_source=Keep, metrics=[output_rows=0, elapsed_compute=1ns, output_bytes=0.0 B, output_batches=0, bytes_written=44.78 K, num_deleted_rows=0, num_files_written=1, num_inserted_rows=0, num_skipped_duplicates=0, num_updated_rows=100]"
+            },
+            {
+              "id": 1,
+              "line": 2,
+              "indent": 6,
+              "parent": 0,
+              "children": [
+                2
+              ],
+              "operator": "CoalescePartitionsExec",
+              "attributes": {
+                "elapsed": "176.469781ms"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "20.55µs",
+                  "approximate_value": 0.00002055,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "5.0 MB",
+                  "approximate_value": 5242880,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "16",
+                  "approximate_value": 16,
+                  "unit": "count",
+                  "rounded": false
+                }
+              },
+              "raw_line": "      CoalescePartitionsExec, elapsed=176.469781ms, metrics=[output_rows=100, elapsed_compute=20.55µs, output_bytes=5.0 MB, output_batches=16]"
+            },
+            {
+              "id": 2,
+              "line": 3,
+              "indent": 8,
+              "parent": 1,
+              "children": [
+                3
+              ],
+              "operator": "MergeCondition",
+              "attributes": {
+                "elapsed": "176.324853ms",
+                "take": "[]",
+                "payload": "[c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "16ns",
+                  "approximate_value": 1.6e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "condition_take_arrow_bytes": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": false
+                },
+                "condition_take_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "payload_reused_condition_values": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "payload_take_arrow_bytes": {
+                  "raw": "95.78 K",
+                  "approximate_value": 95780,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "payload_take_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                }
+              },
+              "raw_line": "        MergeCondition: elapsed=176.324853ms, take=[] payload=[c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42], metrics=[output_rows=100, elapsed_compute=16ns, output_bytes=0.0 B, output_batches=0, condition_take_arrow_bytes=0, condition_take_rows=0, payload_reused_condition_values=0, payload_take_arrow_bytes=95.78 K, payload_take_rows=100]"
+            },
+            {
+              "id": 3,
+              "line": 4,
+              "indent": 10,
+              "parent": 2,
+              "children": [
+                4
+              ],
+              "operator": "ProjectionExec",
+              "attributes": {
+                "elapsed": "176.297131ms",
+                "expr": "[_rowid@0 as _rowid, _rowaddr@1 as _rowaddr, id@2 as id, c0@3 as c0, c1@4 as c1, __merge_source_sentinel@5 as __merge_source_sentinel, CASE WHEN _rowaddr@1 IS NOT NULL THEN 1 ELSE 0 END as __action]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "987.95µs",
+                  "approximate_value": 0.00098795,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "5.0 MB",
+                  "approximate_value": 5242880,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "16",
+                  "approximate_value": 16,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "expr_0_eval_time": {
+                  "raw": "4.42µs",
+                  "approximate_value": 0.00000442,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_1_eval_time": {
+                  "raw": "1.76µs",
+                  "approximate_value": 0.0000017599999999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_2_eval_time": {
+                  "raw": "1.97µs",
+                  "approximate_value": 0.0000019699999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_3_eval_time": {
+                  "raw": "1.54µs",
+                  "approximate_value": 0.0000015399999999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_4_eval_time": {
+                  "raw": "1.86µs",
+                  "approximate_value": 0.00000186,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_5_eval_time": {
+                  "raw": "3.12µs",
+                  "approximate_value": 0.0000031199999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_6_eval_time": {
+                  "raw": "246.29µs",
+                  "approximate_value": 0.00024629,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "          ProjectionExec: elapsed=176.297131ms, expr=[_rowid@0 as _rowid, _rowaddr@1 as _rowaddr, id@2 as id, c0@3 as c0, c1@4 as c1, __merge_source_sentinel@5 as __merge_source_sentinel, CASE WHEN _rowaddr@1 IS NOT NULL THEN 1 ELSE 0 END as __action], metrics=[output_rows=100, elapsed_compute=987.95µs, output_bytes=5.0 MB, output_batches=16, expr_0_eval_time=4.42µs, expr_1_eval_time=1.76µs, expr_2_eval_time=1.97µs, expr_3_eval_time=1.54µs, expr_4_eval_time=1.86µs, expr_5_eval_time=3.12µs, expr_6_eval_time=246.29µs]"
+            },
+            {
+              "id": 4,
+              "line": 5,
+              "indent": 12,
+              "parent": 3,
+              "children": [
+                5,
+                7
+              ],
+              "operator": "HashJoinExec",
+              "attributes": {
+                "elapsed": "176.119892ms",
+                "mode": "CollectLeft",
+                "join_type": "Inner",
+                "on": "[(id@0, id@0)]",
+                "projection": "[_rowid@5, _rowaddr@6, id@0, c0@1, c1@2, __merge_source_sentinel@3]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "76.77ms",
+                  "approximate_value": 0.07676999999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "5.0 MB",
+                  "approximate_value": 5242880,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "16",
+                  "approximate_value": 16,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "array_map_created_count": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "build_input_batches": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "build_input_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "input_batches": {
+                  "raw": "1.98 K",
+                  "approximate_value": 1980,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "input_rows": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "build_mem_used": {
+                  "raw": "4.70 K",
+                  "approximate_value": 4700,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "build_time": {
+                  "raw": "110.52µs",
+                  "approximate_value": 0.00011051999999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "join_time": {
+                  "raw": "76.66ms",
+                  "approximate_value": 0.07665999999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "avg_fanout": {
+                  "raw": "100% (100/100)"
+                },
+                "probe_hit_rate": {
+                  "raw": "0% (100/16.00 M)"
+                }
+              },
+              "raw_line": "            HashJoinExec: elapsed=176.119892ms, mode=CollectLeft, join_type=Inner, on=[(id@0, id@0)], projection=[_rowid@5, _rowaddr@6, id@0, c0@1, c1@2, __merge_source_sentinel@3], metrics=[output_rows=100, elapsed_compute=76.77ms, output_bytes=5.0 MB, output_batches=16, array_map_created_count=0, build_input_batches=1, build_input_rows=100, input_batches=1.98 K, input_rows=16.00 M, build_mem_used=4.70 K, build_time=110.52µs, join_time=76.66ms, avg_fanout=100% (100/100), probe_hit_rate=0% (100/16.00 M)]"
+            },
+            {
+              "id": 5,
+              "line": 6,
+              "indent": 14,
+              "parent": 4,
+              "children": [
+                6
+              ],
+              "operator": "ProjectionExec",
+              "attributes": {
+                "elapsed": "230.619µs",
+                "expr": "[id@0 as id, c0@1 as c0, c1@2 as c1, true as __merge_source_sentinel]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "12.82µs",
+                  "approximate_value": 0.00001282,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "2.4 KB",
+                  "approximate_value": 2457.6,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "expr_0_eval_time": {
+                  "raw": "795ns",
+                  "approximate_value": 7.95e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_1_eval_time": {
+                  "raw": "157ns",
+                  "approximate_value": 1.5700000000000002e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_2_eval_time": {
+                  "raw": "135ns",
+                  "approximate_value": 1.35e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_3_eval_time": {
+                  "raw": "2.35µs",
+                  "approximate_value": 0.00000235,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "              ProjectionExec: elapsed=230.619µs, expr=[id@0 as id, c0@1 as c0, c1@2 as c1, true as __merge_source_sentinel], metrics=[output_rows=100, elapsed_compute=12.82µs, output_bytes=2.4 KB, output_batches=1, expr_0_eval_time=795ns, expr_1_eval_time=157ns, expr_2_eval_time=135ns, expr_3_eval_time=2.35µs]"
+            },
+            {
+              "id": 6,
+              "line": 7,
+              "indent": 16,
+              "parent": 5,
+              "children": [],
+              "operator": "DataSourceExec",
+              "attributes": {
+                "partitions": "1",
+                "partition_sizes": "[1]"
+              },
+              "metrics_present": true,
+              "metrics": {},
+              "raw_line": "                DataSourceExec: partitions=1, partition_sizes=[1], metrics=[]"
+            },
+            {
+              "id": 7,
+              "line": 8,
+              "indent": 14,
+              "parent": 4,
+              "children": [
+                8
+              ],
+              "operator": "RepartitionExec",
+              "attributes": {
+                "elapsed": "131.646121ms",
+                "partitioning": "RoundRobinBatch(16)",
+                "input_partitions": "1"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "elapsed_compute": {
+                  "raw": "1.68ms",
+                  "approximate_value": 0.00168,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "329.6 MB",
+                  "approximate_value": 345610649.6,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "1.98 K",
+                  "approximate_value": 1980,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "spill_count": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "spilled_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "spilled_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "fetch_time": {
+                  "raw": "47.72ms",
+                  "approximate_value": 0.04772,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "repartition_time": {
+                  "raw": "1ns",
+                  "approximate_value": 1e-9,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "send_time": {
+                  "raw": "74.80ms",
+                  "approximate_value": 0.0748,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "              RepartitionExec: elapsed=131.646121ms, partitioning=RoundRobinBatch(16), input_partitions=1, metrics=[output_rows=16.00 M, elapsed_compute=1.68ms, output_bytes=329.6 MB, output_batches=1.98 K, spill_count=0, spilled_bytes=0.0 B, spilled_rows=0, fetch_time=47.72ms, repartition_time=1ns, send_time=74.80ms]"
+            },
+            {
+              "id": 8,
+              "line": 9,
+              "indent": 16,
+              "parent": 7,
+              "children": [],
+              "operator": "LanceRead",
+              "attributes": {
+                "elapsed": "130.781893ms",
+                "uri": "mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-DB-rewrite_rows-b0/dataset/data",
+                "projection": "[id]",
+                "num_fragments": "160",
+                "range_before": "None",
+                "range_after": "None",
+                "row_id": "true",
+                "row_addr": "true",
+                "full_filter": "--",
+                "refine_filter": "--"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "elapsed_compute": {
+                  "raw": "12.78ms",
+                  "approximate_value": 0.01278,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "fragments_scanned": {
+                  "raw": "160",
+                  "approximate_value": 160,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "ranges_scanned": {
+                  "raw": "160",
+                  "approximate_value": 160,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "rows_scanned": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "bytes_read": {
+                  "raw": "47.05 M",
+                  "approximate_value": 47050000,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "iops": {
+                  "raw": "640",
+                  "approximate_value": 640,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "requests": {
+                  "raw": "640",
+                  "approximate_value": 640,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "task_wait_time": {
+                  "raw": "12.63ms",
+                  "approximate_value": 0.01263,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "                LanceRead: elapsed=130.781893ms, uri=mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-DB-rewrite_rows-b0/dataset/data, projection=[id], num_fragments=160, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--, metrics=[output_rows=16.00 M, elapsed_compute=12.78ms, output_bytes=0.0 B, output_batches=0, fragments_scanned=160, ranges_scanned=160, rows_scanned=16.00 M, bytes_read=47.05 M, iops=640, requests=640, task_wait_time=12.63ms]"
+            }
+          ],
+          "joins": [
+            {
+              "node": 4,
+              "mode": "CollectLeft",
+              "join_type": "Inner",
+              "build_side": "left",
+              "build": {
+                "node": 5,
+                "leaves": [
+                  {
+                    "node": 6,
+                    "operator": "DataSourceExec",
+                    "attributes": {
+                      "partitions": "1",
+                      "partition_sizes": "[1]"
+                    }
+                  }
+                ]
+              },
+              "probe": {
+                "node": 7,
+                "leaves": [
+                  {
+                    "node": 8,
+                    "operator": "LanceRead",
+                    "attributes": {
+                      "elapsed": "130.781893ms",
+                      "uri": "mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-DB-rewrite_rows-b0/dataset/data",
+                      "projection": "[id]",
+                      "num_fragments": "160",
+                      "range_before": "None",
+                      "range_after": "None",
+                      "row_id": "true",
+                      "row_addr": "true",
+                      "full_filter": "--",
+                      "refine_filter": "--"
+                    }
+                  }
+                ]
+              },
+              "child_count_valid": true
+            }
+          ],
+          "exchanges": [
+            {
+              "node": 7,
+              "join_node": 4,
+              "join_edge": "probe",
+              "subtree": {
+                "node": 7,
+                "leaves": [
+                  {
+                    "node": 8,
+                    "operator": "LanceRead",
+                    "attributes": {
+                      "elapsed": "130.781893ms",
+                      "uri": "mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-DB-rewrite_rows-b0/dataset/data",
+                      "projection": "[id]",
+                      "num_fragments": "160",
+                      "range_before": "None",
+                      "range_after": "None",
+                      "row_id": "true",
+                      "row_addr": "true",
+                      "full_filter": "--",
+                      "refine_filter": "--"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "scan_nodes": [
+            8
+          ],
+          "materialization_nodes": [
+            2
+          ],
+          "writer_nodes": [
+            0
+          ],
+          "ignored_lines": [],
+          "warnings": [
+            "Left/right identify physical HashJoin inputs. Determine source/target from leaf URI, provider and projection; do not infer it from row counts.",
+            "Missing metrics are unknown, never zero. LanceRead output_batches=0 can mean unsupported instrumentation.",
+            "Scan batch-size distribution, decode concurrency and internal Take I/O/call count are not reconstructed from aggregate text.",
+            "Writer output_rows may be zero because the writer emits no rows. Check mutation counters against an independently verified execute run."
+          ]
+        }
+      ]
+    },
+    {
+      "path": "output/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-DP-rewrite_rows-b0/analyzed-plan.txt",
+      "file_sha256": "0ca6b60d412ff1b6bbc07942a969c75011362aacaa94e5ae7e88904d3215ace4",
+      "plans": [
+        {
+          "plan_sha256": "0ca6b60d412ff1b6bbc07942a969c75011362aacaa94e5ae7e88904d3215ace4",
+          "execution_complete": null,
+          "completeness_reason": "Text cannot prove success: analyze_plan_with_context discards stream Err items. validated_diagnostic is not an execution-completion signal.",
+          "metric_scope": "Aggregated by name across partitions; abbreviated display values are rounded.",
+          "nodes": [
+            {
+              "id": 0,
+              "line": 1,
+              "indent": 4,
+              "parent": null,
+              "children": [
+                1
+              ],
+              "operator": "MergeInsert",
+              "attributes": {
+                "elapsed": "230.884456ms",
+                "on": "[id]",
+                "when_matched": "UpdateAll",
+                "when_not_matched": "DoNothing",
+                "when_not_matched_by_source": "Keep"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "1ns",
+                  "approximate_value": 1e-9,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "bytes_written": {
+                  "raw": "44.78 K",
+                  "approximate_value": 44780,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "num_deleted_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_files_written": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_inserted_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_skipped_duplicates": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_updated_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                }
+              },
+              "raw_line": "    MergeInsert: elapsed=230.884456ms, on=[id], when_matched=UpdateAll, when_not_matched=DoNothing, when_not_matched_by_source=Keep, metrics=[output_rows=0, elapsed_compute=1ns, output_bytes=0.0 B, output_batches=0, bytes_written=44.78 K, num_deleted_rows=0, num_files_written=1, num_inserted_rows=0, num_skipped_duplicates=0, num_updated_rows=100]"
+            },
+            {
+              "id": 1,
+              "line": 2,
+              "indent": 6,
+              "parent": 0,
+              "children": [
+                2
+              ],
+              "operator": "MergeCondition",
+              "attributes": {
+                "elapsed": "230.879944ms",
+                "take": "[]",
+                "payload": "[c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "1ns",
+                  "approximate_value": 1e-9,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "condition_take_arrow_bytes": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": false
+                },
+                "condition_take_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "payload_reused_condition_values": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "payload_take_arrow_bytes": {
+                  "raw": "36.74 K",
+                  "approximate_value": 36740,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "payload_take_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                }
+              },
+              "raw_line": "      MergeCondition: elapsed=230.879944ms, take=[] payload=[c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42], metrics=[output_rows=100, elapsed_compute=1ns, output_bytes=0.0 B, output_batches=0, condition_take_arrow_bytes=0, condition_take_rows=0, payload_reused_condition_values=0, payload_take_arrow_bytes=36.74 K, payload_take_rows=100]"
+            },
+            {
+              "id": 2,
+              "line": 3,
+              "indent": 8,
+              "parent": 1,
+              "children": [
+                3
+              ],
+              "operator": "ProjectionExec",
+              "attributes": {
+                "elapsed": "230.851325ms",
+                "expr": "[id@0 as id, c0@1 as c0, c1@2 as c1, __merge_source_sentinel@3 as __merge_source_sentinel, _rowid@4 as _rowid, _rowaddr@5 as _rowaddr, CASE WHEN _rowaddr@5 IS NOT NULL THEN 1 ELSE 0 END as __action]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "34.35µs",
+                  "approximate_value": 0.00003435,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "320.2 KB",
+                  "approximate_value": 327884.8,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "expr_0_eval_time": {
+                  "raw": "4.95µs",
+                  "approximate_value": 0.00000495,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_1_eval_time": {
+                  "raw": "405ns",
+                  "approximate_value": 4.0500000000000004e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_2_eval_time": {
+                  "raw": "152ns",
+                  "approximate_value": 1.52e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_3_eval_time": {
+                  "raw": "169ns",
+                  "approximate_value": 1.6900000000000002e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_4_eval_time": {
+                  "raw": "164ns",
+                  "approximate_value": 1.64e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_5_eval_time": {
+                  "raw": "124ns",
+                  "approximate_value": 1.24e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_6_eval_time": {
+                  "raw": "24.09µs",
+                  "approximate_value": 0.000024089999999999998,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "        ProjectionExec: elapsed=230.851325ms, expr=[id@0 as id, c0@1 as c0, c1@2 as c1, __merge_source_sentinel@3 as __merge_source_sentinel, _rowid@4 as _rowid, _rowaddr@5 as _rowaddr, CASE WHEN _rowaddr@5 IS NOT NULL THEN 1 ELSE 0 END as __action], metrics=[output_rows=100, elapsed_compute=34.35µs, output_bytes=320.2 KB, output_batches=1, expr_0_eval_time=4.95µs, expr_1_eval_time=405ns, expr_2_eval_time=152ns, expr_3_eval_time=169ns, expr_4_eval_time=164ns, expr_5_eval_time=124ns, expr_6_eval_time=24.09µs]"
+            },
+            {
+              "id": 3,
+              "line": 4,
+              "indent": 10,
+              "parent": 2,
+              "children": [
+                4,
+                6
+              ],
+              "operator": "HashJoinExec",
+              "attributes": {
+                "elapsed": "128.427321ms",
+                "mode": "CollectLeft",
+                "join_type": "Inner",
+                "on": "[(id@0, id@0)]",
+                "projection": "[id@0, c0@1, c1@2, __merge_source_sentinel@3, _rowid@5, _rowaddr@6]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "67.37ms",
+                  "approximate_value": 0.06737,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "320.1 KB",
+                  "approximate_value": 327782.4,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "array_map_created_count": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "build_input_batches": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "build_input_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "input_batches": {
+                  "raw": "2.08 K",
+                  "approximate_value": 2080,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "input_rows": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "build_mem_used": {
+                  "raw": "4.70 K",
+                  "approximate_value": 4700,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "build_time": {
+                  "raw": "140.28µs",
+                  "approximate_value": 0.00014028,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "join_time": {
+                  "raw": "67.14ms",
+                  "approximate_value": 0.06714,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "avg_fanout": {
+                  "raw": "100% (100/100)"
+                },
+                "probe_hit_rate": {
+                  "raw": "0% (100/16.00 M)"
+                }
+              },
+              "raw_line": "          HashJoinExec: elapsed=128.427321ms, mode=CollectLeft, join_type=Inner, on=[(id@0, id@0)], projection=[id@0, c0@1, c1@2, __merge_source_sentinel@3, _rowid@5, _rowaddr@6], metrics=[output_rows=100, elapsed_compute=67.37ms, output_bytes=320.1 KB, output_batches=1, array_map_created_count=0, build_input_batches=1, build_input_rows=100, input_batches=2.08 K, input_rows=16.00 M, build_mem_used=4.70 K, build_time=140.28µs, join_time=67.14ms, avg_fanout=100% (100/100), probe_hit_rate=0% (100/16.00 M)]"
+            },
+            {
+              "id": 4,
+              "line": 5,
+              "indent": 12,
+              "parent": 3,
+              "children": [
+                5
+              ],
+              "operator": "ProjectionExec",
+              "attributes": {
+                "elapsed": "1.516656ms",
+                "expr": "[id@0 as id, c0@1 as c0, c1@2 as c1, true as __merge_source_sentinel]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "10.85µs",
+                  "approximate_value": 0.00001085,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "2.4 KB",
+                  "approximate_value": 2457.6,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "expr_0_eval_time": {
+                  "raw": "837ns",
+                  "approximate_value": 8.370000000000001e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_1_eval_time": {
+                  "raw": "122ns",
+                  "approximate_value": 1.22e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_2_eval_time": {
+                  "raw": "128ns",
+                  "approximate_value": 1.28e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_3_eval_time": {
+                  "raw": "7.43µs",
+                  "approximate_value": 0.000007429999999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "            ProjectionExec: elapsed=1.516656ms, expr=[id@0 as id, c0@1 as c0, c1@2 as c1, true as __merge_source_sentinel], metrics=[output_rows=100, elapsed_compute=10.85µs, output_bytes=2.4 KB, output_batches=1, expr_0_eval_time=837ns, expr_1_eval_time=122ns, expr_2_eval_time=128ns, expr_3_eval_time=7.43µs]"
+            },
+            {
+              "id": 5,
+              "line": 6,
+              "indent": 14,
+              "parent": 4,
+              "children": [],
+              "operator": "StreamingTableExec",
+              "attributes": {
+                "partition_sizes": "1",
+                "projection": "[id, c0, c1]"
+              },
+              "metrics_present": true,
+              "metrics": {},
+              "raw_line": "              StreamingTableExec: partition_sizes=1, projection=[id, c0, c1], metrics=[]"
+            },
+            {
+              "id": 6,
+              "line": 7,
+              "indent": 12,
+              "parent": 3,
+              "children": [
+                7
+              ],
+              "operator": "CooperativeExec",
+              "attributes": {
+                "elapsed": "126.285747ms"
+              },
+              "metrics_present": true,
+              "metrics": {},
+              "raw_line": "            CooperativeExec, elapsed=126.285747ms, metrics=[]"
+            },
+            {
+              "id": 7,
+              "line": 8,
+              "indent": 14,
+              "parent": 6,
+              "children": [],
+              "operator": "LanceRead",
+              "attributes": {
+                "elapsed": "126.285747ms",
+                "uri": "mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-DP-rewrite_rows-b0/dataset/data",
+                "projection": "[id]",
+                "num_fragments": "160",
+                "range_before": "None",
+                "range_after": "None",
+                "row_id": "true",
+                "row_addr": "true",
+                "full_filter": "--",
+                "refine_filter": "--"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "elapsed_compute": {
+                  "raw": "10.26ms",
+                  "approximate_value": 0.01026,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "fragments_scanned": {
+                  "raw": "160",
+                  "approximate_value": 160,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "ranges_scanned": {
+                  "raw": "160",
+                  "approximate_value": 160,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "rows_scanned": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "bytes_read": {
+                  "raw": "47.05 M",
+                  "approximate_value": 47050000,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "iops": {
+                  "raw": "640",
+                  "approximate_value": 640,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "requests": {
+                  "raw": "640",
+                  "approximate_value": 640,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "task_wait_time": {
+                  "raw": "10.08ms",
+                  "approximate_value": 0.01008,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "              LanceRead: elapsed=126.285747ms, uri=mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-DP-rewrite_rows-b0/dataset/data, projection=[id], num_fragments=160, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--, metrics=[output_rows=16.00 M, elapsed_compute=10.26ms, output_bytes=0.0 B, output_batches=0, fragments_scanned=160, ranges_scanned=160, rows_scanned=16.00 M, bytes_read=47.05 M, iops=640, requests=640, task_wait_time=10.08ms]"
+            }
+          ],
+          "joins": [
+            {
+              "node": 3,
+              "mode": "CollectLeft",
+              "join_type": "Inner",
+              "build_side": "left",
+              "build": {
+                "node": 4,
+                "leaves": [
+                  {
+                    "node": 5,
+                    "operator": "StreamingTableExec",
+                    "attributes": {
+                      "partition_sizes": "1",
+                      "projection": "[id, c0, c1]"
+                    }
+                  }
+                ]
+              },
+              "probe": {
+                "node": 6,
+                "leaves": [
+                  {
+                    "node": 7,
+                    "operator": "LanceRead",
+                    "attributes": {
+                      "elapsed": "126.285747ms",
+                      "uri": "mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-DP-rewrite_rows-b0/dataset/data",
+                      "projection": "[id]",
+                      "num_fragments": "160",
+                      "range_before": "None",
+                      "range_after": "None",
+                      "row_id": "true",
+                      "row_addr": "true",
+                      "full_filter": "--",
+                      "refine_filter": "--"
+                    }
+                  }
+                ]
+              },
+              "child_count_valid": true
+            }
+          ],
+          "exchanges": [],
+          "scan_nodes": [
+            7
+          ],
+          "materialization_nodes": [
+            1
+          ],
+          "writer_nodes": [
+            0
+          ],
+          "ignored_lines": [],
+          "warnings": [
+            "Left/right identify physical HashJoin inputs. Determine source/target from leaf URI, provider and projection; do not infer it from row counts.",
+            "Missing metrics are unknown, never zero. LanceRead output_batches=0 can mean unsupported instrumentation.",
+            "Scan batch-size distribution, decode concurrency and internal Take I/O/call count are not reconstructed from aggregate text.",
+            "Writer output_rows may be zero because the writer emits no rows. Check mutation counters against an independently verified execute run."
+          ]
+        }
+      ]
+    },
+    {
+      "path": "output/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-P-rewrite_rows-b0/analyzed-plan.txt",
+      "file_sha256": "61100f9578e35890c1b0baf3f840c5150657b3d45a880d64365fc109a0bacc8e",
+      "plans": [
+        {
+          "plan_sha256": "61100f9578e35890c1b0baf3f840c5150657b3d45a880d64365fc109a0bacc8e",
+          "execution_complete": null,
+          "completeness_reason": "Text cannot prove success: analyze_plan_with_context discards stream Err items. validated_diagnostic is not an execution-completion signal.",
+          "metric_scope": "Aggregated by name across partitions; abbreviated display values are rounded.",
+          "nodes": [
+            {
+              "id": 0,
+              "line": 1,
+              "indent": 4,
+              "parent": null,
+              "children": [
+                1
+              ],
+              "operator": "MergeInsert",
+              "attributes": {
+                "elapsed": "687.755247ms",
+                "on": "[id]",
+                "when_matched": "UpdateAll",
+                "when_not_matched": "DoNothing",
+                "when_not_matched_by_source": "Keep"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "1ns",
+                  "approximate_value": 1e-9,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "bytes_written": {
+                  "raw": "44.78 K",
+                  "approximate_value": 44780,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "num_deleted_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_files_written": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_inserted_rows": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_skipped_duplicates": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "num_updated_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                }
+              },
+              "raw_line": "    MergeInsert: elapsed=687.755247ms, on=[id], when_matched=UpdateAll, when_not_matched=DoNothing, when_not_matched_by_source=Keep, metrics=[output_rows=0, elapsed_compute=1ns, output_bytes=0.0 B, output_batches=0, bytes_written=44.78 K, num_deleted_rows=0, num_files_written=1, num_inserted_rows=0, num_skipped_duplicates=0, num_updated_rows=100]"
+            },
+            {
+              "id": 1,
+              "line": 2,
+              "indent": 6,
+              "parent": 0,
+              "children": [
+                2
+              ],
+              "operator": "ProjectionExec",
+              "attributes": {
+                "elapsed": "687.70986ms",
+                "expr": "[id@0 as id, c0@1 as c0, c1@2 as c1, __merge_source_sentinel@3 as __merge_source_sentinel, c2@4 as c2, c3@5 as c3, c4@6 as c4, c5@7 as c5, c6@8 as c6, c7@9 as c7, c8@10 as c8, c9@11 as c9, c10@12 as c10, c11@13 as c11, c12@14 as c12, c13@15 as c13, c14@16 as c14, c15@17 as c15, c16@18 as c16, c17@19 as c17, c18@20 as c18, c19@21 as c19, c20@22 as c20, c21@23 as c21, c22@24 as c22, c23@25 as c23, c24@26 as c24, c25@27 as c25, c26@28 as c26, c27@29 as c27, c28@30 as c28, c29@31 as c29, c30@32 as c30, c31@33 as c31, c32@34 as c32, c33@35 as c33, c34@36 as c34, c35@37 as c35, c36@38 as c36, c37@39 as c37, c38@40 as c38, c39@41 as c39, c40@42 as c40, c41@43 as c41, c42@44 as c42, _rowid@45 as _rowid, _rowaddr@46 as _rowaddr, CASE WHEN _rowaddr@46 IS NOT NULL THEN 1 ELSE 0 END as __action]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "45.16µs",
+                  "approximate_value": 0.000045159999999999995,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "2.9 MB",
+                  "approximate_value": 3040870.4,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "expr_0_eval_time": {
+                  "raw": "735ns",
+                  "approximate_value": 7.350000000000001e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_10_eval_time": {
+                  "raw": "130ns",
+                  "approximate_value": 1.3e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_11_eval_time": {
+                  "raw": "124ns",
+                  "approximate_value": 1.24e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_12_eval_time": {
+                  "raw": "121ns",
+                  "approximate_value": 1.21e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_13_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_14_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_15_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_16_eval_time": {
+                  "raw": "119ns",
+                  "approximate_value": 1.1900000000000001e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_17_eval_time": {
+                  "raw": "111ns",
+                  "approximate_value": 1.11e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_18_eval_time": {
+                  "raw": "51ns",
+                  "approximate_value": 5.1e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_19_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_1_eval_time": {
+                  "raw": "144ns",
+                  "approximate_value": 1.4400000000000002e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_20_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_21_eval_time": {
+                  "raw": "49ns",
+                  "approximate_value": 4.9e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_22_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_23_eval_time": {
+                  "raw": "98ns",
+                  "approximate_value": 9.8e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_24_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_25_eval_time": {
+                  "raw": "148ns",
+                  "approximate_value": 1.48e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_26_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_27_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_28_eval_time": {
+                  "raw": "56ns",
+                  "approximate_value": 5.6000000000000005e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_29_eval_time": {
+                  "raw": "51ns",
+                  "approximate_value": 5.1e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_2_eval_time": {
+                  "raw": "120ns",
+                  "approximate_value": 1.2000000000000002e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_30_eval_time": {
+                  "raw": "52ns",
+                  "approximate_value": 5.2e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_31_eval_time": {
+                  "raw": "49ns",
+                  "approximate_value": 4.9e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_32_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_33_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_34_eval_time": {
+                  "raw": "49ns",
+                  "approximate_value": 4.9e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_35_eval_time": {
+                  "raw": "131ns",
+                  "approximate_value": 1.31e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_36_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_37_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_38_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_39_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_3_eval_time": {
+                  "raw": "222ns",
+                  "approximate_value": 2.22e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_40_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_41_eval_time": {
+                  "raw": "56ns",
+                  "approximate_value": 5.6000000000000005e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_42_eval_time": {
+                  "raw": "53ns",
+                  "approximate_value": 5.3000000000000005e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_43_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_44_eval_time": {
+                  "raw": "133ns",
+                  "approximate_value": 1.33e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_45_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_46_eval_time": {
+                  "raw": "50ns",
+                  "approximate_value": 5.0000000000000004e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_47_eval_time": {
+                  "raw": "32.77µs",
+                  "approximate_value": 0.00003277,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_4_eval_time": {
+                  "raw": "121ns",
+                  "approximate_value": 1.21e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_5_eval_time": {
+                  "raw": "120ns",
+                  "approximate_value": 1.2000000000000002e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_6_eval_time": {
+                  "raw": "119ns",
+                  "approximate_value": 1.1900000000000001e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_7_eval_time": {
+                  "raw": "108ns",
+                  "approximate_value": 1.08e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_8_eval_time": {
+                  "raw": "161ns",
+                  "approximate_value": 1.61e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_9_eval_time": {
+                  "raw": "127ns",
+                  "approximate_value": 1.27e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "      ProjectionExec: elapsed=687.70986ms, expr=[id@0 as id, c0@1 as c0, c1@2 as c1, __merge_source_sentinel@3 as __merge_source_sentinel, c2@4 as c2, c3@5 as c3, c4@6 as c4, c5@7 as c5, c6@8 as c6, c7@9 as c7, c8@10 as c8, c9@11 as c9, c10@12 as c10, c11@13 as c11, c12@14 as c12, c13@15 as c13, c14@16 as c14, c15@17 as c15, c16@18 as c16, c17@19 as c17, c18@20 as c18, c19@21 as c19, c20@22 as c20, c21@23 as c21, c22@24 as c22, c23@25 as c23, c24@26 as c24, c25@27 as c25, c26@28 as c26, c27@29 as c27, c28@30 as c28, c29@31 as c29, c30@32 as c30, c31@33 as c31, c32@34 as c32, c33@35 as c33, c34@36 as c34, c35@37 as c35, c36@38 as c36, c37@39 as c37, c38@40 as c38, c39@41 as c39, c40@42 as c40, c41@43 as c41, c42@44 as c42, _rowid@45 as _rowid, _rowaddr@46 as _rowaddr, CASE WHEN _rowaddr@46 IS NOT NULL THEN 1 ELSE 0 END as __action], metrics=[output_rows=100, elapsed_compute=45.16µs, output_bytes=2.9 MB, output_batches=1, expr_0_eval_time=735ns, expr_10_eval_time=130ns, expr_11_eval_time=124ns, expr_12_eval_time=121ns, expr_13_eval_time=50ns, expr_14_eval_time=50ns, expr_15_eval_time=50ns, expr_16_eval_time=119ns, expr_17_eval_time=111ns, expr_18_eval_time=51ns, expr_19_eval_time=50ns, expr_1_eval_time=144ns, expr_20_eval_time=50ns, expr_21_eval_time=49ns, expr_22_eval_time=50ns, expr_23_eval_time=98ns, expr_24_eval_time=50ns, expr_25_eval_time=148ns, expr_26_eval_time=50ns, expr_27_eval_time=50ns, expr_28_eval_time=56ns, expr_29_eval_time=51ns, expr_2_eval_time=120ns, expr_30_eval_time=52ns, expr_31_eval_time=49ns, expr_32_eval_time=50ns, expr_33_eval_time=50ns, expr_34_eval_time=49ns, expr_35_eval_time=131ns, expr_36_eval_time=50ns, expr_37_eval_time=50ns, expr_38_eval_time=50ns, expr_39_eval_time=50ns, expr_3_eval_time=222ns, expr_40_eval_time=50ns, expr_41_eval_time=56ns, expr_42_eval_time=53ns, expr_43_eval_time=50ns, expr_44_eval_time=133ns, expr_45_eval_time=50ns, expr_46_eval_time=50ns, expr_47_eval_time=32.77µs, expr_4_eval_time=121ns, expr_5_eval_time=120ns, expr_6_eval_time=119ns, expr_7_eval_time=108ns, expr_8_eval_time=161ns, expr_9_eval_time=127ns]"
+            },
+            {
+              "id": 2,
+              "line": 3,
+              "indent": 8,
+              "parent": 1,
+              "children": [
+                3,
+                5
+              ],
+              "operator": "HashJoinExec",
+              "attributes": {
+                "elapsed": "687.076616ms",
+                "mode": "CollectLeft",
+                "join_type": "Inner",
+                "on": "[(id@0, id@0)]",
+                "projection": "[id@0, c0@1, c1@2, __merge_source_sentinel@3, c2@5, c3@6, c4@7, c5@8, c6@9, c7@10, c8@11, c9@12, c10@13, c11@14, c12@15, c13@16, c14@17, c15@18, c16@19, c17@20, c18@21, c19@22, c20@23, c21@24, c22@25, c23@26, c24@27, c25@28, c26@29, c27@30, c28@31, c29@32, c30@33, c31@34, c32@35, c33@36, c34@37, c35@38, c36@39, c37@40, c38@41, c39@42, c40@43, c41@44, c42@45, _rowid@46, _rowaddr@47]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "111.59ms",
+                  "approximate_value": 0.11159000000000001,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "2.9 MB",
+                  "approximate_value": 3040870.4,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "array_map_created_count": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "build_input_batches": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "build_input_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "input_batches": {
+                  "raw": "2.08 K",
+                  "approximate_value": 2080,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "input_rows": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "build_mem_used": {
+                  "raw": "4.70 K",
+                  "approximate_value": 4700,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "build_time": {
+                  "raw": "119.50µs",
+                  "approximate_value": 0.00011949999999999999,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "join_time": {
+                  "raw": "111.39ms",
+                  "approximate_value": 0.11139,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "avg_fanout": {
+                  "raw": "100% (100/100)"
+                },
+                "probe_hit_rate": {
+                  "raw": "0% (100/16.00 M)"
+                }
+              },
+              "raw_line": "        HashJoinExec: elapsed=687.076616ms, mode=CollectLeft, join_type=Inner, on=[(id@0, id@0)], projection=[id@0, c0@1, c1@2, __merge_source_sentinel@3, c2@5, c3@6, c4@7, c5@8, c6@9, c7@10, c8@11, c9@12, c10@13, c11@14, c12@15, c13@16, c14@17, c15@18, c16@19, c17@20, c18@21, c19@22, c20@23, c21@24, c22@25, c23@26, c24@27, c25@28, c26@29, c27@30, c28@31, c29@32, c30@33, c31@34, c32@35, c33@36, c34@37, c35@38, c36@39, c37@40, c38@41, c39@42, c40@43, c41@44, c42@45, _rowid@46, _rowaddr@47], metrics=[output_rows=100, elapsed_compute=111.59ms, output_bytes=2.9 MB, output_batches=1, array_map_created_count=0, build_input_batches=1, build_input_rows=100, input_batches=2.08 K, input_rows=16.00 M, build_mem_used=4.70 K, build_time=119.50µs, join_time=111.39ms, avg_fanout=100% (100/100), probe_hit_rate=0% (100/16.00 M)]"
+            },
+            {
+              "id": 3,
+              "line": 4,
+              "indent": 10,
+              "parent": 2,
+              "children": [
+                4
+              ],
+              "operator": "ProjectionExec",
+              "attributes": {
+                "elapsed": "1.437277ms",
+                "expr": "[id@0 as id, c0@1 as c0, c1@2 as c1, true as __merge_source_sentinel]"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "100",
+                  "approximate_value": 100,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "elapsed_compute": {
+                  "raw": "8.98µs",
+                  "approximate_value": 0.00000898,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "2.4 KB",
+                  "approximate_value": 2457.6,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "1",
+                  "approximate_value": 1,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "expr_0_eval_time": {
+                  "raw": "870ns",
+                  "approximate_value": 8.7e-7,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_1_eval_time": {
+                  "raw": "79ns",
+                  "approximate_value": 7.9e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_2_eval_time": {
+                  "raw": "87ns",
+                  "approximate_value": 8.700000000000001e-8,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "expr_3_eval_time": {
+                  "raw": "2.60µs",
+                  "approximate_value": 0.0000026,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "          ProjectionExec: elapsed=1.437277ms, expr=[id@0 as id, c0@1 as c0, c1@2 as c1, true as __merge_source_sentinel], metrics=[output_rows=100, elapsed_compute=8.98µs, output_bytes=2.4 KB, output_batches=1, expr_0_eval_time=870ns, expr_1_eval_time=79ns, expr_2_eval_time=87ns, expr_3_eval_time=2.60µs]"
+            },
+            {
+              "id": 4,
+              "line": 5,
+              "indent": 12,
+              "parent": 3,
+              "children": [],
+              "operator": "StreamingTableExec",
+              "attributes": {
+                "partition_sizes": "1",
+                "projection": "[id, c0, c1]"
+              },
+              "metrics_present": true,
+              "metrics": {},
+              "raw_line": "            StreamingTableExec: partition_sizes=1, projection=[id, c0, c1], metrics=[]"
+            },
+            {
+              "id": 5,
+              "line": 6,
+              "indent": 10,
+              "parent": 2,
+              "children": [
+                6
+              ],
+              "operator": "CooperativeExec",
+              "attributes": {
+                "elapsed": "685.049904ms"
+              },
+              "metrics_present": true,
+              "metrics": {},
+              "raw_line": "          CooperativeExec, elapsed=685.049904ms, metrics=[]"
+            },
+            {
+              "id": 6,
+              "line": 7,
+              "indent": 12,
+              "parent": 5,
+              "children": [],
+              "operator": "LanceRead",
+              "attributes": {
+                "elapsed": "685.049904ms",
+                "uri": "mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-P-rewrite_rows-b0/dataset/data",
+                "projection": "[id, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42]",
+                "num_fragments": "160",
+                "range_before": "None",
+                "range_after": "None",
+                "row_id": "true",
+                "row_addr": "true",
+                "full_filter": "--",
+                "refine_filter": "--"
+              },
+              "metrics_present": true,
+              "metrics": {
+                "output_rows": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "elapsed_compute": {
+                  "raw": "235.41ms",
+                  "approximate_value": 0.23541,
+                  "unit": "seconds",
+                  "rounded": true
+                },
+                "output_bytes": {
+                  "raw": "0.0 B",
+                  "approximate_value": 0,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "output_batches": {
+                  "raw": "0",
+                  "approximate_value": 0,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "fragments_scanned": {
+                  "raw": "160",
+                  "approximate_value": 160,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "ranges_scanned": {
+                  "raw": "160",
+                  "approximate_value": 160,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "rows_scanned": {
+                  "raw": "16.00 M",
+                  "approximate_value": 16000000,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "bytes_read": {
+                  "raw": "3.35 B",
+                  "approximate_value": 3350000000,
+                  "unit": "bytes",
+                  "rounded": true
+                },
+                "iops": {
+                  "raw": "9.28 K",
+                  "approximate_value": 9280,
+                  "unit": "count",
+                  "rounded": true
+                },
+                "requests": {
+                  "raw": "960",
+                  "approximate_value": 960,
+                  "unit": "count",
+                  "rounded": false
+                },
+                "task_wait_time": {
+                  "raw": "235.18ms",
+                  "approximate_value": 0.23518,
+                  "unit": "seconds",
+                  "rounded": true
+                }
+              },
+              "raw_line": "            LanceRead: elapsed=685.049904ms, uri=mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-P-rewrite_rows-b0/dataset/data, projection=[id, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42], num_fragments=160, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--, metrics=[output_rows=16.00 M, elapsed_compute=235.41ms, output_bytes=0.0 B, output_batches=0, fragments_scanned=160, ranges_scanned=160, rows_scanned=16.00 M, bytes_read=3.35 B, iops=9.28 K, requests=960, task_wait_time=235.18ms]"
+            }
+          ],
+          "joins": [
+            {
+              "node": 2,
+              "mode": "CollectLeft",
+              "join_type": "Inner",
+              "build_side": "left",
+              "build": {
+                "node": 3,
+                "leaves": [
+                  {
+                    "node": 4,
+                    "operator": "StreamingTableExec",
+                    "attributes": {
+                      "partition_sizes": "1",
+                      "projection": "[id, c0, c1]"
+                    }
+                  }
+                ]
+              },
+              "probe": {
+                "node": 5,
+                "leaves": [
+                  {
+                    "node": 6,
+                    "operator": "LanceRead",
+                    "attributes": {
+                      "elapsed": "685.049904ms",
+                      "uri": "mnt/lance/unified-9505-20261019/diagnostics/diagnose-f16-v1-F16-P-rewrite_rows-b0/dataset/data",
+                      "projection": "[id, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17, c18, c19, c20, c21, c22, c23, c24, c25, c26, c27, c28, c29, c30, c31, c32, c33, c34, c35, c36, c37, c38, c39, c40, c41, c42]",
+                      "num_fragments": "160",
+                      "range_before": "None",
+                      "range_after": "None",
+                      "row_id": "true",
+                      "row_addr": "true",
+                      "full_filter": "--",
+                      "refine_filter": "--"
+                    }
+                  }
+                ]
+              },
+              "child_count_valid": true
+            }
+          ],
+          "exchanges": [],
+          "scan_nodes": [
+            6
+          ],
+          "materialization_nodes": [],
+          "writer_nodes": [
+            0
+          ],
+          "ignored_lines": [],
+          "warnings": [
+            "Left/right identify physical HashJoin inputs. Determine source/target from leaf URI, provider and projection; do not infer it from row counts.",
+            "Missing metrics are unknown, never zero. LanceRead output_batches=0 can mean unsupported instrumentation.",
+            "Scan batch-size distribution, decode concurrency and internal Take I/O/call count are not reconstructed from aggregate text.",
+            "Writer output_rows may be zero because the writer emits no rows. Check mutation counters against an independently verified execute run."
+          ]
+        }
+      ]
+    }
+  ]
+}

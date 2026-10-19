@@ -1,0 +1,58 @@
+{
+  "status": "resource_exhausted",
+  "operation": "execute",
+  "snapshot": 1,
+  "identity": {
+    "module": "/mnt/lance/checkouts/K_check/python/python/lance/__init__.py",
+    "extension": "/mnt/lance/checkouts/K_check/python/python/lance/lance.abi3.so",
+    "extension_sha256": "ec2c898d18d4ee20c611cfb93c7642118fde354107aee5d1cd8d0c4296ab1c2c",
+    "version": "14.0.0-beta.19",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "pyarrow": "25.0.1"
+  },
+  "schema": "id: int64\nc0: int64\nc1: int64\nc2: int64\nc3: int64\nc4: int64\nc5: int64\nc6: int64\nc7: int64\nc8: int64\nc9: int64\nc10: int64\nc11: int64\nc12: int64\nc13: int64\nc14: int64\nc15: int64\nc16: int64\nc17: int64\nc18: int64\nc19: int64\nc20: int64\nc21: int64\nc22: int64\nc23: int64\nc24: int64\nc25: int64\nc26: int64\nc27: int64\nc28: int64\nc29: int64\nc30: int64\nc31: int64\nc32: int64\nc33: int64\nc34: int64\nc35: int64\nc36: int64\nc37: int64\nc38: int64\nc39: int64\nc40: int64\nc41: int64\nc42: int64",
+  "configured_pool_bytes": 1073741824,
+  "pool_policy": "Source review: planning and execute/analyze share the bounded factory context; deferred payload is not itself a hard total-RSS budget.",
+  "baseline_rss": {
+    "VmHWM": 164880384,
+    "VmRSS": 164880384,
+    "RssAnon": 69615616,
+    "RssFile": 95264768,
+    "RssShmem": 0
+  },
+  "input_materialization_seconds": 0,
+  "execute_rss_before": {
+    "VmHWM": 165662720,
+    "VmRSS": 165662720,
+    "RssAnon": 70004736,
+    "RssFile": 95657984,
+    "RssShmem": 0
+  },
+  "ru_maxrss_before_execute_bytes": 164839424,
+  "error": "LanceError(IO): Resources exhausted: Additional allocation failed for HashJoinInput[5] with top memory consumers (across reservations) as:\n  HashJoinInput[2]#0(can spill: false) consumed 64.1 MB, peak 64.1 MB,\n  HashJoinInput[0]#2(can spill: false) consumed 64.1 MB, peak 64.1 MB,\n  HashJoinInput[1]#3(can spill: false) consumed 64.1 MB, peak 64.1 MB,\n  HashJoinInput[3]#4(can spill: false) consumed 64.1 MB, peak 64.1 MB,\n  HashJoinInput[4]#5(can spill: false) consumed 64.1 MB, peak 64.1 MB,\n  HashJoinInput[7]#9(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[13]#8(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[10]#6(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[14]#11(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[12]#7(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[15]#31(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[9]#14(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[11]#10(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[8]#13(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[5]#1(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[6]#12(can spill: false) consumed 63.9 MB, peak 63.9 MB.\nError: Failed to allocate additional 195.0 KB for HashJoinInput[5] with 63.9 MB already allocated for this reservation - 22.0 KB remain available for the total memory pool: fair(pool_size: 1024.0 MB), /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/task/poll.rs:291:44",
+  "error_type": "OSError",
+  "traceback": "Traceback (most recent call last):\n  File \"/mnt/lance/unified-9505-20261019/harness/harness.py\", line 419, in execute\n    metrics[\"merge_stats\"] = builder.execute(source)\n                             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/lance/checkouts/K_check/python/python/lance/dataset.py\", line 405, in execute\n    return super(MergeInsertBuilder, self).execute(reader)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nOSError: LanceError(IO): Resources exhausted: Additional allocation failed for HashJoinInput[5] with top memory consumers (across reservations) as:\n  HashJoinInput[2]#0(can spill: false) consumed 64.1 MB, peak 64.1 MB,\n  HashJoinInput[0]#2(can spill: false) consumed 64.1 MB, peak 64.1 MB,\n  HashJoinInput[1]#3(can spill: false) consumed 64.1 MB, peak 64.1 MB,\n  HashJoinInput[3]#4(can spill: false) consumed 64.1 MB, peak 64.1 MB,\n  HashJoinInput[4]#5(can spill: false) consumed 64.1 MB, peak 64.1 MB,\n  HashJoinInput[7]#9(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[13]#8(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[10]#6(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[14]#11(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[12]#7(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[15]#31(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[9]#14(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[11]#10(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[8]#13(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[5]#1(can spill: false) consumed 63.9 MB, peak 63.9 MB,\n  HashJoinInput[6]#12(can spill: false) consumed 63.9 MB, peak 63.9 MB.\nError: Failed to allocate additional 195.0 KB for HashJoinInput[5] with 63.9 MB already allocated for this reservation - 22.0 KB remain available for the total memory pool: fair(pool_size: 1024.0 MB), /rustc/48a229ceaefd4985c50990b14116b6d856af0985/library/core/src/task/poll.rs:291:44\n",
+  "merge_seconds": 0.9195480269991094,
+  "cpu_seconds": 1.3259960000000006,
+  "process_io_delta": {
+    "rchar": 150910753,
+    "wchar": 4402376,
+    "syscr": 1975,
+    "syscw": 157,
+    "read_bytes": 36864,
+    "write_bytes": 4415488,
+    "cancelled_write_bytes": 0
+  },
+  "ru_maxrss_bytes": 1340403712,
+  "ru_maxrss_after_execute_bytes": 1340403712,
+  "execute_rss_after": {
+    "VmHWM": 1342750720,
+    "VmRSS": 1342750720,
+    "RssAnon": 1184808960,
+    "RssFile": 157941760,
+    "RssShmem": 0
+  },
+  "new_data_file_bytes": 0,
+  "new_data_file_count": 0,
+  "input_and_api_seconds": 0.9195480269991094
+}

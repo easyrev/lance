@@ -1,0 +1,56 @@
+{
+  "status": "analyze_returned",
+  "operation": "analyze",
+  "snapshot": 1,
+  "identity": {
+    "module": "/mnt/lance/checkouts/K_check/python/python/lance/__init__.py",
+    "extension": "/mnt/lance/checkouts/K_check/python/python/lance/lance.abi3.so",
+    "extension_sha256": "ec2c898d18d4ee20c611cfb93c7642118fde354107aee5d1cd8d0c4296ab1c2c",
+    "version": "14.0.0-beta.19",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "pyarrow": "25.0.1"
+  },
+  "schema": "id: int64\nc0: int64\nc1: int64\nkeep_text: string\nkeep_binary: large_binary\nrow_marker: int64",
+  "configured_pool_bytes": 1073741824,
+  "pool_policy": "Source review: planning and execute/analyze share the bounded factory context; deferred payload is not itself a hard total-RSS budget.",
+  "baseline_rss": {
+    "VmHWM": 165957632,
+    "VmRSS": 165957632,
+    "RssAnon": 68804608,
+    "RssFile": 97153024,
+    "RssShmem": 0
+  },
+  "input_materialization_seconds": 0,
+  "execute_rss_before": {
+    "VmHWM": 166289408,
+    "VmRSS": 166289408,
+    "RssAnon": 68808704,
+    "RssFile": 97480704,
+    "RssShmem": 0
+  },
+  "ru_maxrss_before_execute_bytes": 165724160,
+  "analyzed_plan_sha256": "9f3812828318e8b5a6ea76fdbf343121eca07ff431e702a143ebdbcd4ed560c9",
+  "analyze_seconds": 0.9409088050015271,
+  "cpu_seconds": 6.541792,
+  "process_io_delta": {
+    "rchar": 181414854,
+    "wchar": 143053847,
+    "syscr": 174020,
+    "syscw": 1014,
+    "read_bytes": 0,
+    "write_bytes": 143093760,
+    "cancelled_write_bytes": 0
+  },
+  "ru_maxrss_bytes": 668614656,
+  "ru_maxrss_after_execute_bytes": 668614656,
+  "execute_rss_after": {
+    "VmHWM": 670605312,
+    "VmRSS": 670605312,
+    "RssAnon": 504852480,
+    "RssFile": 165752832,
+    "RssShmem": 0
+  },
+  "new_data_file_bytes": 142940450,
+  "new_data_file_count": 1,
+  "input_and_api_seconds": 0.9409088050015271
+}

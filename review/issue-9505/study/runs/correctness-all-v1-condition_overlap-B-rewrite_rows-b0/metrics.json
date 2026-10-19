@@ -1,0 +1,60 @@
+{
+  "status": "execute_returned",
+  "operation": "execute",
+  "snapshot": 1,
+  "identity": {
+    "module": "/mnt/lance/checkouts/unified-9505-B/python/python/lance/__init__.py",
+    "extension": "/mnt/lance/checkouts/unified-9505-B/python/python/lance/lance.abi3.so",
+    "extension_sha256": "a8776de4b107f2db5b696defb9675cb0dfade7516fe7b119f681ad7c6c085034",
+    "version": "14.0.0-beta.19",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "pyarrow": "25.0.1"
+  },
+  "schema": "id: int64\nc0: int64\nc1: int64\npayload: large_binary\nnew_payload: large_binary\nrow_marker: int64",
+  "configured_pool_bytes": 1073741824,
+  "pool_policy": "Source review: planning and execution obtain separate bounded contexts from the spilling-enabled factory; the factory does not cache that context. The configured limit is not one shared combined peak.",
+  "baseline_rss": {
+    "VmHWM": 166076416,
+    "VmRSS": 166076416,
+    "RssAnon": 68825088,
+    "RssFile": 97251328,
+    "RssShmem": 0
+  },
+  "input_materialization_seconds": 0,
+  "execute_rss_before": {
+    "VmHWM": 166408192,
+    "VmRSS": 166408192,
+    "RssAnon": 68829184,
+    "RssFile": 97579008,
+    "RssShmem": 0
+  },
+  "ru_maxrss_before_execute_bytes": 165748736,
+  "merge_stats": {
+    "num_inserted_rows": 0,
+    "num_updated_rows": 8,
+    "num_deleted_rows": 0
+  },
+  "merge_seconds": 0.06089653499657288,
+  "cpu_seconds": 0.08071400000000062,
+  "process_io_delta": {
+    "rchar": 16806977,
+    "wchar": 2103803,
+    "syscr": 33,
+    "syscw": 14,
+    "read_bytes": 0,
+    "write_bytes": 2134016,
+    "cancelled_write_bytes": 0
+  },
+  "ru_maxrss_bytes": 294899712,
+  "ru_maxrss_after_execute_bytes": 294899712,
+  "execute_rss_after": {
+    "VmHWM": 294899712,
+    "VmRSS": 285155328,
+    "RssAnon": 111517696,
+    "RssFile": 173637632,
+    "RssShmem": 0
+  },
+  "new_data_file_bytes": 2098953,
+  "new_data_file_count": 1,
+  "input_and_api_seconds": 0.06089653499657288
+}

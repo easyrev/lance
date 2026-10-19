@@ -1,0 +1,47 @@
+{
+  "audit_status": "incomplete",
+  "root": "/mnt/lance/unified-9505-20261019",
+  "counts": {
+    "planned": 0,
+    "actual_executions": 0,
+    "diagnostics": 0,
+    "references": 0,
+    "missing": 0,
+    "audited_actual": 0,
+    "audited_diagnostics": 0
+  },
+  "planned_ids": [],
+  "actual_ids": [],
+  "diagnostic_ids": [],
+  "reference_ids": [],
+  "missing_ids": [],
+  "execution_status_counts": {},
+  "failure_runs": [],
+  "references": [],
+  "frozen_identities": {
+    "fixtures": {
+      "U": {
+        "extension_sha256": "5c9e85d8804aeac54f030db6a7a0b8f02373e89c2f106777bbb2647660a1d65a",
+        "source_hashes_sha256": "11b8ec1414099a133720d1390cd7249a97662b733c77021b3fe3f7060c33ce18",
+        "head": "0a0d327082988018a25f56147d3b6d02f6c79ecc",
+        "pool_policy": "Source review: non-index planning uses SessionContext::new and execute uses TaskContext::default, both with unbounded pools. LANCE_MEM_POOL_SIZE is configured but is not the execution pool limit.",
+        "context_sha256": "c7b5ee2af0264a01b6c3488c4143b86d369a619a798c07063fcd27682a366fb5"
+      }
+    }
+  },
+  "paired_comparisons": [],
+  "distributions": [],
+  "errors": [],
+  "warnings": [],
+  "audit_script_sha256": "ab38e03be73fdbf369733823329d53053753915d17a3326adfa6451bfa972f86",
+  "live_file_verification_requested": false,
+  "planned_live_files_verified": false,
+  "limits": [
+    "Recorded oracle assertions are audited; dataset values are not reread by this script.",
+    "Per-field digests follow scan order and are not compared across candidates.",
+    "Source/binary/fixture hashes are cross-checked as recorded; live files require --verify-files.",
+    "A coherent resource failure is evidence, not a successful candidate or a timing sample.",
+    "RSS is sampled maximum single-process RSS; cgroup includes charged cache and is not total RSS.",
+    "TMPDIR footprint is sampled, not cumulative spill writes. fadvise is advisory."
+  ]
+}

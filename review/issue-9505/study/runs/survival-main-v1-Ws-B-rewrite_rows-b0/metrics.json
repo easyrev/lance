@@ -1,0 +1,58 @@
+{
+  "status": "resource_exhausted",
+  "operation": "execute",
+  "snapshot": 1,
+  "identity": {
+    "module": "/mnt/lance/checkouts/unified-9505-B/python/python/lance/__init__.py",
+    "extension": "/mnt/lance/checkouts/unified-9505-B/python/python/lance/lance.abi3.so",
+    "extension_sha256": "a8776de4b107f2db5b696defb9675cb0dfade7516fe7b119f681ad7c6c085034",
+    "version": "14.0.0-beta.19",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "pyarrow": "25.0.1"
+  },
+  "schema": "id: int64\nc0: int64\nc1: int64\npayload: large_binary\nnew_payload: large_binary\nrow_marker: int64",
+  "configured_pool_bytes": 1073741824,
+  "pool_policy": "Source review: planning and execution obtain separate bounded contexts from the spilling-enabled factory; the factory does not cache that context. The configured limit is not one shared combined peak.",
+  "baseline_rss": {
+    "VmHWM": 165728256,
+    "VmRSS": 165728256,
+    "RssAnon": 68829184,
+    "RssFile": 96899072,
+    "RssShmem": 0
+  },
+  "input_materialization_seconds": 0,
+  "execute_rss_before": {
+    "VmHWM": 166072320,
+    "VmRSS": 166072320,
+    "RssAnon": 68845568,
+    "RssFile": 97226752,
+    "RssShmem": 0
+  },
+  "ru_maxrss_before_execute_bytes": 165490688,
+  "error": "Resources exhausted: Additional allocation failed for HashJoinInput with top memory consumers (across reservations) as:\n  HashJoinInput#0(can spill: false) consumed 1000.0 MB, peak 1000.0 MB.\nError: Failed to allocate additional 125.0 MB for HashJoinInput with 1000.0 MB already allocated for this reservation - 24.0 MB remain available for the total memory pool: fair(pool_size: 1024.0 MB)",
+  "error_type": "OSError",
+  "traceback": "Traceback (most recent call last):\n  File \"/mnt/lance/unified-9505-20261019/harness/harness.py\", line 419, in execute\n    metrics[\"merge_stats\"] = builder.execute(source)\n                             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/lance/checkouts/unified-9505-B/python/python/lance/dataset.py\", line 405, in execute\n    return super(MergeInsertBuilder, self).execute(reader)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nOSError: Resources exhausted: Additional allocation failed for HashJoinInput with top memory consumers (across reservations) as:\n  HashJoinInput#0(can spill: false) consumed 1000.0 MB, peak 1000.0 MB.\nError: Failed to allocate additional 125.0 MB for HashJoinInput with 1000.0 MB already allocated for this reservation - 24.0 MB remain available for the total memory pool: fair(pool_size: 1024.0 MB)\n",
+  "merge_seconds": 2.377993363996211,
+  "cpu_seconds": 5.570945000000001,
+  "process_io_delta": {
+    "rchar": 2097711351,
+    "wchar": 161,
+    "syscr": 404,
+    "syscw": 17,
+    "read_bytes": 0,
+    "write_bytes": 4096,
+    "cancelled_write_bytes": 0
+  },
+  "ru_maxrss_bytes": 6659960832,
+  "ru_maxrss_after_execute_bytes": 6659960832,
+  "execute_rss_after": {
+    "VmHWM": 6659960832,
+    "VmRSS": 3589144576,
+    "RssAnon": 3427463168,
+    "RssFile": 161681408,
+    "RssShmem": 0
+  },
+  "new_data_file_bytes": 0,
+  "new_data_file_count": 0,
+  "input_and_api_seconds": 2.377993363996211
+}

@@ -1,0 +1,178 @@
+{
+  "name": "pairs-reverse-v1",
+  "freeze": "all-v1",
+  "freeze_sha256": "19a95b34dc937a4c8ebbe254e28361b6eedbb9e1c2eeb18f28c2919c704126ae",
+  "kind": "pairs",
+  "workloads": [
+    "R_admission"
+  ],
+  "cells": [
+    {
+      "run_id": "pairs-reverse-v1-R_admission-D-rewrite_rows-b1",
+      "workload": "R_admission",
+      "variant": "D",
+      "write_mode": "rewrite_rows",
+      "block": 1,
+      "pool_bytes": 268435456,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "pairs-reverse-v1-R_admission-DB-rewrite_rows-b1",
+      "workload": "R_admission",
+      "variant": "DB",
+      "write_mode": "rewrite_rows",
+      "block": 1,
+      "pool_bytes": 268435456,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "pairs-reverse-v1-R_admission-B-rewrite_rows-b1",
+      "workload": "R_admission",
+      "variant": "B",
+      "write_mode": "rewrite_rows",
+      "block": 1,
+      "pool_bytes": 268435456,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "pairs-reverse-v1-R_admission-D-rewrite_rows-b2",
+      "workload": "R_admission",
+      "variant": "D",
+      "write_mode": "rewrite_rows",
+      "block": 2,
+      "pool_bytes": 268435456,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "pairs-reverse-v1-R_admission-DB-rewrite_rows-b2",
+      "workload": "R_admission",
+      "variant": "DB",
+      "write_mode": "rewrite_rows",
+      "block": 2,
+      "pool_bytes": 268435456,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "pairs-reverse-v1-R_admission-B-rewrite_rows-b2",
+      "workload": "R_admission",
+      "variant": "B",
+      "write_mode": "rewrite_rows",
+      "block": 2,
+      "pool_bytes": 268435456,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "pairs-reverse-v1-R_admission-DB-rewrite_rows-b3",
+      "workload": "R_admission",
+      "variant": "DB",
+      "write_mode": "rewrite_rows",
+      "block": 3,
+      "pool_bytes": 268435456,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "pairs-reverse-v1-R_admission-B-rewrite_rows-b3",
+      "workload": "R_admission",
+      "variant": "B",
+      "write_mode": "rewrite_rows",
+      "block": 3,
+      "pool_bytes": 268435456,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "pairs-reverse-v1-R_admission-D-rewrite_rows-b3",
+      "workload": "R_admission",
+      "variant": "D",
+      "write_mode": "rewrite_rows",
+      "block": 3,
+      "pool_bytes": 268435456,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    }
+  ],
+  "fixtures": {
+    "R_admission": {
+      "metadata": {
+        "spec": {
+          "name": "R_admission",
+          "seed": 9505,
+          "epoch": 1,
+          "rows": 1000000,
+          "columns": 44,
+          "fragment_rows": 100000,
+          "source_rows": 3000000,
+          "batch_rows": 32768,
+          "full": true,
+          "binary": 0,
+          "dense": false
+        },
+        "version": 1,
+        "rows": 1000000,
+        "fragments": 10
+      },
+      "origin": {
+        "kind": "import",
+        "source_root": "/mnt/lance/killer-merge-admission-fixed-20261019",
+        "source_freeze_sha256": "8ed45bdead5c007065dca0c7353ed3f25bc40c08985158d959eab0355f71523b",
+        "source_manifest_sha256": "bb2690aee4a4790b5b086112486645cfee0286cc7695a37d4d209ec8711fd01a",
+        "source_generator_sha256": "4573531ca11dd5a626c7510556a2f4cc951028af34217989b10ca10dc10de379"
+      },
+      "files": {
+        "_transactions/0-a315c386-b901-43e7-bb99-fae4821259bc.txn": "39e14784de293d153ed5c39111aa841736b25d7f4bf48a81b2f3eade3a66357d",
+        "_versions/18446744073709551614.manifest": "e77c72aaf3b5c429f2e4a228454b4bc6c8ec4cb2cefe49cb58feb7dd4926402c",
+        "_versions/latest_version_hint.json": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8",
+        "data/001010111010010000111111ab3e3a4318afafd333c811e838.lance": "722fa83437691834dae039c7e739f9a0c46effbaaea0032afe8bf4f0e6959bf3",
+        "data/001100001101010110010001f57f8447ce8eb5f13be032e8a0.lance": "3d0a700d42a23239dffe49d2d332737c129be35d556860628465ce84040eb802",
+        "data/001101110110010100101000152f894b0ab422a5c87fb8f51f.lance": "9d6105807aac9ef396a142c61cf8960e85f7810fdebba6d98a0f786ab6ed7e6e",
+        "data/010010011110010111011011c78b264c53bfa6142c48a18b24.lance": "aec0f03b4d404f17aa4996cc9b1c3568ee20cedd53cfffd44350a8a778f32c9e",
+        "data/01010101000101010101101185a4b145aaa6e705949af1ed5a.lance": "cab75052de40ff06c831adf0c30b3a5a2d910a616046f78220acfc8418e538d7",
+        "data/01011000100011100100000116f389429fb541d531c3b9153b.lance": "6f66909023a56de831965a64b3462c744a3840df8bf9702e33c0b757b65e448f",
+        "data/0110111011111101110011011c4e17468f8448dfcd662fa45c.lance": "d8b8ab52070fc05537b79917acf208909e398995611273224a6df5fcdd8bf6fa",
+        "data/100111100001000001101110c28ad8462b844f85c3c44945f0.lance": "e8d01d98695d02874cbda0677813b3b6ea0566a2cd8166528ea794442237d442",
+        "data/101000101000010111011011f9dbd64c339529055c5c0b94b4.lance": "a6de5c951d31efd371941e8e704ccb0e85e53252e5a9cecafc184652c5e65693",
+        "data/110101110100110011100010b5816b40fbbd8c14ae89d63f5e.lance": "5abe46203f827f9b327d555ee8d03a2d1e18517b052c1a9bcf38398f9fb3e8a1",
+        "fixture.json": "14badf91c7e0957790463b78328dc4587d952fcf2c56d3a8d14cecc1694affdf"
+      }
+    }
+  },
+  "comparisons": [
+    [
+      "DB/rewrite_rows",
+      "D/rewrite_rows"
+    ],
+    [
+      "B/rewrite_rows",
+      "D/rewrite_rows"
+    ],
+    [
+      "DB/rewrite_rows",
+      "B/rewrite_rows"
+    ]
+  ]
+}

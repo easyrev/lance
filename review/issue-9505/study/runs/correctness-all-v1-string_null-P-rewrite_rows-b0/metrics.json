@@ -1,0 +1,60 @@
+{
+  "status": "execute_returned",
+  "operation": "execute",
+  "snapshot": 1,
+  "identity": {
+    "module": "/mnt/lance/checkouts/unified-9505-P/python/python/lance/__init__.py",
+    "extension": "/mnt/lance/checkouts/unified-9505-P/python/python/lance/lance.abi3.so",
+    "extension_sha256": "681988e5e0a51e70a02918304c0a54c2e8f530bef8b107743e84af548db5c604",
+    "version": "14.0.0-beta.19",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "pyarrow": "25.0.1"
+  },
+  "schema": "id: string\nvalue: int64\nkeep: string\nguard: int64\nrow_marker: int64",
+  "configured_pool_bytes": 1073741824,
+  "pool_policy": "Source review: execute shares one bounded planning/execution context. analyze_plan uses another fresh bounded execution context. Scan sizing uses whole-table physical mean width.",
+  "baseline_rss": {
+    "VmHWM": 165847040,
+    "VmRSS": 165847040,
+    "RssAnon": 68825088,
+    "RssFile": 97021952,
+    "RssShmem": 0
+  },
+  "input_materialization_seconds": 0,
+  "execute_rss_before": {
+    "VmHWM": 166178816,
+    "VmRSS": 166178816,
+    "RssAnon": 68829184,
+    "RssFile": 97349632,
+    "RssShmem": 0
+  },
+  "ru_maxrss_before_execute_bytes": 165613568,
+  "merge_stats": {
+    "num_inserted_rows": 0,
+    "num_updated_rows": 2,
+    "num_deleted_rows": 0
+  },
+  "merge_seconds": 0.01100169999699574,
+  "cpu_seconds": 0.013293000000000332,
+  "process_io_delta": {
+    "rchar": 6982,
+    "wchar": 4151,
+    "syscr": 23,
+    "syscw": 11,
+    "read_bytes": 0,
+    "write_bytes": 28672,
+    "cancelled_write_bytes": 4096
+  },
+  "ru_maxrss_bytes": 243388416,
+  "ru_maxrss_after_execute_bytes": 243388416,
+  "execute_rss_after": {
+    "VmHWM": 244129792,
+    "VmRSS": 244129792,
+    "RssAnon": 72679424,
+    "RssFile": 171450368,
+    "RssShmem": 0
+  },
+  "new_data_file_bytes": 1299,
+  "new_data_file_count": 1,
+  "input_and_api_seconds": 0.01100169999699574
+}

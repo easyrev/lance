@@ -1,0 +1,1002 @@
+{
+  "base": "0a0d327082988018a25f56147d3b6d02f6c79ecc",
+  "method": "Canonical counts use git diff --no-index --diff-algorithm=myers between base file bytes and port source bytes, including comments and blank lines. Inline Rust test modules are split at their top-level cfg(test); integration and Python test files are all tests. Python dataset.py changes were manually verified to be documentation/doctest text only. Raw patch totals are also retained and cross-checked against git apply --numstat; hunk alignment can differ without any source change.",
+  "variants": [
+    {
+      "variant": "B",
+      "patch_sha256": "f52b0da48faab3bcf242604f01089ee692fbdb6de8c230994f74c9613fa15019",
+      "totals": {
+        "production_rust": {
+          "added": 128,
+          "deleted": 46
+        },
+        "python_documentation": {
+          "added": 7,
+          "deleted": 5
+        },
+        "tests": {
+          "added": 193,
+          "deleted": 36
+        }
+      },
+      "total": {
+        "added": 328,
+        "deleted": 87
+      },
+      "canonical_totals": {
+        "production_rust": {
+          "added": 128,
+          "deleted": 46
+        },
+        "python_documentation": {
+          "added": 7,
+          "deleted": 5
+        },
+        "tests": {
+          "added": 193,
+          "deleted": 36
+        }
+      },
+      "files": [
+        {
+          "file": "python/python/lance/dataset.py",
+          "source_sha256": "c5ce3cf5c56fc726a2156d399725ca88b8979dcca97a80399b662e0f19c567cd",
+          "old_test_start": null,
+          "new_test_start": null,
+          "canonical": {
+            "production_rust": {
+              "added": 0,
+              "deleted": 0
+            },
+            "python_documentation": {
+              "added": 7,
+              "deleted": 5
+            },
+            "tests": {
+              "added": 0,
+              "deleted": 0
+            }
+          },
+          "production_rust": {
+            "added": 0,
+            "deleted": 0
+          },
+          "python_documentation": {
+            "added": 7,
+            "deleted": 5
+          },
+          "tests": {
+            "added": 0,
+            "deleted": 0
+          }
+        },
+        {
+          "file": "python/python/tests/test_dataset.py",
+          "source_sha256": "e81384b7433aabf6b292240c7c74a5a6b994bb78313f3f9565bb1c15be5a7df3",
+          "old_test_start": null,
+          "new_test_start": null,
+          "canonical": {
+            "production_rust": {
+              "added": 0,
+              "deleted": 0
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 69,
+              "deleted": 19
+            }
+          },
+          "production_rust": {
+            "added": 0,
+            "deleted": 0
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 69,
+            "deleted": 19
+          }
+        },
+        {
+          "file": "rust/lance/src/dataset/write/merge_insert.rs",
+          "source_sha256": "6e1c398b361f7b17ddc6e8646fa6efe3a3cc56f6d9b66ae6d3ba573f6a4e6b9e",
+          "old_test_start": 4069,
+          "new_test_start": 4151,
+          "canonical": {
+            "production_rust": {
+              "added": 128,
+              "deleted": 46
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 124,
+              "deleted": 17
+            }
+          },
+          "production_rust": {
+            "added": 128,
+            "deleted": 46
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 124,
+            "deleted": 17
+          }
+        }
+      ]
+    },
+    {
+      "variant": "P",
+      "patch_sha256": "01a2e89d24c345b7f5e09a6a531c1d5a1a7075d064b37f78f867755dd1b8703c",
+      "totals": {
+        "production_rust": {
+          "added": 165,
+          "deleted": 46
+        },
+        "python_documentation": {
+          "added": 18,
+          "deleted": 25
+        },
+        "tests": {
+          "added": 454,
+          "deleted": 129
+        }
+      },
+      "total": {
+        "added": 637,
+        "deleted": 200
+      },
+      "canonical_totals": {
+        "production_rust": {
+          "added": 165,
+          "deleted": 46
+        },
+        "python_documentation": {
+          "added": 18,
+          "deleted": 25
+        },
+        "tests": {
+          "added": 454,
+          "deleted": 129
+        }
+      },
+      "files": [
+        {
+          "file": "python/python/lance/dataset.py",
+          "source_sha256": "38e2b782945367e03785932bd2323eb529f48fdf78b3be045cd116a5874e792f",
+          "old_test_start": null,
+          "new_test_start": null,
+          "canonical": {
+            "production_rust": {
+              "added": 0,
+              "deleted": 0
+            },
+            "python_documentation": {
+              "added": 18,
+              "deleted": 25
+            },
+            "tests": {
+              "added": 0,
+              "deleted": 0
+            }
+          },
+          "production_rust": {
+            "added": 0,
+            "deleted": 0
+          },
+          "python_documentation": {
+            "added": 18,
+            "deleted": 25
+          },
+          "tests": {
+            "added": 0,
+            "deleted": 0
+          }
+        },
+        {
+          "file": "python/python/tests/test_dataset.py",
+          "source_sha256": "c8212c090b889001f11c99ef4600383f40d03faa3e16e1753b1014bbb1f991d6",
+          "old_test_start": null,
+          "new_test_start": null,
+          "canonical": {
+            "production_rust": {
+              "added": 0,
+              "deleted": 0
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 4,
+              "deleted": 10
+            }
+          },
+          "production_rust": {
+            "added": 0,
+            "deleted": 0
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 4,
+            "deleted": 10
+          }
+        },
+        {
+          "file": "rust/lance/src/datafusion/dataframe.rs",
+          "source_sha256": "7bd13c2b9c3127003dc08f2cc2f3b67391ffe386acdbf0706d147148c8f8ad01",
+          "old_test_start": 319,
+          "new_test_start": 330,
+          "canonical": {
+            "production_rust": {
+              "added": 11,
+              "deleted": 0
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 0,
+              "deleted": 0
+            }
+          },
+          "production_rust": {
+            "added": 11,
+            "deleted": 0
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 0,
+            "deleted": 0
+          }
+        },
+        {
+          "file": "rust/lance/src/dataset/write/merge_insert.rs",
+          "source_sha256": "b9010699df34acc06ff16b5425a2bc16ccf7761fa2e57f0965696ab4f109515e",
+          "old_test_start": 4069,
+          "new_test_start": 4177,
+          "canonical": {
+            "production_rust": {
+              "added": 154,
+              "deleted": 46
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 225,
+              "deleted": 119
+            }
+          },
+          "production_rust": {
+            "added": 154,
+            "deleted": 46
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 225,
+            "deleted": 119
+          }
+        },
+        {
+          "file": "rust/lance/tests/merge_insert_memory_bound.rs",
+          "source_sha256": "09b98b5613196d3b5bcdf23bf90321f303f32d1bcd10d97014bd4a353b2e786a",
+          "old_test_start": null,
+          "new_test_start": null,
+          "canonical": {
+            "production_rust": {
+              "added": 0,
+              "deleted": 0
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 225,
+              "deleted": 0
+            }
+          },
+          "production_rust": {
+            "added": 0,
+            "deleted": 0
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 225,
+            "deleted": 0
+          }
+        }
+      ]
+    },
+    {
+      "variant": "D",
+      "patch_sha256": "75959c78df6f4354592d8e38fdd8b6e76314c69f2496862b0729a165ba5e0a31",
+      "totals": {
+        "production_rust": {
+          "added": 532,
+          "deleted": 129
+        },
+        "python_documentation": {
+          "added": 0,
+          "deleted": 0
+        },
+        "tests": {
+          "added": 988,
+          "deleted": 58
+        }
+      },
+      "total": {
+        "added": 1520,
+        "deleted": 187
+      },
+      "canonical_totals": {
+        "production_rust": {
+          "added": 532,
+          "deleted": 129
+        },
+        "python_documentation": {
+          "added": 0,
+          "deleted": 0
+        },
+        "tests": {
+          "added": 988,
+          "deleted": 58
+        }
+      },
+      "files": [
+        {
+          "file": "rust/lance/src/dataset/write/merge_insert.rs",
+          "source_sha256": "de8c683744c437b0d067b4d6e16e5d9aeca5fc484528323a85c978bc0f7d8f80",
+          "old_test_start": 4069,
+          "new_test_start": 4126,
+          "canonical": {
+            "production_rust": {
+              "added": 82,
+              "deleted": 25
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 361,
+              "deleted": 56
+            }
+          },
+          "production_rust": {
+            "added": 82,
+            "deleted": 25
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 361,
+            "deleted": 56
+          }
+        },
+        {
+          "file": "rust/lance/src/dataset/write/merge_insert/exec/condition.rs",
+          "source_sha256": "9f875074f6ff0378dd778d25f1c7be3db3e7fa5d6d3a0c95ba1824cefe59e4ec",
+          "old_test_start": 459,
+          "new_test_start": 800,
+          "canonical": {
+            "production_rust": {
+              "added": 437,
+              "deleted": 96
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 627,
+              "deleted": 2
+            }
+          },
+          "production_rust": {
+            "added": 437,
+            "deleted": 96
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 627,
+            "deleted": 2
+          }
+        },
+        {
+          "file": "rust/lance/src/dataset/write/merge_insert/logical_plan.rs",
+          "source_sha256": "65e11ed69c3eb76e1490f4dcb77018133f37b75448fe8b556b613fb89bc9fc56",
+          "old_test_start": null,
+          "new_test_start": null,
+          "canonical": {
+            "production_rust": {
+              "added": 13,
+              "deleted": 8
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 0,
+              "deleted": 0
+            }
+          },
+          "production_rust": {
+            "added": 13,
+            "deleted": 8
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 0,
+            "deleted": 0
+          }
+        }
+      ]
+    },
+    {
+      "variant": "CTX",
+      "patch_sha256": "132f3a15bef81b2828130f3c7d6c7cdbbeb1eea3283da86053ffd3caa3db9026",
+      "totals": {
+        "production_rust": {
+          "added": 33,
+          "deleted": 8
+        },
+        "python_documentation": {
+          "added": 0,
+          "deleted": 0
+        },
+        "tests": {
+          "added": 156,
+          "deleted": 0
+        }
+      },
+      "total": {
+        "added": 189,
+        "deleted": 8
+      },
+      "canonical_totals": {
+        "production_rust": {
+          "added": 33,
+          "deleted": 8
+        },
+        "python_documentation": {
+          "added": 0,
+          "deleted": 0
+        },
+        "tests": {
+          "added": 156,
+          "deleted": 0
+        }
+      },
+      "files": [
+        {
+          "file": "rust/lance/src/dataset/write/merge_insert.rs",
+          "source_sha256": "99451db194764dc9b9be6be165bacd8500c3e093a01718179835be2bfbc6dd15",
+          "old_test_start": 4069,
+          "new_test_start": 4094,
+          "canonical": {
+            "production_rust": {
+              "added": 33,
+              "deleted": 8
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 156,
+              "deleted": 0
+            }
+          },
+          "production_rust": {
+            "added": 33,
+            "deleted": 8
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 156,
+            "deleted": 0
+          }
+        }
+      ]
+    },
+    {
+      "variant": "DB",
+      "patch_sha256": "3ddbc4a0cf4b6c8cdd90e9827b72a794a0c65697515205f1dca4935f6f3486d4",
+      "totals": {
+        "production_rust": {
+          "added": 650,
+          "deleted": 175
+        },
+        "python_documentation": {
+          "added": 7,
+          "deleted": 5
+        },
+        "tests": {
+          "added": 1179,
+          "deleted": 91
+        }
+      },
+      "total": {
+        "added": 1836,
+        "deleted": 271
+      },
+      "canonical_totals": {
+        "production_rust": {
+          "added": 647,
+          "deleted": 172
+        },
+        "python_documentation": {
+          "added": 7,
+          "deleted": 5
+        },
+        "tests": {
+          "added": 1178,
+          "deleted": 90
+        }
+      },
+      "files": [
+        {
+          "file": "python/python/lance/dataset.py",
+          "source_sha256": "c5ce3cf5c56fc726a2156d399725ca88b8979dcca97a80399b662e0f19c567cd",
+          "old_test_start": null,
+          "new_test_start": null,
+          "canonical": {
+            "production_rust": {
+              "added": 0,
+              "deleted": 0
+            },
+            "python_documentation": {
+              "added": 7,
+              "deleted": 5
+            },
+            "tests": {
+              "added": 0,
+              "deleted": 0
+            }
+          },
+          "production_rust": {
+            "added": 0,
+            "deleted": 0
+          },
+          "python_documentation": {
+            "added": 7,
+            "deleted": 5
+          },
+          "tests": {
+            "added": 0,
+            "deleted": 0
+          }
+        },
+        {
+          "file": "python/python/tests/test_dataset.py",
+          "source_sha256": "e81384b7433aabf6b292240c7c74a5a6b994bb78313f3f9565bb1c15be5a7df3",
+          "old_test_start": null,
+          "new_test_start": null,
+          "canonical": {
+            "production_rust": {
+              "added": 0,
+              "deleted": 0
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 69,
+              "deleted": 19
+            }
+          },
+          "production_rust": {
+            "added": 0,
+            "deleted": 0
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 69,
+            "deleted": 19
+          }
+        },
+        {
+          "file": "rust/lance/src/dataset/write/merge_insert/exec/condition.rs",
+          "source_sha256": "9f875074f6ff0378dd778d25f1c7be3db3e7fa5d6d3a0c95ba1824cefe59e4ec",
+          "old_test_start": 459,
+          "new_test_start": 800,
+          "canonical": {
+            "production_rust": {
+              "added": 437,
+              "deleted": 96
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 627,
+              "deleted": 2
+            }
+          },
+          "production_rust": {
+            "added": 440,
+            "deleted": 99
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 627,
+            "deleted": 2
+          }
+        },
+        {
+          "file": "rust/lance/src/dataset/write/merge_insert/logical_plan.rs",
+          "source_sha256": "65e11ed69c3eb76e1490f4dcb77018133f37b75448fe8b556b613fb89bc9fc56",
+          "old_test_start": null,
+          "new_test_start": null,
+          "canonical": {
+            "production_rust": {
+              "added": 13,
+              "deleted": 8
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 0,
+              "deleted": 0
+            }
+          },
+          "production_rust": {
+            "added": 13,
+            "deleted": 8
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 0,
+            "deleted": 0
+          }
+        },
+        {
+          "file": "rust/lance/src/dataset/write/merge_insert.rs",
+          "source_sha256": "ea36239fb6b7a38392c72bd99419255d7b4d1dab2fe98d4f98f0a2109c50fabc",
+          "old_test_start": 4069,
+          "new_test_start": 4198,
+          "canonical": {
+            "production_rust": {
+              "added": 197,
+              "deleted": 68
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 482,
+              "deleted": 69
+            }
+          },
+          "production_rust": {
+            "added": 197,
+            "deleted": 68
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 483,
+            "deleted": 70
+          }
+        }
+      ]
+    },
+    {
+      "variant": "DP",
+      "patch_sha256": "7ebb5bf8a2d64467cfbf306661b4aed20aa587837f0a5c1d20e87735b544f56c",
+      "totals": {
+        "production_rust": {
+          "added": 674,
+          "deleted": 172
+        },
+        "python_documentation": {
+          "added": 18,
+          "deleted": 25
+        },
+        "tests": {
+          "added": 1424,
+          "deleted": 186
+        }
+      },
+      "total": {
+        "added": 2116,
+        "deleted": 383
+      },
+      "canonical_totals": {
+        "production_rust": {
+          "added": 671,
+          "deleted": 169
+        },
+        "python_documentation": {
+          "added": 18,
+          "deleted": 25
+        },
+        "tests": {
+          "added": 1424,
+          "deleted": 186
+        }
+      },
+      "files": [
+        {
+          "file": "python/python/lance/dataset.py",
+          "source_sha256": "38e2b782945367e03785932bd2323eb529f48fdf78b3be045cd116a5874e792f",
+          "old_test_start": null,
+          "new_test_start": null,
+          "canonical": {
+            "production_rust": {
+              "added": 0,
+              "deleted": 0
+            },
+            "python_documentation": {
+              "added": 18,
+              "deleted": 25
+            },
+            "tests": {
+              "added": 0,
+              "deleted": 0
+            }
+          },
+          "production_rust": {
+            "added": 0,
+            "deleted": 0
+          },
+          "python_documentation": {
+            "added": 18,
+            "deleted": 25
+          },
+          "tests": {
+            "added": 0,
+            "deleted": 0
+          }
+        },
+        {
+          "file": "python/python/tests/test_dataset.py",
+          "source_sha256": "c8212c090b889001f11c99ef4600383f40d03faa3e16e1753b1014bbb1f991d6",
+          "old_test_start": null,
+          "new_test_start": null,
+          "canonical": {
+            "production_rust": {
+              "added": 0,
+              "deleted": 0
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 4,
+              "deleted": 10
+            }
+          },
+          "production_rust": {
+            "added": 0,
+            "deleted": 0
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 4,
+            "deleted": 10
+          }
+        },
+        {
+          "file": "rust/lance/src/datafusion/dataframe.rs",
+          "source_sha256": "7bd13c2b9c3127003dc08f2cc2f3b67391ffe386acdbf0706d147148c8f8ad01",
+          "old_test_start": 319,
+          "new_test_start": 330,
+          "canonical": {
+            "production_rust": {
+              "added": 11,
+              "deleted": 0
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 0,
+              "deleted": 0
+            }
+          },
+          "production_rust": {
+            "added": 11,
+            "deleted": 0
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 0,
+            "deleted": 0
+          }
+        },
+        {
+          "file": "rust/lance/src/dataset/write/merge_insert/exec/condition.rs",
+          "source_sha256": "9f875074f6ff0378dd778d25f1c7be3db3e7fa5d6d3a0c95ba1824cefe59e4ec",
+          "old_test_start": 459,
+          "new_test_start": 800,
+          "canonical": {
+            "production_rust": {
+              "added": 437,
+              "deleted": 96
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 627,
+              "deleted": 2
+            }
+          },
+          "production_rust": {
+            "added": 440,
+            "deleted": 99
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 627,
+            "deleted": 2
+          }
+        },
+        {
+          "file": "rust/lance/src/dataset/write/merge_insert/logical_plan.rs",
+          "source_sha256": "65e11ed69c3eb76e1490f4dcb77018133f37b75448fe8b556b613fb89bc9fc56",
+          "old_test_start": null,
+          "new_test_start": null,
+          "canonical": {
+            "production_rust": {
+              "added": 13,
+              "deleted": 8
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 0,
+              "deleted": 0
+            }
+          },
+          "production_rust": {
+            "added": 13,
+            "deleted": 8
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 0,
+            "deleted": 0
+          }
+        },
+        {
+          "file": "rust/lance/src/dataset/write/merge_insert.rs",
+          "source_sha256": "f42be3d3759b0e83bff846991ae25054c48759c2972c3e4d3745e692ddca9025",
+          "old_test_start": 4069,
+          "new_test_start": 4214,
+          "canonical": {
+            "production_rust": {
+              "added": 210,
+              "deleted": 65
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 568,
+              "deleted": 174
+            }
+          },
+          "production_rust": {
+            "added": 210,
+            "deleted": 65
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 568,
+            "deleted": 174
+          }
+        },
+        {
+          "file": "rust/lance/tests/merge_insert_memory_bound.rs",
+          "source_sha256": "09b98b5613196d3b5bcdf23bf90321f303f32d1bcd10d97014bd4a353b2e786a",
+          "old_test_start": null,
+          "new_test_start": null,
+          "canonical": {
+            "production_rust": {
+              "added": 0,
+              "deleted": 0
+            },
+            "python_documentation": {
+              "added": 0,
+              "deleted": 0
+            },
+            "tests": {
+              "added": 225,
+              "deleted": 0
+            }
+          },
+          "production_rust": {
+            "added": 0,
+            "deleted": 0
+          },
+          "python_documentation": {
+            "added": 0,
+            "deleted": 0
+          },
+          "tests": {
+            "added": 225,
+            "deleted": 0
+          }
+        }
+      ]
+    }
+  ]
+}

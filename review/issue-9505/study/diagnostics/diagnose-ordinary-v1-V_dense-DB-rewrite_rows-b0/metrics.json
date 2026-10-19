@@ -1,0 +1,56 @@
+{
+  "status": "analyze_returned",
+  "operation": "analyze",
+  "snapshot": 1,
+  "identity": {
+    "module": "/mnt/lance/checkouts/unified-9505-DB/python/python/lance/__init__.py",
+    "extension": "/mnt/lance/checkouts/unified-9505-DB/python/python/lance/lance.abi3.so",
+    "extension_sha256": "1b28b5def10d4e004b90820b470b11191574353761d6280a680f73db601a79db",
+    "version": "14.0.0-beta.19",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "pyarrow": "25.0.1"
+  },
+  "schema": "id: int64\nc0: int64\nc1: int64\nkeep_text: string\nkeep_binary: large_binary\nrow_marker: int64",
+  "configured_pool_bytes": 1073741824,
+  "pool_policy": "Source review: planning and execute/analyze share the bounded factory context; B join selection is combined with deferred payload.",
+  "baseline_rss": {
+    "VmHWM": 165691392,
+    "VmRSS": 165691392,
+    "RssAnon": 68825088,
+    "RssFile": 96866304,
+    "RssShmem": 0
+  },
+  "input_materialization_seconds": 0,
+  "execute_rss_before": {
+    "VmHWM": 166027264,
+    "VmRSS": 166027264,
+    "RssAnon": 68833280,
+    "RssFile": 97193984,
+    "RssShmem": 0
+  },
+  "ru_maxrss_before_execute_bytes": 165457920,
+  "analyzed_plan_sha256": "7face66182011f8ef54ac45119cb6e01ce4c55e625d5a4c46a3f4da56df1f269",
+  "analyze_seconds": 0.7757052870001644,
+  "cpu_seconds": 5.268331,
+  "process_io_delta": {
+    "rchar": 219688260,
+    "wchar": 143046320,
+    "syscr": 140834,
+    "syscw": 754,
+    "read_bytes": 0,
+    "write_bytes": 143089664,
+    "cancelled_write_bytes": 0
+  },
+  "ru_maxrss_bytes": 645873664,
+  "ru_maxrss_after_execute_bytes": 645873664,
+  "execute_rss_after": {
+    "VmHWM": 647426048,
+    "VmRSS": 647426048,
+    "RssAnon": 482095104,
+    "RssFile": 165330944,
+    "RssShmem": 0
+  },
+  "new_data_file_bytes": 142934946,
+  "new_data_file_count": 1,
+  "input_and_api_seconds": 0.7757052870001644
+}

@@ -1,0 +1,67 @@
+Audit: passed; planned=184, execute=161, diagnostic=23, references=0, missing=0
+
+| Plan/workload | Variant/mode | Pool MiB | Cache/input | n | API median s | RSS MiB | Cgroup MiB | New .lance bytes |
+|---|---|---:|---|---:|---:|---:|---:|---:|
+| pairs-f16-v1/F16 | B/rewrite_rows | 1024 | hot/reader | 3 | 1.581410 | 1080.81 | 953.89 | 44782 |
+| pairs-f16-v1/F16 | D/rewrite_rows | 1024 | hot/reader | 3 | 0.516487 | 1502.20 | 1383.88 | 44782 |
+| pairs-f16-v1/F16 | DB/rewrite_rows | 1024 | hot/reader | 3 | 0.188800 | 290.05 | 142.23 | 44782 |
+| pairs-f16-v1/F16 | DP/rewrite_rows | 1024 | hot/reader | 3 | 0.245194 | 278.83 | 129.56 | 44782 |
+| pairs-f16-v1/F16 | P/rewrite_rows | 1024 | hot/reader | 3 | 0.708774 | 800.67 | 668.39 | 44782 |
+| pairs-ordinary-v1/N_dense | B/rewrite_rows | 1024 | hot/reader | 3 | 0.067520 | 302.98 | 161.47 | 4.93359e+06 |
+| pairs-ordinary-v1/N_dense | CTX/rewrite_rows | 1024 | hot/reader | 3 | 0.067506 | 287.35 | 145.25 | 4.93359e+06 |
+| pairs-ordinary-v1/N_dense | D/rewrite_rows | 1024 | hot/reader | 3 | 0.110350 | 404.99 | 272.24 | 4.93359e+06 |
+| pairs-ordinary-v1/N_dense | DB/rewrite_rows | 1024 | hot/reader | 3 | 0.113964 | 411.61 | 275.06 | 4.93359e+06 |
+| pairs-ordinary-v1/N_dense | DP/rewrite_rows | 1024 | hot/reader | 3 | 0.088146 | 274.68 | 131.54 | 4.90479e+06 |
+| pairs-ordinary-v1/N_dense | P/rewrite_rows | 1024 | hot/reader | 3 | 0.058656 | 280.00 | 136.07 | 4.90479e+06 |
+| pairs-ordinary-v1/V_dense | B/rewrite_rows | 1024 | hot/reader | 3 | 0.786669 | 963.66 | 923.86 | 1.42936e+08 |
+| pairs-ordinary-v1/V_dense | CTX/rewrite_rows | 1024 | hot/reader | 3 | 0.900438 | 1033.17 | 1023.78 | 1.42946e+08 |
+| pairs-ordinary-v1/V_dense | D/rewrite_rows | 1024 | hot/reader | 3 | 0.945353 | 618.89 | 612.82 | 1.42954e+08 |
+| pairs-ordinary-v1/V_dense | DB/rewrite_rows | 1024 | hot/reader | 3 | 0.801196 | 610.34 | 602.95 | 1.42934e+08 |
+| pairs-ordinary-v1/V_dense | DP/rewrite_rows | 1024 | hot/reader | 3 | 0.771807 | 482.31 | 472.39 | 1.42927e+08 |
+| pairs-ordinary-v1/V_dense | P/rewrite_rows | 1024 | hot/reader | 3 | 0.749957 | 758.96 | 746.16 | 1.42929e+08 |
+| pairs-reverse-v1/R_admission | B/rewrite_rows | 256 | hot/reader | 3 | 1.860670 | 1777.40 | 2214.55 | 7.03789e+08 |
+| pairs-reverse-v1/R_admission | D/rewrite_rows | 256 | hot/reader | 3 | 1.944012 | 1929.45 | 2430.65 | 7.03789e+08 |
+| pairs-reverse-v1/R_admission | DB/rewrite_rows | 256 | hot/reader | 3 | 1.918346 | 1734.45 | 2225.02 | 7.03789e+08 |
+| pairs-wn-v1/Wn | B/rewrite_rows | 1024 | hot/reader | 3 | 2.673831 | 2626.86 | 2512.39 | 1.31078e+08 |
+| pairs-wn-v1/Wn | D/rewrite_rows | 1024 | hot/reader | 3 | 0.241743 | 475.31 | 454.01 | 1.3108e+08 |
+| pairs-wn-v1/Wn | DB/rewrite_rows | 1024 | hot/reader | 3 | 0.248135 | 483.27 | 461.53 | 1.3108e+08 |
+| pairs-wn-v1/Wn | DP/rewrite_rows | 1024 | hot/reader | 3 | 0.344471 | 407.88 | 382.90 | 1.3108e+08 |
+| pairs-wn-v1/Wn | P/rewrite_rows | 1024 | hot/reader | 3 | 2.101267 | 2544.45 | 2421.99 | 1.31078e+08 |
+| pairs-ws-v1/Ws | D/rewrite_rows | 1024 | hot/reader | 3 | 1.779434 | 1577.45 | 1736.00 | 3.93227e+08 |
+| pairs-ws-v1/Ws | DB/rewrite_rows | 1024 | hot/reader | 3 | 1.775203 | 1559.07 | 1747.32 | 3.93227e+08 |
+| pairs-ws-v1/Ws | DP/rewrite_rows | 1024 | hot/reader | 3 | 1.274531 | 1561.57 | 1799.93 | 3.93227e+08 |
+| pairs-ws-v1/Ws | P/rewrite_rows | 1024 | hot/reader | 3 | 3.238988 | 4171.67 | 4171.81 | 3.93229e+08 |
+
+| Plan/workload | Numerator / denominator | Valid pairs | Median same-block ratio |
+|---|---|---:|---:|
+| pairs-f16-v1/F16 | DB/rewrite_rows / D/rewrite_rows | 3/3 | 0.362733 |
+| pairs-f16-v1/F16 | DP/rewrite_rows / P/rewrite_rows | 3/3 | 0.350174 |
+| pairs-f16-v1/F16 | DB/rewrite_rows / B/rewrite_rows | 3/3 | 0.116643 |
+| pairs-f16-v1/F16 | DB/rewrite_rows / DP/rewrite_rows | 3/3 | 0.770638 |
+| pairs-f16-v1/F16 | D/rewrite_rows / P/rewrite_rows | 3/3 | 0.729250 |
+| pairs-f16-v1/F16 | B/rewrite_rows / P/rewrite_rows | 3/3 | 2.231190 |
+| pairs-ordinary-v1/N_dense | D/rewrite_rows / CTX/rewrite_rows | 3/3 | 1.625570 |
+| pairs-ordinary-v1/N_dense | DB/rewrite_rows / D/rewrite_rows | 3/3 | 1.069634 |
+| pairs-ordinary-v1/N_dense | DB/rewrite_rows / B/rewrite_rows | 3/3 | 1.681538 |
+| pairs-ordinary-v1/N_dense | DP/rewrite_rows / P/rewrite_rows | 3/3 | 1.519803 |
+| pairs-ordinary-v1/N_dense | DB/rewrite_rows / DP/rewrite_rows | 3/3 | 1.292894 |
+| pairs-ordinary-v1/N_dense | P/rewrite_rows / B/rewrite_rows | 3/3 | 0.868714 |
+| pairs-ordinary-v1/V_dense | D/rewrite_rows / CTX/rewrite_rows | 3/3 | 1.060433 |
+| pairs-ordinary-v1/V_dense | DB/rewrite_rows / D/rewrite_rows | 3/3 | 0.841448 |
+| pairs-ordinary-v1/V_dense | DB/rewrite_rows / B/rewrite_rows | 3/3 | 1.026585 |
+| pairs-ordinary-v1/V_dense | DP/rewrite_rows / P/rewrite_rows | 3/3 | 1.037752 |
+| pairs-ordinary-v1/V_dense | DB/rewrite_rows / DP/rewrite_rows | 3/3 | 1.038078 |
+| pairs-ordinary-v1/V_dense | P/rewrite_rows / B/rewrite_rows | 3/3 | 0.968898 |
+| pairs-reverse-v1/R_admission | DB/rewrite_rows / D/rewrite_rows | 3/3 | 0.985726 |
+| pairs-reverse-v1/R_admission | B/rewrite_rows / D/rewrite_rows | 3/3 | 0.976280 |
+| pairs-reverse-v1/R_admission | DB/rewrite_rows / B/rewrite_rows | 3/3 | 1.009675 |
+| pairs-wn-v1/Wn | D/rewrite_rows / B/rewrite_rows | 3/3 | 0.090411 |
+| pairs-wn-v1/Wn | D/rewrite_rows / P/rewrite_rows | 3/3 | 0.118301 |
+| pairs-wn-v1/Wn | DB/rewrite_rows / D/rewrite_rows | 3/3 | 0.999549 |
+| pairs-wn-v1/Wn | DP/rewrite_rows / P/rewrite_rows | 3/3 | 0.164678 |
+| pairs-wn-v1/Wn | DB/rewrite_rows / DP/rewrite_rows | 3/3 | 0.705261 |
+| pairs-ws-v1/Ws | D/rewrite_rows / P/rewrite_rows | 3/3 | 0.541206 |
+| pairs-ws-v1/Ws | DB/rewrite_rows / D/rewrite_rows | 3/3 | 0.999548 |
+| pairs-ws-v1/Ws | DP/rewrite_rows / P/rewrite_rows | 3/3 | 0.395854 |
+| pairs-ws-v1/Ws | DB/rewrite_rows / DP/rewrite_rows | 3/3 | 1.392829 |
+2026-10-18T23:06:34+00:00

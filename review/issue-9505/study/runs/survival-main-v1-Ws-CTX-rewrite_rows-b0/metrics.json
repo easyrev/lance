@@ -1,0 +1,58 @@
+{
+  "status": "resource_exhausted",
+  "operation": "execute",
+  "snapshot": 1,
+  "identity": {
+    "module": "/mnt/lance/checkouts/unified-9505-CTX/python/python/lance/__init__.py",
+    "extension": "/mnt/lance/checkouts/unified-9505-CTX/python/python/lance/lance.abi3.so",
+    "extension_sha256": "6e18f93d0d2d916a9b119e2387f0f52d8c03c7296be08ffcdd149bc6975758c7",
+    "version": "14.0.0-beta.19",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "pyarrow": "25.0.1"
+  },
+  "schema": "id: int64\nc0: int64\nc1: int64\npayload: large_binary\nnew_payload: large_binary\nrow_marker: int64",
+  "configured_pool_bytes": 1073741824,
+  "pool_policy": "Source review: planning and execution share the bounded factory context, without deferred payload or a new join selector.",
+  "baseline_rss": {
+    "VmHWM": 165969920,
+    "VmRSS": 165969920,
+    "RssAnon": 68947968,
+    "RssFile": 97021952,
+    "RssShmem": 0
+  },
+  "input_materialization_seconds": 0,
+  "execute_rss_before": {
+    "VmHWM": 166309888,
+    "VmRSS": 166309888,
+    "RssAnon": 68960256,
+    "RssFile": 97349632,
+    "RssShmem": 0
+  },
+  "ru_maxrss_before_execute_bytes": 165715968,
+  "error": "Resources exhausted: Additional allocation failed for HashJoinInput with top memory consumers (across reservations) as:\n  HashJoinInput#0(can spill: false) consumed 1000.0 MB, peak 1000.0 MB.\nError: Failed to allocate additional 125.0 MB for HashJoinInput with 1000.0 MB already allocated for this reservation - 24.0 MB remain available for the total memory pool: fair(pool_size: 1024.0 MB)",
+  "error_type": "OSError",
+  "traceback": "Traceback (most recent call last):\n  File \"/mnt/lance/unified-9505-20261019/harness/harness.py\", line 419, in execute\n    metrics[\"merge_stats\"] = builder.execute(source)\n                             ^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/mnt/lance/checkouts/unified-9505-CTX/python/python/lance/dataset.py\", line 405, in execute\n    return super(MergeInsertBuilder, self).execute(reader)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nOSError: Resources exhausted: Additional allocation failed for HashJoinInput with top memory consumers (across reservations) as:\n  HashJoinInput#0(can spill: false) consumed 1000.0 MB, peak 1000.0 MB.\nError: Failed to allocate additional 125.0 MB for HashJoinInput with 1000.0 MB already allocated for this reservation - 24.0 MB remain available for the total memory pool: fair(pool_size: 1024.0 MB)\n",
+  "merge_seconds": 1.8470895200007362,
+  "cpu_seconds": 5.113244999999999,
+  "process_io_delta": {
+    "rchar": 2097711255,
+    "wchar": 80,
+    "syscr": 403,
+    "syscw": 10,
+    "read_bytes": 0,
+    "write_bytes": 0,
+    "cancelled_write_bytes": 0
+  },
+  "ru_maxrss_bytes": 5337452544,
+  "ru_maxrss_after_execute_bytes": 5337452544,
+  "execute_rss_after": {
+    "VmHWM": 5337452544,
+    "VmRSS": 2403409920,
+    "RssAnon": 2244259840,
+    "RssFile": 159150080,
+    "RssShmem": 0
+  },
+  "new_data_file_bytes": 0,
+  "new_data_file_count": 0,
+  "input_and_api_seconds": 1.8470895200007362
+}

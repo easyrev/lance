@@ -1,0 +1,177 @@
+diff --git a/rust/lance/src/dataset/write/merge_insert/exec/condition.rs b/rust/lance/src/dataset/write/merge_insert/exec/condition.rs
+--- a/rust/lance/src/dataset/write/merge_insert/exec/condition.rs
++++ b/rust/lance/src/dataset/write/merge_insert/exec/condition.rs
+@@ -1225,6 +1225,173 @@
+     }
+ 
+     #[rstest::rstest]
++    #[case::one_jump(1)]
++    #[case::repeated_jumps(3)]
++    #[tokio::test]
++    async fn payload_soft_sizing_reacts_after_consecutive_large_values(#[case] groups: usize) {
++        const POOL_BYTES: usize = 1024 * 1024;
++        const BYTE_TARGET: usize = POOL_BYTES / 8;
++        const LARGE_BYTES: usize = 64 * 1024;
++        const LARGE_ROWS: usize = 10;
++        const BATCH_ROWS: usize = 8;
++
++        // Keep the small value in a separate fragment, so its first Take cannot
++        // retain a backing allocation that already contains the large values.
++        let small = record_batch!(("key", Int32, [0]), ("payload", Utf8, ["s"])).unwrap();
++        let dataset = Dataset::write(
++            RecordBatchIterator::new([Ok(small.clone())], small.schema()),
++            "memory://",
++            None,
++        )
++        .await
++        .unwrap();
++        let large_value = "x".repeat(LARGE_BYTES);
++        let large = record_batch!(
++            ("key", Int32, (1..=LARGE_ROWS as i32).collect::<Vec<_>>()),
++            ("payload", Utf8, vec![large_value.as_str(); LARGE_ROWS])
++        )
++        .unwrap();
++        let dataset = Arc::new(
++            crate::dataset::InsertBuilder::new(Arc::new(dataset))
++                .with_params(&WriteParams {
++                    mode: crate::dataset::WriteMode::Append,
++                    ..Default::default()
++                })
++                .execute(vec![large])
++                .await
++                .unwrap(),
++        );
++        assert_eq!(dataset.get_fragments().len(), 2);
++        let fragments = dataset.get_fragments();
++        let small_address = u64::from(RowAddress::new_from_parts(fragments[0].id() as u32, 0));
++        let large_addresses = (0..LARGE_ROWS)
++            .map(|row| {
++                u64::from(RowAddress::new_from_parts(
++                    fragments[1].id() as u32,
++                    row as u32,
++                ))
++            })
++            .collect::<Vec<_>>();
++        let addresses = (0..groups)
++            .flat_map(|_| std::iter::once(small_address).chain(large_addresses.iter().copied()))
++            .collect::<Vec<_>>();
++        let input_rows = addresses.len();
++        let input = record_batch!(
++            ("_rowid", UInt64, addresses.clone()),
++            ("_rowaddr", UInt64, addresses),
++            (
++                "key",
++                Int32,
++                (0..groups)
++                    .flat_map(|_| 0..=LARGE_ROWS as i32)
++                    .collect::<Vec<_>>()
++            ),
++            ("__merge_source_sentinel", Boolean, vec![true; input_rows]),
++            ("__action", UInt8, vec![Action::UpdateAll as u8; input_rows])
++        )
++        .unwrap();
++        let input_schema = DFSchema::from_field_specific_qualified_schema(
++            ["target", "target", "source", "source"]
++                .map(|relation| Some(TableReference::bare(relation)))
++                .into_iter()
++                .chain([None])
++                .collect(),
++            &input.schema(),
++        )
++        .unwrap();
++        let runtime = RuntimeEnvBuilder::new()
++            .with_memory_pool(Arc::new(GreedyMemoryPool::new(POOL_BYTES)))
++            .build_arc()
++            .unwrap();
++        let session = SessionContext::new_with_config_rt(
++            SessionConfig::new().with_batch_size(BATCH_ROWS),
++            runtime,
++        );
++        // Execute this node directly with one input partition. A merge join
++        // could reorder the addresses and would not prove the intended sequence.
++        let exec = MergeConditionExec::try_new(
++            TestMemoryExec::try_new_exec(&[vec![input.clone()]], input.schema(), None).unwrap(),
++            &input_schema,
++            dataset,
++            None,
++            None,
++            &session.state(),
++        )
++        .unwrap()
++        .with_payload_columns(vec!["payload".into()])
++        .unwrap();
++        assert_eq!(exec.properties().output_partitioning().partition_count(), 1);
++        let payload_bytes = || {
++            exec.metrics()
++                .unwrap()
++                .sum_by_name("payload_take_arrow_bytes")
++                .unwrap()
++                .as_usize()
++        };
++        let mut stream = exec.execute(0, session.task_ctx()).unwrap();
++        let mut observations = Vec::with_capacity(groups * 4);
++        let mut consumed = 0;
++        for group in 0..groups {
++            for (position, expected_rows) in [1, BATCH_ROWS, 1, 1].into_iter().enumerate() {
++                let before_take_bytes = payload_bytes();
++                let output = stream.next().await.unwrap().unwrap();
++                let take_bytes = payload_bytes() - before_take_bytes;
++                let output_bytes = output.get_array_memory_size();
++                observations.push((output.num_rows(), output_bytes, take_bytes));
++                assert_eq!(
++                    output.num_rows(),
++                    expected_rows,
++                    "group {group}, position {position}: {observations:?}"
++                );
++                if position == 0 {
++                    assert!(
++                        take_bytes <= BYTE_TARGET / (4 * BATCH_ROWS),
++                        "the small observation must allow eight rows next: {observations:?}"
++                    );
++                } else if position == 1 {
++                    assert!(
++                        output_bytes >= BATCH_ROWS * LARGE_BYTES && output_bytes >= 4 * BYTE_TARGET,
++                        "the first large chunk exceeds the soft target before resizing: {observations:?}"
++                    );
++                } else {
++                    assert!(
++                        output_bytes < BYTE_TARGET,
++                        "the large observation must shrink subsequent chunks: {observations:?}"
++                    );
++                }
++                for field in input.schema().fields() {
++                    assert_eq!(
++                        output[field.name().as_str()].to_data(),
++                        input.slice(consumed, expected_rows)[field.name().as_str()].to_data()
++                    );
++                }
++                let payload = output["payload"].as_string::<i32>();
++                for row in 0..expected_rows {
++                    assert_eq!(
++                        payload.value(row),
++                        if position == 0 {
++                            "s"
++                        } else {
++                            large_value.as_str()
++                        }
++                    );
++                }
++                consumed += expected_rows;
++            }
++        }
++        assert!(stream.next().await.is_none());
++        assert_eq!(consumed, input_rows);
++        assert_eq!(
++            exec.metrics()
++                .unwrap()
++                .sum_by_name("payload_take_rows")
++                .unwrap()
++                .as_usize(),
++            input_rows
++        );
++    }
++
++    #[rstest::rstest]
+     #[case::payload_no_candidates(true, false)]
+     #[case::payload_after_insert_prefix(true, true)]
+     #[case::condition_only(false, true)]

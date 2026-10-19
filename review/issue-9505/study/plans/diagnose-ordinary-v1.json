@@ -1,0 +1,259 @@
+{
+  "name": "diagnose-ordinary-v1",
+  "freeze": "all-v1",
+  "freeze_sha256": "19a95b34dc937a4c8ebbe254e28361b6eedbb9e1c2eeb18f28c2919c704126ae",
+  "kind": "diagnose",
+  "workloads": [
+    "N_dense",
+    "V_dense"
+  ],
+  "cells": [
+    {
+      "run_id": "diagnose-ordinary-v1-N_dense-CTX-rewrite_rows-b0",
+      "workload": "N_dense",
+      "variant": "CTX",
+      "write_mode": "rewrite_rows",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "diagnose-ordinary-v1-N_dense-B-rewrite_rows-b0",
+      "workload": "N_dense",
+      "variant": "B",
+      "write_mode": "rewrite_rows",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "diagnose-ordinary-v1-N_dense-P-rewrite_rows-b0",
+      "workload": "N_dense",
+      "variant": "P",
+      "write_mode": "rewrite_rows",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "diagnose-ordinary-v1-N_dense-D-rewrite_rows-b0",
+      "workload": "N_dense",
+      "variant": "D",
+      "write_mode": "rewrite_rows",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "diagnose-ordinary-v1-N_dense-DB-rewrite_rows-b0",
+      "workload": "N_dense",
+      "variant": "DB",
+      "write_mode": "rewrite_rows",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "diagnose-ordinary-v1-N_dense-DP-rewrite_rows-b0",
+      "workload": "N_dense",
+      "variant": "DP",
+      "write_mode": "rewrite_rows",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "diagnose-ordinary-v1-V_dense-CTX-rewrite_rows-b0",
+      "workload": "V_dense",
+      "variant": "CTX",
+      "write_mode": "rewrite_rows",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "diagnose-ordinary-v1-V_dense-B-rewrite_rows-b0",
+      "workload": "V_dense",
+      "variant": "B",
+      "write_mode": "rewrite_rows",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "diagnose-ordinary-v1-V_dense-P-rewrite_rows-b0",
+      "workload": "V_dense",
+      "variant": "P",
+      "write_mode": "rewrite_rows",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "diagnose-ordinary-v1-V_dense-D-rewrite_rows-b0",
+      "workload": "V_dense",
+      "variant": "D",
+      "write_mode": "rewrite_rows",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "diagnose-ordinary-v1-V_dense-DB-rewrite_rows-b0",
+      "workload": "V_dense",
+      "variant": "DB",
+      "write_mode": "rewrite_rows",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    },
+    {
+      "run_id": "diagnose-ordinary-v1-V_dense-DP-rewrite_rows-b0",
+      "workload": "V_dense",
+      "variant": "DP",
+      "write_mode": "rewrite_rows",
+      "block": 0,
+      "pool_bytes": 1073741824,
+      "cgroup_bytes": 8589934592,
+      "cache": "hot",
+      "input_form": "reader",
+      "timeout_seconds": 1200
+    }
+  ],
+  "fixtures": {
+    "N_dense": {
+      "metadata": {
+        "spec": {
+          "seed": 9505,
+          "epoch": 1,
+          "source_rows": 180000,
+          "batch_rows": 32768,
+          "full": false,
+          "binary": 0,
+          "dense": false,
+          "rows": 200000,
+          "columns": 8,
+          "fragment_rows": 25000,
+          "name": "N_dense"
+        },
+        "version": 1,
+        "rows": 200000,
+        "fragments": 8
+      },
+      "origin": {
+        "kind": "generated",
+        "freeze": "fixtures",
+        "freeze_sha256": "9280b301f0c831cfd12b85170763716d80b62b3e651f5e392f2ebaa698d7911e",
+        "generator_identity": {
+          "module": "/mnt/lance/checkouts/U_main/python/python/lance/__init__.py",
+          "extension": "/mnt/lance/checkouts/U_main/python/python/lance/lance.abi3.so",
+          "extension_sha256": "5c9e85d8804aeac54f030db6a7a0b8f02373e89c2f106777bbb2647660a1d65a",
+          "version": "14.0.0-beta.19",
+          "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+          "pyarrow": "25.0.1"
+        }
+      },
+      "files": {
+        "_transactions/0-2e1949e8-4dd9-4748-85e2-ee5b06f418b0.txn": "100b7f8bb5bb232e4b2edfc0adc1919129a5582287c4323938e68db029c82b3e",
+        "_versions/18446744073709551614.manifest": "35bafa7494b1d45da5ccc9f76d42c4ebc3b1c092aaebd7c9cd76cb69b6eca5ed",
+        "_versions/latest_version_hint.json": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8",
+        "data/0011011111000101000000006820694e52a793c634dd364a21.lance": "eeccd9a7b84a8888f6e54c91e33518060ed0086019266629732013b7d1b6cc7c",
+        "data/010100001000100001001111e8c5454f589adbeb5c4d64009f.lance": "c746f3299241eec5c24326fa6bea043762edcba00ced912941ab45e0cc010d25",
+        "data/011001011100100111110110af654642e8856a34fa7d749c78.lance": "05a9a888e5c31fa1e6459645af4c1263d5dcc449919ac7dea853e28f9a945d93",
+        "data/100010000100111101011001c55cc749dfa70302f86a822520.lance": "a5432c51a790534652f272b423a3b8365417c1108db533061b7243f5bf4bb07c",
+        "data/10010110100101111001000124d212431f82a29b4b60149f32.lance": "5acd279b55483680a521de46e39392be9173e67310f42abc05d4a53ba90011fb",
+        "data/110101001010010110001000478eca4aea9bef76f3c168fbbd.lance": "326b88fd5624d72d459420f2e475a02e6397465d08362d65b5dbd69057f09162",
+        "data/1110010001111111001100109938bd4d09bc89a65e5f1bf37a.lance": "e6e167811c1069d9f97c19caa654d3083d9bc1bb7a1783855a577e13c0976ff0",
+        "data/111111000110010011100100f393b642dfb9e8e8531737f8a5.lance": "108e82c03c2e31adc21eed9c8e93177f6b247311dadbaac6e2c330d5d3e2fa04",
+        "fixture.json": "43bc9235db72bddd28e1b1e13dd89adfb865db4ca8a53ef130647f1774ea09fb"
+      }
+    },
+    "V_dense": {
+      "metadata": {
+        "spec": {
+          "seed": 9505,
+          "epoch": 1,
+          "source_rows": 90000,
+          "batch_rows": 256,
+          "full": false,
+          "binary": 0,
+          "dense": false,
+          "rows": 100000,
+          "columns": 6,
+          "fragment_rows": 10000,
+          "name": "V_dense",
+          "variable_payload": "ordinary",
+          "min_payload_bytes": 128,
+          "max_payload_bytes": 2048,
+          "source_order": "shuffled"
+        },
+        "version": 1,
+        "rows": 100000,
+        "fragments": 10
+      },
+      "origin": {
+        "kind": "generated",
+        "freeze": "fixtures",
+        "freeze_sha256": "9280b301f0c831cfd12b85170763716d80b62b3e651f5e392f2ebaa698d7911e",
+        "generator_identity": {
+          "module": "/mnt/lance/checkouts/U_main/python/python/lance/__init__.py",
+          "extension": "/mnt/lance/checkouts/U_main/python/python/lance/lance.abi3.so",
+          "extension_sha256": "5c9e85d8804aeac54f030db6a7a0b8f02373e89c2f106777bbb2647660a1d65a",
+          "version": "14.0.0-beta.19",
+          "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+          "pyarrow": "25.0.1"
+        }
+      },
+      "files": {
+        "_transactions/0-3ae52ce4-6f39-406b-9ee8-926e518abb06.txn": "648d7f7410fadfd7eed63bda7e9785cf6126af48ce7d075caaeaea9ff84f72ce",
+        "_versions/18446744073709551614.manifest": "9ced3994342131dc41347281c174b903cee911c81ec0ae10e64bf0fdfc190899",
+        "_versions/latest_version_hint.json": "2430f1a2ad2982d0067885488a4c89e21ad1d7c83b115ba8f1b20acc88dfaea8",
+        "data/000111001000110001100001c9dc95428f8d5326688109b752.lance": "2fde84a6ae73063b0640d7f47e4e3e7f95b57f946cb1748ca4c0a1abd1bd8ad4",
+        "data/001011110001101011100000eb654d4194b163eca296bda39b.lance": "0eedeefa1bd23c8a6d5839fac896aed4afafacbe7797d39a9a38ea31fbc9f4fa",
+        "data/010110100000111010110001c0e3c14648b2b2df84c974ff8b.lance": "b75f3cf3e15b37cd8360d1e8dbed0e6567bd7e32546a5f19e8218ae90de1678e",
+        "data/01100010111100100101001078515c48b1b34960f61bb0cc53.lance": "850ebd31a950947c1d7cb0465dcdb3eb105c9c84b5093dffb6381fcb0f28361a",
+        "data/1001011000100000000101006bc57844b491ca37190321aaaf.lance": "d8087535b8d86a4ff57ec8d2fa3cd9fce3ac11d437af7cf7196e28a9a8e53afc",
+        "data/101001011001110011100101e1806e406e9b9f82beaf02da24.lance": "0d7450e56ad74058d11b0b831a632c6dce2953734eb08d8c1e3a937be680c88d",
+        "data/101110101001100101010001ae77ec4bf1b14fb05d3f020c9e.lance": "a087bf250596760c11c3e601725aef1df0ded2c00c8d487d03fb69d6f549fb9b",
+        "data/1101010010001100110101116dd3374025828a3b8218b8ca11.lance": "2dd891e809a8d29fb8fe55fb6fd71b8a34d2cf64fad0cf38bc66fac8c01caaf0",
+        "data/11101010000001000010010159dc084e6a9ec878c9fdb97c7a.lance": "100820a90e42fd69193c31ba93c68b4c18a047969acc6fd0d9f8540c467a0a91",
+        "data/1111010101111011101010111982b345bd884ffb3932375f17.lance": "00e8c50cd85f86662547658c6c73d1becb197496812259f3d35962e71d45edfd",
+        "fixture.json": "0f27b5263110d5729e52dd4696fd6f686f63bccbc2d7fcfd0096dca0e02aaa2b"
+      }
+    }
+  },
+  "comparisons": []
+}

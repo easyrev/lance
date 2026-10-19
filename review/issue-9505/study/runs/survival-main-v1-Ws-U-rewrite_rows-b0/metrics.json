@@ -1,0 +1,60 @@
+{
+  "status": "execute_returned",
+  "operation": "execute",
+  "snapshot": 1,
+  "identity": {
+    "module": "/mnt/lance/checkouts/U_main/python/python/lance/__init__.py",
+    "extension": "/mnt/lance/checkouts/U_main/python/python/lance/lance.abi3.so",
+    "extension_sha256": "5c9e85d8804aeac54f030db6a7a0b8f02373e89c2f106777bbb2647660a1d65a",
+    "version": "14.0.0-beta.19",
+    "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+    "pyarrow": "25.0.1"
+  },
+  "schema": "id: int64\nc0: int64\nc1: int64\npayload: large_binary\nnew_payload: large_binary\nrow_marker: int64",
+  "configured_pool_bytes": 1073741824,
+  "pool_policy": "Source review: non-index planning uses SessionContext::new and execute uses TaskContext::default, both with unbounded pools. LANCE_MEM_POOL_SIZE is configured but is not the execution pool limit.",
+  "baseline_rss": {
+    "VmHWM": 165675008,
+    "VmRSS": 165675008,
+    "RssAnon": 68812800,
+    "RssFile": 96862208,
+    "RssShmem": 0
+  },
+  "input_materialization_seconds": 0,
+  "execute_rss_before": {
+    "VmHWM": 166080512,
+    "VmRSS": 166080512,
+    "RssAnon": 68825088,
+    "RssFile": 97255424,
+    "RssShmem": 0
+  },
+  "ru_maxrss_before_execute_bytes": 165343232,
+  "merge_stats": {
+    "num_inserted_rows": 0,
+    "num_updated_rows": 25,
+    "num_deleted_rows": 0
+  },
+  "merge_seconds": 4.2938976010045735,
+  "cpu_seconds": 7.9329769999999975,
+  "process_io_delta": {
+    "rchar": 2097316813,
+    "wchar": 393246253,
+    "syscr": 352,
+    "syscw": 229,
+    "read_bytes": 0,
+    "write_bytes": 393314304,
+    "cancelled_write_bytes": 0
+  },
+  "ru_maxrss_bytes": 6450933760,
+  "ru_maxrss_after_execute_bytes": 6450933760,
+  "execute_rss_after": {
+    "VmHWM": 6450933760,
+    "VmRSS": 2904461312,
+    "RssAnon": 2734755840,
+    "RssFile": 169705472,
+    "RssShmem": 0
+  },
+  "new_data_file_bytes": 393229021,
+  "new_data_file_count": 1,
+  "input_and_api_seconds": 4.2938976010045735
+}

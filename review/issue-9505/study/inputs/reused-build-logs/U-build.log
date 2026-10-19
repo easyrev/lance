@@ -1,0 +1,73 @@
+/mnt/lance/validation-9505/review/issue-9505/harness/profile.mk:3: warning: overriding recipe for target 'build'
+Makefile:44: warning: ignoring old recipe for target 'build'
+uv run --no-sync maturin develop --uv --profile release-with-debug --locked
+🍹 Building a mixed python/rust project
+🐍 Found CPython 3.12 at /mnt/lance/checkouts/U_main/python/.venv/bin/python
+🔗 Found pyo3 bindings with abi3 support
+Checked 23 packages in 2ms
+Resolved 5 packages in 326ms
+Checked 5 packages in 0.16ms
+   Compiling pyo3-build-config v0.28.3
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@14.0.0-beta.19: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling pyo3-macros-backend v0.28.3
+   Compiling pyo3-ffi v0.28.3
+   Compiling pyo3 v0.28.3
+   Compiling pyo3-macros v0.28.3
+   Compiling arrow-pyarrow v58.4.0
+   Compiling pythonize v0.28.0
+   Compiling arrow v58.4.0
+   Compiling datafusion-common v54.1.0
+   Compiling datafusion-expr-common v54.1.0
+   Compiling datafusion-proto-common v54.1.0
+   Compiling datafusion-physical-expr-common v54.1.0
+   Compiling datafusion-functions-window-common v54.1.0
+   Compiling datafusion-functions-aggregate-common v54.1.0
+   Compiling datafusion-expr v54.1.0
+   Compiling datafusion-physical-expr v54.1.0
+   Compiling datafusion-execution v54.1.0
+   Compiling datafusion-functions v54.1.0
+   Compiling datafusion-functions-aggregate v54.1.0
+   Compiling datafusion-optimizer v54.1.0
+   Compiling datafusion-physical-plan v54.1.0
+   Compiling datafusion-physical-expr-adapter v54.1.0
+   Compiling datafusion-functions-nested v54.1.0
+   Compiling datafusion-functions-window v54.1.0
+   Compiling datafusion-session v54.1.0
+   Compiling datafusion-datasource v54.1.0
+   Compiling datafusion-sql v54.1.0
+   Compiling lance-core v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance-core)
+   Compiling datafusion-catalog v54.1.0
+   Compiling datafusion-pruning v54.1.0
+   Compiling datafusion-datasource-arrow v54.1.0
+   Compiling datafusion-datasource-json v54.1.0
+   Compiling datafusion-datasource-csv v54.1.0
+   Compiling datafusion-physical-optimizer v54.1.0
+   Compiling lance-namespace v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance-namespace)
+   Compiling lance-io v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance-io)
+   Compiling lance-select v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance-select)
+   Compiling lance-encoding v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance-encoding)
+   Compiling lance-linalg v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance-linalg)
+   Compiling datafusion-datasource-parquet v54.1.0
+   Compiling datafusion-functions-table v54.1.0
+   Compiling datafusion-catalog-listing v54.1.0
+   Compiling lance-file v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance-file)
+   Compiling lance-table v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance-table)
+   Compiling datafusion v54.1.0
+   Compiling datafusion-proto v54.1.0
+   Compiling datafusion-ffi v54.1.0
+   Compiling geodatafusion v0.5.0
+   Compiling datafusion-substrait v54.1.0
+   Compiling lance-index-core v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance-index-core)
+   Compiling lance-geo v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance-geo)
+   Compiling lance-datafusion v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance-datafusion)
+   Compiling lance-index v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance-index)
+   Compiling lance v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance)
+   Compiling lance-namespace-impls v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/rust/lance-namespace-impls)
+   Compiling pylance v14.0.0-beta.19 (/mnt/lance/checkouts/U_main/python)
+    Finished `release-with-debug` profile [optimized + debuginfo] target(s) in 32m 35s
+📦 Built wheel for abi3 Python ≥ 3.10 to /mnt/lance/tmp/.tmphhfwv2/pylance-14.0.0b19-cp310-abi3-linux_x86_64.whl
+✏️ Setting installed package as editable
+🛠 Installed pylance-14.0.0b19
