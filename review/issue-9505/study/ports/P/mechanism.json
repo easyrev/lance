@@ -1,0 +1,140 @@
+{
+  "variant": "P",
+  "original_head": "9e1ebc2e816a7195b56757ebe269e74989fc30c7",
+  "original_parent": "8d77df617e85687567e9529fbc5520f793783e78",
+  "common_baseline": "0a0d327082988018a25f56147d3b6d02f6c79ecc",
+  "original_commit_count": 1,
+  "original_url": "https://github.com/lance-format/lance/pull/10077",
+  "port_method": "Three-way merge of the original one-commit patch onto the common baseline; no manual source adjustments",
+  "textual_conflicts": [],
+  "compatibility_adjustments": [],
+  "files": [
+    "python/python/lance/dataset.py",
+    "python/python/tests/test_dataset.py",
+    "rust/lance/src/datafusion/dataframe.rs",
+    "rust/lance/src/dataset/write/merge_insert.rs",
+    "rust/lance/tests/merge_insert_memory_bound.rs"
+  ],
+  "source_sha256": {
+    "python/python/lance/dataset.py": "38e2b782945367e03785932bd2323eb529f48fdf78b3be045cd116a5874e792f",
+    "python/python/tests/test_dataset.py": "c8212c090b889001f11c99ef4600383f40d03faa3e16e1753b1014bbb1f991d6",
+    "rust/lance/src/datafusion/dataframe.rs": "7bd13c2b9c3127003dc08f2cc2f3b67391ffe386acdbf0706d147148c8f8ad01",
+    "rust/lance/src/dataset/write/merge_insert.rs": "b9010699df34acc06ff16b5425a2bc16ccf7761fa2e57f0965696ab4f109515e",
+    "rust/lance/tests/merge_insert_memory_bound.rs": "09b98b5613196d3b5bcdf23bf90321f303f32d1bcd10d97014bd4a353b2e786a"
+  },
+  "implementation_patch_sha256": "01a2e89d24c345b7f5e09a6a531c1d5a1a7075d064b37f78f867755dd1b8703c",
+  "verification": {
+    "patch_applies_to_baseline_files": true,
+    "built": false,
+    "tests_run": false,
+    "format_or_lint_run": false
+  },
+  "mechanisms": {
+    "nonindexed_join": {
+      "source_side": "left/build",
+      "target_side": "right/probe",
+      "join_type_mapping": "Keep neither: Inner; source only: Left; target only: Right; both: Full",
+      "join_reordering": false,
+      "repartition_joins": false,
+      "round_robin_repartition": false,
+      "native_scan_partitions_added": false
+    },
+    "pool": {
+      "factory": "get_session_context(LanceExecutionOptions { use_spilling: true, ..Default::default() })",
+      "execute_uses_planning_task_context": true,
+      "analyze_reuses_same_context_instance": false,
+      "bypass_environment": "LANCE_BYPASS_SPILLING",
+      "process_rss_hard_cap": false
+    },
+    "scan": {
+      "io_bytes": "min(max(pool_bytes / 4, 16 MiB), DEFAULT_IO_BUFFER_SIZE)",
+      "decode_fan_out_estimate": "max(1, min(get_num_compute_intensive_cpus(), session.target_partitions()))",
+      "batch_bytes": "scan_io_bytes / decode_fan_out_estimate",
+      "width_basis": "All manifest data-file sizes divided by all physical target rows, not projected Arrow width",
+      "batch_rows": "max(1, batch_bytes / max(ceil(total_file_bytes / physical_rows), 1)); override only below BATCH_SIZE_FALLBACK",
+      "missing_metadata": "Keep scanner default rows",
+      "scan_io_and_decode_charged_to_df_pool": false
+    },
+    "indexed_periphery": {
+      "unindexed_fragment_scan": "Same scan I/O and row sizing",
+      "union": "CoalescePartitionsExec replaces RoundRobinBatch(1)",
+      "join": "Source CollectLeft; Left when inserts allowed, Inner otherwise; target-only rows excluded",
+      "execution": "Existing execute_plan with use_spilling=true, separate context from the temporary scan budget"
+    },
+    "columns_periphery": {
+      "sort_partitions": 1,
+      "pool_size_resolved_before_partition_override": true,
+      "existing_input_batch_cap": "25 MiB retained"
+    },
+    "payload": "Existing early omitted-column fill; no deferred payload materialization added",
+    "source_preparation": "No new source-prefix observation, statistics, or retry buffering mechanism"
+  },
+  "retained_baseline_features": [
+    "Target/source condition schemas and nullability fixes",
+    "Conditional early fill for insert/delete-only partial schemas",
+    "Existing deferred conditions",
+    "Row identity and carried lineage",
+    "Current RewriteRows/RewriteColumns/index routing"
+  ],
+  "known_limits": [
+    "Fixed source build can exhaust the pool for a large source even if target is small",
+    "Scan sizing uses compressed on-disk whole-table mean and is a soft estimate",
+    "Single-partition probe trades throughput for fewer queues",
+    "Indexed and column-writer changes are outside the planned non-indexed RewriteRows timing scope",
+    "Original integration test is retained but not executed; later repeated updates reuse the same values"
+  ],
+  "blob_retrieval": {
+    "parent/python/python/lance/dataset.py": {
+      "oid": "a7fc342646db674c7fbfeea879507e34fe78c805",
+      "method": "git show"
+    },
+    "parent/python/python/tests/test_dataset.py": {
+      "oid": "47a49c1c58b8b0c8694dac63a6442cbbc5d97026",
+      "method": "git show"
+    },
+    "parent/rust/lance/src/datafusion/dataframe.rs": {
+      "oid": "10d961baa4bc647231ac9a148bcaa5fcd9ae0429",
+      "method": "git show"
+    },
+    "parent/rust/lance/src/dataset/write/merge_insert.rs": {
+      "oid": "ba83ae7a072ba762eacd90b0fa1395a91b23fa91",
+      "method": "GitHub blob API"
+    },
+    "head/python/python/lance/dataset.py": {
+      "oid": "71e0cf9930633c08fece23ca7039a7234b95f37c",
+      "method": "git show"
+    },
+    "head/python/python/tests/test_dataset.py": {
+      "oid": "44e72f5b842ad6b4b5ae91d71eb90b784028ada8",
+      "method": "git show"
+    },
+    "head/rust/lance/src/datafusion/dataframe.rs": {
+      "oid": "b9db5e397643d3fdd0324dcf114685aff58636de",
+      "method": "git show"
+    },
+    "head/rust/lance/src/dataset/write/merge_insert.rs": {
+      "oid": "137cd49f16331e072b552b4357fe2e4f56977e00",
+      "method": "git show"
+    },
+    "head/rust/lance/tests/merge_insert_memory_bound.rs": {
+      "oid": "5cc5067e25b8157139318403d8977b2d1b3698c9",
+      "method": "git show"
+    },
+    "base/python/python/lance/dataset.py": {
+      "oid": "a7fc342646db674c7fbfeea879507e34fe78c805",
+      "method": "git show"
+    },
+    "base/python/python/tests/test_dataset.py": {
+      "oid": "47a49c1c58b8b0c8694dac63a6442cbbc5d97026",
+      "method": "git show"
+    },
+    "base/rust/lance/src/datafusion/dataframe.rs": {
+      "oid": "10d961baa4bc647231ac9a148bcaa5fcd9ae0429",
+      "method": "git show"
+    },
+    "base/rust/lance/src/dataset/write/merge_insert.rs": {
+      "oid": "cfeba7b82eee1bfa1436cadf71d1bf5baeb1b4bc",
+      "method": "git show"
+    }
+  }
+}

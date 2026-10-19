@@ -1,0 +1,82 @@
+{
+  "variant": "B",
+  "base_commit": "0a0d327082988018a25f56147d3b6d02f6c79ecc",
+  "source_commits": [
+    "793e4e27119540a17ae37ce78d4f5f4d52060a93"
+  ],
+  "port_method": "three-way file merge: upstream base, B parent dc53d5d, B snapshot",
+  "source_files": {
+    "python/python/lance/dataset.py": "c5ce3cf5c56fc726a2156d399725ca88b8979dcca97a80399b662e0f19c567cd",
+    "python/python/tests/test_dataset.py": "e81384b7433aabf6b292240c7c74a5a6b994bb78313f3f9565bb1c15be5a7df3",
+    "rust/lance/src/dataset/write/merge_insert.rs": "6e1c398b361f7b17ddc6e8646fa6efe3a3cc56f6d9b66ae6d3ba573f6a4e6b9e"
+  },
+  "source_preparation": {
+    "enabled": true,
+    "byte_stop": 104857600,
+    "row_stop": "fresh SessionConfig optimizer.hash_join_single_partition_threshold_rows (default 131072)",
+    "batch_stop": null,
+    "time_stop": null,
+    "whole_crossing_batch_retained": true,
+    "EOF_required_for_complete_statistics": true,
+    "fallback": "ordered in-memory prefix plus remaining stream; existing replay spill if allow_replay"
+  },
+  "source_first_seen": "Complete small source is deduplicated sequentially and materialized again to preserve exact statistics; larger source remains streaming",
+  "memory_context": {
+    "planning": "bounded get_session_context(use_spilling=true)",
+    "execution": "separately constructed bounded get_session_context(use_spilling=true)",
+    "analysis": "separately constructed bounded analysis context",
+    "shared_pool_identity": false,
+    "preparation_counted_in_pool": false,
+    "policy_changed_from_original_B": false,
+    "shared_pool_identity_scope": "Separate fresh pools when use_spilling() is true; bypass can reuse cached unbounded sessions"
+  },
+  "target_payload": "upstream early fill; no deferred payload changes",
+  "join_selection": "ordinary DataFusion Auto; no forced source-build or stats guard",
+  "scan_parallelism": "unchanged from original B/project session defaults",
+  "format_changes": false,
+  "public_api_changes": false,
+  "upstream_preserved": [
+    "0a0d327 no-update omitted-column NULL fill and delete-only projection tests"
+  ],
+  "validation": {
+    "patch_applies_to_base": true,
+    "patched_bytes_match_source_tree": true,
+    "build_run": false,
+    "tests_run": false,
+    "lint_run": false
+  },
+  "limitations": [
+    "Arrow retained buffer sum is not RSS or HashJoin memory",
+    "No batch count or timeout: zero-row streams and slow producers can delay preparation",
+    "The crossing batch can exceed 100 MiB",
+    "Prefix buffering is retained during target build on fallback",
+    "Pure B keeps separate planning and execution pools by design"
+  ],
+  "existing_session_factory_effects": {
+    "bounded_when": "use_spilling() is true; LANCE_BYPASS_SPILLING preserves upstream bypass",
+    "pool": "TrackConsumersPool(FairSpillPool), configured size or 150 MiB times effective target partitions",
+    "sort_spill_reservation": "min(pool / 3, 40 MiB)",
+    "disk_manager": "existing LANCE_MAX_TEMP_DIRECTORY_SIZE / factory default",
+    "functions": "register_functions from the existing Lance session factory",
+    "target_partitions": "not overridden by these ports; existing DataFusion available-parallelism default"
+  },
+  "targeted_rust_filters": [
+    "test_first_seen_dedupes_unmatched_source_rows",
+    "test_merge_insert_null_single_on_column",
+    "test_merge_insert_partial_composite_key_null",
+    "test_duplicate_rowid_detection",
+    "test_merge_insert_spill_for_retry_false_fails_fast",
+    "test_merge_insert_execute_reader_preserves_error_message",
+    "test_source_statistics_prefetch_preserves_large_stream",
+    "test_small_stream_with_small_join_pool",
+    "test_analyze_plan_reports_the_given_source_shape"
+  ],
+  "targeted_test_command_template": "cargo test -p lance --profile release-with-debug --lib <filter>",
+  "coverage_not_established": [
+    "No new execution evidence for this port",
+    "Existing large-stream test crosses the row bound, not the byte bound",
+    "No dedicated inherited test for source error only after prefetch fallback",
+    "No dedicated inherited test for FirstSeen duplicate spanning a prefetch-stop boundary",
+    "No dedicated inherited test proving bounded zero-row batch preparation or slow-producer startup (B has no such bounds)"
+  ]
+}

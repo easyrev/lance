@@ -1,0 +1,61 @@
+{
+  "variant": "CTX",
+  "base_commit": "0a0d327082988018a25f56147d3b6d02f6c79ecc",
+  "source_commits": [
+    "50e216972e1558ce253bece5db462d8241fde96a"
+  ],
+  "source_files": {
+    "rust/lance/src/dataset/write/merge_insert.rs": "99451db194764dc9b9be6be165bacd8500c3e093a01718179835be2bfbc6dd15"
+  },
+  "memory_context": {
+    "planning_execution_analysis": "same bounded session pool within each attempt",
+    "preparation_budget": "upstream source preparation unchanged",
+    "shared_pool_identity": true
+  },
+  "source_preparation": "upstream unchanged; no EOF prefetch",
+  "source_first_seen": "upstream unchanged",
+  "target_payload": "upstream early fill unchanged",
+  "join_selection": "DataFusion Auto; no selector, stats guard or threshold changes",
+  "native_scan_changes": false,
+  "format_changes": false,
+  "public_api_changes": false,
+  "validation": {
+    "patch_applies_to_base": true,
+    "patched_bytes_match_source_tree": true,
+    "rustfmt_owned_merge_file": true,
+    "build_run": false,
+    "tests_run": false,
+    "lint_run": false
+  },
+  "test_only_correction": "D archived ordinary constant assertion changed to const assert to match its already-recorded passing test checkout",
+  "test_additions": "D test_merge_plan_uses_canonical_memory_pool and test_unknown_wide_source_streams_with_bounded_target_build only",
+  "excluded_D_features": [
+    "payload_columns logical-planner interface",
+    "condition materializer changes",
+    "partial-schema target projection changes",
+    "selector (already absent from D)",
+    "source preparation or join thresholds"
+  ],
+  "existing_session_factory_effects": {
+    "bounded_when": "use_spilling() is true; LANCE_BYPASS_SPILLING preserves upstream bypass",
+    "pool": "TrackConsumersPool(FairSpillPool), configured size or 150 MiB times effective target partitions",
+    "sort_spill_reservation": "min(pool / 3, 40 MiB)",
+    "disk_manager": "existing LANCE_MAX_TEMP_DIRECTORY_SIZE / factory default",
+    "functions": "register_functions from the existing Lance session factory",
+    "target_partitions": "not overridden by these ports; existing DataFusion available-parallelism default"
+  },
+  "targeted_rust_filters": [
+    "test_first_seen_dedupes_unmatched_source_rows",
+    "test_merge_insert_null_single_on_column",
+    "test_merge_insert_partial_composite_key_null",
+    "test_duplicate_rowid_detection",
+    "test_merge_insert_spill_for_retry_false_fails_fast",
+    "test_merge_insert_execute_reader_preserves_error_message",
+    "test_merge_plan_uses_canonical_memory_pool",
+    "test_unknown_wide_source_streams_with_bounded_target_build"
+  ],
+  "targeted_test_command_template": "cargo test -p lance --profile release-with-debug --lib <filter>",
+  "coverage_not_established": [
+    "No new execution evidence for this port"
+  ]
+}

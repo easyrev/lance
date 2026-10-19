@@ -1,0 +1,83 @@
+{
+  "variant": "DB",
+  "base_commit": "0a0d327082988018a25f56147d3b6d02f6c79ecc",
+  "source_commits": [
+    "50e216972e1558ce253bece5db462d8241fde96a",
+    "793e4e27119540a17ae37ce78d4f5f4d52060a93"
+  ],
+  "source_files": {
+    "python/python/lance/dataset.py": "c5ce3cf5c56fc726a2156d399725ca88b8979dcca97a80399b662e0f19c567cd",
+    "python/python/tests/test_dataset.py": "e81384b7433aabf6b292240c7c74a5a6b994bb78313f3f9565bb1c15be5a7df3",
+    "rust/lance/src/dataset/write/merge_insert/exec/condition.rs": "9f875074f6ff0378dd778d25f1c7be3db3e7fa5d6d3a0c95ba1824cefe59e4ec",
+    "rust/lance/src/dataset/write/merge_insert/logical_plan.rs": "65e11ed69c3eb76e1490f4dcb77018133f37b75448fe8b556b613fb89bc9fc56",
+    "rust/lance/src/dataset/write/merge_insert.rs": "ea36239fb6b7a38392c72bd99419255d7b4d1dab2fe98d4f98f0a2109c50fabc"
+  },
+  "memory_context": {
+    "planning_execution_analysis": "same bounded session pool within each attempt",
+    "preparation_budget": "original B 100 MiB, not pool-accounted",
+    "shared_pool_identity": true
+  },
+  "source_preparation": "B unchanged (EOF / 100 MiB / default DF row threshold / ordered crossing prefix)",
+  "source_first_seen": "B complete-small-input materialization; otherwise existing sequential dedupe",
+  "target_payload": "D deferred omitted fields for eligible current-v2 row rewrites",
+  "join_selection": "DataFusion Auto; no selector, stats guard or threshold changes",
+  "native_scan_changes": false,
+  "format_changes": false,
+  "public_api_changes": false,
+  "validation": {
+    "patch_applies_to_base": true,
+    "patched_bytes_match_source_tree": true,
+    "rustfmt_owned_merge_file": true,
+    "build_run": false,
+    "tests_run": false,
+    "lint_run": false
+  },
+  "test_only_correction": "D archived ordinary constant assertion changed to const assert to match its already-recorded passing test checkout",
+  "test_additions": "D and B existing tests combined",
+  "conflict_resolution": [
+    "create_plan_in_session keeps D supplied session; removes B second session creation",
+    "execute_uncommitted_v2 keeps D task context; removes B second pool creation",
+    "analysis uses D analyze_plan_with_context",
+    "plan fixture comment uses D narrow projection description",
+    "retains D partial/retry tests and B fail-fast documentation"
+  ],
+  "mechanical_nonconflicting_files": [
+    "python/python/lance/dataset.py (B)",
+    "python/python/tests/test_dataset.py (B)",
+    "rust/lance/src/dataset/write/merge_insert/exec/condition.rs (D, byte-identical)",
+    "rust/lance/src/dataset/write/merge_insert/logical_plan.rs (D, byte-identical)"
+  ],
+  "existing_session_factory_effects": {
+    "bounded_when": "use_spilling() is true; LANCE_BYPASS_SPILLING preserves upstream bypass",
+    "pool": "TrackConsumersPool(FairSpillPool), configured size or 150 MiB times effective target partitions",
+    "sort_spill_reservation": "min(pool / 3, 40 MiB)",
+    "disk_manager": "existing LANCE_MAX_TEMP_DIRECTORY_SIZE / factory default",
+    "functions": "register_functions from the existing Lance session factory",
+    "target_partitions": "not overridden by these ports; existing DataFusion available-parallelism default"
+  },
+  "targeted_rust_filters": [
+    "test_first_seen_dedupes_unmatched_source_rows",
+    "test_merge_insert_null_single_on_column",
+    "test_merge_insert_partial_composite_key_null",
+    "test_duplicate_rowid_detection",
+    "test_merge_insert_spill_for_retry_false_fails_fast",
+    "test_merge_insert_execute_reader_preserves_error_message",
+    "test_source_statistics_prefetch_preserves_large_stream",
+    "test_small_stream_with_small_join_pool",
+    "test_analyze_plan_reports_the_given_source_shape",
+    "test_merge_plan_uses_canonical_memory_pool",
+    "test_unknown_wide_source_streams_with_bounded_target_build",
+    "test_partial_merge_conditions_inserts_deletes_and_duplicates",
+    "test_partial_merge_retry_refreshes_payload_and_row_address",
+    "payload_reuses_condition_values_and_preserves_row_mapping",
+    "payload_chunks_obey_soft_budget_and_release_pending_reads"
+  ],
+  "targeted_test_command_template": "cargo test -p lance --profile release-with-debug --lib <filter>",
+  "coverage_not_established": [
+    "No new execution evidence for this port",
+    "Existing large-stream test crosses the row bound, not the byte bound",
+    "No dedicated inherited test for source error only after prefetch fallback",
+    "No dedicated inherited test for FirstSeen duplicate spanning a prefetch-stop boundary",
+    "No dedicated inherited test proving bounded zero-row batch preparation or slow-producer startup (B has no such bounds)"
+  ]
+}

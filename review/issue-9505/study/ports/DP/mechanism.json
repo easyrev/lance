@@ -1,0 +1,118 @@
+{
+  "variant": "DP",
+  "common_baseline": "0a0d327082988018a25f56147d3b6d02f6c79ecc",
+  "P_original_head": "9e1ebc2e816a7195b56757ebe269e74989fc30c7",
+  "P_original_parent": "8d77df617e85687567e9529fbc5520f793783e78",
+  "D_implementation_commit": "50e216972e1558ce253bece5db462d8241fde96a",
+  "P_patch_sha256": "01a2e89d24c345b7f5e09a6a531c1d5a1a7075d064b37f78f867755dd1b8703c",
+  "files": [
+    "python/python/lance/dataset.py",
+    "python/python/tests/test_dataset.py",
+    "rust/lance/src/datafusion/dataframe.rs",
+    "rust/lance/src/dataset/write/merge_insert/exec/condition.rs",
+    "rust/lance/src/dataset/write/merge_insert/logical_plan.rs",
+    "rust/lance/src/dataset/write/merge_insert.rs",
+    "rust/lance/tests/merge_insert_memory_bound.rs"
+  ],
+  "source_sha256": {
+    "python/python/lance/dataset.py": "38e2b782945367e03785932bd2323eb529f48fdf78b3be045cd116a5874e792f",
+    "python/python/tests/test_dataset.py": "c8212c090b889001f11c99ef4600383f40d03faa3e16e1753b1014bbb1f991d6",
+    "rust/lance/src/datafusion/dataframe.rs": "7bd13c2b9c3127003dc08f2cc2f3b67391ffe386acdbf0706d147148c8f8ad01",
+    "rust/lance/src/dataset/write/merge_insert/exec/condition.rs": "9f875074f6ff0378dd778d25f1c7be3db3e7fa5d6d3a0c95ba1824cefe59e4ec",
+    "rust/lance/src/dataset/write/merge_insert/logical_plan.rs": "65e11ed69c3eb76e1490f4dcb77018133f37b75448fe8b556b613fb89bc9fc56",
+    "rust/lance/src/dataset/write/merge_insert.rs": "f42be3d3759b0e83bff846991ae25054c48759c2972c3e4d3745e692ddca9025",
+    "rust/lance/tests/merge_insert_memory_bound.rs": "09b98b5613196d3b5bcdf23bf90321f303f32d1bcd10d97014bd4a353b2e786a"
+  },
+  "implementation_patch_sha256": "7ebb5bf8a2d64467cfbf306661b4aed20aa587837f0a5c1d20e87735b544f56c",
+  "port_method": "Apply D against baseline to ported P; retain all P budget and join settings, share its context with D materialization and analyze",
+  "conflicts_resolved": [
+    "Execution imports: P SessionContext plus D TaskContext",
+    "Plan constructor: P MergeBudget/create_plan_in with D context-returning wrapper",
+    "Execute plan creation: context-returning wrapper",
+    "Execute task context: actual P context",
+    "Analyze execution: analyze_plan_with_context and actual P context",
+    "Partial-schema plan assertion: deferred payload and narrow target"
+  ],
+  "compatibility_adjustments": [
+    "Retain P source-build assertions instead of D target-build expectations",
+    "Change P early partial-schema snapshot to assert narrow target plus deferred payload",
+    "Change D 1 MiB unknown-wide-source success fixture to expect Resources exhausted under fixed source build and reload latest dataset for unchanged checks",
+    "Use the already-reviewed const assertion spelling inside cfg(test)",
+    "No change to the D materializer or type eligibility guards"
+  ],
+  "mechanisms": {
+    "nonindexed_join": {
+      "source_side": "left/build",
+      "target_side": "right/probe",
+      "join_type_mapping": "Keep neither: Inner; source only: Left; target only: Right; both: Full",
+      "join_reordering": false,
+      "repartition_joins": false,
+      "round_robin_repartition": false,
+      "native_scan_partitions_added": false
+    },
+    "pool": {
+      "factory": "get_session_context(LanceExecutionOptions { use_spilling: true, ..Default::default() })",
+      "execute_uses_planning_task_context": true,
+      "analyze_reuses_same_context_instance": true,
+      "bypass_environment": "LANCE_BYPASS_SPILLING",
+      "process_rss_hard_cap": false
+    },
+    "scan": {
+      "io_bytes": "min(max(pool_bytes / 4, 16 MiB), DEFAULT_IO_BUFFER_SIZE)",
+      "decode_fan_out_estimate": "max(1, min(get_num_compute_intensive_cpus(), session.target_partitions()))",
+      "batch_bytes": "scan_io_bytes / decode_fan_out_estimate",
+      "width_basis": "All manifest data-file sizes divided by all physical target rows, not projected Arrow width",
+      "batch_rows": "max(1, batch_bytes / max(ceil(total_file_bytes / physical_rows), 1)); override only below BATCH_SIZE_FALLBACK",
+      "missing_metadata": "Keep scanner default rows",
+      "scan_io_and_decode_charged_to_df_pool": false
+    },
+    "indexed_periphery": {
+      "unindexed_fragment_scan": "Same scan I/O and row sizing",
+      "union": "CoalescePartitionsExec replaces RoundRobinBatch(1)",
+      "join": "Source CollectLeft; Left when inserts allowed, Inner otherwise; target-only rows excluded",
+      "execution": "Existing execute_plan with use_spilling=true, separate context from the temporary scan budget"
+    },
+    "columns_periphery": {
+      "sort_partitions": 1,
+      "pool_size_resolved_before_partition_override": true,
+      "existing_input_batch_cap": "25 MiB retained"
+    },
+    "payload": {
+      "implementation_source": "50e216972e1558ce253bece5db462d8241fde96a",
+      "condition_file_identical_to_D": true,
+      "logical_plan_file_identical_to_D": true,
+      "omitted_scalar_columns": "Taken after surviving UpdateAll; condition values reused",
+      "fallback": "Legacy format, any dataset blob, or any omitted field outside the scalar whitelist retains early fill",
+      "memory": "Soft per-partition Take/gather chunk sizing from the actual P context; not MemoryReservation or RSS bound",
+      "projection": "Target match scan omits eligible old payload; physical row identity and lineage retained"
+    },
+    "source_preparation": "No new source-prefix observation, statistics, or retry buffering mechanism"
+  },
+  "retained_baseline_features": [
+    "Target/source condition schemas and nullability fixes",
+    "Conditional early fill for insert/delete-only partial schemas",
+    "Existing deferred conditions",
+    "Row identity and carried lineage",
+    "Current RewriteRows/RewriteColumns/index routing"
+  ],
+  "verification": {
+    "patch_applies_to_baseline_files": true,
+    "applied_files_equal_source": true,
+    "P_periphery_files_identical": true,
+    "D_condition_and_logical_plan_identical": true,
+    "built": false,
+    "tests_run": false,
+    "format_or_lint_run": false
+  },
+  "known_limits": [
+    "Fixed source build can exhaust the pool for a large source even if target is small",
+    "Scan sizing uses compressed on-disk whole-table mean and is a soft estimate",
+    "Single-partition probe trades throughput for fewer queues",
+    "Indexed and column-writer changes are outside the planned non-indexed RewriteRows timing scope",
+    "Original integration test is retained but not executed; later repeated updates reuse the same values",
+    "P scan row sizing still uses whole-table disk width even after D narrows the actual target projection",
+    "Large source/small target reverse remains a fixed-source-build limitation; deferred old payload does not reduce new source payload",
+    "No claim that non-indexed RewriteRows measurements validate indexed or RewriteColumns behavior",
+    "D soft chunking does not bound unrelated source/replay/writer/decoder allocations"
+  ]
+}
