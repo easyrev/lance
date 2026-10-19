@@ -1,0 +1,2630 @@
+diff --git a/python/python/lance/dataset.py b/python/python/lance/dataset.py
+index a7fc3426..71e0cf99 100644
+--- a/python/python/lance/dataset.py
++++ b/python/python/lance/dataset.py
+@@ -695,13 +695,12 @@ class MergeInsertBuilder(_MergeInsertBuilder):
+         >>> plan = builder.explain_plan()  # Uses dataset schema
+         >>> print(plan) # doctest: +ELLIPSIS
+         MergeInsert: on=[id], when_matched=UpdateAll, when_not_matched=InsertAll, ...
+-          CoalescePartitionsExec
+-            ProjectionExec: expr=[...]
+-              HashJoinExec: mode=CollectLeft, join_type=Right, ...
++          ProjectionExec: expr=[...]
++            HashJoinExec: mode=CollectLeft, join_type=Left, ...
++              ProjectionExec: expr=[..., true as __merge_source_sentinel]
++                StreamingTableExec: partition_sizes=1, ...
++              CooperativeExec
+                 LanceRead: uri=test_dataset/data, projection=[id], ...
+-                RepartitionExec: ...
+-                  ProjectionExec: expr=[..., true as __merge_source_sentinel]
+-                    StreamingTableExec: partition_sizes=1, ...
+         <BLANKLINE>
+ 
+         This is always the streaming shape. `explain_plan` receives a schema rather
+@@ -720,10 +719,9 @@ class MergeInsertBuilder(_MergeInsertBuilder):
+         >>> plan = builder.explain_plan(source_schema, verbose=True)
+         >>> print(plan) # doctest: +ELLIPSIS
+         MergeInsert: on=[id], when_matched=UpdateAll, when_not_matched=InsertAll, ...
+-          CoalescePartitionsExec
+-            ProjectionExec: expr=[...]
+-              HashJoinExec: mode=CollectLeft, join_type=Right, ...
+-                ...
++          ProjectionExec: expr=[...]
++            HashJoinExec: mode=CollectLeft, join_type=Left, ...
++              ...
+         """
+         return super(MergeInsertBuilder, self).explain_plan(schema, verbose=verbose)
+ 
+@@ -783,23 +781,18 @@ class MergeInsertBuilder(_MergeInsertBuilder):
+         >>> analysis = builder.analyze_plan(new_data)
+         >>> print(analysis) # doctest: +ELLIPSIS
+             MergeInsert: elapsed=..., on=[id], ..., metrics=[..., bytes_written=..., ...]
+-              CoalescePartitionsExec, elapsed=..., metrics=[output_rows=..., elapsed_compute=...]
+-                ProjectionExec: elapsed=..., expr=[...], metrics=[...]
+-                  RepartitionExec: ...
+-                    HashJoinExec: elapsed=..., mode=CollectLeft, join_type=Right, ...
+-                      LanceRead: elapsed=..., ..., metrics=[..., bytes_read=..., ...]
+-                      ProjectionExec: elapsed=..., expr=[..., true as __merge_source_sentinel], metrics=[...]
+-                        DataSourceExec: ..., metrics=[]
++              ProjectionExec: elapsed=..., expr=[...], metrics=[...]
++                HashJoinExec: elapsed=..., mode=CollectLeft, join_type=Left, ...
++                  ProjectionExec: elapsed=..., expr=[..., true as __merge_source_sentinel], metrics=[...]
++                    DataSourceExec: ..., metrics=[]
++                  CooperativeExec, elapsed=..., metrics=[]
++                    LanceRead: elapsed=..., ..., metrics=[..., bytes_read=..., ...]
+ 
+         The reported plan follows how the source was passed. `new_data` above is a
+-        `pa.Table`, so it is wrapped in an in-memory table that reports exact
+-        statistics, while a `pa.RecordBatchReader` reports none. DataFusion picks
+-        the side it collects from those statistics and from the two sides' sizes.
+-        The target here is three rows, so it is the collected side either way; with
+-        a larger target the same merge can plan differently depending on which
+-        source you hand it. Use `explain_plan` only for the streaming shape: it
+-        takes a schema rather than data, so it cannot know how the source would be
+-        wrapped.
++        `pa.Table`, so it is read from an in-memory table (`DataSourceExec`), while
++        a `pa.RecordBatchReader` streams (`StreamingTableExec`). Either way the
++        source is the side the join collects. `explain_plan` takes a schema rather
++        than data, so it always reports the streaming shape.
+ 
+         The two key parts of the plan analysis are LanceRead and MergeInsert.
+         LanceRead scans join keys and columns in conditions. MergeInsert writes
+diff --git a/python/python/tests/test_dataset.py b/python/python/tests/test_dataset.py
+index 47a49c1c..44e72f5b 100644
+--- a/python/python/tests/test_dataset.py
++++ b/python/python/tests/test_dataset.py
+@@ -3830,12 +3830,9 @@ def test_merge_insert_explain_analyze_plan():
+ def test_merge_insert_analyze_plan_matches_execute_routing():
+     """analyze_plan must report the plan the given source would actually run.
+ 
+-    execute() wraps a materialized source in an in-memory table, which reports
+-    exact statistics; a stream reports none. DataFusion picks the collected side of
+-    the join from those statistics and from the two sides' sizes, so the same merge
+-    plans differently depending on which one it is handed. analyze_plan used to
+-    coerce every input to a stream, so it reported the stream's plan whatever it
+-    was given.
++    execute() wraps a materialized source in an in-memory table and leaves a stream
++    a stream. analyze_plan used to coerce every input to a stream, so it reported
++    the stream's plan whatever it was given. Either way the source is collected.
+     """
+     data = pa.table({"id": range(64), "value": [i * 10 for i in range(64)]})
+     dataset = lance.write_dataset(data, "memory://test-merge-analyze-routing")
+@@ -3847,9 +3844,6 @@ def test_merge_insert_analyze_plan_matches_execute_routing():
+             .when_not_matched_insert_all()
+         )
+ 
+-    # Two source rows against the target's 64 keeps the source the smaller side,
+-    # which is what lets the join collect it. Raise it above 64 and the join
+-    # collects the target instead and the join type stays Right.
+     source = pa.table({"id": [1, 100], "value": [999, 999]})
+ 
+     materialized = builder().analyze_plan(source)
+@@ -3860,7 +3854,7 @@ def test_merge_insert_analyze_plan_matches_execute_routing():
+     streaming = builder().analyze_plan(source.to_reader())
+     assert "StreamingTableExec" in streaming, streaming
+     assert "DataSourceExec" not in streaming, streaming
+-    assert "join_type=Right" in streaming, streaming
++    assert "join_type=Left" in streaming, streaming
+ 
+ 
+ def test_merge_insert_use_index():
+diff --git a/rust/lance/src/datafusion/dataframe.rs b/rust/lance/src/datafusion/dataframe.rs
+index 10d961ba..b9db5e39 100644
+--- a/rust/lance/src/datafusion/dataframe.rs
++++ b/rust/lance/src/datafusion/dataframe.rs
+@@ -43,6 +43,7 @@ pub struct LanceTableProvider {
+     blob_handling: Option<lance_core::datatypes::BlobHandling>,
+     batch_size: Option<usize>,
+     batch_size_bytes: Option<u64>,
++    io_buffer_size: Option<u64>,
+ }
+ 
+ impl LanceTableProvider {
+@@ -77,6 +78,7 @@ impl LanceTableProvider {
+             blob_handling: None,
+             batch_size: None,
+             batch_size_bytes: None,
++            io_buffer_size: None,
+         }
+     }
+ 
+@@ -137,6 +139,12 @@ impl LanceTableProvider {
+         self
+     }
+ 
++    /// Overrides the dataset scan's I/O buffer size (see `Scanner::io_buffer_size`).
++    pub fn with_io_buffer_size(mut self, io_buffer_size: u64) -> Self {
++        self.io_buffer_size = Some(io_buffer_size);
++        self
++    }
++
+     pub fn dataset(&self) -> Arc<Dataset> {
+         self.dataset.clone()
+     }
+@@ -169,6 +177,9 @@ impl TableProvider for LanceTableProvider {
+         if let Some(batch_size_bytes) = self.batch_size_bytes {
+             scan.batch_size_bytes(batch_size_bytes);
+         }
++        if let Some(io_buffer_size) = self.io_buffer_size {
++            scan.io_buffer_size(io_buffer_size);
++        }
+ 
+         if self.row_created_at_idx.is_some() {
+             // Project all system columns by name to preserve DataFusion's
+diff --git a/rust/lance/src/dataset/write/merge_insert.rs b/rust/lance/src/dataset/write/merge_insert.rs
+index cfeba7b8..8cdb6623 100644
+--- a/rust/lance/src/dataset/write/merge_insert.rs
++++ b/rust/lance/src/dataset/write/merge_insert.rs
+@@ -59,6 +59,7 @@ use super::{
+ use crate::dataset::rowids::{
+     get_row_id_index, inline_row_lineage_max_bytes, load_spilled_row_lineage,
+ };
++use crate::dataset::scanner::{BATCH_SIZE_FALLBACK, DEFAULT_IO_BUFFER_SIZE};
+ use crate::dataset::transaction::UpdateMode::{RewriteColumns, RewriteRows};
+ use crate::dataset::utils::CapturedRowIds;
+ use crate::dataset::utils::SchemaAdapter;
+@@ -91,17 +92,14 @@ use datafusion::error::DataFusionError;
+ use datafusion::{
+     catalog::{TableProvider, streaming::StreamingTable},
+     datasource::MemTable,
+-    execution::{
+-        context::{SessionConfig, SessionContext},
+-        memory_pool::MemoryConsumer,
+-    },
++    execution::{context::SessionContext, memory_pool::MemoryConsumer},
+     logical_expr::{self, Expr, Extension, JoinType, LogicalPlan},
+     physical_plan::{
+         ColumnarValue, ExecutionPlan, PhysicalExpr, SendableRecordBatchStream,
++        coalesce_partitions::CoalescePartitionsExec,
+         display::DisplayableExecutionPlan,
+         joins::{HashJoinExec, PartitionMode},
+         projection::ProjectionExec,
+-        repartition::RepartitionExec,
+         sorts::sort::SortExec,
+         stream::RecordBatchStreamAdapter,
+         streaming::PartitionStream,
+@@ -1196,6 +1194,92 @@ fn one_shot_provider(stream: SendableRecordBatchStream) -> Result<Arc<dyn TableP
+     Ok(Arc::new(StreamingTable::try_new(schema, vec![partition])?))
+ }
+ 
++/// One merge's memory budget: the session it plans and executes under, and
++/// the target scan's share of that session's pool.
++///
++/// The session carries Lance's configured pool (`LANCE_MEM_POOL_SIZE`) so an
++/// oversized hash-join build fails with `ResourcesExhausted` instead of
++/// growing. Join reordering is off: the merge joins put the source on the
++/// build side, and DataFusion's statistics-driven swap would otherwise move a
++/// target with few (but wide) rows back onto it. Repartitioning is off too:
++/// the join collects the source once and streams the target through it in
++/// one partition, so no `RepartitionExec` coalesces target batches up to the
++/// session batch size outside the pool, and unmatched source rows come out
++/// in source order. The scan still decodes in parallel; only the probe is
++/// single-threaded.
++///
++/// The target scan is not pool-tracked, so it gets a quarter of the pool for
++/// its I/O buffer and a quarter for decoded batches, one per decode task;
++/// `batch_rows` sizes a batch to that from the fragments' on-disk row width.
++struct MergeBudget {
++    session_ctx: SessionContext,
++    scan_io_bytes: u64,
++    batch_rows: Option<usize>,
++}
++
++impl MergeBudget {
++    /// A `target_partitions` of `None` keeps DataFusion's default.
++    fn new(dataset: &Dataset, target_partitions: Option<usize>) -> Self {
++        let options = LanceExecutionOptions {
++            use_spilling: true,
++            ..Default::default()
++        };
++        let mut state = get_session_context(&options).state();
++        let config = state.config_mut();
++        if let Some(target_partitions) = target_partitions {
++            config.options_mut().execution.target_partitions = target_partitions;
++        }
++        let decode_fan_out = get_num_compute_intensive_cpus()
++            .min(config.target_partitions())
++            .max(1) as u64;
++        let scan_io_bytes = scan_io_bytes(options.mem_pool_size(), *DEFAULT_IO_BUFFER_SIZE);
++        let batch_rows = target_scan_batch_rows(dataset, scan_io_bytes / decode_fan_out);
++        config.options_mut().optimizer.join_reordering = false;
++        config.options_mut().optimizer.repartition_joins = false;
++        config
++            .options_mut()
++            .optimizer
++            .enable_round_robin_repartition = false;
++        Self {
++            session_ctx: SessionContext::new_with_state(state),
++            scan_io_bytes,
++            batch_rows,
++        }
++    }
++}
++
++/// A quarter of the pool, at least 16 MiB, and never above the configured
++/// I/O buffer, which may itself be below 16 MiB.
++fn scan_io_bytes(pool_bytes: u64, configured_io_bytes: u64) -> u64 {
++    const MIN_SCAN_IO_BYTES: u64 = 16 * 1024 * 1024;
++    (pool_bytes / 4)
++        .max(MIN_SCAN_IO_BYTES)
++        .min(configured_io_bytes)
++}
++
++/// Rows per target batch so a decoded batch is about `batch_bytes`, from the
++/// fragments' on-disk bytes per row. `None` keeps the scanner's default: rows
++/// are narrow enough for it, or a fragment lacks row counts or file sizes.
++fn target_scan_batch_rows(dataset: &Dataset, batch_bytes: u64) -> Option<usize> {
++    let (rows, bytes) =
++        dataset
++            .fragments()
++            .iter()
++            .try_fold((0u64, 0u64), |(rows, bytes), fragment| {
++                let file_bytes = fragment
++                    .files
++                    .iter()
++                    .map(|file| file.file_size_bytes.get().map(|size| size.get()))
++                    .sum::<Option<u64>>()?;
++                Some((rows + fragment.physical_rows? as u64, bytes + file_bytes))
++            })?;
++    if rows == 0 {
++        return None;
++    }
++    let batch_rows = batch_bytes / bytes.div_ceil(rows).max(1);
++    (batch_rows < BATCH_SIZE_FALLBACK as u64).then(|| batch_rows.max(1) as usize)
++}
++
+ /// Scans source partitions sequentially and removes duplicate non-null keys.
+ ///
+ /// Deduplicating before the join fixes the `FirstSeen` winner at the source
+@@ -1549,12 +1633,19 @@ impl MergeInsertJob {
+         //      lives in a fragment covered by *every* chosen index, so the
+         //      "unindexed" set is the union of fragments missing from any
+         //      one of them.
++        //      This scan is the whole table when the index covers nothing,
++        //      so it runs under the merge budget like the plan path's scan.
++        let budget = MergeBudget::new(&self.dataset, None);
+         let unindexed_fragments = self.unindexed_fragments_for_keys(&indexed_keys).await?;
+         if !unindexed_fragments.is_empty() {
+             let mut builder = self.dataset.scan();
+             if add_row_addr {
+                 builder.with_row_address();
+             }
++            builder.io_buffer_size(budget.scan_io_bytes);
++            if let Some(batch_rows) = budget.batch_rows {
++                builder.batch_size(batch_rows);
++            }
+             let unindexed_data = builder
+                 .with_row_id()
+                 .with_fragments(unindexed_fragments)
+@@ -1563,11 +1654,9 @@ impl MergeInsertJob {
+                 .create_plan()
+                 .await?;
+             let unioned = UnionExec::try_new(vec![target, unindexed_data])?;
+-            // Enforce only 1 partition.
+-            target = Arc::new(RepartitionExec::try_new(
+-                unioned,
+-                datafusion::physical_plan::Partitioning::RoundRobinBatch(1),
+-            )?);
++            // One partition for the join, without a repartition coalescing
++            // the scan's batches outside the pool.
++            target = Arc::new(CoalescePartitionsExec::new(unioned));
+         }
+ 
+         // We need to prefix the fields in the target with target_ so that we don't have any duplicate
+@@ -1605,13 +1694,24 @@ impl MergeInsertJob {
+             NullEquality::NullEqualsNothing
+         };
+ 
++        // This path only runs when unmatched target rows are kept, so they need
++        // not leave the join; a full join would emit every scanned target row.
++        debug_assert!(matches!(
++            self.params.delete_not_matched_by_source,
++            WhenNotMatchedBySource::Keep
++        ));
++        let join_type = if self.params.insert_not_matched {
++            JoinType::Left
++        } else {
++            JoinType::Inner
++        };
+         let joined = Arc::new(
+             HashJoinExec::try_new(
+                 shared_input,
+                 target,
+                 on_keys,
+                 None,
+-                &JoinType::Full,
++                &join_type,
+                 None,
+                 PartitionMode::CollectLeft,
+                 null_equality,
+@@ -1665,8 +1765,7 @@ impl MergeInsertJob {
+         &self,
+         source: SendableRecordBatchStream,
+     ) -> Result<SendableRecordBatchStream> {
+-        let session_config = SessionConfig::default().with_target_partitions(1);
+-        let session_ctx = SessionContext::new_with_config(session_config);
++        let session_ctx = MergeBudget::new(&self.dataset, Some(1)).session_ctx;
+         let schema = source.schema();
+         let new_data = session_ctx.read_one_shot(source)?;
+         let join_cols = self
+@@ -1789,11 +1888,9 @@ impl MergeInsertJob {
+         let target_bases_info = Arc::new(target_bases_info);
+         // Expected source schema: _rowaddr, updated_cols*
+         use datafusion::logical_expr::{col, lit};
+-        let session_ctx = get_session_context(&LanceExecutionOptions {
+-            use_spilling: true,
+-            target_partition: Some(get_num_compute_intensive_cpus().min(8)),
+-            ..Default::default()
+-        });
++        // One partition: the sort then holds the whole pool rather than a fair
++        // share split across per-core sorters, which fit no batch under a small pool.
++        let session_ctx = MergeBudget::new(&dataset, Some(1)).session_ctx;
+         // Cap input batches at 25 MiB to leave room for DataFusion's per-batch
+         // sort overhead and spill/merge reservation. SortExec must reserve an
+         // entire input batch even when spilling is enabled. This cap reduces
+@@ -2379,11 +2476,7 @@ impl MergeInsertJob {
+     /// This is the canonical entry point: [`Self::execute`] and
+     /// [`Self::execute_batches`] are thin wrappers that build a provider and call
+     /// this method. Because a provider can be scanned repeatedly, retries re-read
+-    /// the source directly and never spill to disk. The provider's reported
+-    /// statistics (e.g. from a [`MemTable`] or file source) also let DataFusion
+-    /// optimize the merge join.
+-    ///
+-    /// [`MemTable`]: datafusion::datasource::MemTable
++    /// the source directly and never spill to disk.
+     pub async fn execute_provider(
+         self,
+         provider: Arc<dyn TableProvider>,
+@@ -2395,9 +2488,8 @@ impl MergeInsertJob {
+     /// Executes the merge insert job from materialized record batches.
+     ///
+     /// The batches are wrapped in an in-memory [`MemTable`], which is re-scannable
+-    /// (retries replay from memory, never spilling) and reports exact statistics to
+-    /// the merge join. This is the preferred entry point when the full source is
+-    /// already in memory.
++    /// (retries replay from memory, never spilling). This is the preferred entry
++    /// point when the full source is already in memory.
+     pub async fn execute_batches(
+         self,
+         batches: Vec<RecordBatch>,
+@@ -2507,6 +2599,7 @@ impl MergeInsertJob {
+             .await
+     }
+ 
++    /// Join type for `source JOIN target` in [`Self::create_plan`].
+     fn create_plan_join_type(&self) -> JoinType {
+         let keep_unmatched_source_rows = self.params.insert_not_matched;
+         let keep_unmatched_target_rows = !matches!(
+@@ -2514,10 +2607,10 @@ impl MergeInsertJob {
+             WhenNotMatchedBySource::Keep
+         );
+ 
+-        match (keep_unmatched_target_rows, keep_unmatched_source_rows) {
++        match (keep_unmatched_source_rows, keep_unmatched_target_rows) {
+             (false, false) => JoinType::Inner,
+-            (false, true) => JoinType::Right,
+             (true, false) => JoinType::Left,
++            (false, true) => JoinType::Right,
+             (true, true) => JoinType::Full,
+         }
+     }
+@@ -2612,13 +2705,28 @@ impl MergeInsertJob {
+     }
+ 
+     async fn create_plan(self, provider: Arc<dyn TableProvider>) -> Result<Arc<dyn ExecutionPlan>> {
++        let budget = MergeBudget::new(&self.dataset, None);
++        self.create_plan_in(provider, &budget).await
++    }
++
++    /// Plans the merge under `budget`; execute the plan with its session's
++    /// task context.
++    ///
++    /// The source is the join's build side and the target streams through it,
++    /// so memory scales with the source rather than the table. See
++    /// [`MergeBudget`] for why DataFusion keeps that order.
++    async fn create_plan_in(
++        self,
++        provider: Arc<dyn TableProvider>,
++        budget: &MergeBudget,
++    ) -> Result<Arc<dyn ExecutionPlan>> {
++        let session_ctx = &budget.session_ctx;
+         // Goal: we shouldn't manually have to specify which columns to scan.
+         //       DataFusion's optimizer should be able to automatically perform
+         //       projection pushdown for us.
+         // Goal: we shouldn't have to add new branches in this code to handle
+         //       indexed vs non-indexed cases. That should be handled by optimizer rules.
+         let write_sink = self.select_write_sink(provider.schema().as_ref())?;
+-        let session_ctx = SessionContext::new();
+         let mut target_provider =
+             crate::datafusion::dataframe::LanceTableProvider::new_with_ordering(
+                 self.dataset.clone(),
+@@ -2626,7 +2734,11 @@ impl MergeInsertJob {
+                 true,
+                 false,
+             )
+-            .with_blob_handling(target_blob_handling(&self.dataset));
++            .with_blob_handling(target_blob_handling(&self.dataset))
++            .with_io_buffer_size(budget.scan_io_bytes);
++        if let Some(batch_rows) = budget.batch_rows {
++            target_provider = target_provider.with_batch_size(batch_rows);
++        }
+         if write_sink == WriteSink::RewriteRows
+             && self
+                 .params
+@@ -2646,8 +2758,7 @@ impl MergeInsertJob {
+         let on_cols_refs = on_cols.iter().map(|s| s.as_str()).collect::<Vec<_>>();
+         // FirstSeen must observe the caller's source order even though the join can
+         // reorder batches. Deduplicating source partitions sequentially before
+-        // the join fixes the winner at that contract boundary. Other modes plan
+-        // directly against the provider so its statistics reach the optimizer.
++        // the join fixes the winner at that contract boundary.
+         let deduplicate_source =
+             self.params.source_dedupe_behavior == SourceDedupeBehavior::FirstSeen;
+         let source_skipped_duplicates = Arc::new(AtomicU64::new(0));
+@@ -2710,14 +2821,8 @@ impl MergeInsertJob {
+         let (update_condition, deferred_update_if) =
+             split(parse_update_condition(&self.params, &dataset_schema)?);
+         let (delete_condition, deferred_delete_if) = split(parse_delete_condition(&self.params)?);
+-        let mut df = scan_aliased
+-            .join(
+-                source_df_aliased,
+-                join_type,
+-                &on_cols_refs,
+-                &on_cols_refs,
+-                None,
+-            )?
++        let mut df = source_df_aliased
++            .join(scan_aliased, join_type, &on_cols_refs, &on_cols_refs, None)?
+             .with_column(
+                 MERGE_ACTION_COLUMN,
+                 merge_insert_action(&self.params, update_condition, delete_condition)?,
+@@ -2794,7 +2899,8 @@ impl MergeInsertJob {
+         Option<RowAddrTreeMap>,
+         Option<KeyExistenceFilter>,
+     )> {
+-        let plan = self.create_plan(provider).await?;
++        let budget = MergeBudget::new(&self.dataset, None);
++        let plan = self.create_plan_in(provider, &budget).await?;
+ 
+         // Execute the plan
+         // Assert that we have exactly one partition since we're designed for single-partition execution
+@@ -2808,8 +2914,7 @@ impl MergeInsertJob {
+         }
+ 
+         // Execute partition 0 (the only partition)
+-        let task_context = Arc::new(datafusion::execution::TaskContext::default());
+-        let mut stream = plan.execute(0, task_context)?;
++        let mut stream = plan.execute(0, budget.session_ctx.task_ctx())?;
+ 
+         // Assert that the execution produces no output (this is a write operation)
+         if let Some(batch) = stream.next().await {
+@@ -3447,8 +3552,8 @@ impl MergeInsertJob {
+     ///
+     /// Mirrors [`Self::execute_batches`]: the batches are wrapped in a
+     /// [`MemTable`], so the reported plan is the one an in-memory source actually
+-    /// runs. That plan can differ from the streaming one, because the join picks
+-    /// its collected side from the statistics each source reports.
++    /// runs. That plan can differ from the streaming one, because the join's
++    /// partition mode follows the statistics each source reports.
+     ///
+     /// Under [`SourceDedupeBehavior::FirstSeen`] the source is deduplicated ahead
+     /// of the join and re-wrapped in a stream, so the reported plan is the
+@@ -3496,7 +3601,10 @@ impl MergeInsertJob {
+         let plan = cloned_job.create_plan(provider).await?;
+ 
+         // Use the analyze_plan function from lance_datafusion, but strip out the wrapper lines
+-        let options = LanceExecutionOptions::default();
++        let options = LanceExecutionOptions {
++            use_spilling: true,
++            ..Default::default()
++        };
+         let full_analysis = analyze_plan(plan, options).await?;
+ 
+         // Remove the AnalyzeExec and TracedExec lines from the output
+@@ -4100,7 +4208,7 @@ mod tests {
+     use lance_arrow::FixedSizeListArrayExt;
+     use lance_core::utils::tempfile::TempStrDir;
+     use lance_datafusion::{datagen::DatafusionDatagenExt, utils::reader_to_stream};
+-    use lance_datagen::{BatchCount, Dimension, RowCount, Seed, array};
++    use lance_datagen::{BatchCount, ByteCount, Dimension, RowCount, Seed, array};
+     use lance_index::IndexType;
+     use lance_index::scalar::{FullTextSearchQuery, InvertedIndexParams, ScalarIndexParams};
+     use lance_io::object_store::ObjectStoreParams;
+@@ -8123,7 +8231,7 @@ mod tests {
+                 plan
+             );
+             assert!(
+-                plan.contains("other@0 as other"),
++                plan.contains(" as other"),
+                 "expected post-join projection to carry `other` from the target side: {}",
+                 plan
+             );
+@@ -11049,15 +11157,13 @@ mod tests {
+         assert_plan_node_equals(
+             plan,
+             "MergeInsert: on=[key], when_matched=UpdateAll, when_not_matched=InsertAll, when_not_matched_by_source=Keep
+-  CoalescePartitionsExec
+-    ProjectionExec: expr=[_rowid@0 as _rowid, _rowaddr@1 as _rowaddr, value@2 as value, key@3 as key, __merge_source_sentinel@4 as __merge_source_sentinel, CASE WHEN _rowaddr@1 IS NULL THEN 2 WHEN _rowaddr@1 IS NOT NULL THEN 1 ELSE 0 END as __action]
+-      HashJoinExec: mode=Partitioned, join_type=Right, on=[(key@0, key@1)], projection=[_rowid@1, _rowaddr@2, value@3, key@4, __merge_source_sentinel@5]
+-        RepartitionExec: partitioning=Hash([key@0], ...), input_partitions=1
+-          LanceRead: uri=..., projection=[key], num_fragments=1, range_before=None, range_after=None, \
+-          row_id=true, row_addr=true, full_filter=--, refine_filter=--
+-        RepartitionExec: partitioning=Hash([key@1], ...), input_partitions=1
+-          ProjectionExec: expr=[value@0 as value, key@1 as key, true as __merge_source_sentinel]
+-            StreamingTableExec: partition_sizes=1, projection=[value, key]"
++  ProjectionExec: expr=[value@0 as value, key@1 as key, __merge_source_sentinel@2 as __merge_source_sentinel, _rowid@3 as _rowid, _rowaddr@4 as _rowaddr, CASE WHEN _rowaddr@4 IS NULL THEN 2 WHEN _rowaddr@4 IS NOT NULL THEN 1 ELSE 0 END as __action]
++    HashJoinExec: mode=CollectLeft, join_type=Left, on=[(key@1, key@0)], projection=[value@0, key@1, __merge_source_sentinel@2, _rowid@4, _rowaddr@5]
++      ProjectionExec: expr=[value@0 as value, key@1 as key, true as __merge_source_sentinel]
++        StreamingTableExec: partition_sizes=1, projection=[value, key]
++      CooperativeExec
++      LanceRead: uri=..., projection=[key], num_fragments=1, range_before=None, range_after=None, \
++      row_id=true, row_addr=true, full_filter=--, refine_filter=--"
+         ).await.unwrap();
+     }
+ 
+@@ -11091,7 +11197,7 @@ mod tests {
+     /// regressing, which is the point: the plan shape is what merge_insert's memory
+     /// use depends on, so a silent change to it should not go unnoticed.
+     #[tokio::test]
+-    async fn test_plan_join_build_side_follows_source_statistics() {
++    async fn test_plan_join_builds_on_source_for_both_source_shapes() {
+         fn find_hash_join(plan: &dyn ExecutionPlan) -> Option<&HashJoinExec> {
+             if let Some(join) = plan.downcast_ref::<HashJoinExec>() {
+                 return Some(join);
+@@ -11155,8 +11261,8 @@ mod tests {
+         assert_eq!(
+             (*join.partition_mode(), *join.join_type()),
+             (PartitionMode::CollectLeft, JoinType::Left),
+-            "the target is past the collect threshold and the source is not, so the inputs \
+-             are swapped and Right is rewritten to Left. build side was:\n{build}"
++            "the target is past the collect threshold and the source is not, so the source \
++             is collected. build side was:\n{build}"
+         );
+         assert!(
+             build.contains("DataSourceExec") && !build.contains("LanceRead"),
+@@ -11178,27 +11284,22 @@ mod tests {
+         let (build, probe) = sides(join);
+         assert_eq!(
+             (*join.partition_mode(), *join.join_type()),
+-            (PartitionMode::Partitioned, JoinType::Right),
+-            "the target is past the collect threshold and the source reports no statistics, \
+-             so neither side qualifies and both are hash-repartitioned. build side was:\n{build}"
++            (PartitionMode::CollectLeft, JoinType::Left),
++            "a source without statistics is collected too. build side was:\n{build}"
+         );
+         assert!(
+-            build.contains("LanceRead"),
+-            "the target stays the build side, so every one of its rows is \
+-             buffered:\n{build}"
++            build.contains("StreamingTableExec") && !build.contains("LanceRead"),
++            "the source is the build side whatever it reports:\n{build}"
+         );
+         assert!(
+-            probe.contains("StreamingTableExec"),
+-            "the source stays the probe side:\n{probe}"
++            probe.contains("LanceRead"),
++            "the target streams through the probe side:\n{probe}"
+         );
+     }
+ 
+     /// `analyze_plan` is a diagnostic, so it has to report the plan the source it
+     /// was handed would actually run. The batches entry point must therefore not
+-    /// fall back to the streaming plan: with the row counts used below the join
+-    /// collects the materialized source and rewrites the join type, and a stream
+-    /// gets neither. Which side wins is a size comparison, not a property of the
+-    /// entry point; see the fixture comment.
++    /// fall back to the streaming plan: an in-memory source is reported as one.
+     #[tokio::test]
+     async fn test_analyze_plan_reports_the_given_source_shape() {
+         let data = lance_datagen::gen_batch()
+@@ -11232,8 +11333,8 @@ mod tests {
+             "materialized batches must be reported as an in-memory source:\n{materialized}"
+         );
+         assert!(
+-            materialized.contains("join_type=Left"),
+-            "collecting the source, which is the smaller side here, rewrites the join type:\n{materialized}"
++            materialized.contains("mode=CollectLeft"),
++            "the source is small enough to collect:\n{materialized}"
+         );
+ 
+         // The provider entry is public too, and the batches entry is a thin wrapper
+@@ -11244,7 +11345,7 @@ mod tests {
+         );
+         let from_provider = new_job().analyze_plan_provider(provider).await.unwrap();
+         assert!(
+-            from_provider.contains("DataSourceExec") && from_provider.contains("join_type=Left"),
++            from_provider.contains("DataSourceExec") && from_provider.contains("mode=CollectLeft"),
+             "a provider with exact statistics reports the same shape as its batches:\n{from_provider}"
+         );
+ 
+@@ -11258,9 +11359,151 @@ mod tests {
+             "a stream must still be reported as a stream:\n{streaming}"
+         );
+         assert!(
+-            streaming.contains("join_type=Right"),
+-            "nothing is swapped without source statistics:\n{streaming}"
++            streaming.contains("mode=CollectLeft"),
++            "the source is collected whatever it reports:\n{streaming}"
++        );
++    }
++
++    /// Whether the join's output, in its own projection or the projection
++    /// directly above it, carries `column`.
++    fn join_output_retains(plan: &str, column: &str) -> bool {
++        let lines: Vec<&str> = plan.lines().collect();
++        let Some(join) = lines.iter().position(|line| line.contains("HashJoinExec")) else {
++            return false;
++        };
++        let above = lines[..join]
++            .iter()
++            .rev()
++            .find(|line| line.contains("ProjectionExec"));
++        lines[join].contains(column) || above.is_some_and(|line| line.contains(column))
++    }
++
++    /// The target scan is the join's probe side, so it is the last plan line.
++    fn target_scan_line(version: LanceFileVersion) -> &'static str {
++        match version {
++            LanceFileVersion::Legacy => "LanceScan: ...range=None",
++            _ => "LanceRead: ...refine_filter=--",
++        }
++    }
++
++    fn delete_only_plan(version: LanceFileVersion) -> String {
++        format!(
++            "DeleteOnlyMergeInsert: on=[key], when_matched=Delete, when_not_matched=DoNothing
++  ...
++    HashJoinExec: mode=CollectLeft, join_type=Inner...
++      ...
++        StreamingTableExec: partition_sizes=1, projection=[key]...{}",
++            target_scan_line(version)
++        )
++    }
++
++    /// One merge's budget: a bounded pool, no join reordering, and the target
++    /// scan and session batches sized from the fragments' on-disk row width.
++    #[tokio::test]
++    async fn test_merge_budget_bounds_pool_scan_and_join_order() {
++        let wide = lance_datagen::gen_batch()
++            .col("key", array::step::<UInt32Type>())
++            .col(
++                "payload",
++                array::rand_varbin(ByteCount::from(1024 * 1024), ByteCount::from(1024 * 1024)),
++            )
++            .into_ram_dataset(FragmentCount::from(2), FragmentRowCount::from(8))
++            .await
++            .unwrap();
++        // 1 MiB rows (plus a key): four fill a batch just over 4 MiB, never fewer than one.
++        assert_eq!(
++            target_scan_batch_rows(&wide, 4 * 1024 * 1024 + 128 * 1024),
++            Some(4)
++        );
++        assert_eq!(target_scan_batch_rows(&wide, 1024), Some(1));
++
++        let budget = MergeBudget::new(&wide, None);
++        let options = LanceExecutionOptions {
++            use_spilling: true,
++            ..Default::default()
++        };
++        assert_eq!(
++            budget.scan_io_bytes,
++            scan_io_bytes(options.mem_pool_size(), *DEFAULT_IO_BUFFER_SIZE)
++        );
++        assert!(budget.batch_rows.is_some());
++        let config = budget.session_ctx.state().config().clone();
++        assert!(!config.options().optimizer.join_reordering);
++        assert!(!config.options().optimizer.repartition_joins);
++        assert!(!config.options().optimizer.enable_round_robin_repartition);
++        let reservation =
++            MemoryConsumer::new("test").register(budget.session_ctx.task_ctx().memory_pool());
++        assert!(
++            reservation
++                .try_grow(options.mem_pool_size() as usize + 1)
++                .is_err()
+         );
++        assert_eq!(
++            MergeBudget::new(&wide, Some(1))
++                .session_ctx
++                .state()
++                .config()
++                .target_partitions(),
++            1
++        );
++
++        let narrow = lance_datagen::gen_batch()
++            .col("key", array::step::<UInt32Type>())
++            .into_ram_dataset(FragmentCount::from(1), FragmentRowCount::from(64))
++            .await
++            .unwrap();
++        assert_eq!(MergeBudget::new(&narrow, None).batch_rows, None);
++    }
++
++    #[rstest::rstest]
++    #[case::quarter_of_pool(1 << 30, 2 << 30, 256 << 20)]
++    #[case::floor(32 << 20, 2 << 30, 16 << 20)]
++    #[case::configured_ceiling(4 << 30, 64 << 20, 64 << 20)]
++    #[case::configured_below_floor(32 << 20, 8 << 20, 8 << 20)]
++    fn test_scan_io_bytes(#[case] pool: u64, #[case] configured: u64, #[case] expected: u64) {
++        assert_eq!(scan_io_bytes(pool, configured), expected);
++    }
++
++    /// A partial-schema row rewrite reads every target column, so the target
++    /// must be the probe side of the join: the build side is the source.
++    #[tokio::test]
++    async fn test_partial_schema_plan_builds_on_source() {
++        let ds = lance_datagen::gen_batch()
++            .col("key", array::step::<UInt32Type>())
++            .col("value", array::rand_utf8(ByteCount::from(32), false))
++            .col("other", array::rand_utf8(ByteCount::from(32), false))
++            .into_ram_dataset(FragmentCount::from(2), FragmentRowCount::from(64))
++            .await
++            .unwrap();
++        let job =
++            crate::dataset::MergeInsertBuilder::try_new(Arc::new(ds), vec!["key".to_string()])
++                .unwrap()
++                .when_matched(crate::dataset::WhenMatched::UpdateAll)
++                .when_not_matched(crate::dataset::WhenNotMatched::DoNothing)
++                .write_mode(MergeInsertWriteMode::RewriteRows)
++                .try_build()
++                .unwrap();
++        let source = record_batch!(("key", UInt32, [1, 2]), ("value", Utf8, ["a", "b"])).unwrap();
++        let source = reader_to_stream(Box::new(RecordBatchIterator::new(
++            vec![Ok(source.clone())],
++            source.schema(),
++        )));
++        let plan = job
++            .create_plan(one_shot_provider(source).unwrap())
++            .await
++            .unwrap();
++        assert_plan_node_equals(
++            plan,
++            "MergeInsert: on=[key], when_matched=UpdateAll, when_not_matched=DoNothing, when_not_matched_by_source=Keep
++  ProjectionExec: expr=[key@0 as key, value@1 as value, __merge_source_sentinel@2 as __merge_source_sentinel, other@3 as other, _rowid@4 as _rowid, _rowaddr@5 as _rowaddr, CASE WHEN _rowaddr@5 IS NOT NULL THEN 1 ELSE 0 END as __action]
++    HashJoinExec: mode=CollectLeft, join_type=Inner, on=[(key@0, key@0)], projection=[key@0, value@1, __merge_source_sentinel@2, other@4, _rowid@5, _rowaddr@6]
++      ProjectionExec: expr=[key@0 as key, value@1 as value, true as __merge_source_sentinel]
++        StreamingTableExec: partition_sizes=1, projection=[key, value]
++      CooperativeExec
++      LanceRead: uri=..., projection=[key, other], num_fragments=2, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--",
++        )
++        .await
++        .unwrap();
+     }
+ 
+     #[tokio::test]
+@@ -11303,14 +11546,12 @@ mod tests {
+         assert_plan_node_equals(
+             plan,
+             "MergeInsert: on=[key], when_matched=UpdateAll, when_not_matched=DoNothing, when_not_matched_by_source=Keep
+-  CoalescePartitionsExec
+-    ProjectionExec: expr=[_rowid@0 as _rowid, _rowaddr@1 as _rowaddr, value@2 as value, key@3 as key, __merge_source_sentinel@4 as __merge_source_sentinel, CASE WHEN _rowaddr@1 IS NOT NULL THEN 1 ELSE 0 END as __action]
+-      HashJoinExec: mode=Partitioned, join_type=Inner, on=[(key@0, key@1)], projection=[_rowid@1, _rowaddr@2, value@3, key@4, __merge_source_sentinel@5]
+-        RepartitionExec: partitioning=Hash([key@0], ...), input_partitions=1
+-          LanceRead: uri=..., projection=[key], num_fragments=1, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--
+-        RepartitionExec...
+-          ProjectionExec: expr=[value@0 as value, key@1 as key, true as __merge_source_sentinel]
+-            StreamingTableExec: partition_sizes=1, projection=[value, key]"
++  ProjectionExec: expr=[value@0 as value, key@1 as key, __merge_source_sentinel@2 as __merge_source_sentinel, _rowid@3 as _rowid, _rowaddr@4 as _rowaddr, CASE WHEN _rowaddr@4 IS NOT NULL THEN 1 ELSE 0 END as __action]
++    HashJoinExec: mode=CollectLeft, join_type=Inner, on=[(key@1, key@0)], projection=[value@0, key@1, __merge_source_sentinel@2, _rowid@4, _rowaddr@5]
++      ProjectionExec: expr=[value@0 as value, key@1 as key, true as __merge_source_sentinel]
++        StreamingTableExec: partition_sizes=1, projection=[value, key]
++      CooperativeExec
++      LanceRead: uri=..., projection=[key], num_fragments=1, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--"
+         ).await.unwrap();
+     }
+ 
+@@ -11354,14 +11595,12 @@ mod tests {
+         assert_plan_node_equals(
+             plan,
+             "MergeInsert: on=[key], when_matched=UpdateIf(source.value > 20), when_not_matched=DoNothing, when_not_matched_by_source=Keep
+-  CoalescePartitionsExec
+-    ProjectionExec: expr=[_rowid@0 as _rowid, _rowaddr@1 as _rowaddr, value@2 as value, key@3 as key, __merge_source_sentinel@4 as __merge_source_sentinel, CASE WHEN _rowaddr@1 IS NOT NULL AND value@2 > 20 THEN 1 ELSE 0 END as __action]
+-      HashJoinExec: mode=Partitioned, join_type=Inner, on=[(key@0, key@1)], projection=[_rowid@1, _rowaddr@2, value@3, key@4, __merge_source_sentinel@5]
+-        RepartitionExec: partitioning=Hash([key@0], ...), input_partitions=1
+-          LanceRead: uri=..., projection=[key], num_fragments=1, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--
+-        RepartitionExec...
+-          ProjectionExec: expr=[value@0 as value, key@1 as key, true as __merge_source_sentinel]
+-            StreamingTableExec: partition_sizes=1, projection=[value, key]"
++  ProjectionExec: expr=[value@0 as value, key@1 as key, __merge_source_sentinel@2 as __merge_source_sentinel, _rowid@3 as _rowid, _rowaddr@4 as _rowaddr, CASE WHEN _rowaddr@4 IS NOT NULL AND value@0 > 20 THEN 1 ELSE 0 END as __action]
++    HashJoinExec: mode=CollectLeft, join_type=Inner, on=[(key@1, key@0)], projection=[value@0, key@1, __merge_source_sentinel@2, _rowid@4, _rowaddr@5]
++      ProjectionExec: expr=[value@0 as value, key@1 as key, true as __merge_source_sentinel]
++        StreamingTableExec: partition_sizes=1, projection=[value, key]
++      CooperativeExec
++      LanceRead: uri=..., projection=[key], num_fragments=1, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--"
+         ).await.unwrap();
+     }
+ 
+@@ -11412,14 +11651,12 @@ mod tests {
+         assert_plan_node_equals(
+             plan,
+             "MergeInsert: on=[key], when_matched=DoNothing, when_not_matched=InsertAll, when_not_matched_by_source=Keep
+-  CoalescePartitionsExec
+-    ProjectionExec: expr=[_rowid@0 as _rowid, _rowaddr@1 as _rowaddr, value@2 as value, key@3 as key, __merge_source_sentinel@4 as __merge_source_sentinel, CASE WHEN _rowaddr@1 IS NULL THEN 2 ELSE 0 END as __action]
+-      HashJoinExec: mode=Partitioned, join_type=Right, on=[(key@0, key@1)], projection=[_rowid@1, _rowaddr@2, value@3, key@4, __merge_source_sentinel@5]
+-        RepartitionExec: partitioning=Hash([key@0], ...), input_partitions=1
+-          LanceRead: uri=..., projection=[key], num_fragments=1, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--
+-        RepartitionExec...
+-          ProjectionExec: expr=[value@0 as value, key@1 as key, true as __merge_source_sentinel]
+-            StreamingTableExec: partition_sizes=1, projection=[value, key]"
++  ProjectionExec: expr=[value@0 as value, key@1 as key, __merge_source_sentinel@2 as __merge_source_sentinel, _rowid@3 as _rowid, _rowaddr@4 as _rowaddr, CASE WHEN _rowaddr@4 IS NULL THEN 2 ELSE 0 END as __action]
++    HashJoinExec: mode=CollectLeft, join_type=Left, on=[(key@1, key@0)], projection=[value@0, key@1, __merge_source_sentinel@2, _rowid@4, _rowaddr@5]
++      ProjectionExec: expr=[value@0 as value, key@1 as key, true as __merge_source_sentinel]
++        StreamingTableExec: partition_sizes=1, projection=[value, key]
++      CooperativeExec
++      LanceRead: uri=..., projection=[key], num_fragments=1, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--"
+         )
+         .await
+         .unwrap();
+@@ -12536,10 +12773,9 @@ mod tests {
+         // Also validate the full string structure with pattern matching
+         let expected_pattern = "\
+ MergeInsert: on=[id], when_matched=UpdateAll, when_not_matched=InsertAll, when_not_matched_by_source=Keep...
+-  CoalescePartitionsExec...
+     HashJoinExec...
+-      LanceRead...
+-      StreamingTableExec: partition_sizes=1, projection=[id, name]";
++      StreamingTableExec: partition_sizes=1, projection=[id, name]...
++      LanceRead...refine_filter=--";
+         assert_string_matches(&plan, expected_pattern).unwrap();
+ 
+         // Test with explicit schema
+@@ -12581,10 +12817,9 @@ MergeInsert: on=[id], when_matched=UpdateAll, when_not_matched=InsertAll, when_n
+ 
+         let expected_pattern = "\
+ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_not_matched_by_source=Keep...
+-  CoalescePartitionsExec...
+-    HashJoinExec...join_type=Right...
+-      LanceRead...
+-      StreamingTableExec: partition_sizes=1, projection=[id, name]";
++    HashJoinExec...join_type=Left...
++      StreamingTableExec: partition_sizes=1, projection=[id, name]...
++      LanceRead...refine_filter=--";
+         assert_string_matches(&plan, expected_pattern).unwrap();
+     }
+ 
+@@ -12641,9 +12876,7 @@ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_n
+         assert!(plan.contains("HashJoinExec"));
+         assert!(plan.contains("join_type=Full"));
+         assert!(
+-            plan.lines().any(|line| line.contains("HashJoinExec")
+-                && line.contains("projection=[")
+-                && line.contains("_rowid")),
++            join_output_retains(&plan, "_rowid"),
+             "join should push down a projection that retains _rowid: {plan}"
+         );
+         assert!(
+@@ -12714,9 +12947,7 @@ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_n
+         assert!(plan.contains("HashJoinExec"));
+         assert!(plan.contains("join_type=Full"));
+         assert!(
+-            plan.lines().any(|line| line.contains("HashJoinExec")
+-                && line.contains("projection=[")
+-                && line.contains("_rowid")),
++            join_output_retains(&plan, "_rowid"),
+             "join should push down a projection that retains _rowid: {plan}"
+         );
+         assert!(
+@@ -12980,7 +13211,7 @@ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_n
+         // Also validate the full string structure with pattern matching
+         let expected_pattern = "[...MergeInsert: elapsed=..., on=[id], when_matched=UpdateAll, when_not_matched=InsertAll, when_not_matched_by_source=Keep, metrics=...bytes_written=...num_deleted_rows=0, num_files_written=...num_inserted_rows=1, num_skipped_duplicates=0, num_updated_rows=1]
+     ...
+-    StreamingTableExec: partition_sizes=1, projection=[id, name], metrics=[]...]";
++    StreamingTableExec: partition_sizes=1, projection=[id, name], metrics=[]...LanceRead: ...refine_filter=--, metrics=[...]]";
+         assert_string_matches(&analysis, expected_pattern).unwrap();
+         assert!(analysis.contains("bytes_written"));
+         assert!(analysis.contains("num_files_written"));
+@@ -14570,17 +14801,9 @@ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_n
+             .create_plan(one_shot_provider(plan_stream).unwrap())
+             .await
+             .unwrap();
+-        assert_plan_node_equals(
+-            plan,
+-            "DeleteOnlyMergeInsert: on=[key], when_matched=Delete, when_not_matched=DoNothing
+-  ...
+-    HashJoinExec: ...join_type=Inner...
+-      ...
+-      ...
+-        StreamingTableExec: partition_sizes=1, projection=[key]",
+-        )
+-        .await
+-        .unwrap();
++        assert_plan_node_equals(plan, &delete_only_plan(version))
++            .await
++            .unwrap();
+         let job = MergeInsertBuilder::try_new(ds.clone(), keys)
+             .unwrap()
+             .when_matched(WhenMatched::Delete)
+@@ -14655,17 +14878,9 @@ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_n
+             .create_plan(one_shot_provider(plan_stream).unwrap())
+             .await
+             .unwrap();
+-        assert_plan_node_equals(
+-            plan,
+-            "DeleteOnlyMergeInsert: on=[key], when_matched=Delete, when_not_matched=DoNothing
+-  ...
+-    HashJoinExec: ...join_type=Inner...
+-      ...
+-      ...
+-        StreamingTableExec: partition_sizes=1, projection=[key]",
+-        )
+-        .await
+-        .unwrap();
++        assert_plan_node_equals(plan, &delete_only_plan(version))
++            .await
++            .unwrap();
+         let job = MergeInsertBuilder::try_new(ds.clone(), keys)
+             .unwrap()
+             .when_matched(WhenMatched::Delete)
+@@ -14742,7 +14957,10 @@ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_n
+             .unwrap();
+         assert_plan_node_equals(
+             plan,
+-            "MergeInsert: on=[key], when_matched=Delete, when_not_matched=InsertAll, when_not_matched_by_source=Keep...THEN 2 WHEN...THEN 3 ELSE 0 END as __action]...projection=[key, value, filterme]"
++            &format!(
++                "MergeInsert: on=[key], when_matched=Delete, when_not_matched=InsertAll, when_not_matched_by_source=Keep...THEN 2 WHEN...THEN 3 ELSE 0 END as __action]...StreamingTableExec: partition_sizes=1, projection=[key, value, filterme]...{}",
++                target_scan_line(version)
++            ),
+         ).await.unwrap();
+ 
+         // Delete matched rows, insert unmatched rows
+@@ -14848,17 +15066,9 @@ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_n
+             .create_plan(one_shot_provider(plan_stream).unwrap())
+             .await
+             .unwrap();
+-        assert_plan_node_equals(
+-            plan,
+-            "DeleteOnlyMergeInsert: on=[key], when_matched=Delete, when_not_matched=DoNothing
+-  ...
+-    HashJoinExec: ...join_type=Inner...
+-      ...
+-      ...
+-        StreamingTableExec: partition_sizes=1, projection=[key]",
+-        )
+-        .await
+-        .unwrap();
++        assert_plan_node_equals(plan, &delete_only_plan(version))
++            .await
++            .unwrap();
+         let job = MergeInsertBuilder::try_new(ds.clone(), keys)
+             .unwrap()
+             .when_matched(WhenMatched::Delete)
+@@ -16244,6 +16454,10 @@ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_n
+         //  slice offset=0 Length=N selfLen=N/2"
+         let batches = updated_dataset
+             .scan()
++            .order_by(Some(vec![ColumnOrdering::asc_nulls_first(
++                "id".to_string(),
++            )]))
++            .unwrap()
+             .try_into_stream()
+             .await
+             .unwrap()
+@@ -16907,14 +17121,14 @@ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_n
+             blobs[0].as_ref().unwrap().read().await.unwrap().as_ref(),
+             b"foo"
+         );
+-        assert_eq!(
+-            blobs[1].as_ref().unwrap().read().await.unwrap().as_ref(),
+-            b"baz"
+-        );
+-        assert_eq!(
+-            blobs[2].as_ref().unwrap().read().await.unwrap().as_ref(),
+-            b"qux"
+-        );
++        // The updated and inserted rows land in one new fragment in join order,
++        // which is not a contract.
++        let mut rewritten = vec![
++            blobs[1].as_ref().unwrap().read().await.unwrap().to_vec(),
++            blobs[2].as_ref().unwrap().read().await.unwrap().to_vec(),
++        ];
++        rewritten.sort();
++        assert_eq!(rewritten, [b"baz".to_vec(), b"qux".to_vec()]);
+     }
+ 
+     /// A partial-schema source carrying a Blob v2 column updates and inserts
+@@ -17223,14 +17437,14 @@ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_n
+             blobs[0].as_ref().unwrap().read().await.unwrap().as_ref(),
+             b"foo"
+         );
+-        assert_eq!(
+-            blobs[1].as_ref().unwrap().read().await.unwrap().as_ref(),
+-            b"baz"
+-        );
+-        assert_eq!(
+-            blobs[2].as_ref().unwrap().read().await.unwrap().as_ref(),
+-            b"qux"
+-        );
++        // The updated and inserted rows land in one new fragment in join order,
++        // which is not a contract.
++        let mut rewritten = vec![
++            blobs[1].as_ref().unwrap().read().await.unwrap().to_vec(),
++            blobs[2].as_ref().unwrap().read().await.unwrap().to_vec(),
++        ];
++        rewritten.sort();
++        assert_eq!(rewritten, [b"baz".to_vec(), b"qux".to_vec()]);
+     }
+ 
+     /// `UpdateIf` / `DeleteIf` conditions over target columns are evaluated by
+@@ -18351,3 +18565,6 @@ MergeInsert: on=[id], when_matched=DoNothing, when_not_matched=InsertAll, when_n
+         assert_cells_filled(&ds).await;
+     }
+ }
++
++#[cfg(test)]
++mod hypotheses;
+diff --git a/rust/lance/src/dataset/write/merge_insert/hypotheses.rs b/rust/lance/src/dataset/write/merge_insert/hypotheses.rs
+new file mode 100644
+index 00000000..e1b2d3c9
+--- /dev/null
++++ b/rust/lance/src/dataset/write/merge_insert/hypotheses.rs
+@@ -0,0 +1,767 @@
++// SPDX-License-Identifier: Apache-2.0
++// SPDX-FileCopyrightText: Copyright The Lance Authors
++
++//! Isolated research driver. Not enabled in production builds.
++
++use super::*;
++use std::collections::BTreeMap;
++use std::fmt::{Display, Formatter};
++use std::fs::{File, OpenOptions};
++use std::io::Write;
++use std::path::PathBuf;
++use std::sync::Mutex;
++use std::time::Instant;
++
++use arrow_array::{Array, Int64Array, UInt8Array, cast::AsArray};
++use arrow_ipc::{reader::FileReader, writer::FileWriter};
++use arrow_schema::SchemaRef;
++use datafusion::common::{DFSchema, Statistics, config::ConfigOptions, stats::Precision};
++use datafusion::execution::memory_pool::{
++    FairSpillPool, MemoryLimit, MemoryPool, MemoryReservation,
++};
++use datafusion::execution::runtime_env::RuntimeEnvBuilder;
++use datafusion::execution::{SessionStateBuilder, TaskContext};
++use datafusion::physical_expr::{EquivalenceProperties, Partitioning};
++use datafusion::physical_optimizer::PhysicalOptimizerRule;
++use datafusion::physical_plan::joins::{HashJoinExec, PartitionMode};
++use datafusion::physical_plan::repartition::RepartitionExec;
++use datafusion::physical_plan::stream::RecordBatchStreamAdapter;
++use datafusion::physical_plan::streaming::PartitionStream;
++use datafusion::physical_plan::{DisplayAs, DisplayFormatType, PlanProperties, displayable};
++use futures::{TryStreamExt, stream};
++use serde_json::{Value, json};
++
++mod deferred_reference;
++
++type ProbeResult<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
++
++#[derive(Debug, Default)]
++struct PoolCounters {
++    peak: usize,
++    per_consumer: BTreeMap<String, (usize, usize)>,
++    failed_reservations: usize,
++    infallible_grows: usize,
++}
++
++#[derive(Debug)]
++struct ObservedPool {
++    inner: FairSpillPool,
++    counters: Mutex<PoolCounters>,
++}
++
++impl ObservedPool {
++    fn new(bytes: usize) -> Self {
++        Self {
++            inner: FairSpillPool::new(bytes),
++            counters: Mutex::new(PoolCounters::default()),
++        }
++    }
++    fn record(
++        &self,
++        counters: &mut PoolCounters,
++        reservation: &MemoryReservation,
++        add: usize,
++        remove: usize,
++    ) {
++        counters.peak = counters.peak.max(self.inner.reserved());
++        let usage = counters
++            .per_consumer
++            .entry(reservation.consumer().name().to_string())
++            .or_default();
++        usage.0 = usage.0 + add - remove;
++        usage.1 = usage.1.max(usage.0);
++    }
++    fn snapshot(&self) -> Value {
++        let c = self.counters.lock().unwrap();
++        json!({"reserved": self.inner.reserved(), "peak_reserved": c.peak,
++            "per_consumer_current_peak": c.per_consumer,
++            "failed_reservations": c.failed_reservations, "infallible_grows": c.infallible_grows,
++            "interpretation": "Reservation mutations are serialized for exact tracked high-water accounting; unregistered arrays are not included."})
++    }
++}
++impl Display for ObservedPool {
++    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
++        write!(f, "Observed({})", self.inner)
++    }
++}
++impl MemoryPool for ObservedPool {
++    fn name(&self) -> &str {
++        "ObservedFairSpillPool"
++    }
++    fn register(&self, consumer: &MemoryConsumer) {
++        let _lock = self.counters.lock().unwrap();
++        self.inner.register(consumer);
++    }
++    fn unregister(&self, consumer: &MemoryConsumer) {
++        let _lock = self.counters.lock().unwrap();
++        self.inner.unregister(consumer);
++    }
++    fn grow(&self, r: &MemoryReservation, n: usize) {
++        let mut c = self.counters.lock().unwrap();
++        self.inner.grow(r, n);
++        c.infallible_grows += 1;
++        self.record(&mut c, r, n, 0);
++    }
++    fn shrink(&self, r: &MemoryReservation, n: usize) {
++        let mut c = self.counters.lock().unwrap();
++        self.inner.shrink(r, n);
++        self.record(&mut c, r, 0, n);
++    }
++    fn try_grow(&self, r: &MemoryReservation, n: usize) -> datafusion::error::Result<()> {
++        let mut c = self.counters.lock().unwrap();
++        match self.inner.try_grow(r, n) {
++            Ok(()) => {
++                self.record(&mut c, r, n, 0);
++                Ok(())
++            }
++            Err(e) => {
++                c.failed_reservations += 1;
++                Err(e)
++            }
++        }
++    }
++    fn reserved(&self) -> usize {
++        self.inner.reserved()
++    }
++    fn memory_limit(&self) -> MemoryLimit {
++        self.inner.memory_limit()
++    }
++}
++
++fn save(path: impl AsRef<std::path::Path>, v: &Value) -> ProbeResult<()> {
++    std::fs::write(path, serde_json::to_vec_pretty(v)?)?;
++    Ok(())
++}
++fn flag(spec: &Value, name: &str, default: bool) -> bool {
++    spec[name].as_bool().unwrap_or(default)
++}
++fn number(spec: &Value, name: &str, default: usize) -> usize {
++    spec[name].as_u64().map(|x| x as usize).unwrap_or(default)
++}
++fn stats_json(plan: &Arc<dyn ExecutionPlan>) -> Value {
++    match plan.partition_statistics(None) {
++        Ok(s) => {
++            json!({"rows": format!("{:?}", s.num_rows), "bytes": format!("{:?}", s.total_byte_size),
++            "rows_value": s.num_rows.get_value(), "bytes_value": s.total_byte_size.get_value()})
++        }
++        Err(e) => json!({"error": e.to_string()}),
++    }
++}
++fn has_scan(plan: &Arc<dyn ExecutionPlan>) -> bool {
++    matches!(
++        plan.name(),
++        "FilteredReadExec" | "LanceScanExec" | "LancePushdownScanExec"
++    ) || plan.children().iter().any(|p| has_scan(p))
++}
++fn variable_schema(schema: &arrow_schema::Schema) -> bool {
++    schema.fields().iter().any(|f| {
++        matches!(
++            f.data_type(),
++            DataType::Binary
++                | DataType::LargeBinary
++                | DataType::Utf8
++                | DataType::LargeUtf8
++                | DataType::BinaryView
++                | DataType::Utf8View
++        )
++    })
++}
++
++#[derive(Debug)]
++struct TargetStatistics {
++    input: Arc<dyn ExecutionPlan>,
++    bytes: Option<usize>,
++    mask_rows: bool,
++}
++impl DisplayAs for TargetStatistics {
++    fn fmt_as(&self, _: DisplayFormatType, f: &mut Formatter<'_>) -> std::fmt::Result {
++        write!(
++            f,
++            "ProbeTargetStatistics: bytes={:?}, mask_rows={}",
++            self.bytes, self.mask_rows
++        )
++    }
++}
++impl ExecutionPlan for TargetStatistics {
++    fn name(&self) -> &str {
++        "ProbeTargetStatistics"
++    }
++    fn properties(&self) -> &Arc<PlanProperties> {
++        self.input.properties()
++    }
++    fn children(&self) -> Vec<&Arc<dyn ExecutionPlan>> {
++        vec![&self.input]
++    }
++    fn maintains_input_order(&self) -> Vec<bool> {
++        vec![true]
++    }
++    fn with_new_children(
++        self: Arc<Self>,
++        mut c: Vec<Arc<dyn ExecutionPlan>>,
++    ) -> datafusion::error::Result<Arc<dyn ExecutionPlan>> {
++        assert_eq!(c.len(), 1);
++        Ok(Arc::new(Self {
++            input: c.remove(0),
++            bytes: self.bytes,
++            mask_rows: self.mask_rows,
++        }))
++    }
++    fn partition_statistics(
++        &self,
++        partition: Option<usize>,
++    ) -> datafusion::error::Result<Arc<Statistics>> {
++        let mut stats = self.input.partition_statistics(partition)?.as_ref().clone();
++        stats.total_byte_size = self
++            .bytes
++            .map(Precision::Inexact)
++            .unwrap_or(Precision::Absent);
++        if self.mask_rows {
++            stats.num_rows = Precision::Absent;
++        }
++        Ok(Arc::new(stats))
++    }
++    fn execute(
++        &self,
++        p: usize,
++        c: Arc<TaskContext>,
++    ) -> datafusion::error::Result<SendableRecordBatchStream> {
++        self.input.execute(p, c)
++    }
++}
++
++#[derive(Debug)]
++struct HypothesisPolicy {
++    policy: String,
++    manifest_bytes: usize,
++    observations: Arc<Mutex<Vec<Value>>>,
++}
++impl PhysicalOptimizerRule for HypothesisPolicy {
++    fn name(&self) -> &str {
++        "source_hypothesis_policy"
++    }
++    fn schema_check(&self) -> bool {
++        true
++    }
++    fn optimize(
++        &self,
++        plan: Arc<dyn ExecutionPlan>,
++        _: &ConfigOptions,
++    ) -> datafusion::error::Result<Arc<dyn ExecutionPlan>> {
++        Ok(plan.transform_up(|p| {
++            let Some(join) = p.downcast_ref::<HashJoinExec>() else { return Ok(Transformed::no(p)); };
++            let left_target = has_scan(join.left());
++            if left_target == has_scan(join.right()) { return Ok(Transformed::no(p)); }
++            let target = if left_target { join.left().clone() } else { join.right().clone() };
++            let source = if left_target { join.right().clone() } else { join.left().clone() };
++            self.observations.lock().unwrap().push(json!({"policy":self.policy,"target_before":stats_json(&target),"source_before":stats_json(&source),
++                "target_schema":format!("{:?}",target.schema()),"target_variable":variable_schema(target.schema().as_ref()),"manifest_file_bytes":self.manifest_bytes}));
++            if self.policy == "p" { return Ok(Transformed::no(p)); }
++            let guarded = self.policy == "guard" && variable_schema(target.schema().as_ref());
++            let new_target: Arc<dyn ExecutionPlan> = match self.policy.as_str() {
++                "manifest" => {
++                    let rows = target.partition_statistics(None)?.num_rows.get_value().copied().unwrap_or(0);
++                    Arc::new(TargetStatistics { input:target,bytes:Some(self.manifest_bytes.saturating_add(16*rows)),mask_rows:false })
++                },
++                "guard" | "mask_only" if variable_schema(target.schema().as_ref()) => Arc::new(TargetStatistics { input:target,bytes:None,mask_rows:true }),
++                _ => target,
++            };
++            let (left,right) = if left_target { (new_target,source) } else { (source,new_target) };
++            let rebuilt = p.clone().with_new_children(vec![left,right])?;
++            let rebuilt_join = rebuilt.downcast_ref::<HashJoinExec>().unwrap();
++            let source_left = self.policy == "guard";
++            let output = if source_left == left_target { rebuilt_join.swap_inputs(*rebuilt_join.partition_mode())? } else { rebuilt };
++            self.observations.lock().unwrap().push(json!({"target_masked":guarded,"initial_build":if source_left {"source"} else {"target"}}));
++            Ok(Transformed::yes(output))
++        })?.data)
++    }
++}
++
++fn collect_metrics(plan: &Arc<dyn ExecutionPlan>, path: String, output: &mut Vec<Value>) {
++    let metrics = plan.metrics().map(|set| set.iter().map(|m| json!({"partition":m.partition(),"name":m.value().name(),"value":m.value().to_string(),"numeric":m.value().as_usize()})).collect::<Vec<_>>()).unwrap_or_default();
++    output.push(json!({"path":path,"name":plan.name(),"display":format!("{}",displayable(plan.as_ref()).one_line()),
++        "statistics":stats_json(plan),"partitioning":format!("{:?}",plan.properties().output_partitioning()),"metrics":metrics}));
++    for (i, c) in plan.children().iter().enumerate() {
++        collect_metrics(c, format!("{path}/{i}"), output);
++    }
++}
++
++fn row_bytes(batch: &RecordBatch, index: usize) -> ProbeResult<usize> {
++    let mut bytes = 0;
++    for array in batch.columns() {
++        bytes += match array.data_type() {
++            DataType::Int64 | DataType::UInt64 => 9,
++            DataType::Binary => {
++                if array.is_null(index) {
++                    5
++                } else {
++                    array.as_binary::<i32>().value(index).len() + 5
++                }
++            }
++            DataType::LargeBinary => {
++                if array.is_null(index) {
++                    9
++                } else {
++                    array.as_binary::<i64>().value(index).len() + 9
++                }
++            }
++            DataType::Utf8 => {
++                if array.is_null(index) {
++                    5
++                } else {
++                    array.as_string::<i32>().value(index).len() + 5
++                }
++            }
++            DataType::LargeUtf8 => {
++                if array.is_null(index) {
++                    9
++                } else {
++                    array.as_string::<i64>().value(index).len() + 9
++                }
++            }
++            other => return Err(format!("Byte-split spike does not implement {other:?}").into()),
++        };
++    }
++    Ok(bytes)
++}
++
++#[derive(Debug)]
++struct IpcPartition {
++    path: PathBuf,
++    schema: SchemaRef,
++    producer: PathBuf,
++    split_bytes: usize,
++    consumed: std::sync::atomic::AtomicBool,
++}
++impl PartitionStream for IpcPartition {
++    fn schema(&self) -> &SchemaRef {
++        &self.schema
++    }
++    fn execute(&self, _: Arc<TaskContext>) -> SendableRecordBatchStream {
++        assert!(
++            !self.consumed.swap(true, Ordering::SeqCst),
++            "one-shot source executed twice"
++        );
++        let reader = FileReader::try_new(File::open(&self.path).unwrap(), None).unwrap();
++        let producer = self.producer.clone();
++        let split_bytes = self.split_bytes;
++        let mut reader = reader;
++        let mut pending: Option<(RecordBatch, usize)> = None;
++        let batches = std::iter::from_fn(move || {
++            let item: ProbeResult<Option<RecordBatch>> = (|| {
++                if pending.is_none() {
++                    let Some(batch) = reader.next() else {
++                        return Ok(None);
++                    };
++                    pending = Some((batch?, 0));
++                }
++                let (batch, start) = pending.as_ref().unwrap();
++                let (output, next) = if split_bytes == 0 {
++                    (batch.clone(), batch.num_rows())
++                } else {
++                    let mut end = *start;
++                    let mut bytes = 0;
++                    while end < batch.num_rows() {
++                        let size = row_bytes(batch, end)?;
++                        if end > *start && bytes + size > split_bytes {
++                            break;
++                        }
++                        bytes += size;
++                        end += 1;
++                    }
++                    let indices = UInt32Array::from_iter_values((*start..end).map(|x| x as u32));
++                    (arrow_select::take::take_record_batch(batch, &indices)?, end)
++                };
++                let input_bytes = batch.get_array_memory_size();
++                if next == batch.num_rows() {
++                    pending = None;
++                } else {
++                    pending.as_mut().unwrap().1 = next;
++                }
++                let line = json!({"rows":output.num_rows(),"bytes":output.get_array_memory_size(),"input_batch_bytes":input_bytes,"split_target":split_bytes});
++                writeln!(
++                    OpenOptions::new()
++                        .create(true)
++                        .append(true)
++                        .open(&producer)?,
++                    "{line}"
++                )?;
++                Ok(Some(output))
++            })();
++            match item {
++                Ok(Some(batch)) => Some(Ok(batch)),
++                Ok(None) => None,
++                Err(e) => Some(Err(DataFusionError::Execution(e.to_string()))),
++            }
++        });
++        Box::pin(RecordBatchStreamAdapter::new(
++            self.schema.clone(),
++            stream::iter(batches),
++        ))
++    }
++}
++fn provider(spec: &Value, dir: &std::path::Path) -> ProbeResult<Arc<dyn TableProvider>> {
++    let path = PathBuf::from(spec["source_ipc"].as_str().unwrap());
++    let reader = FileReader::try_new(File::open(&path)?, None)?;
++    let schema = reader.schema();
++    if spec["source_form"] == "complete" {
++        let batches = reader.collect::<std::result::Result<Vec<_>, _>>()?;
++        for b in &batches {
++            writeln!(
++                OpenOptions::new()
++                    .create(true)
++                    .append(true)
++                    .open(dir.join("producer.jsonl"))?,
++                "{}",
++                json!({"rows":b.num_rows(),"bytes":b.get_array_memory_size()})
++            )?;
++        }
++        Ok(Arc::new(MemTable::try_new(schema, vec![batches])?))
++    } else {
++        Ok(Arc::new(StreamingTable::try_new(
++            schema.clone(),
++            vec![Arc::new(IpcPartition {
++                path,
++                schema,
++                producer: dir.join("producer.jsonl"),
++                split_bytes: number(spec, "split_bytes", 0),
++                consumed: std::sync::atomic::AtomicBool::new(false),
++            })],
++        )?))
++    }
++}
++fn manifest_bytes(dataset: &Dataset) -> usize {
++    dataset
++        .fragments()
++        .iter()
++        .flat_map(|f| f.files.iter())
++        .map(|f| f.file_size_bytes.get().map(|x| x.get()).unwrap_or(0) as usize)
++        .sum()
++}
++fn context(
++    spec: &Value,
++    dataset: &Dataset,
++    dir: &std::path::Path,
++) -> ProbeResult<(MergeBudget, Arc<ObservedPool>, Arc<Mutex<Vec<Value>>>)> {
++    let bytes = number(spec, "pool_bytes", 1 << 30);
++    let pool = Arc::new(ObservedPool::new(bytes));
++    let runtime = Arc::new(
++        RuntimeEnvBuilder::new()
++            .with_memory_pool(pool.clone())
++            .build()?,
++    );
++    let mut budget = MergeBudget::new(dataset, None);
++    let mut state = budget.session_ctx.state();
++    let options = state.config_mut().options_mut();
++    options.execution.target_partitions = number(spec, "partitions", 16);
++    options.execution.batch_size = number(spec, "batch_size", 8192);
++    options.optimizer.join_reordering = flag(spec, "join_reordering", true);
++    options.optimizer.repartition_joins = flag(spec, "repartition_joins", true);
++    options.optimizer.enable_round_robin_repartition = flag(spec, "round_robin", true);
++    options.optimizer.use_statistics_registry = flag(spec, "statistics_registry", true);
++    let observations = Arc::new(Mutex::new(Vec::new()));
++    let policy = Arc::new(HypothesisPolicy {
++        policy: spec["policy"].as_str().unwrap_or("p").to_string(),
++        manifest_bytes: manifest_bytes(dataset),
++        observations: observations.clone(),
++    });
++    let mut rules = state.physical_optimizers().to_vec();
++    let index = rules
++        .iter()
++        .position(|r| r.name() == "join_selection")
++        .unwrap();
++    rules.insert(index, policy);
++    let state = SessionStateBuilder::new_from_existing(state)
++        .with_runtime_env(runtime)
++        .with_physical_optimizer_rules(rules)
++        .build();
++    budget.session_ctx = SessionContext::new_with_state(state);
++    if spec["scan_batch_rows"].is_number() {
++        budget.batch_rows = Some(number(spec, "scan_batch_rows", 8));
++    }
++    if spec["scan_io_bytes"].is_number() {
++        budget.scan_io_bytes = number(spec, "scan_io_bytes", 16 << 20) as u64;
++    }
++    save(
++        dir.join("context.json"),
++        &json!({"pool_bytes":bytes,"options":format!("{:?}",budget.session_ctx.copied_config()),
++        "scan_batch_rows":budget.batch_rows,"scan_io_bytes":budget.scan_io_bytes,"manifest_file_bytes":manifest_bytes(dataset),"instrumentation":"ObservedPool wraps FairSpillPool; includes a mutex around reservation mutations"}),
++    )?;
++    Ok((budget, pool, observations))
++}
++fn process_io() -> BTreeMap<String, u64> {
++    std::fs::read_to_string("/proc/self/io")
++        .unwrap()
++        .lines()
++        .filter_map(|line| {
++            let (k, v) = line.split_once(": ")?;
++            Some((k.to_string(), v.parse().ok()?))
++        })
++        .collect()
++}
++fn process_cpu() -> f64 {
++    let stat = std::fs::read_to_string("/proc/self/stat").unwrap();
++    let columns = stat
++        .rsplit_once(')')
++        .unwrap()
++        .1
++        .split_whitespace()
++        .collect::<Vec<_>>();
++    (columns[11].parse::<u64>().unwrap() + columns[12].parse::<u64>().unwrap()) as f64 / 100.0
++}
++
++async fn merge_probe(spec: &Value, dir: &std::path::Path) -> ProbeResult<Value> {
++    let dataset = Arc::new(Dataset::open(dir.join("dataset").to_str().unwrap()).await?);
++    let before = dataset.version().version;
++    let input = provider(spec, dir)?;
++    let (budget, pool, observations) = context(spec, &dataset, dir)?;
++    let mut builder = MergeInsertBuilder::try_new(dataset.clone(), vec!["id".into()])?;
++    builder
++        .use_index(false)
++        .when_matched(WhenMatched::UpdateAll)
++        .when_not_matched(if flag(spec, "insert", false) {
++            WhenNotMatched::InsertAll
++        } else {
++            WhenNotMatched::DoNothing
++        });
++    let job = builder.try_build()?;
++    let start = Instant::now();
++    let plan = job.create_plan_in(input, &budget).await?;
++    let planning_seconds = start.elapsed().as_secs_f64();
++    std::fs::write(
++        dir.join("plan-before.txt"),
++        format!("{}", displayable(plan.as_ref()).indent(true)),
++    )?;
++    save(
++        dir.join("statistics-before-selection.json"),
++        &json!(*observations.lock().unwrap()),
++    )?;
++    if flag(spec, "plan_only", false) {
++        return Ok(
++            json!({"status":"plan_only","planning_seconds":planning_seconds,"pool":pool.snapshot()}),
++        );
++    }
++    let io_before = process_io();
++    let cpu = process_cpu();
++    let started = Instant::now();
++    let execution:ProbeResult<Value>=async {
++        let mut stream=plan.execute(0,budget.session_ctx.task_ctx())?;
++        while let Some(batch)=stream.try_next().await? { assert_eq!(batch.num_rows(),0); }
++        let sink=plan.downcast_ref::<exec::FullSchemaMergeInsertExec>().unwrap();
++        let stats=sink.merge_stats().ok_or("missing writer completion stats")?;
++        let transaction=sink.transaction().ok_or("missing writer transaction")?;
++        let updated=CommitBuilder::new(dataset.clone()).with_skip_auto_cleanup(true).execute(transaction).await?;
++        Ok(json!({"num_updated_rows":stats.num_updated_rows,"num_inserted_rows":stats.num_inserted_rows,"num_deleted_rows":stats.num_deleted_rows,"version":updated.version().version}))
++    }.await;
++    let seconds = started.elapsed().as_secs_f64();
++    let cpu_seconds = process_cpu() - cpu;
++    let io = process_io()
++        .into_iter()
++        .map(|(k, v)| {
++            let diff = v - io_before.get(&k).copied().unwrap_or(0);
++            (k, diff)
++        })
++        .collect::<BTreeMap<_, _>>();
++    let mut metrics = Vec::new();
++    collect_metrics(&plan, "0".into(), &mut metrics);
++    std::fs::write(
++        dir.join("plan-after.txt"),
++        format!("{}", displayable(plan.as_ref()).indent(true)),
++    )?;
++    save(dir.join("operator-metrics.json"), &json!(metrics))?;
++    let (status, stats, error) = match execution {
++        Ok(value) => ("success", value, Value::Null),
++        Err(error) => ("execution_error", Value::Null, json!(error.to_string())),
++    };
++    Ok(
++        json!({"status":status,"error":error,"merge_stats":if stats.is_null(){Value::Null}else{json!({"num_updated_rows":stats["num_updated_rows"],"num_inserted_rows":stats["num_inserted_rows"],"num_deleted_rows":stats["num_deleted_rows"]})},
++        "version_before":before,"version_after":stats["version"],"merge_seconds":seconds,"planning_seconds":planning_seconds,"timing_scope":"execute and commit; planning and complete-input materialization excluded, no comparison to old API times","cpu_seconds":cpu_seconds,"io_delta":io,"pool":pool.snapshot()}),
++    )
++}
++
++async fn repartition_probe(spec: &Value, dir: &std::path::Path) -> ProbeResult<Value> {
++    let dataset = Dataset::open(spec["fixture"].as_str().unwrap()).await?;
++    let (budget, pool, _) = context(spec, &dataset, dir)?;
++    let input = provider(spec, dir)?
++        .scan(&budget.session_ctx.state(), None, &[], None)
++        .await?;
++    let partitions = number(spec, "partitions", 16);
++    let plan: Arc<dyn ExecutionPlan> = Arc::new(RepartitionExec::try_new(
++        input,
++        Partitioning::RoundRobinBatch(partitions),
++    )?);
++    std::fs::write(
++        dir.join("plan-before.txt"),
++        format!("{}", displayable(plan.as_ref()).indent(true)),
++    )?;
++    let cpu = process_cpu();
++    let io_before = process_io();
++    let started = Instant::now();
++    let tasks=(0..partitions).map(|p|{
++        let plan=plan.clone();let ctx=budget.session_ctx.task_ctx();let path=dir.join(format!("output-{p}.arrow"));
++        async move {
++            let mut stream=plan.execute(p,ctx)?;let mut writer=FileWriter::try_new(File::create(path)?,plan.schema().as_ref())?;let mut rows=0;let mut batches=0;let mut peak_batch=0;
++            while let Some(batch)=stream.try_next().await? {rows+=batch.num_rows();batches+=1;peak_batch=peak_batch.max(batch.get_array_memory_size());writer.write(&batch)?;}
++            writer.finish()?;Ok::<_,Box<dyn std::error::Error+Send+Sync>>(json!({"partition":p,"rows":rows,"batches":batches,"max_output_batch_bytes":peak_batch}))
++        }
++    });
++    let distribution = futures::future::try_join_all(tasks).await;
++    let seconds = started.elapsed().as_secs_f64();
++    let cpu_seconds = process_cpu() - cpu;
++    let io = process_io()
++        .into_iter()
++        .map(|(k, v)| {
++            let diff = v - io_before.get(&k).copied().unwrap_or(0);
++            (k, diff)
++        })
++        .collect::<BTreeMap<_, _>>();
++    let mut metrics = Vec::new();
++    collect_metrics(&plan, "0".into(), &mut metrics);
++    save(dir.join("operator-metrics.json"), &json!(metrics))?;
++    match distribution {
++        Ok(distribution) => Ok(
++            json!({"status":"success","distribution":distribution,"merge_seconds":seconds,"cpu_seconds":cpu_seconds,"io_delta":io,"pool":pool.snapshot(),"timing_scope":"RoundRobin execution plus common IPC sink; not full merge API"}),
++        ),
++        Err(error) => Ok(
++            json!({"status":"execution_error","error":error.to_string(),"merge_seconds":seconds,"cpu_seconds":cpu_seconds,"io_delta":io,"pool":pool.snapshot()}),
++        ),
++    }
++}
++
++async fn take_probe(spec: &Value, dir: &std::path::Path) -> ProbeResult<Value> {
++    let dataset = Arc::new(Dataset::open(spec["fixture"].as_str().unwrap()).await?);
++    let (budget, pool, _) = context(spec, &dataset, dir)?;
++    let ctx = &budget.session_ctx;
++    let target = ctx
++        .read_table(Arc::new(
++            crate::datafusion::dataframe::LanceTableProvider::new_with_ordering(
++                dataset.clone(),
++                true,
++                true,
++                false,
++            ),
++        ))?
++        .alias("target")?;
++    let source = ctx.read_table(provider(spec, dir)?)?.alias("source")?;
++    let joined = target.join(source, JoinType::Inner, &["id"], &["id"], None)?;
++    let early = spec["take_mode"] == "early";
++    let mut fields = vec![
++        logical_expr::col("source.id").alias("id"),
++        logical_expr::col("source.c0").alias("c0"),
++        logical_expr::col("source.c1").alias("c1"),
++        logical_expr::col("target._rowaddr").alias(ROW_ADDR),
++        logical_expr::lit(true).alias(MERGE_SOURCE_SENTINEL),
++        logical_expr::lit(1u8).alias(MERGE_ACTION_COLUMN),
++    ];
++    let missing = dataset
++        .schema()
++        .fields
++        .iter()
++        .filter(|f| !["id", "c0", "c1"].contains(&f.name.as_str()))
++        .map(|f| f.name.clone())
++        .collect::<Vec<_>>();
++    if early {
++        fields.extend(
++            missing
++                .iter()
++                .map(|n| logical_expr::col(format!("target.{n}")).alias(n)),
++        );
++    }
++    let frame = joined.select(fields)?;
++    let input = frame.create_physical_plan().await?;
++    let plan: Arc<dyn ExecutionPlan> = match spec["take_mode"].as_str().unwrap() {
++        "condition" => Arc::new(
++            deferred_reference::MergeConditionExec::try_new(
++                input.clone(),
++                &DFSchema::try_from(input.schema().as_ref().clone())?,
++                dataset.clone(),
++                None,
++                None,
++                &ctx.state(),
++            )?
++            .with_payload_columns(missing.clone())?,
++        ),
++        "generic" => {
++            let projection = missing
++                .iter()
++                .try_fold(dataset.empty_projection(), |p, n| {
++                    p.union_column(n, lance_core::datatypes::OnMissing::Error)
++                })?;
++            Arc::new(
++                crate::io::exec::TakeExec::try_new(dataset.clone(), input, projection)?.unwrap(),
++            )
++        }
++        "early" => input,
++        other => return Err(format!("unknown take mode {other}").into()),
++    };
++    std::fs::write(
++        dir.join("plan-before.txt"),
++        format!("{}", displayable(plan.as_ref()).indent(true)),
++    )?;
++    let partitions = plan.properties().output_partitioning().partition_count();
++    let cpu = process_cpu();
++    let io_before = process_io();
++    let started = Instant::now();
++    let tasks = (0..partitions).map(|p| {
++        let plan = plan.clone();
++        let context = ctx.task_ctx();
++        let path = dir.join(format!("output-{p}.arrow"));
++        async move {
++            let mut s = plan.execute(p, context)?;
++            let mut writer = FileWriter::try_new(File::create(path)?, plan.schema().as_ref())?;
++            let mut rows = 0;
++            let mut batches = 0;
++            while let Some(batch) = s.try_next().await? {
++                rows += batch.num_rows();
++                batches += 1;
++                writer.write(&batch)?;
++            }
++            writer.finish()?;
++            Ok::<_, Box<dyn std::error::Error + Send + Sync>>(
++                json!({"partition":p,"rows":rows,"batches":batches}),
++            )
++        }
++    });
++    let result = futures::future::try_join_all(tasks).await;
++    let seconds = started.elapsed().as_secs_f64();
++    let cpu_seconds = process_cpu() - cpu;
++    let io = process_io()
++        .into_iter()
++        .map(|(k, v)| {
++            let diff = v - io_before.get(&k).copied().unwrap_or(0);
++            (k, diff)
++        })
++        .collect::<BTreeMap<_, _>>();
++    let mut metrics = Vec::new();
++    collect_metrics(&plan, "0".into(), &mut metrics);
++    save(dir.join("operator-metrics.json"), &json!(metrics))?;
++    match result {
++        Ok(distribution) => Ok(
++            json!({"status":"success","distribution":distribution,"merge_seconds":seconds,"cpu_seconds":cpu_seconds,"io_delta":io,"pool":pool.snapshot(),"timing_scope":"Actual Lance/DF join and payload node plus common IPC sink; no writer, commit, NULL-address or conditional-rule implementation"}),
++        ),
++        Err(error) => Ok(
++            json!({"status":"execution_error","error":error.to_string(),"merge_seconds":seconds,"cpu_seconds":cpu_seconds,"io_delta":io,"pool":pool.snapshot()}),
++        ),
++    }
++}
++
++#[tokio::test(flavor = "multi_thread", worker_threads = 16)]
++async fn run_frozen_hypothesis() {
++    let Some(path) = std::env::var_os("LANCE_HYPOTHESIS_SPEC") else {
++        return;
++    };
++    let path = PathBuf::from(path);
++    let dir = path.parent().unwrap();
++    let spec: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
++    let result = match spec["task"].as_str().unwrap() {
++        "merge" => merge_probe(&spec, dir).await,
++        "repartition" => repartition_probe(&spec, dir).await,
++        "take" => take_probe(&spec, dir).await,
++        other => Err(format!("Unknown task {other}").into()),
++    };
++    let result = match result {
++        Ok(v) => v,
++        Err(e) => json!({"status":"driver_error","error":e.to_string()}),
++    };
++    save(dir.join("metrics.json"), &result).unwrap();
++    assert_ne!(result["status"], "driver_error", "{result}");
++}
+diff --git a/rust/lance/src/dataset/write/merge_insert/hypotheses/deferred_reference.rs b/rust/lance/src/dataset/write/merge_insert/hypotheses/deferred_reference.rs
+new file mode 100644
+index 00000000..107ee23d
+--- /dev/null
++++ b/rust/lance/src/dataset/write/merge_insert/hypotheses/deferred_reference.rs
+@@ -0,0 +1,798 @@
++// SPDX-License-Identifier: Apache-2.0
++// SPDX-FileCopyrightText: Copyright The Lance Authors
++
++use std::collections::HashSet;
++use std::sync::Arc;
++
++use arrow_array::{
++    Array, RecordBatch, RecordBatchOptions, UInt8Array, UInt32Array,
++    cast::AsArray,
++    types::{UInt8Type, UInt64Type},
++};
++use arrow_schema::{DataType, Schema, SchemaRef};
++use arrow_select::take::take;
++use datafusion::common::{
++    Column, DFSchema, DataFusionError, Result as DFResult, TableReference,
++    tree_node::{Transformed, TransformedResult, TreeNode},
++};
++use datafusion::execution::{
++    SendableRecordBatchStream, SessionState, TaskContext, memory_pool::MemoryLimit,
++};
++use datafusion::physical_expr::EquivalenceProperties;
++use datafusion::physical_plan::{
++    DisplayAs, DisplayFormatType, ExecutionPlan, PhysicalExpr, PlanProperties,
++    metrics::{BaselineMetrics, Count, ExecutionPlanMetricsSet, MetricBuilder, MetricsSet},
++    stream::RecordBatchStreamAdapter,
++};
++use datafusion_expr::Expr;
++use futures::{StreamExt, stream};
++use lance_arrow::DataTypeExt;
++use lance_core::ROW_ADDR;
++use lance_datafusion::projection::ProjectionPlan;
++
++use crate::Dataset;
++use crate::dataset::TakeBuilder;
++use crate::dataset::write::merge_insert::assign_action::Action;
++use crate::dataset::write::merge_insert::{
++    MERGE_ACTION_COLUMN, MERGE_SOURCE_SENTINEL, target_blob_handling,
++};
++
++/// Evaluates merge conditions over target columns on the rows they gate.
++///
++/// The join marks every matched row `Action::UpdateAll` and every target-only
++/// row `Action::Delete`; this node takes the conditions' target columns by row
++/// address for those rows alone and demotes the rejected ones to
++/// `Action::Nothing`, so the target scan never reads them.
++#[derive(Debug)]
++pub struct MergeConditionExec {
++    input: Arc<dyn ExecutionPlan>,
++    evaluator: Arc<Evaluator>,
++    properties: Arc<PlanProperties>,
++    metrics: ExecutionPlanMetricsSet,
++}
++
++#[derive(Debug, Clone)]
++struct Evaluator {
++    dataset: Arc<Dataset>,
++    /// Gates `UpdateAll` on the matched rows.
++    update_if: Option<Arc<dyn PhysicalExpr>>,
++    /// Gates `Delete` on the target-only rows.
++    delete_if: Option<Arc<dyn PhysicalExpr>>,
++    /// The input columns the conditions read, followed by the taken ones.
++    eval_schema: SchemaRef,
++    eval_inputs: Vec<usize>,
++    take: Option<Arc<ProjectionPlan>>,
++    action_idx: usize,
++    payload: Option<Payload>,
++    output_schema: SchemaRef,
++}
++
++#[derive(Debug, Clone)]
++struct Payload {
++    columns: Vec<String>,
++    /// Columns absent from the condition's cached target values.
++    take: Option<Arc<ProjectionPlan>>,
++}
++
++#[derive(Clone)]
++struct TakeMetrics {
++    condition_rows: Count,
++    condition_bytes: Count,
++    payload_rows: Count,
++    payload_bytes: Count,
++    reused_values: Count,
++}
++
++impl MergeConditionExec {
++    /// `input_schema` is the logical schema of `input`, which carries the
++    /// `source` / `target` qualifiers the conditions are resolved against.
++    pub fn try_new(
++        input: Arc<dyn ExecutionPlan>,
++        input_schema: &DFSchema,
++        dataset: Arc<Dataset>,
++        update_if: Option<Expr>,
++        delete_if: Option<Expr>,
++        session: &SessionState,
++    ) -> DFResult<Self> {
++        let physical_schema = input.schema();
++        let physical_names = physical_schema.fields().iter().map(|f| f.name());
++        if !physical_names.eq(input_schema.fields().iter().map(|f| f.name())) {
++            return Err(DataFusionError::Internal(format!(
++                "merge insert input {:?} does not match its logical schema {:?}",
++                physical_schema.fields(),
++                input_schema.fields()
++            )));
++        }
++        let index_of = |name: &str| {
++            physical_schema
++                .column_with_name(name)
++                .map(|(i, _)| i)
++                .ok_or_else(|| {
++                    DataFusionError::Internal(format!(
++                        "Expected {name} column in merge insert input"
++                    ))
++                })
++        };
++        let action_idx = index_of(MERGE_ACTION_COLUMN)?;
++        index_of(ROW_ADDR)?;
++        index_of(MERGE_SOURCE_SENTINEL)?;
++
++        let mut to_take = HashSet::new();
++        let update_if = update_if
++            .map(|condition| {
++                resolve_target_columns(condition, input_schema, &dataset, &mut to_take)
++            })
++            .transpose()?;
++        let delete_if = delete_if
++            .map(|condition| {
++                resolve_target_columns(condition, input_schema, &dataset, &mut to_take)
++            })
++            .transpose()?;
++        let columns = dataset
++            .schema()
++            .fields
++            .iter()
++            .map(|field| field.name.as_str())
++            .filter(|name| to_take.contains(*name))
++            .collect::<Vec<_>>();
++        // Every column may already be in the input, in which case the node
++        // only gates; see `resolve_target_columns`.
++        let take = match columns.is_empty() {
++            true => None,
++            false => {
++                let mut take = ProjectionPlan::from_schema(
++                    dataset.clone(),
++                    &dataset.schema().project(&columns)?,
++                )?;
++                take.physical_projection = take
++                    .physical_projection
++                    .clone()
++                    .with_blob_handling(target_blob_handling(&dataset));
++                Some(Arc::new(take))
++            }
++        };
++        // Only the input columns the conditions read are copied for evaluation.
++        let mut eval_inputs = [&update_if, &delete_if]
++            .into_iter()
++            .flatten()
++            .flat_map(|condition| condition.column_refs())
++            .filter_map(|column| input_schema.index_of_column(column).ok())
++            .collect::<Vec<_>>();
++        eval_inputs.sort_unstable();
++        eval_inputs.dedup();
++        let read = DFSchema::new_with_metadata(
++            eval_inputs
++                .iter()
++                .map(|&i| {
++                    let (qualifier, field) = input_schema.qualified_field(i);
++                    (qualifier.cloned(), field.clone())
++                })
++                .collect(),
++            Default::default(),
++        )?;
++        let eval_df_schema = match &take {
++            Some(take) => read.join(&DFSchema::try_from_qualified_schema(
++                "target",
++                &take.output_schema()?,
++            )?)?,
++            None => read,
++        };
++        let eval_schema: SchemaRef = Arc::new(eval_df_schema.as_arrow().clone());
++        let physical = |condition: Expr, clause: &str| -> DFResult<Arc<dyn PhysicalExpr>> {
++            let condition = session.create_physical_expr(condition, &eval_df_schema)?;
++            let data_type = condition.data_type(eval_schema.as_ref())?;
++            if data_type != DataType::Boolean {
++                return Err(DataFusionError::Plan(format!(
++                    "Merge insert conditions must be expressions that return a boolean value, \
++                     received a '{clause}' expression ({condition}) which has data type {data_type}"
++                )));
++            }
++            Ok(condition)
++        };
++        let update_if = update_if
++            .map(|condition| physical(condition, "when matched update if"))
++            .transpose()?;
++        let delete_if = delete_if
++            .map(|condition| physical(condition, "when not matched by source delete if"))
++            .transpose()?;
++
++        Ok(Self {
++            properties: input.properties().clone(),
++            evaluator: Arc::new(Evaluator {
++                dataset,
++                update_if,
++                delete_if,
++                eval_schema,
++                eval_inputs,
++                take,
++                action_idx,
++                payload: None,
++                output_schema: physical_schema,
++            }),
++            input,
++            metrics: ExecutionPlanMetricsSet::new(),
++        })
++    }
++
++    /// Appends omitted target columns only for rows whose final action updates.
++    ///
++    /// The input must omit these columns, including typed NULL placeholders, so
++    /// conditions resolve against the stored values. Values already taken for
++    /// an update condition are reused instead of being read a second time.
++    pub(crate) fn with_payload_columns(mut self, columns: Vec<String>) -> DFResult<Self> {
++        if columns.is_empty() {
++            return Ok(self);
++        }
++        let evaluator = Arc::make_mut(&mut self.evaluator);
++        let mut names = HashSet::new();
++        for name in &columns {
++            if !names.insert(name) || self.input.schema().column_with_name(name).is_some() {
++                return Err(DataFusionError::Internal(format!(
++                    "Deferred merge payload column {name:?} occurs more than once or is already in the input"
++                )));
++            }
++        }
++        let projection = evaluator.dataset.schema().project(&columns)?;
++        let full_take = ProjectionPlan::from_schema(evaluator.dataset.clone(), &projection)?;
++        let payload_schema = full_take.output_schema()?;
++        let missing = columns
++            .iter()
++            .filter(|name| {
++                evaluator.update_if.is_none()
++                    || !evaluator
++                        .taken_columns()
++                        .any(|taken| taken == name.as_str())
++            })
++            .collect::<Vec<_>>();
++        let take = if missing.is_empty() {
++            None
++        } else {
++            Some(Arc::new(ProjectionPlan::from_schema(
++                evaluator.dataset.clone(),
++                &evaluator.dataset.schema().project(&missing)?,
++            )?))
++        };
++        evaluator.output_schema = Arc::new(Schema::new_with_metadata(
++            self.input
++                .schema()
++                .fields()
++                .iter()
++                .cloned()
++                .chain(
++                    payload_schema
++                        .fields()
++                        .iter()
++                        .map(|field| Arc::new(field.as_ref().clone().with_nullable(true))),
++                )
++                .collect::<Vec<_>>(),
++            self.input.schema().metadata().clone(),
++        ));
++        evaluator.payload = Some(Payload { columns, take });
++        self.properties =
++            Arc::new(
++                self.input.properties().as_ref().clone().with_eq_properties(
++                    EquivalenceProperties::new(evaluator.output_schema.clone()),
++                ),
++            );
++        Ok(self)
++    }
++}
++
++/// Binds each target column the condition reads to the input when the input
++/// already carries it, and otherwise adds it to `to_take`.
++///
++/// A whole-row rewrite fills the columns the source omits from the target
++/// side of the join as unqualified columns; a `target.`-qualified reference
++/// to one is rewritten to that column, since a taken `target.x` next to a
++/// filled `x` would be an ambiguous schema.
++fn resolve_target_columns(
++    condition: Expr,
++    input_schema: &DFSchema,
++    dataset: &Dataset,
++    to_take: &mut HashSet<String>,
++) -> DFResult<Expr> {
++    let target = TableReference::bare("target");
++    let dataset_schema = dataset.schema();
++    condition
++        .transform(|expr| {
++            let Expr::Column(column) = &expr else {
++                return Ok(Transformed::no(expr));
++            };
++            if dataset_schema.field(&column.name).is_none()
++                || column
++                    .relation
++                    .as_ref()
++                    .is_some_and(|relation| relation != &target)
++            {
++                return Ok(Transformed::no(expr));
++            }
++            let input_has = |qualifier: Option<&TableReference>| {
++                input_schema
++                    .iter()
++                    .any(|(q, field)| q == qualifier && field.name() == &column.name)
++            };
++            if input_has(Some(&target)) {
++                return Ok(Transformed::no(expr));
++            }
++            if input_has(None) {
++                return Ok(Transformed::yes(Expr::Column(Column::new_unqualified(
++                    &column.name,
++                ))));
++            }
++            to_take.insert(column.name.clone());
++            Ok(Transformed::no(expr))
++        })
++        .data()
++}
++
++impl Evaluator {
++    fn taken_columns(&self) -> impl Iterator<Item = &str> {
++        self.eval_schema.fields()[self.eval_inputs.len()..]
++            .iter()
++            .map(|field| field.name().as_str())
++    }
++
++    /// Returns the observed taken bytes per row for the next chunk's soft sizing.
++    async fn apply(
++        &self,
++        batch: RecordBatch,
++        metrics: &TakeMetrics,
++    ) -> DFResult<(RecordBatch, usize)> {
++        let actions = batch
++            .column_by_name(MERGE_ACTION_COLUMN)
++            .and_then(|column| column.as_primitive_opt::<UInt8Type>())
++            .ok_or_else(|| {
++                DataFusionError::Internal(format!(
++                    "Expected UInt8Array for {MERGE_ACTION_COLUMN} column"
++                ))
++            })?;
++        let sentinel = batch.column_by_name(MERGE_SOURCE_SENTINEL).ok_or_else(|| {
++            DataFusionError::Internal(format!("Expected {MERGE_SOURCE_SENTINEL} column"))
++        })?;
++        let rows_with = |action: Action, target_only: bool| -> Vec<u32> {
++            (0..batch.num_rows())
++                .filter(|&row| {
++                    actions.value(row) == action as u8 && (!target_only || sentinel.is_null(row))
++                })
++                .map(|row| row as u32)
++                .collect()
++        };
++        // DeleteIf gates only target-only rows, never unconditional matched deletes.
++        let update_rows = match self.update_if {
++            Some(_) => rows_with(Action::UpdateAll, false),
++            None => Vec::new(),
++        };
++        let delete_rows = match self.delete_if {
++            Some(_) => rows_with(Action::Delete, true),
++            None => Vec::new(),
++        };
++        let candidates = [update_rows.as_slice(), delete_rows.as_slice()].concat();
++        let row_addrs = batch
++            .column_by_name(ROW_ADDR)
++            .and_then(|column| column.as_primitive_opt::<UInt64Type>())
++            .ok_or_else(|| {
++                DataFusionError::Internal(format!("Expected UInt64Array for {ROW_ADDR} column"))
++            })?;
++        let addresses = |rows: &[u32]| -> DFResult<Vec<u64>> {
++            rows.iter()
++                .map(|&row| {
++                    if row_addrs.is_null(row as usize) {
++                        Err(DataFusionError::Internal(format!(
++                            "Merge insert action at row {row} has no target address"
++                        )))
++                    } else {
++                        Ok(row_addrs.value(row as usize))
++                    }
++                })
++                .collect()
++        };
++        let mut new_actions = actions.values().to_vec();
++        let mut condition_values = None;
++        let mut observed_width = 0;
++        if !candidates.is_empty() {
++            let indices = UInt32Array::from(candidates.clone());
++            let mut columns = self
++                .eval_inputs
++                .iter()
++                .map(|&i| take(batch.column(i), &indices, None))
++                .collect::<Result<Vec<_>, _>>()?;
++            if let Some(projection) = &self.take {
++                let taken = TakeBuilder::try_new_from_addresses(
++                    self.dataset.clone(),
++                    addresses(&candidates)?,
++                    projection.clone(),
++                )?
++                .execute()
++                .await?;
++                if taken.num_rows() != candidates.len() {
++                    return Err(DataFusionError::Internal(format!(
++                        "Took {} of {} rows for the merge insert conditions",
++                        taken.num_rows(),
++                        candidates.len()
++                    )));
++                }
++                let bytes = taken.get_array_memory_size();
++                metrics.condition_rows.add(candidates.len());
++                metrics.condition_bytes.add(bytes);
++                observed_width = bytes.div_ceil(candidates.len());
++                for name in self.taken_columns() {
++                    let column = taken.column_by_name(name).ok_or_else(|| {
++                        DataFusionError::Internal(format!("Take did not return column {name}"))
++                    })?;
++                    columns.push(column.clone());
++                }
++                condition_values = Some(taken);
++            }
++            let eval_batch = RecordBatch::try_new_with_options(
++                self.eval_schema.clone(),
++                columns,
++                &RecordBatchOptions::new().with_row_count(Some(candidates.len())),
++            )?;
++            let mut reject_failing =
++                |condition: &Arc<dyn PhysicalExpr>, offset: usize, rows: &[u32]| -> DFResult<()> {
++                    let eval_batch = eval_batch.slice(offset, rows.len());
++                    let verdict = condition
++                        .evaluate(&eval_batch)?
++                        .into_array(eval_batch.num_rows())?;
++                    let verdict = verdict.as_boolean();
++                    for (verdict_row, &row) in rows.iter().enumerate() {
++                        if !verdict.is_valid(verdict_row) || !verdict.value(verdict_row) {
++                            new_actions[row as usize] = Action::Nothing as u8;
++                        }
++                    }
++                    Ok(())
++                };
++            if let Some(condition) = &self.update_if {
++                reject_failing(condition, 0, &update_rows)?;
++            }
++            if let Some(condition) = &self.delete_if {
++                reject_failing(condition, update_rows.len(), &delete_rows)?;
++            }
++        }
++
++        let mut columns = batch.columns().to_vec();
++        if let Some(payload) = &self.payload {
++            let updates = new_actions
++                .iter()
++                .enumerate()
++                .filter(|(_, action)| **action == Action::UpdateAll as u8)
++                .map(|(row, _)| row as u32)
++                .collect::<Vec<_>>();
++            if updates.is_empty() {
++                columns.extend(
++                    self.output_schema.fields()[columns.len()..]
++                        .iter()
++                        .map(|field| {
++                            arrow_array::new_null_array(field.data_type(), batch.num_rows())
++                        }),
++                );
++            } else {
++                let mut update_positions = vec![None; batch.num_rows()];
++                for (index, &row) in updates.iter().enumerate() {
++                    update_positions[row as usize] = Some(index as u32);
++                }
++                let update_indices = UInt32Array::from(update_positions);
++                let mut condition_positions = vec![None; batch.num_rows()];
++                for (index, &row) in candidates.iter().enumerate() {
++                    if new_actions[row as usize] == Action::UpdateAll as u8 {
++                        condition_positions[row as usize] = Some(index as u32);
++                    }
++                }
++                let condition_indices = UInt32Array::from(condition_positions);
++                let payload_values = if let Some(projection) = &payload.take {
++                    let taken = TakeBuilder::try_new_from_addresses(
++                        self.dataset.clone(),
++                        addresses(&updates)?,
++                        projection.clone(),
++                    )?
++                    .execute()
++                    .await?;
++                    if taken.num_rows() != updates.len() {
++                        return Err(DataFusionError::Internal(format!(
++                            "Took {} of {} rows for the merge insert payload",
++                            taken.num_rows(),
++                            updates.len()
++                        )));
++                    }
++                    let bytes = taken.get_array_memory_size();
++                    metrics.payload_rows.add(updates.len());
++                    metrics.payload_bytes.add(bytes);
++                    observed_width = observed_width
++                        .checked_add(bytes.div_ceil(updates.len()))
++                        .ok_or_else(|| {
++                            DataFusionError::ResourcesExhausted(
++                                "Merge materialization bytes per row overflowed usize".into(),
++                            )
++                        })?;
++                    Some(taken)
++                } else {
++                    None
++                };
++                for name in &payload.columns {
++                    let cached = condition_values
++                        .as_ref()
++                        .filter(|_| self.update_if.is_some())
++                        .and_then(|values| values.column_by_name(name));
++                    let value = if let Some(value) = cached {
++                        metrics.reused_values.add(updates.len());
++                        take(value, &condition_indices, None)?
++                    } else {
++                        let value = payload_values
++                            .as_ref()
++                            .and_then(|values| values.column_by_name(name))
++                            .ok_or_else(|| {
++                                DataFusionError::Internal(format!(
++                                    "Merge materialization did not retrieve payload column {name}"
++                                ))
++                            })?;
++                        take(value, &update_indices, None)?
++                    };
++                    columns.push(value);
++                }
++            }
++        }
++        columns[self.action_idx] = Arc::new(UInt8Array::from(new_actions));
++        Ok((
++            RecordBatch::try_new(self.output_schema.clone(), columns)?,
++            observed_width,
++        ))
++    }
++}
++
++impl DisplayAs for MergeConditionExec {
++    fn fmt_as(&self, _t: DisplayFormatType, f: &mut std::fmt::Formatter) -> std::fmt::Result {
++        write!(f, "MergeCondition:")?;
++        if let Some(condition) = &self.evaluator.update_if {
++            write!(f, " update_if={condition},")?;
++        }
++        if let Some(condition) = &self.evaluator.delete_if {
++            write!(f, " delete_if={condition},")?;
++        }
++        write!(
++            f,
++            " take=[{}]",
++            self.evaluator
++                .taken_columns()
++                .collect::<Vec<_>>()
++                .join(", ")
++        )?;
++        if let Some(payload) = &self.evaluator.payload {
++            write!(f, " payload=[{}]", payload.columns.join(", "))?;
++        }
++        Ok(())
++    }
++}
++
++impl ExecutionPlan for MergeConditionExec {
++    fn name(&self) -> &str {
++        "MergeConditionExec"
++    }
++
++    fn schema(&self) -> SchemaRef {
++        self.evaluator.output_schema.clone()
++    }
++
++    fn properties(&self) -> &Arc<PlanProperties> {
++        &self.properties
++    }
++
++    fn children(&self) -> Vec<&Arc<dyn ExecutionPlan>> {
++        vec![&self.input]
++    }
++
++    fn maintains_input_order(&self) -> Vec<bool> {
++        vec![true]
++    }
++
++    fn benefits_from_input_partitioning(&self) -> Vec<bool> {
++        vec![false]
++    }
++
++    fn with_new_children(
++        self: Arc<Self>,
++        children: Vec<Arc<dyn ExecutionPlan>>,
++    ) -> DFResult<Arc<dyn ExecutionPlan>> {
++        if children.len() != 1 {
++            return Err(DataFusionError::Internal(
++                "MergeConditionExec requires exactly one child".to_string(),
++            ));
++        }
++        let input = children[0].clone();
++        if input.schema() != self.input.schema() {
++            return Err(DataFusionError::Internal(
++                "MergeConditionExec cannot change its input schema".to_string(),
++            ));
++        }
++        let properties = if self.evaluator.payload.is_some() {
++            Arc::new(
++                input
++                    .properties()
++                    .as_ref()
++                    .clone()
++                    .with_eq_properties(EquivalenceProperties::new(self.schema())),
++            )
++        } else {
++            input.properties().clone()
++        };
++        Ok(Arc::new(Self {
++            properties,
++            input,
++            evaluator: self.evaluator.clone(),
++            metrics: ExecutionPlanMetricsSet::new(),
++        }))
++    }
++
++    fn metrics(&self) -> Option<MetricsSet> {
++        Some(self.metrics.clone_inner())
++    }
++
++    fn execute(
++        &self,
++        partition: usize,
++        context: Arc<TaskContext>,
++    ) -> DFResult<SendableRecordBatchStream> {
++        let baseline = BaselineMetrics::new(&self.metrics, partition);
++        let metrics = TakeMetrics {
++            condition_rows: MetricBuilder::new(&self.metrics)
++                .counter("condition_take_rows", partition),
++            condition_bytes: MetricBuilder::new(&self.metrics)
++                .counter("condition_take_arrow_bytes", partition),
++            payload_rows: MetricBuilder::new(&self.metrics).counter("payload_take_rows", partition),
++            payload_bytes: MetricBuilder::new(&self.metrics)
++                .counter("payload_take_arrow_bytes", partition),
++            reused_values: MetricBuilder::new(&self.metrics)
++                .counter("payload_reused_condition_values", partition),
++        };
++        let input = self.input.execute(partition, context.clone())?;
++        let evaluator = self.evaluator.clone();
++        if evaluator.payload.is_none() {
++            // Preserve the existing condition-only node's batch granularity.
++            // Payload materialization introduces the wider transient buffers
++            // that need the candidate-based sizing below.
++            let stream = input.then(move |batch| {
++                let evaluator = evaluator.clone();
++                let baseline = baseline.clone();
++                let metrics = metrics.clone();
++                async move {
++                    let (output, _) = evaluator.apply(batch?, &metrics).await?;
++                    baseline.record_output(output.num_rows());
++                    Ok(output)
++                }
++            });
++            return Ok(Box::pin(RecordBatchStreamAdapter::new(
++                self.schema(),
++                stream,
++            )));
++        }
++        let max_rows = context
++            .session_config()
++            .batch_size()
++            .min(u32::MAX as usize)
++            .max(1);
++        // This is a per-partition soft target for temporary Take/gather buffers,
++        // not an allocation limit. Storage pages, one large value, input backing
++        // buffers and batches retained by the writer can exceed it.
++        let byte_target = match context.memory_pool().memory_limit() {
++            MemoryLimit::Finite(limit) => (limit
++                / 8
++                / self
++                    .input
++                    .properties()
++                    .output_partitioning()
++                    .partition_count()
++                    .max(1))
++            .clamp(1, 16 * 1024 * 1024),
++            MemoryLimit::Infinite | MemoryLimit::Unknown => 16 * 1024 * 1024,
++        };
++        let fixed_width = self
++            .evaluator
++            .take
++            .iter()
++            .chain(
++                self.evaluator
++                    .payload
++                    .iter()
++                    .filter_map(|payload| payload.take.as_ref()),
++            )
++            .map(|projection| projection.output_schema())
++            .collect::<crate::Result<Vec<_>>>()?
++            .iter()
++            .flat_map(|schema| schema.fields())
++            .try_fold(0usize, |width, field| {
++                width.checked_add(field.data_type().byte_width_opt()?.checked_add(1)?)
++            });
++        let rows_for_width = move |width: usize| {
++            // Leave room for Take concatenation, remapping and output gathers.
++            (byte_target / width.saturating_mul(4).max(1)).clamp(1, max_rows)
++        };
++        // Fixed-width NULLs still allocate a value buffer for every output row.
++        // Bound those buffers separately from rows that may trigger a Take.
++        let output_width = self.evaluator.output_schema.fields()
++            [self.input.schema().fields().len()..]
++            .iter()
++            .try_fold(0usize, |width, field| {
++                width.checked_add(field.data_type().byte_width_opt().unwrap_or_default())
++            })
++            .ok_or_else(|| {
++                DataFusionError::ResourcesExhausted(
++                    "Merge materialization fixed output bytes per row overflowed usize".into(),
++                )
++            })?;
++        let max_output_rows = rows_for_width(output_width);
++        let initial_rows = fixed_width.map_or(1, rows_for_width);
++        let stream = stream::try_unfold(
++            (input, None::<RecordBatch>, 0usize, initial_rows),
++            move |(mut input, mut pending, mut offset, rows)| {
++                let evaluator = evaluator.clone();
++                let baseline = baseline.clone();
++                let metrics = metrics.clone();
++                async move {
++                    while pending
++                        .as_ref()
++                        .is_none_or(|batch| offset == batch.num_rows())
++                    {
++                        pending = match input.next().await {
++                            Some(batch) => Some(batch?),
++                            None => return Ok(None),
++                        };
++                        offset = 0;
++                    }
++                    let batch = pending.as_ref().ok_or_else(|| {
++                        DataFusionError::Internal(
++                            "Merge materialization lost its input batch".into(),
++                        )
++                    })?;
++                    let actions = batch
++                        .column_by_name(MERGE_ACTION_COLUMN)
++                        .and_then(|column| column.as_primitive_opt::<UInt8Type>())
++                        .ok_or_else(|| {
++                            DataFusionError::Internal(format!(
++                                "Expected UInt8Array for {MERGE_ACTION_COLUMN} column"
++                            ))
++                        })?;
++                    let sentinel =
++                        batch.column_by_name(MERGE_SOURCE_SENTINEL).ok_or_else(|| {
++                            DataFusionError::Internal(format!(
++                                "Expected {MERGE_SOURCE_SENTINEL} column"
++                            ))
++                        })?;
++                    // Limit rows that may materialize target values, not rows
++                    // that only receive NULLs. An insert-only prefix must not
++                    // force one-row output batches or enlarge the first Take.
++                    let mut candidates = 0;
++                    let mut length = 0;
++                    for row in offset..batch.num_rows().min(offset.saturating_add(max_output_rows))
++                    {
++                        let needs_take = actions.value(row) == Action::UpdateAll as u8
++                            || (evaluator.take.is_some()
++                                && evaluator.delete_if.is_some()
++                                && actions.value(row) == Action::Delete as u8
++                                && sentinel.is_null(row));
++                        if needs_take {
++                            if candidates == rows {
++                                break;
++                            }
++                            candidates += 1;
++                        }
++                        length += 1;
++                    }
++                    let (output, observed_width) = evaluator
++                        .apply(batch.slice(offset, length), &metrics)
++                        .await?;
++                    offset += length;
++                    let next_rows = if observed_width == 0 {
++                        rows
++                    } else {
++                        rows_for_width(observed_width)
++                    };
++                    baseline.record_output(output.num_rows());
++                    Ok(Some((output, (input, pending, offset, next_rows))))
++                }
++            },
++        );
++        Ok(Box::pin(RecordBatchStreamAdapter::new(
++            self.schema(),
++            stream,
++        )))
++    }
++}
