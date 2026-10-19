@@ -1,0 +1,33 @@
+{
+  "status": "execution_error",
+  "error": "External error: Resources exhausted: Failed to allocate additional 16.0 MB for HashJoinInput with 48.0 MB already allocated for this reservation - 16.0 MB remain available for the total memory pool: fair(pool_size: 64.0 MB)",
+  "merge_stats": null,
+  "version_before": 1,
+  "version_after": null,
+  "merge_seconds": 0.031203812,
+  "planning_seconds": 0.004846823,
+  "timing_scope": "execute and commit; planning and complete-input materialization excluded, no comparison to old API times",
+  "cpu_seconds": 0.22,
+  "io_delta": {
+    "cancelled_write_bytes": 0,
+    "rchar": 79900,
+    "read_bytes": 0,
+    "syscr": 28,
+    "syscw": 3,
+    "wchar": 24,
+    "write_bytes": 0
+  },
+  "pool": {
+    "reserved": 0,
+    "peak_reserved": 50332932,
+    "per_consumer_current_peak": {
+      "HashJoinInput": [
+        0,
+        50332932
+      ]
+    },
+    "failed_reservations": 1,
+    "infallible_grows": 0,
+    "interpretation": "Reservation mutations are serialized for exact tracked high-water accounting; unregistered arrays are not included."
+  }
+}

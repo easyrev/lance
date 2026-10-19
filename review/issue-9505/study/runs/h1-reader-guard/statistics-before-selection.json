@@ -1,0 +1,24 @@
+[
+  {
+    "policy": "guard",
+    "target_before": {
+      "rows": "Exact(128)",
+      "bytes": "Inexact(24192)",
+      "rows_value": 128,
+      "bytes_value": 24192
+    },
+    "source_before": {
+      "rows": "Absent",
+      "bytes": "Absent",
+      "rows_value": null,
+      "bytes_value": null
+    },
+    "target_schema": "Schema { fields: [Field { name: \"id\", data_type: Int64, nullable: true }, Field { name: \"c0\", data_type: Int64, nullable: true }, Field { name: \"c1\", data_type: Int64, nullable: true }, Field { name: \"payload_binary\", data_type: LargeBinary, nullable: true, metadata: {\"lance-encoding:compression\": \"zstd\"} }, Field { name: \"payload_text\", data_type: Utf8, nullable: true, metadata: {\"lance-encoding:compression\": \"zstd\"} }, Field { name: \"row_marker\", data_type: Int64, nullable: true }, Field { name: \"_rowid\", data_type: UInt64, nullable: true }, Field { name: \"_rowaddr\", data_type: UInt64, nullable: true }], metadata: {} }",
+    "target_variable": true,
+    "manifest_file_bytes": 41152
+  },
+  {
+    "target_masked": true,
+    "initial_build": "source"
+  }
+]

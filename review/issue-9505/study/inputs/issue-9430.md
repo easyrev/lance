@@ -1,0 +1,1 @@
+Lance scans reported no byte size, so DataFusion's join guards fell back to row counts and broadcast wide tables. Scan, filtered read and take now report rows times a per-row width: the decoder's estimate of the values plus the Arrow buffers around them, floored at 8 bytes. That floor reproduces the 128 Ki row cap at DataFusion's default threshold ratio.

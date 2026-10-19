@@ -1,0 +1,503 @@
+{
+  "seed": 950510077,
+  "cells": [
+    {
+      "name": "h1-complete-current",
+      "spec": {
+        "task": "merge",
+        "workload": "compressed_wide",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed_wide",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed-wide-source.arrow",
+        "source_form": "complete",
+        "pool_bytes": 67108864,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "current",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "scan_batch_rows": 8,
+        "scan_io_bytes": 16777216
+      }
+    },
+    {
+      "name": "h1-complete-manifest",
+      "spec": {
+        "task": "merge",
+        "workload": "compressed_wide",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed_wide",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed-wide-source.arrow",
+        "source_form": "complete",
+        "pool_bytes": 67108864,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "manifest",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "scan_batch_rows": 8,
+        "scan_io_bytes": 16777216
+      }
+    },
+    {
+      "name": "h1-complete-guard",
+      "spec": {
+        "task": "merge",
+        "workload": "compressed_wide",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed_wide",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed-wide-source.arrow",
+        "source_form": "complete",
+        "pool_bytes": 67108864,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "guard",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "scan_batch_rows": 8,
+        "scan_io_bytes": 16777216
+      }
+    },
+    {
+      "name": "h1-reader-current",
+      "spec": {
+        "task": "merge",
+        "workload": "compressed_wide",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed_wide",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed-wide-source.arrow",
+        "source_form": "reader",
+        "pool_bytes": 67108864,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "current",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "scan_batch_rows": 8,
+        "scan_io_bytes": 16777216
+      }
+    },
+    {
+      "name": "h1-reader-manifest",
+      "spec": {
+        "task": "merge",
+        "workload": "compressed_wide",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed_wide",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed-wide-source.arrow",
+        "source_form": "reader",
+        "pool_bytes": 67108864,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "manifest",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "scan_batch_rows": 8,
+        "scan_io_bytes": 16777216
+      }
+    },
+    {
+      "name": "h1-reader-guard",
+      "spec": {
+        "task": "merge",
+        "workload": "compressed_wide",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed_wide",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed-wide-source.arrow",
+        "source_form": "reader",
+        "pool_bytes": 67108864,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "guard",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "scan_batch_rows": 8,
+        "scan_io_bytes": 16777216
+      }
+    },
+    {
+      "name": "h1-reader-mask-only-plan",
+      "spec": {
+        "task": "merge",
+        "workload": "compressed_wide",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed_wide",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed-wide-source.arrow",
+        "source_form": "reader",
+        "pool_bytes": 67108864,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "mask_only",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "scan_batch_rows": 8,
+        "scan_io_bytes": 16777216,
+        "plan_only": true
+      }
+    },
+    {
+      "name": "h1-reverse-complete-guard",
+      "spec": {
+        "task": "merge",
+        "workload": "fixed_reverse",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/fixed_reverse",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/fixed-reverse-source.arrow",
+        "source_form": "complete",
+        "pool_bytes": 8388608,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "guard",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "insert": true
+      }
+    },
+    {
+      "name": "h1-reverse-reader-guard",
+      "spec": {
+        "task": "merge",
+        "workload": "fixed_reverse",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/fixed_reverse",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/fixed-reverse-source.arrow",
+        "source_form": "reader",
+        "pool_bytes": 8388608,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "guard",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "insert": true
+      }
+    },
+    {
+      "name": "h1-original-reverse-guard-plan",
+      "spec": {
+        "task": "merge",
+        "workload": "R_admission",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/R_admission",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/R-admission-source.arrow",
+        "source_form": "reader",
+        "pool_bytes": 268435456,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "guard",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "insert": true,
+        "plan_only": true
+      }
+    },
+    {
+      "name": "h2-merge-Ws-p",
+      "spec": {
+        "task": "merge",
+        "workload": "Ws",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws-source-single.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "p",
+        "join_reordering": false,
+        "repartition_joins": false,
+        "round_robin": false,
+        "statistics_registry": true
+      }
+    },
+    {
+      "name": "h2-merge-Ws-parallel",
+      "spec": {
+        "task": "merge",
+        "workload": "Ws",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws-source-single.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "p",
+        "join_reordering": false,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true
+      }
+    },
+    {
+      "name": "h2-merge-Ws-parallel-small",
+      "spec": {
+        "task": "merge",
+        "workload": "Ws",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws-source-single.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 1,
+        "policy": "p",
+        "join_reordering": false,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true
+      }
+    },
+    {
+      "name": "h2-merge-Ws_multi-p",
+      "spec": {
+        "task": "merge",
+        "workload": "Ws",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws-source-multi.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "p",
+        "join_reordering": false,
+        "repartition_joins": false,
+        "round_robin": false,
+        "statistics_registry": true
+      }
+    },
+    {
+      "name": "h2-merge-Ws_multi-parallel",
+      "spec": {
+        "task": "merge",
+        "workload": "Ws",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws-source-multi.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "p",
+        "join_reordering": false,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true
+      }
+    },
+    {
+      "name": "h2-merge-Ws_multi-parallel-small",
+      "spec": {
+        "task": "merge",
+        "workload": "Ws",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws-source-multi.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 1,
+        "policy": "p",
+        "join_reordering": false,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true
+      }
+    },
+    {
+      "name": "h2-rr-Ws-batch8192-split0",
+      "spec": {
+        "task": "repartition",
+        "workload": "Ws",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws-source-single.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "p",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "split_bytes": 0
+      }
+    },
+    {
+      "name": "h2-rr-Ws-batch1-split0",
+      "spec": {
+        "task": "repartition",
+        "workload": "Ws",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws-source-single.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 1,
+        "policy": "p",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "split_bytes": 0
+      }
+    },
+    {
+      "name": "h2-rr-Ws-batch1-split16777216",
+      "spec": {
+        "task": "repartition",
+        "workload": "Ws",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws-source-single.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 1,
+        "policy": "p",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "split_bytes": 16777216
+      }
+    },
+    {
+      "name": "h2-rr-Ws_multi-batch8192-split0",
+      "spec": {
+        "task": "repartition",
+        "workload": "Ws",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws-source-multi.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "p",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "split_bytes": 0
+      }
+    },
+    {
+      "name": "h2-rr-Ws_multi-batch1-split0",
+      "spec": {
+        "task": "repartition",
+        "workload": "Ws",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws-source-multi.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 1,
+        "policy": "p",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "split_bytes": 0
+      }
+    },
+    {
+      "name": "h3-Wn-condition",
+      "spec": {
+        "task": "take",
+        "workload": "Wn",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Wn",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Wn-source-single.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "current",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "take_mode": "condition"
+      }
+    },
+    {
+      "name": "h3-Wn-generic",
+      "spec": {
+        "task": "take",
+        "workload": "Wn",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Wn",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Wn-source-single.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "current",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "take_mode": "generic"
+      }
+    },
+    {
+      "name": "h3-N_dense-early",
+      "spec": {
+        "task": "take",
+        "workload": "N_dense",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/N_dense",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/N_dense-source-single.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "current",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "take_mode": "early"
+      }
+    },
+    {
+      "name": "h3-N_dense-condition",
+      "spec": {
+        "task": "take",
+        "workload": "N_dense",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/N_dense",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/N_dense-source-single.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "current",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "take_mode": "condition"
+      }
+    },
+    {
+      "name": "h3-N_dense-generic",
+      "spec": {
+        "task": "take",
+        "workload": "N_dense",
+        "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/N_dense",
+        "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/N_dense-source-single.arrow",
+        "source_form": "reader",
+        "pool_bytes": 1073741824,
+        "partitions": 16,
+        "batch_size": 8192,
+        "policy": "current",
+        "join_reordering": true,
+        "repartition_joins": true,
+        "round_robin": true,
+        "statistics_registry": true,
+        "take_mode": "generic"
+      }
+    }
+  ],
+  "stop": "No broad timing matrix. Failure invalidates a proposed strategy and is retained, not timed."
+}

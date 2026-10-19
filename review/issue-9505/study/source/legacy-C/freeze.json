@@ -1,0 +1,83 @@
+{
+  "input_hashes": {
+    "BENCHMARK-PROMPT.md": "9d3c7c85d862b301c4ba84eeb770d9ed47512a5a47b4ef2a653302d2603a0205",
+    "lance-9505-unified-design.md": "e28864913fc15f619906cd103ce8ca5491d6f4b5da50895f9afaacc8beef1471",
+    "codex-ecs-validation.md": "65dc37e6e5a22accc30219de20bc0ede7ab329f5be0ca85e34518e45300bd451"
+  },
+  "handoff_sha256": "6dc6fbda9fe71061c9f0ebda1eab5d82424af20e9ceb352dcbe73a0de954dc3f",
+  "revision": "C-r2",
+  "frozen_at": "2026-10-18T12:25:48.094630+00:00",
+  "source_hashes": {
+    "rust/lance/src/datafusion/dataframe.rs": "d6e853b3f0738f9938c00cf4b6c5aa9b42149d08fb2e07cc6b151ee27e147d59",
+    "rust/lance/src/dataset/scanner.rs": "3ca556ce3fcab204060fb3ec39fcee6582a641f18c23cc82ee145bb62517cfce",
+    "rust/lance/src/dataset/write/merge_insert.rs": "bfff4989fd7d5f72b50ca8771fa4bf746ab2378b9f89f824c1b5c1a62114f2b7",
+    "rust/lance/src/dataset/write/merge_insert/candidate.rs": "042a56528fc101528b236c19996f41832b61666e5bc78956df82900b128bd025",
+    "rust/lance/src/dataset/write/merge_insert/exec.rs": "051f7034f35b95bb10ec3c8316c3e3ea4d93455d96b38279ec367cbc72db4402",
+    "rust/lance/src/dataset/write/merge_insert/exec/payload.rs": "a13ec1181a7caaa5cfe09703815bcebdd76422071c63bb2f4a8f4c579b48f1c7",
+    "rust/lance/src/dataset/write/merge_insert/logical_plan.rs": "2205f603104f65253172772626bf05687ff8d814789b5102eb3e49408f59ee7c",
+    "rust/lance/src/dataset/write/merge_insert/stats_guard.rs": "291e61213796b27f5e75197096a74b306b05b0931e6881e048f77757adf66e0d",
+    "rust/lance/src/io/exec/filtered_read.rs": "daa2bad3f58ba111ff7cc1e4a4c8e98f257011f4a987e78146840d27d6d5c64b"
+  },
+  "patch_sha256": "880bbfc6e0c58c7e14bbc63117c1053b8529c3cef1f5b7cae09146daf79df869",
+  "identities": {
+    "U": {
+      "module": "/mnt/lance/checkouts/U/python/python/lance/__init__.py",
+      "extension": "/mnt/lance/checkouts/U/python/python/lance/lance.abi3.so",
+      "extension_sha256": "7ecde3291a33be1730ebc14d23a23efe6e744d421a5e8e692826c427edd7d456",
+      "version": "14.0.0-beta.19",
+      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+      "pyarrow": "25.0.1",
+      "arrow_allocator": "mimalloc"
+    },
+    "B": {
+      "module": "/mnt/lance/checkouts/B/python/python/lance/__init__.py",
+      "extension": "/mnt/lance/checkouts/B/python/python/lance/lance.abi3.so",
+      "extension_sha256": "761809adc20361ead175c036129911e710c28e3587cd7edf3ff3d0c3115d7fe3",
+      "version": "14.0.0-beta.19",
+      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+      "pyarrow": "25.0.1",
+      "arrow_allocator": "mimalloc"
+    },
+    "P_reconstructed": {
+      "module": "/mnt/lance/checkouts/P/python/python/lance/__init__.py",
+      "extension": "/mnt/lance/checkouts/P/python/python/lance/lance.abi3.so",
+      "extension_sha256": "de42060e64f0d8a5dc7270fa20b05b43a7866c9939a43e70b79902531457ab03",
+      "version": "14.0.0-beta.19",
+      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+      "pyarrow": "25.0.1",
+      "arrow_allocator": "mimalloc"
+    },
+    "C": {
+      "module": "/mnt/lance/checkouts/C/python/python/lance/__init__.py",
+      "extension": "/mnt/lance/checkouts/C/python/python/lance/lance.abi3.so",
+      "extension_sha256": "eefdcab7339d4ebfd1be93d70731cce421d3768e70687f2f2dd4e7068fcb44bb",
+      "version": "14.0.0-beta.19",
+      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+      "pyarrow": "25.0.1",
+      "arrow_allocator": "mimalloc"
+    }
+  },
+  "harness_hashes": {
+    "bench.py": "02a622859145d5865e796d0c689f929515748a24fd1717d8a6bab01d8be00c3e",
+    "finite.py": "00d241319ebd30006c00d19c51204b0dce524150fb69c735ad79e6757af7abba",
+    "semantic.py": "915450e92c29584647058d79c7267c4282d4fe05d30751af61bff507dd2ab39d",
+    "first-seen.py": "13e7d2c33fbb5f39236f7388c221f0298feed3365f184f1206f9aa18d817c6f7",
+    "pool.py": "f5f17fbb288a51892ffa8d24fcce0b5e1918d774cd94a83f0007e54e1e0696ac",
+    "native-extra.py": "22db2ffa81651393e2d7c08655eb0580e26293b139b8dee6f56a64cd70c56ee9",
+    "latency.py": "de2148d2e470521dd8ab62245e80f74f884283ee4852c807ba000edaa5fdbf4d",
+    "summarize.py": "7afe0efa2db8e15dee5142a142649428293622c3db0448e52b0d60653cbd1cd8",
+    "planned-matrix.json": "df11e855840d9098bf6ea616a7ecf0ed172424698a6b1e9261206b68a78f48ec"
+  },
+  "cargo_lock_sha256": "3d60abf2a8ebad18ccab83cf5675bc277d5afc5f4dd713ac58e7ad3877891ad8",
+  "python_cargo_lock_sha256": "51f758cf6777692ae6a9aabe9ab90af5f5ef9a4583125035f268ce988c5d63c8",
+  "profile_sha256": "3a91fd668c40a72fc8f5e4e9051bac3aff1bd4c3c151f0e61bc43d3e56504406",
+  "test_binary_source_state": "pre-visibility-lint; see logs/test-binary-source-state.json and test-binary-to-final-visibility.patch",
+  "test_binary_sha256": "74c9f4089aedc967222ca5f28e41a2dd68a92175a4abc9a733c4951e1632395a",
+  "reviewer_sha256": "b225cee73587e8dcea32afa512752a30bf770346af763d9519717f85cbe762ce",
+  "harness_revision": "h1",
+  "parent_freeze": "harness-r0/freeze.json",
+  "parent_freeze_sha256": "45cef8f03060f3c27c75f8a5f1591badc62867b695cdfe2ccaa92e7d7b6812cf",
+  "original_frozen_at": "2026-10-18T11:59:22.450449+00:00",
+  "harness_reviewer_sha256": "15d4d5a84d475f3423ad8b0e1691cf32c13fc8488ea5fb8f13d2ec149b0d17d8",
+  "harness_patch_sha256": "cfba2d8b41f4ed7a0eb88d90743f7202310aa445b03f843fdcdf114012b9d3ac"
+}

@@ -1,0 +1,6 @@
+ProjectionExec: expr=[id@0 as id, c0@1 as c0, c1@2 as c1, _rowaddr@3 as _rowaddr, true as __merge_source_sentinel, 1 as __action, c2@4 as c2, c3@5 as c3, c4@6 as c4, c5@7 as c5, c6@8 as c6]
+  HashJoinExec: mode=Partitioned, join_type=Inner, on=[(id@0, id@0)], projection=[id@7, c0@8, c1@9, _rowaddr@6, c2@1, c3@2, c4@3, c5@4, c6@5]
+    RepartitionExec: partitioning=Hash([id@0], 16), input_partitions=1
+      LanceRead: uri=mnt/lance/hypotheses-9505-20261019/fixtures/N_dense/data, projection=[id, c2, c3, c4, c5, c6], num_fragments=8, range_before=None, range_after=None, row_id=false, row_addr=true, full_filter=--, refine_filter=--
+    RepartitionExec: partitioning=Hash([id@0], 16), input_partitions=1
+      StreamingTableExec: partition_sizes=1, projection=[id, c0, c1]

@@ -1,0 +1,17 @@
+{
+  "task": "merge",
+  "workload": "compressed_wide",
+  "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed_wide",
+  "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/compressed-wide-source.arrow",
+  "source_form": "complete",
+  "pool_bytes": 67108864,
+  "partitions": 16,
+  "batch_size": 8192,
+  "policy": "guard",
+  "join_reordering": true,
+  "repartition_joins": true,
+  "round_robin": true,
+  "statistics_registry": true,
+  "scan_batch_rows": 8,
+  "scan_io_bytes": 16777216
+}

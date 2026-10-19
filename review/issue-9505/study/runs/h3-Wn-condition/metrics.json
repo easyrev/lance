@@ -1,0 +1,114 @@
+{
+  "status": "success",
+  "distribution": [
+    {
+      "partition": 0,
+      "rows": 25,
+      "batches": 25
+    },
+    {
+      "partition": 1,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 2,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 3,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 4,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 5,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 6,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 7,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 8,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 9,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 10,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 11,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 12,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 13,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 14,
+      "rows": 0,
+      "batches": 0
+    },
+    {
+      "partition": 15,
+      "rows": 0,
+      "batches": 0
+    }
+  ],
+  "merge_seconds": 0.167074357,
+  "cpu_seconds": 0.18,
+  "io_delta": {
+    "cancelled_write_bytes": 0,
+    "rchar": 131234894,
+    "read_bytes": 0,
+    "syscr": 172,
+    "syscw": 328,
+    "wchar": 131136899,
+    "write_bytes": 131186688
+  },
+  "pool": {
+    "reserved": 9600,
+    "peak_reserved": 206496,
+    "per_consumer_current_peak": {
+      "HashJoinInput": [
+        9600,
+        9600
+      ],
+      "RepartitionExec[0]": [
+        0,
+        196896
+      ]
+    },
+    "failed_reservations": 0,
+    "infallible_grows": 0,
+    "interpretation": "Reservation mutations are serialized for exact tracked high-water accounting; unregistered arrays are not included."
+  },
+  "timing_scope": "Actual Lance/DF join and payload node plus common IPC sink; no writer, commit, NULL-address or conditional-rule implementation"
+}

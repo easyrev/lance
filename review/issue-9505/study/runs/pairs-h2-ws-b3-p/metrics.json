@@ -1,0 +1,37 @@
+{
+  "status": "success",
+  "error": null,
+  "merge_stats": {
+    "num_updated_rows": 25,
+    "num_inserted_rows": 0,
+    "num_deleted_rows": 0
+  },
+  "version_before": 1,
+  "version_after": 2,
+  "merge_seconds": 2.378395987,
+  "planning_seconds": 0.004267755,
+  "timing_scope": "execute and commit; planning and complete-input materialization excluded, no comparison to old API times",
+  "cpu_seconds": 4.41,
+  "io_delta": {
+    "cancelled_write_bytes": 0,
+    "rchar": 2359459649,
+    "read_bytes": 0,
+    "syscr": 352,
+    "syscw": 240,
+    "wchar": 393246169,
+    "write_bytes": 393314304
+  },
+  "pool": {
+    "reserved": 262146380,
+    "peak_reserved": 262146380,
+    "per_consumer_current_peak": {
+      "HashJoinInput": [
+        262146380,
+        262146380
+      ]
+    },
+    "failed_reservations": 0,
+    "infallible_grows": 0,
+    "interpretation": "Reservation mutations are serialized for exact tracked high-water accounting; unregistered arrays are not included."
+  }
+}

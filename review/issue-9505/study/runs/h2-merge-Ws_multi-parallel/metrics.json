@@ -1,0 +1,145 @@
+{
+  "status": "success",
+  "error": null,
+  "merge_stats": {
+    "num_updated_rows": 25,
+    "num_inserted_rows": 0,
+    "num_deleted_rows": 0
+  },
+  "version_before": 1,
+  "version_after": 2,
+  "merge_seconds": 7.508151022,
+  "planning_seconds": 0.004378919,
+  "timing_scope": "execute and commit; planning and complete-input materialization excluded, no comparison to old API times",
+  "cpu_seconds": 10.08,
+  "io_delta": {
+    "cancelled_write_bytes": 0,
+    "rchar": 3937600753,
+    "read_bytes": 0,
+    "syscr": 401,
+    "syscw": 1039,
+    "wchar": 2490439668,
+    "write_bytes": 2490531840
+  },
+  "pool": {
+    "reserved": 0,
+    "peak_reserved": 262936488,
+    "per_consumer_current_peak": {
+      "HashJoinInput[0]": [
+        0,
+        10551328
+      ],
+      "HashJoinInput[10]": [
+        0,
+        73
+      ],
+      "HashJoinInput[11]": [
+        0,
+        21037820
+      ],
+      "HashJoinInput[12]": [
+        0,
+        73
+      ],
+      "HashJoinInput[13]": [
+        0,
+        10551328
+      ],
+      "HashJoinInput[14]": [
+        0,
+        73
+      ],
+      "HashJoinInput[15]": [
+        0,
+        10551328
+      ],
+      "HashJoinInput[1]": [
+        0,
+        42009368
+      ],
+      "HashJoinInput[2]": [
+        0,
+        73
+      ],
+      "HashJoinInput[3]": [
+        0,
+        31524124
+      ],
+      "HashJoinInput[4]": [
+        0,
+        10551328
+      ],
+      "HashJoinInput[5]": [
+        0,
+        42009632
+      ],
+      "HashJoinInput[6]": [
+        0,
+        21037224
+      ],
+      "HashJoinInput[7]": [
+        0,
+        31523328
+      ],
+      "HashJoinInput[8]": [
+        0,
+        10551328
+      ],
+      "HashJoinInput[9]": [
+        0,
+        21038352
+      ],
+      "RepartitionExec[0]": [
+        0,
+        10551624
+      ],
+      "RepartitionExec[11]": [
+        0,
+        21037448
+      ],
+      "RepartitionExec[13]": [
+        0,
+        10551624
+      ],
+      "RepartitionExec[15]": [
+        0,
+        10551624
+      ],
+      "RepartitionExec[1]": [
+        0,
+        42008984
+      ],
+      "RepartitionExec[3]": [
+        0,
+        31523216
+      ],
+      "RepartitionExec[4]": [
+        0,
+        10551624
+      ],
+      "RepartitionExec[5]": [
+        0,
+        42008984
+      ],
+      "RepartitionExec[6]": [
+        0,
+        21037448
+      ],
+      "RepartitionExec[7]": [
+        0,
+        31523216
+      ],
+      "RepartitionExec[8]": [
+        0,
+        10551624
+      ],
+      "RepartitionExec[9]": [
+        0,
+        21037448
+      ]
+    },
+    "failed_reservations": 16,
+    "infallible_grows": 0,
+    "interpretation": "Reservation mutations are serialized for exact tracked high-water accounting; unregistered arrays are not included."
+  }
+}

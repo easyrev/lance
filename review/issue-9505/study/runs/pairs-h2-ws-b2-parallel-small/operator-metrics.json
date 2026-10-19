@@ -1,0 +1,5239 @@
+[
+  {
+    "path": "0",
+    "name": "FullSchemaMergeInsertExec",
+    "display": "MergeInsert: on=[id], when_matched=UpdateAll, when_not_matched=DoNothing, when_not_matched_by_source=Keep\n",
+    "statistics": {
+      "rows": "Absent",
+      "bytes": "Absent",
+      "rows_value": null,
+      "bytes_value": null
+    },
+    "partitioning": "UnknownPartitioning(1)",
+    "metrics": [
+      {
+        "partition": 0,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975346250 UTC",
+        "numeric": 1792411348975346250
+      },
+      {
+        "partition": 0,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:28.975701414 UTC",
+        "numeric": 1792411348975701414
+      },
+      {
+        "partition": 0,
+        "name": "elapsed_compute",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "output_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "num_inserted_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "num_updated_rows",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 0,
+        "name": "num_deleted_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "bytes_written",
+        "value": "393.2 M",
+        "numeric": 393227226
+      },
+      {
+        "partition": 0,
+        "name": "num_files_written",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 0,
+        "name": "num_skipped_duplicates",
+        "value": "0",
+        "numeric": 0
+      }
+    ]
+  },
+  {
+    "path": "0/0",
+    "name": "CoalescePartitionsExec",
+    "display": "CoalescePartitionsExec\n",
+    "statistics": {
+      "rows": "Absent",
+      "bytes": "Absent",
+      "rows_value": null,
+      "bytes_value": null
+    },
+    "partitioning": "UnknownPartitioning(1)",
+    "metrics": [
+      {
+        "partition": 0,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975347891 UTC",
+        "numeric": 1792411348975347891
+      },
+      {
+        "partition": 0,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.111000111 UTC",
+        "numeric": 1792411352111000111
+      },
+      {
+        "partition": 0,
+        "name": "elapsed_compute",
+        "value": "18.85µs",
+        "numeric": 18854
+      },
+      {
+        "partition": 0,
+        "name": "output_rows",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 0,
+        "name": "output_bytes",
+        "value": "375.0 MB",
+        "numeric": 393218400
+      },
+      {
+        "partition": 0,
+        "name": "output_batches",
+        "value": "25",
+        "numeric": 25
+      }
+    ]
+  },
+  {
+    "path": "0/0/0",
+    "name": "ProjectionExec",
+    "display": "ProjectionExec: expr=[id@0 as id, new_payload@1 as new_payload, __merge_source_sentinel@2 as __merge_source_sentinel, c0@3 as c0, c1@4 as c1, payload@5 as payload, row_marker@6 as row_marker, _rowid@7 as _rowid, _rowaddr@8 as _rowaddr, CASE WHEN _rowaddr@8 IS NOT NULL THEN 1 ELSE 0 END as __action]\n",
+    "statistics": {
+      "rows": "Absent",
+      "bytes": "Absent",
+      "rows_value": null,
+      "bytes_value": null
+    },
+    "partitioning": "Hash([Column { name: \"id\", index: 0 }], 16)",
+    "metrics": [
+      {
+        "partition": 1,
+        "name": "expr_0_eval_time",
+        "value": "4.28µs",
+        "numeric": 4275
+      },
+      {
+        "partition": 1,
+        "name": "expr_1_eval_time",
+        "value": "782ns",
+        "numeric": 782
+      },
+      {
+        "partition": 1,
+        "name": "expr_2_eval_time",
+        "value": "749ns",
+        "numeric": 749
+      },
+      {
+        "partition": 1,
+        "name": "expr_3_eval_time",
+        "value": "797ns",
+        "numeric": 797
+      },
+      {
+        "partition": 1,
+        "name": "expr_4_eval_time",
+        "value": "507ns",
+        "numeric": 507
+      },
+      {
+        "partition": 1,
+        "name": "expr_5_eval_time",
+        "value": "730ns",
+        "numeric": 730
+      },
+      {
+        "partition": 1,
+        "name": "expr_6_eval_time",
+        "value": "745ns",
+        "numeric": 745
+      },
+      {
+        "partition": 1,
+        "name": "expr_7_eval_time",
+        "value": "743ns",
+        "numeric": 743
+      },
+      {
+        "partition": 0,
+        "name": "expr_0_eval_time",
+        "value": "1.31µs",
+        "numeric": 1307
+      },
+      {
+        "partition": 2,
+        "name": "expr_0_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "expr_1_eval_time",
+        "value": "144ns",
+        "numeric": 144
+      },
+      {
+        "partition": 0,
+        "name": "expr_2_eval_time",
+        "value": "184ns",
+        "numeric": 184
+      },
+      {
+        "partition": 2,
+        "name": "expr_1_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "expr_3_eval_time",
+        "value": "139ns",
+        "numeric": 139
+      },
+      {
+        "partition": 2,
+        "name": "expr_2_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "expr_4_eval_time",
+        "value": "122ns",
+        "numeric": 122
+      },
+      {
+        "partition": 1,
+        "name": "expr_8_eval_time",
+        "value": "754ns",
+        "numeric": 754
+      },
+      {
+        "partition": 2,
+        "name": "expr_3_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 1,
+        "name": "expr_9_eval_time",
+        "value": "90.68µs",
+        "numeric": 90681
+      },
+      {
+        "partition": 2,
+        "name": "expr_4_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "expr_5_eval_time",
+        "value": "125ns",
+        "numeric": 125
+      },
+      {
+        "partition": 2,
+        "name": "expr_5_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "expr_6_eval_time",
+        "value": "333ns",
+        "numeric": 333
+      },
+      {
+        "partition": 2,
+        "name": "expr_6_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "expr_7_eval_time",
+        "value": "125ns",
+        "numeric": 125
+      },
+      {
+        "partition": 2,
+        "name": "expr_7_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "expr_8_eval_time",
+        "value": "133ns",
+        "numeric": 133
+      },
+      {
+        "partition": 2,
+        "name": "expr_8_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "expr_0_eval_time",
+        "value": "2.98µs",
+        "numeric": 2975
+      },
+      {
+        "partition": 3,
+        "name": "expr_1_eval_time",
+        "value": "515ns",
+        "numeric": 515
+      },
+      {
+        "partition": 3,
+        "name": "expr_2_eval_time",
+        "value": "381ns",
+        "numeric": 381
+      },
+      {
+        "partition": 2,
+        "name": "expr_9_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "expr_3_eval_time",
+        "value": "351ns",
+        "numeric": 351
+      },
+      {
+        "partition": 0,
+        "name": "expr_9_eval_time",
+        "value": "19.48µs",
+        "numeric": 19477
+      },
+      {
+        "partition": 3,
+        "name": "expr_4_eval_time",
+        "value": "293ns",
+        "numeric": 293
+      },
+      {
+        "partition": 3,
+        "name": "expr_5_eval_time",
+        "value": "451ns",
+        "numeric": 451
+      },
+      {
+        "partition": 3,
+        "name": "expr_6_eval_time",
+        "value": "381ns",
+        "numeric": 381
+      },
+      {
+        "partition": 3,
+        "name": "expr_7_eval_time",
+        "value": "395ns",
+        "numeric": 395
+      },
+      {
+        "partition": 3,
+        "name": "expr_8_eval_time",
+        "value": "418ns",
+        "numeric": 418
+      },
+      {
+        "partition": 3,
+        "name": "expr_9_eval_time",
+        "value": "56.59µs",
+        "numeric": 56588
+      },
+      {
+        "partition": 4,
+        "name": "expr_0_eval_time",
+        "value": "1.21µs",
+        "numeric": 1210
+      },
+      {
+        "partition": 4,
+        "name": "expr_1_eval_time",
+        "value": "136ns",
+        "numeric": 136
+      },
+      {
+        "partition": 4,
+        "name": "expr_2_eval_time",
+        "value": "115ns",
+        "numeric": 115
+      },
+      {
+        "partition": 4,
+        "name": "expr_3_eval_time",
+        "value": "122ns",
+        "numeric": 122
+      },
+      {
+        "partition": 4,
+        "name": "expr_4_eval_time",
+        "value": "49ns",
+        "numeric": 49
+      },
+      {
+        "partition": 4,
+        "name": "expr_5_eval_time",
+        "value": "180ns",
+        "numeric": 180
+      },
+      {
+        "partition": 4,
+        "name": "expr_6_eval_time",
+        "value": "167ns",
+        "numeric": 167
+      },
+      {
+        "partition": 4,
+        "name": "expr_7_eval_time",
+        "value": "223ns",
+        "numeric": 223
+      },
+      {
+        "partition": 4,
+        "name": "expr_8_eval_time",
+        "value": "161ns",
+        "numeric": 161
+      },
+      {
+        "partition": 4,
+        "name": "expr_9_eval_time",
+        "value": "20.48µs",
+        "numeric": 20484
+      },
+      {
+        "partition": 5,
+        "name": "expr_0_eval_time",
+        "value": "2.60µs",
+        "numeric": 2599
+      },
+      {
+        "partition": 5,
+        "name": "expr_1_eval_time",
+        "value": "614ns",
+        "numeric": 614
+      },
+      {
+        "partition": 5,
+        "name": "expr_2_eval_time",
+        "value": "516ns",
+        "numeric": 516
+      },
+      {
+        "partition": 5,
+        "name": "expr_3_eval_time",
+        "value": "484ns",
+        "numeric": 484
+      },
+      {
+        "partition": 5,
+        "name": "expr_4_eval_time",
+        "value": "357ns",
+        "numeric": 357
+      },
+      {
+        "partition": 5,
+        "name": "expr_5_eval_time",
+        "value": "527ns",
+        "numeric": 527
+      },
+      {
+        "partition": 5,
+        "name": "expr_6_eval_time",
+        "value": "518ns",
+        "numeric": 518
+      },
+      {
+        "partition": 5,
+        "name": "expr_7_eval_time",
+        "value": "529ns",
+        "numeric": 529
+      },
+      {
+        "partition": 5,
+        "name": "expr_8_eval_time",
+        "value": "564ns",
+        "numeric": 564
+      },
+      {
+        "partition": 5,
+        "name": "expr_9_eval_time",
+        "value": "72.08µs",
+        "numeric": 72078
+      },
+      {
+        "partition": 6,
+        "name": "expr_0_eval_time",
+        "value": "1.45µs",
+        "numeric": 1448
+      },
+      {
+        "partition": 6,
+        "name": "expr_1_eval_time",
+        "value": "261ns",
+        "numeric": 261
+      },
+      {
+        "partition": 6,
+        "name": "expr_2_eval_time",
+        "value": "254ns",
+        "numeric": 254
+      },
+      {
+        "partition": 6,
+        "name": "expr_3_eval_time",
+        "value": "287ns",
+        "numeric": 287
+      },
+      {
+        "partition": 6,
+        "name": "expr_4_eval_time",
+        "value": "140ns",
+        "numeric": 140
+      },
+      {
+        "partition": 6,
+        "name": "expr_5_eval_time",
+        "value": "225ns",
+        "numeric": 225
+      },
+      {
+        "partition": 6,
+        "name": "expr_6_eval_time",
+        "value": "276ns",
+        "numeric": 276
+      },
+      {
+        "partition": 6,
+        "name": "expr_7_eval_time",
+        "value": "291ns",
+        "numeric": 291
+      },
+      {
+        "partition": 6,
+        "name": "expr_8_eval_time",
+        "value": "288ns",
+        "numeric": 288
+      },
+      {
+        "partition": 6,
+        "name": "expr_9_eval_time",
+        "value": "41.31µs",
+        "numeric": 41306
+      },
+      {
+        "partition": 7,
+        "name": "expr_0_eval_time",
+        "value": "3.10µs",
+        "numeric": 3100
+      },
+      {
+        "partition": 7,
+        "name": "expr_1_eval_time",
+        "value": "441ns",
+        "numeric": 441
+      },
+      {
+        "partition": 7,
+        "name": "expr_2_eval_time",
+        "value": "521ns",
+        "numeric": 521
+      },
+      {
+        "partition": 7,
+        "name": "expr_3_eval_time",
+        "value": "408ns",
+        "numeric": 408
+      },
+      {
+        "partition": 7,
+        "name": "expr_4_eval_time",
+        "value": "207ns",
+        "numeric": 207
+      },
+      {
+        "partition": 7,
+        "name": "expr_5_eval_time",
+        "value": "441ns",
+        "numeric": 441
+      },
+      {
+        "partition": 7,
+        "name": "expr_6_eval_time",
+        "value": "513ns",
+        "numeric": 513
+      },
+      {
+        "partition": 7,
+        "name": "expr_7_eval_time",
+        "value": "433ns",
+        "numeric": 433
+      },
+      {
+        "partition": 7,
+        "name": "expr_8_eval_time",
+        "value": "472ns",
+        "numeric": 472
+      },
+      {
+        "partition": 7,
+        "name": "expr_9_eval_time",
+        "value": "62.61µs",
+        "numeric": 62612
+      },
+      {
+        "partition": 8,
+        "name": "expr_0_eval_time",
+        "value": "1.09µs",
+        "numeric": 1086
+      },
+      {
+        "partition": 8,
+        "name": "expr_1_eval_time",
+        "value": "155ns",
+        "numeric": 155
+      },
+      {
+        "partition": 8,
+        "name": "expr_2_eval_time",
+        "value": "127ns",
+        "numeric": 127
+      },
+      {
+        "partition": 8,
+        "name": "expr_3_eval_time",
+        "value": "135ns",
+        "numeric": 135
+      },
+      {
+        "partition": 8,
+        "name": "expr_4_eval_time",
+        "value": "51ns",
+        "numeric": 51
+      },
+      {
+        "partition": 8,
+        "name": "expr_5_eval_time",
+        "value": "123ns",
+        "numeric": 123
+      },
+      {
+        "partition": 8,
+        "name": "expr_6_eval_time",
+        "value": "137ns",
+        "numeric": 137
+      },
+      {
+        "partition": 8,
+        "name": "expr_7_eval_time",
+        "value": "142ns",
+        "numeric": 142
+      },
+      {
+        "partition": 8,
+        "name": "expr_8_eval_time",
+        "value": "151ns",
+        "numeric": 151
+      },
+      {
+        "partition": 8,
+        "name": "expr_9_eval_time",
+        "value": "18.31µs",
+        "numeric": 18311
+      },
+      {
+        "partition": 10,
+        "name": "expr_0_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "expr_1_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "expr_2_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "expr_3_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "expr_4_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "expr_5_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "expr_6_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "expr_7_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "expr_8_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "expr_9_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "expr_0_eval_time",
+        "value": "1.83µs",
+        "numeric": 1833
+      },
+      {
+        "partition": 11,
+        "name": "expr_0_eval_time",
+        "value": "2.30µs",
+        "numeric": 2297
+      },
+      {
+        "partition": 9,
+        "name": "expr_1_eval_time",
+        "value": "291ns",
+        "numeric": 291
+      },
+      {
+        "partition": 11,
+        "name": "expr_1_eval_time",
+        "value": "381ns",
+        "numeric": 381
+      },
+      {
+        "partition": 9,
+        "name": "expr_2_eval_time",
+        "value": "255ns",
+        "numeric": 255
+      },
+      {
+        "partition": 11,
+        "name": "expr_2_eval_time",
+        "value": "767ns",
+        "numeric": 767
+      },
+      {
+        "partition": 9,
+        "name": "expr_3_eval_time",
+        "value": "241ns",
+        "numeric": 241
+      },
+      {
+        "partition": 11,
+        "name": "expr_3_eval_time",
+        "value": "260ns",
+        "numeric": 260
+      },
+      {
+        "partition": 11,
+        "name": "expr_4_eval_time",
+        "value": "179ns",
+        "numeric": 179
+      },
+      {
+        "partition": 9,
+        "name": "expr_4_eval_time",
+        "value": "373ns",
+        "numeric": 373
+      },
+      {
+        "partition": 11,
+        "name": "expr_5_eval_time",
+        "value": "280ns",
+        "numeric": 280
+      },
+      {
+        "partition": 9,
+        "name": "expr_5_eval_time",
+        "value": "251ns",
+        "numeric": 251
+      },
+      {
+        "partition": 11,
+        "name": "expr_6_eval_time",
+        "value": "287ns",
+        "numeric": 287
+      },
+      {
+        "partition": 11,
+        "name": "expr_7_eval_time",
+        "value": "451ns",
+        "numeric": 451
+      },
+      {
+        "partition": 11,
+        "name": "expr_8_eval_time",
+        "value": "287ns",
+        "numeric": 287
+      },
+      {
+        "partition": 11,
+        "name": "expr_9_eval_time",
+        "value": "43.32µs",
+        "numeric": 43319
+      },
+      {
+        "partition": 9,
+        "name": "expr_6_eval_time",
+        "value": "249ns",
+        "numeric": 249
+      },
+      {
+        "partition": 9,
+        "name": "expr_7_eval_time",
+        "value": "330ns",
+        "numeric": 330
+      },
+      {
+        "partition": 9,
+        "name": "expr_8_eval_time",
+        "value": "285ns",
+        "numeric": 285
+      },
+      {
+        "partition": 9,
+        "name": "expr_9_eval_time",
+        "value": "37.18µs",
+        "numeric": 37178
+      },
+      {
+        "partition": 12,
+        "name": "expr_0_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "expr_1_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "expr_2_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "expr_3_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "expr_4_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "expr_5_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "expr_6_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "expr_7_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "expr_8_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "expr_9_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 13,
+        "name": "expr_0_eval_time",
+        "value": "718ns",
+        "numeric": 718
+      },
+      {
+        "partition": 13,
+        "name": "expr_1_eval_time",
+        "value": "120ns",
+        "numeric": 120
+      },
+      {
+        "partition": 13,
+        "name": "expr_2_eval_time",
+        "value": "125ns",
+        "numeric": 125
+      },
+      {
+        "partition": 13,
+        "name": "expr_3_eval_time",
+        "value": "125ns",
+        "numeric": 125
+      },
+      {
+        "partition": 13,
+        "name": "expr_4_eval_time",
+        "value": "51ns",
+        "numeric": 51
+      },
+      {
+        "partition": 13,
+        "name": "expr_5_eval_time",
+        "value": "125ns",
+        "numeric": 125
+      },
+      {
+        "partition": 13,
+        "name": "expr_6_eval_time",
+        "value": "127ns",
+        "numeric": 127
+      },
+      {
+        "partition": 13,
+        "name": "expr_7_eval_time",
+        "value": "144ns",
+        "numeric": 144
+      },
+      {
+        "partition": 13,
+        "name": "expr_8_eval_time",
+        "value": "147ns",
+        "numeric": 147
+      },
+      {
+        "partition": 13,
+        "name": "expr_9_eval_time",
+        "value": "18.43µs",
+        "numeric": 18434
+      },
+      {
+        "partition": 7,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975497802 UTC",
+        "numeric": 1792411348975497802
+      },
+      {
+        "partition": 7,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097946483 UTC",
+        "numeric": 1792411352097946483
+      },
+      {
+        "partition": 7,
+        "name": "elapsed_compute",
+        "value": "91.57µs",
+        "numeric": 91573
+      },
+      {
+        "partition": 0,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975498823 UTC",
+        "numeric": 1792411348975498823
+      },
+      {
+        "partition": 5,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975499129 UTC",
+        "numeric": 1792411348975499129
+      },
+      {
+        "partition": 8,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975499321 UTC",
+        "numeric": 1792411348975499321
+      },
+      {
+        "partition": 6,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975499648 UTC",
+        "numeric": 1792411348975499648
+      },
+      {
+        "partition": 10,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975500113 UTC",
+        "numeric": 1792411348975500113
+      },
+      {
+        "partition": 6,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.100176993 UTC",
+        "numeric": 1792411352100176993
+      },
+      {
+        "partition": 7,
+        "name": "output_rows",
+        "value": "3",
+        "numeric": 3
+      },
+      {
+        "partition": 10,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635177688 UTC",
+        "numeric": 1792411349635177688
+      },
+      {
+        "partition": 7,
+        "name": "output_bytes",
+        "value": "45.0 MB",
+        "numeric": 47186208
+      },
+      {
+        "partition": 10,
+        "name": "elapsed_compute",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 7,
+        "name": "output_batches",
+        "value": "3",
+        "numeric": 3
+      },
+      {
+        "partition": 1,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975502301 UTC",
+        "numeric": 1792411348975502301
+      },
+      {
+        "partition": 6,
+        "name": "elapsed_compute",
+        "value": "55.13µs",
+        "numeric": 55126
+      },
+      {
+        "partition": 2,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975502678 UTC",
+        "numeric": 1792411348975502678
+      },
+      {
+        "partition": 1,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097935901 UTC",
+        "numeric": 1792411352097935901
+      },
+      {
+        "partition": 0,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097910463 UTC",
+        "numeric": 1792411352097910463
+      },
+      {
+        "partition": 1,
+        "name": "elapsed_compute",
+        "value": "126.74µs",
+        "numeric": 126740
+      },
+      {
+        "partition": 1,
+        "name": "output_rows",
+        "value": "4",
+        "numeric": 4
+      },
+      {
+        "partition": 8,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097950813 UTC",
+        "numeric": 1792411352097950813
+      },
+      {
+        "partition": 8,
+        "name": "elapsed_compute",
+        "value": "25.80µs",
+        "numeric": 25801
+      },
+      {
+        "partition": 9,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975519612 UTC",
+        "numeric": 1792411348975519612
+      },
+      {
+        "partition": 3,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975523059 UTC",
+        "numeric": 1792411348975523059
+      },
+      {
+        "partition": 11,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975523489 UTC",
+        "numeric": 1792411348975523489
+      },
+      {
+        "partition": 13,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975523788 UTC",
+        "numeric": 1792411348975523788
+      },
+      {
+        "partition": 12,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975526369 UTC",
+        "numeric": 1792411348975526369
+      },
+      {
+        "partition": 14,
+        "name": "expr_0_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635252179 UTC",
+        "numeric": 1792411349635252179
+      },
+      {
+        "partition": 4,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975529668 UTC",
+        "numeric": 1792411348975529668
+      },
+      {
+        "partition": 6,
+        "name": "output_rows",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 12,
+        "name": "elapsed_compute",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 15,
+        "name": "expr_0_eval_time",
+        "value": "681ns",
+        "numeric": 681
+      },
+      {
+        "partition": 4,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097916171 UTC",
+        "numeric": 1792411352097916171
+      },
+      {
+        "partition": 5,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097900671 UTC",
+        "numeric": 1792411352097900671
+      },
+      {
+        "partition": 12,
+        "name": "output_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097931120 UTC",
+        "numeric": 1792411352097931120
+      },
+      {
+        "partition": 12,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 5,
+        "name": "elapsed_compute",
+        "value": "102.22µs",
+        "numeric": 102225
+      },
+      {
+        "partition": 12,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097947776 UTC",
+        "numeric": 1792411352097947776
+      },
+      {
+        "partition": 0,
+        "name": "elapsed_compute",
+        "value": "27.22µs",
+        "numeric": 27222
+      },
+      {
+        "partition": 13,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097941394 UTC",
+        "numeric": 1792411352097941394
+      },
+      {
+        "partition": 14,
+        "name": "expr_1_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 13,
+        "name": "elapsed_compute",
+        "value": "25.43µs",
+        "numeric": 25432
+      },
+      {
+        "partition": 14,
+        "name": "expr_2_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "expr_3_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "expr_4_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 15,
+        "name": "expr_1_eval_time",
+        "value": "136ns",
+        "numeric": 136
+      },
+      {
+        "partition": 14,
+        "name": "expr_5_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 5,
+        "name": "output_rows",
+        "value": "4",
+        "numeric": 4
+      },
+      {
+        "partition": 8,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 14,
+        "name": "expr_6_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 5,
+        "name": "output_bytes",
+        "value": "60.0 MB",
+        "numeric": 62914944
+      },
+      {
+        "partition": 14,
+        "name": "expr_7_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "output_bytes",
+        "value": "15.0 MB",
+        "numeric": 15728736
+      },
+      {
+        "partition": 3,
+        "name": "elapsed_compute",
+        "value": "79.53µs",
+        "numeric": 79525
+      },
+      {
+        "partition": 0,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 14,
+        "name": "expr_8_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 13,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 3,
+        "name": "output_rows",
+        "value": "3",
+        "numeric": 3
+      },
+      {
+        "partition": 3,
+        "name": "output_bytes",
+        "value": "45.0 MB",
+        "numeric": 47186208
+      },
+      {
+        "partition": 8,
+        "name": "output_bytes",
+        "value": "15.0 MB",
+        "numeric": 15728736
+      },
+      {
+        "partition": 1,
+        "name": "output_bytes",
+        "value": "60.0 MB",
+        "numeric": 62914944
+      },
+      {
+        "partition": 8,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 15,
+        "name": "expr_2_eval_time",
+        "value": "125ns",
+        "numeric": 125
+      },
+      {
+        "partition": 3,
+        "name": "output_batches",
+        "value": "3",
+        "numeric": 3
+      },
+      {
+        "partition": 1,
+        "name": "output_batches",
+        "value": "4",
+        "numeric": 4
+      },
+      {
+        "partition": 15,
+        "name": "expr_3_eval_time",
+        "value": "117ns",
+        "numeric": 117
+      },
+      {
+        "partition": 15,
+        "name": "expr_4_eval_time",
+        "value": "50ns",
+        "numeric": 50
+      },
+      {
+        "partition": 15,
+        "name": "expr_5_eval_time",
+        "value": "128ns",
+        "numeric": 128
+      },
+      {
+        "partition": 15,
+        "name": "expr_6_eval_time",
+        "value": "130ns",
+        "numeric": 130
+      },
+      {
+        "partition": 2,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635229875 UTC",
+        "numeric": 1792411349635229875
+      },
+      {
+        "partition": 15,
+        "name": "expr_7_eval_time",
+        "value": "128ns",
+        "numeric": 128
+      },
+      {
+        "partition": 11,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097931672 UTC",
+        "numeric": 1792411352097931672
+      },
+      {
+        "partition": 15,
+        "name": "expr_8_eval_time",
+        "value": "137ns",
+        "numeric": 137
+      },
+      {
+        "partition": 2,
+        "name": "elapsed_compute",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 11,
+        "name": "elapsed_compute",
+        "value": "60.32µs",
+        "numeric": 60319
+      },
+      {
+        "partition": 2,
+        "name": "output_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 2,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 2,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 15,
+        "name": "expr_9_eval_time",
+        "value": "37.68µs",
+        "numeric": 37677
+      },
+      {
+        "partition": 6,
+        "name": "output_bytes",
+        "value": "30.0 MB",
+        "numeric": 31457472
+      },
+      {
+        "partition": 9,
+        "name": "elapsed_compute",
+        "value": "53.38µs",
+        "numeric": 53384
+      },
+      {
+        "partition": 6,
+        "name": "output_batches",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 9,
+        "name": "output_rows",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 9,
+        "name": "output_bytes",
+        "value": "30.0 MB",
+        "numeric": 31457472
+      },
+      {
+        "partition": 9,
+        "name": "output_batches",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 11,
+        "name": "output_rows",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 11,
+        "name": "output_bytes",
+        "value": "30.0 MB",
+        "numeric": 31457472
+      },
+      {
+        "partition": 4,
+        "name": "elapsed_compute",
+        "value": "29.11µs",
+        "numeric": 29115
+      },
+      {
+        "partition": 11,
+        "name": "output_batches",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 4,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 4,
+        "name": "output_bytes",
+        "value": "15.0 MB",
+        "numeric": 15728736
+      },
+      {
+        "partition": 4,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 10,
+        "name": "output_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 15,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975567300 UTC",
+        "numeric": 1792411348975567300
+      },
+      {
+        "partition": 15,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097933894 UTC",
+        "numeric": 1792411352097933894
+      },
+      {
+        "partition": 15,
+        "name": "elapsed_compute",
+        "value": "46.86µs",
+        "numeric": 46858
+      },
+      {
+        "partition": 15,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 15,
+        "name": "output_bytes",
+        "value": "15.0 MB",
+        "numeric": 15728736
+      },
+      {
+        "partition": 15,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 5,
+        "name": "output_batches",
+        "value": "4",
+        "numeric": 4
+      },
+      {
+        "partition": 13,
+        "name": "output_bytes",
+        "value": "15.0 MB",
+        "numeric": 15728736
+      },
+      {
+        "partition": 13,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 14,
+        "name": "expr_9_eval_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975586421 UTC",
+        "numeric": 1792411348975586421
+      },
+      {
+        "partition": 14,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635258154 UTC",
+        "numeric": 1792411349635258154
+      },
+      {
+        "partition": 14,
+        "name": "elapsed_compute",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "output_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      }
+    ]
+  },
+  {
+    "path": "0/0/0/0",
+    "name": "HashJoinExec",
+    "display": "HashJoinExec: mode=Partitioned, join_type=Inner, on=[(id@0, id@0)], projection=[id@0, new_payload@1, __merge_source_sentinel@2, c0@4, c1@5, payload@6, row_marker@7, _rowid@8, _rowaddr@9]\n",
+    "statistics": {
+      "rows": "Absent",
+      "bytes": "Absent",
+      "rows_value": null,
+      "bytes_value": null
+    },
+    "partitioning": "Hash([Column { name: \"id\", index: 0 }], 16)",
+    "metrics": [
+      {
+        "partition": 1,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975408696 UTC",
+        "numeric": 1792411348975408696
+      },
+      {
+        "partition": 1,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.642989753 UTC",
+        "numeric": 1792411349642989753
+      },
+      {
+        "partition": 0,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975409432 UTC",
+        "numeric": 1792411348975409432
+      },
+      {
+        "partition": 1,
+        "name": "elapsed_compute",
+        "value": "18.38ms",
+        "numeric": 18376376
+      },
+      {
+        "partition": 2,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975414464 UTC",
+        "numeric": 1792411348975414464
+      },
+      {
+        "partition": 0,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.637639012 UTC",
+        "numeric": 1792411349637639012
+      },
+      {
+        "partition": 0,
+        "name": "elapsed_compute",
+        "value": "5.58ms",
+        "numeric": 5583917
+      },
+      {
+        "partition": 0,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 1,
+        "name": "output_rows",
+        "value": "4",
+        "numeric": 4
+      },
+      {
+        "partition": 0,
+        "name": "output_bytes",
+        "value": "15.0 MB",
+        "numeric": 15728728
+      },
+      {
+        "partition": 1,
+        "name": "output_bytes",
+        "value": "60.0 MB",
+        "numeric": 62914912
+      },
+      {
+        "partition": 3,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975415955 UTC",
+        "numeric": 1792411348975415955
+      },
+      {
+        "partition": 0,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 2,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635226234 UTC",
+        "numeric": 1792411349635226234
+      },
+      {
+        "partition": 1,
+        "name": "output_batches",
+        "value": "4",
+        "numeric": 4
+      },
+      {
+        "partition": 3,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.641289892 UTC",
+        "numeric": 1792411349641289892
+      },
+      {
+        "partition": 2,
+        "name": "elapsed_compute",
+        "value": "154.99µs",
+        "numeric": 154994
+      },
+      {
+        "partition": 3,
+        "name": "elapsed_compute",
+        "value": "19.69ms",
+        "numeric": 19687816
+      },
+      {
+        "partition": 2,
+        "name": "output_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "output_rows",
+        "value": "3",
+        "numeric": 3
+      },
+      {
+        "partition": 2,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "output_bytes",
+        "value": "45.0 MB",
+        "numeric": 47186184
+      },
+      {
+        "partition": 2,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 4,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975418547 UTC",
+        "numeric": 1792411348975418547
+      },
+      {
+        "partition": 3,
+        "name": "output_batches",
+        "value": "3",
+        "numeric": 3
+      },
+      {
+        "partition": 4,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.637729355 UTC",
+        "numeric": 1792411349637729355
+      },
+      {
+        "partition": 4,
+        "name": "elapsed_compute",
+        "value": "5.86ms",
+        "numeric": 5855287
+      },
+      {
+        "partition": 4,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 4,
+        "name": "output_bytes",
+        "value": "15.0 MB",
+        "numeric": 15728728
+      },
+      {
+        "partition": 4,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 0,
+        "name": "join_time",
+        "value": "2.87ms",
+        "numeric": 2870213
+      },
+      {
+        "partition": 0,
+        "name": "build_time",
+        "value": "2.60ms",
+        "numeric": 2603461
+      },
+      {
+        "partition": 0,
+        "name": "build_input_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 0,
+        "name": "build_input_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 0,
+        "name": "build_mem_used",
+        "value": "10.49 M",
+        "numeric": 10485820
+      },
+      {
+        "partition": 0,
+        "name": "input_batches",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 0,
+        "name": "input_rows",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 4,
+        "name": "join_time",
+        "value": "3.12ms",
+        "numeric": 3122988
+      },
+      {
+        "partition": 0,
+        "name": "probe_hit_rate",
+        "value": "4% (1/25)",
+        "numeric": 0
+      },
+      {
+        "partition": 4,
+        "name": "build_time",
+        "value": "2.63ms",
+        "numeric": 2627528
+      },
+      {
+        "partition": 0,
+        "name": "avg_fanout",
+        "value": "100% (1/1)",
+        "numeric": 0
+      },
+      {
+        "partition": 4,
+        "name": "build_input_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 0,
+        "name": "array_map_created_count",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 4,
+        "name": "build_input_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 1,
+        "name": "join_time",
+        "value": "10.41ms",
+        "numeric": 10408228
+      },
+      {
+        "partition": 4,
+        "name": "build_mem_used",
+        "value": "10.49 M",
+        "numeric": 10485820
+      },
+      {
+        "partition": 1,
+        "name": "build_time",
+        "value": "7.87ms",
+        "numeric": 7866745
+      },
+      {
+        "partition": 4,
+        "name": "input_batches",
+        "value": "26",
+        "numeric": 26
+      },
+      {
+        "partition": 3,
+        "name": "join_time",
+        "value": "13.27ms",
+        "numeric": 13274652
+      },
+      {
+        "partition": 1,
+        "name": "build_input_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 4,
+        "name": "input_rows",
+        "value": "26",
+        "numeric": 26
+      },
+      {
+        "partition": 3,
+        "name": "build_time",
+        "value": "6.26ms",
+        "numeric": 6257060
+      },
+      {
+        "partition": 2,
+        "name": "join_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 1,
+        "name": "build_input_rows",
+        "value": "4",
+        "numeric": 4
+      },
+      {
+        "partition": 5,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975426364 UTC",
+        "numeric": 1792411348975426364
+      },
+      {
+        "partition": 1,
+        "name": "build_mem_used",
+        "value": "41.94 M",
+        "numeric": 41943816
+      },
+      {
+        "partition": 1,
+        "name": "input_batches",
+        "value": "26",
+        "numeric": 26
+      },
+      {
+        "partition": 1,
+        "name": "input_rows",
+        "value": "26",
+        "numeric": 26
+      },
+      {
+        "partition": 2,
+        "name": "build_time",
+        "value": "92.37µs",
+        "numeric": 92370
+      },
+      {
+        "partition": 3,
+        "name": "build_input_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 2,
+        "name": "build_input_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "build_input_rows",
+        "value": "3",
+        "numeric": 3
+      },
+      {
+        "partition": 4,
+        "name": "probe_hit_rate",
+        "value": "3.85% (1/26)",
+        "numeric": 0
+      },
+      {
+        "partition": 5,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.643889490 UTC",
+        "numeric": 1792411349643889490
+      },
+      {
+        "partition": 3,
+        "name": "build_mem_used",
+        "value": "31.46 M",
+        "numeric": 31458568
+      },
+      {
+        "partition": 2,
+        "name": "build_input_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 1,
+        "name": "probe_hit_rate",
+        "value": "15.38% (4/26)",
+        "numeric": 0
+      },
+      {
+        "partition": 1,
+        "name": "avg_fanout",
+        "value": "100% (4/4)",
+        "numeric": 0
+      },
+      {
+        "partition": 1,
+        "name": "array_map_created_count",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 5,
+        "name": "elapsed_compute",
+        "value": "20.20ms",
+        "numeric": 20199682
+      },
+      {
+        "partition": 4,
+        "name": "avg_fanout",
+        "value": "100% (1/1)",
+        "numeric": 0
+      },
+      {
+        "partition": 5,
+        "name": "output_rows",
+        "value": "4",
+        "numeric": 4
+      },
+      {
+        "partition": 6,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975454460 UTC",
+        "numeric": 1792411348975454460
+      },
+      {
+        "partition": 8,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975454595 UTC",
+        "numeric": 1792411348975454595
+      },
+      {
+        "partition": 4,
+        "name": "array_map_created_count",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 6,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.639563203 UTC",
+        "numeric": 1792411349639563203
+      },
+      {
+        "partition": 5,
+        "name": "output_bytes",
+        "value": "60.0 MB",
+        "numeric": 62914912
+      },
+      {
+        "partition": 6,
+        "name": "elapsed_compute",
+        "value": "9.46ms",
+        "numeric": 9464627
+      },
+      {
+        "partition": 5,
+        "name": "output_batches",
+        "value": "4",
+        "numeric": 4
+      },
+      {
+        "partition": 6,
+        "name": "output_rows",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 8,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.637715881 UTC",
+        "numeric": 1792411349637715881
+      },
+      {
+        "partition": 6,
+        "name": "output_bytes",
+        "value": "30.0 MB",
+        "numeric": 31457456
+      },
+      {
+        "partition": 8,
+        "name": "elapsed_compute",
+        "value": "5.08ms",
+        "numeric": 5080130
+      },
+      {
+        "partition": 6,
+        "name": "output_batches",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 5,
+        "name": "join_time",
+        "value": "11.26ms",
+        "numeric": 11256947
+      },
+      {
+        "partition": 6,
+        "name": "join_time",
+        "value": "4.86ms",
+        "numeric": 4863246
+      },
+      {
+        "partition": 5,
+        "name": "build_time",
+        "value": "8.83ms",
+        "numeric": 8832238
+      },
+      {
+        "partition": 6,
+        "name": "build_time",
+        "value": "4.51ms",
+        "numeric": 4505907
+      },
+      {
+        "partition": 5,
+        "name": "build_input_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 6,
+        "name": "build_input_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 10,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975458372 UTC",
+        "numeric": 1792411348975458372
+      },
+      {
+        "partition": 5,
+        "name": "build_input_rows",
+        "value": "4",
+        "numeric": 4
+      },
+      {
+        "partition": 8,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 5,
+        "name": "build_mem_used",
+        "value": "41.94 M",
+        "numeric": 41944080
+      },
+      {
+        "partition": 10,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635173088 UTC",
+        "numeric": 1792411349635173088
+      },
+      {
+        "partition": 5,
+        "name": "input_batches",
+        "value": "22",
+        "numeric": 22
+      },
+      {
+        "partition": 7,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975459652 UTC",
+        "numeric": 1792411348975459652
+      },
+      {
+        "partition": 8,
+        "name": "output_bytes",
+        "value": "15.0 MB",
+        "numeric": 15728728
+      },
+      {
+        "partition": 5,
+        "name": "input_rows",
+        "value": "24",
+        "numeric": 24
+      },
+      {
+        "partition": 8,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 5,
+        "name": "probe_hit_rate",
+        "value": "16.67% (4/24)",
+        "numeric": 0
+      },
+      {
+        "partition": 7,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.640249523 UTC",
+        "numeric": 1792411349640249523
+      },
+      {
+        "partition": 5,
+        "name": "avg_fanout",
+        "value": "100% (4/4)",
+        "numeric": 0
+      },
+      {
+        "partition": 8,
+        "name": "join_time",
+        "value": "2.39ms",
+        "numeric": 2389817
+      },
+      {
+        "partition": 7,
+        "name": "elapsed_compute",
+        "value": "14.17ms",
+        "numeric": 14170433
+      },
+      {
+        "partition": 8,
+        "name": "build_time",
+        "value": "2.61ms",
+        "numeric": 2611874
+      },
+      {
+        "partition": 7,
+        "name": "output_rows",
+        "value": "3",
+        "numeric": 3
+      },
+      {
+        "partition": 8,
+        "name": "build_input_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 10,
+        "name": "elapsed_compute",
+        "value": "190.92µs",
+        "numeric": 190917
+      },
+      {
+        "partition": 8,
+        "name": "build_input_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 10,
+        "name": "output_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 8,
+        "name": "build_mem_used",
+        "value": "10.49 M",
+        "numeric": 10485820
+      },
+      {
+        "partition": 10,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 2,
+        "name": "build_mem_used",
+        "value": "73",
+        "numeric": 73
+      },
+      {
+        "partition": 8,
+        "name": "input_batches",
+        "value": "24",
+        "numeric": 24
+      },
+      {
+        "partition": 7,
+        "name": "output_bytes",
+        "value": "45.0 MB",
+        "numeric": 47186184
+      },
+      {
+        "partition": 8,
+        "name": "input_rows",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 7,
+        "name": "output_batches",
+        "value": "3",
+        "numeric": 3
+      },
+      {
+        "partition": 5,
+        "name": "array_map_created_count",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 2,
+        "name": "input_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 2,
+        "name": "input_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 11,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975464774 UTC",
+        "numeric": 1792411348975464774
+      },
+      {
+        "partition": 2,
+        "name": "probe_hit_rate",
+        "value": "N/A (0/0)",
+        "numeric": 0
+      },
+      {
+        "partition": 11,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.639439313 UTC",
+        "numeric": 1792411349639439313
+      },
+      {
+        "partition": 2,
+        "name": "avg_fanout",
+        "value": "N/A (0/0)",
+        "numeric": 0
+      },
+      {
+        "partition": 11,
+        "name": "elapsed_compute",
+        "value": "10.94ms",
+        "numeric": 10940111
+      },
+      {
+        "partition": 10,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 11,
+        "name": "output_rows",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 10,
+        "name": "join_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 2,
+        "name": "array_map_created_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "build_time",
+        "value": "111.66µs",
+        "numeric": 111659
+      },
+      {
+        "partition": 7,
+        "name": "join_time",
+        "value": "8.81ms",
+        "numeric": 8813547
+      },
+      {
+        "partition": 6,
+        "name": "build_input_rows",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 7,
+        "name": "build_time",
+        "value": "5.23ms",
+        "numeric": 5232186
+      },
+      {
+        "partition": 6,
+        "name": "build_mem_used",
+        "value": "20.97 M",
+        "numeric": 20971664
+      },
+      {
+        "partition": 7,
+        "name": "build_input_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 6,
+        "name": "input_batches",
+        "value": "27",
+        "numeric": 27
+      },
+      {
+        "partition": 7,
+        "name": "build_input_rows",
+        "value": "3",
+        "numeric": 3
+      },
+      {
+        "partition": 6,
+        "name": "input_rows",
+        "value": "27",
+        "numeric": 27
+      },
+      {
+        "partition": 7,
+        "name": "build_mem_used",
+        "value": "31.46 M",
+        "numeric": 31457772
+      },
+      {
+        "partition": 7,
+        "name": "input_batches",
+        "value": "22",
+        "numeric": 22
+      },
+      {
+        "partition": 6,
+        "name": "probe_hit_rate",
+        "value": "7.41% (2/27)",
+        "numeric": 0
+      },
+      {
+        "partition": 7,
+        "name": "input_rows",
+        "value": "22",
+        "numeric": 22
+      },
+      {
+        "partition": 7,
+        "name": "probe_hit_rate",
+        "value": "13.64% (3/22)",
+        "numeric": 0
+      },
+      {
+        "partition": 6,
+        "name": "avg_fanout",
+        "value": "100% (2/2)",
+        "numeric": 0
+      },
+      {
+        "partition": 7,
+        "name": "avg_fanout",
+        "value": "100% (3/3)",
+        "numeric": 0
+      },
+      {
+        "partition": 6,
+        "name": "array_map_created_count",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 7,
+        "name": "array_map_created_count",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 10,
+        "name": "build_input_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "build_input_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "build_mem_used",
+        "value": "73",
+        "numeric": 73
+      },
+      {
+        "partition": 10,
+        "name": "input_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "input_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "probe_hit_rate",
+        "value": "N/A (0/0)",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "avg_fanout",
+        "value": "N/A (0/0)",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "array_map_created_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 11,
+        "name": "output_bytes",
+        "value": "30.0 MB",
+        "numeric": 31457456
+      },
+      {
+        "partition": 9,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975474645 UTC",
+        "numeric": 1792411348975474645
+      },
+      {
+        "partition": 11,
+        "name": "output_batches",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 8,
+        "name": "probe_hit_rate",
+        "value": "4% (1/25)",
+        "numeric": 0
+      },
+      {
+        "partition": 11,
+        "name": "join_time",
+        "value": "6.43ms",
+        "numeric": 6429798
+      },
+      {
+        "partition": 9,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.639789708 UTC",
+        "numeric": 1792411349639789708
+      },
+      {
+        "partition": 11,
+        "name": "build_time",
+        "value": "4.41ms",
+        "numeric": 4405790
+      },
+      {
+        "partition": 8,
+        "name": "avg_fanout",
+        "value": "100% (1/1)",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "elapsed_compute",
+        "value": "11.00ms",
+        "numeric": 10998512
+      },
+      {
+        "partition": 11,
+        "name": "build_input_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 8,
+        "name": "array_map_created_count",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 9,
+        "name": "output_rows",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 11,
+        "name": "build_input_rows",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 9,
+        "name": "output_bytes",
+        "value": "30.0 MB",
+        "numeric": 31457456
+      },
+      {
+        "partition": 11,
+        "name": "build_mem_used",
+        "value": "20.97 M",
+        "numeric": 20972260
+      },
+      {
+        "partition": 9,
+        "name": "output_batches",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 11,
+        "name": "input_batches",
+        "value": "23",
+        "numeric": 23
+      },
+      {
+        "partition": 9,
+        "name": "join_time",
+        "value": "6.26ms",
+        "numeric": 6262945
+      },
+      {
+        "partition": 11,
+        "name": "input_rows",
+        "value": "24",
+        "numeric": 24
+      },
+      {
+        "partition": 9,
+        "name": "build_time",
+        "value": "4.64ms",
+        "numeric": 4638624
+      },
+      {
+        "partition": 9,
+        "name": "build_input_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 11,
+        "name": "probe_hit_rate",
+        "value": "8.33% (2/24)",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "build_input_rows",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 11,
+        "name": "avg_fanout",
+        "value": "100% (2/2)",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "build_mem_used",
+        "value": "20.97 M",
+        "numeric": 20972792
+      },
+      {
+        "partition": 9,
+        "name": "input_batches",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 11,
+        "name": "array_map_created_count",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 9,
+        "name": "input_rows",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 9,
+        "name": "probe_hit_rate",
+        "value": "8% (2/25)",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "avg_fanout",
+        "value": "100% (2/2)",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "array_map_created_count",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 12,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975487194 UTC",
+        "numeric": 1792411348975487194
+      },
+      {
+        "partition": 12,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635250945 UTC",
+        "numeric": 1792411349635250945
+      },
+      {
+        "partition": 12,
+        "name": "elapsed_compute",
+        "value": "128.51µs",
+        "numeric": 128510
+      },
+      {
+        "partition": 12,
+        "name": "output_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "join_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "build_time",
+        "value": "67.86µs",
+        "numeric": 67865
+      },
+      {
+        "partition": 12,
+        "name": "build_input_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "build_input_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "build_mem_used",
+        "value": "73",
+        "numeric": 73
+      },
+      {
+        "partition": 12,
+        "name": "input_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "input_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "probe_hit_rate",
+        "value": "N/A (0/0)",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "avg_fanout",
+        "value": "N/A (0/0)",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "array_map_created_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 13,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975495918 UTC",
+        "numeric": 1792411348975495918
+      },
+      {
+        "partition": 13,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.644964209 UTC",
+        "numeric": 1792411349644964209
+      },
+      {
+        "partition": 13,
+        "name": "elapsed_compute",
+        "value": "4.38ms",
+        "numeric": 4380910
+      },
+      {
+        "partition": 13,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 13,
+        "name": "output_bytes",
+        "value": "15.0 MB",
+        "numeric": 15728728
+      },
+      {
+        "partition": 13,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 13,
+        "name": "join_time",
+        "value": "2.82ms",
+        "numeric": 2815097
+      },
+      {
+        "partition": 13,
+        "name": "build_time",
+        "value": "1.48ms",
+        "numeric": 1476075
+      },
+      {
+        "partition": 13,
+        "name": "build_input_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 13,
+        "name": "build_input_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 13,
+        "name": "build_mem_used",
+        "value": "10.49 M",
+        "numeric": 10485820
+      },
+      {
+        "partition": 13,
+        "name": "input_batches",
+        "value": "23",
+        "numeric": 23
+      },
+      {
+        "partition": 13,
+        "name": "input_rows",
+        "value": "24",
+        "numeric": 24
+      },
+      {
+        "partition": 13,
+        "name": "probe_hit_rate",
+        "value": "4.17% (1/24)",
+        "numeric": 0
+      },
+      {
+        "partition": 13,
+        "name": "avg_fanout",
+        "value": "100% (1/1)",
+        "numeric": 0
+      },
+      {
+        "partition": 13,
+        "name": "array_map_created_count",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 3,
+        "name": "input_batches",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 3,
+        "name": "input_rows",
+        "value": "26",
+        "numeric": 26
+      },
+      {
+        "partition": 3,
+        "name": "probe_hit_rate",
+        "value": "11.54% (3/26)",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "avg_fanout",
+        "value": "100% (3/3)",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "array_map_created_count",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 15,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975559291 UTC",
+        "numeric": 1792411348975559291
+      },
+      {
+        "partition": 15,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.645660696 UTC",
+        "numeric": 1792411349645660696
+      },
+      {
+        "partition": 15,
+        "name": "elapsed_compute",
+        "value": "6.42ms",
+        "numeric": 6423377
+      },
+      {
+        "partition": 15,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 15,
+        "name": "output_bytes",
+        "value": "15.0 MB",
+        "numeric": 15728728
+      },
+      {
+        "partition": 15,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 15,
+        "name": "join_time",
+        "value": "4.04ms",
+        "numeric": 4035260
+      },
+      {
+        "partition": 15,
+        "name": "build_time",
+        "value": "2.30ms",
+        "numeric": 2298863
+      },
+      {
+        "partition": 15,
+        "name": "build_input_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 15,
+        "name": "build_input_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 15,
+        "name": "build_mem_used",
+        "value": "10.49 M",
+        "numeric": 10485820
+      },
+      {
+        "partition": 15,
+        "name": "input_batches",
+        "value": "26",
+        "numeric": 26
+      },
+      {
+        "partition": 15,
+        "name": "input_rows",
+        "value": "27",
+        "numeric": 27
+      },
+      {
+        "partition": 15,
+        "name": "probe_hit_rate",
+        "value": "3.7% (1/27)",
+        "numeric": 0
+      },
+      {
+        "partition": 15,
+        "name": "avg_fanout",
+        "value": "100% (1/1)",
+        "numeric": 0
+      },
+      {
+        "partition": 15,
+        "name": "array_map_created_count",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 14,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975579007 UTC",
+        "numeric": 1792411348975579007
+      },
+      {
+        "partition": 14,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635255099 UTC",
+        "numeric": 1792411349635255099
+      },
+      {
+        "partition": 14,
+        "name": "elapsed_compute",
+        "value": "168.15µs",
+        "numeric": 168151
+      },
+      {
+        "partition": 14,
+        "name": "output_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "join_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "build_time",
+        "value": "92.95µs",
+        "numeric": 92949
+      },
+      {
+        "partition": 14,
+        "name": "build_input_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "build_input_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "build_mem_used",
+        "value": "73",
+        "numeric": 73
+      },
+      {
+        "partition": 14,
+        "name": "input_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "input_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "probe_hit_rate",
+        "value": "N/A (0/0)",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "avg_fanout",
+        "value": "N/A (0/0)",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "array_map_created_count",
+        "value": "0",
+        "numeric": 0
+      }
+    ]
+  },
+  {
+    "path": "0/0/0/0/0",
+    "name": "RepartitionExec",
+    "display": "RepartitionExec: partitioning=Hash([id@0], 16), input_partitions=1\n",
+    "statistics": {
+      "rows": "Absent",
+      "bytes": "Absent",
+      "rows_value": null,
+      "bytes_value": null
+    },
+    "partitioning": "Hash([Column { name: \"id\", index: 0 }], 16)",
+    "metrics": [
+      {
+        "partition": 0,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "fetch_time",
+        "value": "141.71ms",
+        "numeric": 141711089
+      },
+      {
+        "partition": 0,
+        "name": "repartition_time",
+        "value": "115.47ms",
+        "numeric": 115469742
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "10.41ms",
+        "numeric": 10411962
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "107.63ms",
+        "numeric": 107628854
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "76.15ms",
+        "numeric": 76148313
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "14.53ms",
+        "numeric": 14525849
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "50.34ms",
+        "numeric": 50341250
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "26.32ms",
+        "numeric": 26315609
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "34.05ms",
+        "numeric": 34052827
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "8.62ms",
+        "numeric": 8615822
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "23.73ms",
+        "numeric": 23731080
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "23.06ms",
+        "numeric": 23058939
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "6.22ms",
+        "numeric": 6223731
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "NOT RECORDED",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "13.95ms",
+        "numeric": 13951400
+      },
+      {
+        "partition": 1,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 1,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 1,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 4,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 4,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 4,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 5,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 5,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 5,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 6,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 7,
+        "name": "spill_count",
+        "value": "12",
+        "numeric": 12
+      },
+      {
+        "partition": 2,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 7,
+        "name": "spilled_bytes",
+        "value": "250.0 MB",
+        "numeric": 262151120
+      },
+      {
+        "partition": 7,
+        "name": "spilled_rows",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 10,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 6,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 6,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 2,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 2,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 8,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 8,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 8,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 11,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 11,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 11,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 13,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 13,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 13,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 15,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 15,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 15,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 7,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975584521 UTC",
+        "numeric": 1792411348975584521
+      },
+      {
+        "partition": 7,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635149582 UTC",
+        "numeric": 1792411349635149582
+      },
+      {
+        "partition": 7,
+        "name": "elapsed_compute",
+        "value": "18.10µs",
+        "numeric": 18103
+      },
+      {
+        "partition": 7,
+        "name": "output_rows",
+        "value": "3",
+        "numeric": 3
+      },
+      {
+        "partition": 7,
+        "name": "output_bytes",
+        "value": "30.0 MB",
+        "numeric": 31457368
+      },
+      {
+        "partition": 7,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 0,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975589050 UTC",
+        "numeric": 1792411348975589050
+      },
+      {
+        "partition": 0,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635151727 UTC",
+        "numeric": 1792411349635151727
+      },
+      {
+        "partition": 0,
+        "name": "elapsed_compute",
+        "value": "28.49µs",
+        "numeric": 28488
+      },
+      {
+        "partition": 0,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 0,
+        "name": "output_bytes",
+        "value": "10.0 MB",
+        "numeric": 10485816
+      },
+      {
+        "partition": 0,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 12,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975596159 UTC",
+        "numeric": 1792411348975596159
+      },
+      {
+        "partition": 12,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635245952 UTC",
+        "numeric": 1792411349635245952
+      },
+      {
+        "partition": 12,
+        "name": "elapsed_compute",
+        "value": "1.04µs",
+        "numeric": 1041
+      },
+      {
+        "partition": 12,
+        "name": "output_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 8,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975601363 UTC",
+        "numeric": 1792411348975601363
+      },
+      {
+        "partition": 8,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635187061 UTC",
+        "numeric": 1792411349635187061
+      },
+      {
+        "partition": 8,
+        "name": "elapsed_compute",
+        "value": "10.39µs",
+        "numeric": 10390
+      },
+      {
+        "partition": 8,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 8,
+        "name": "output_bytes",
+        "value": "10.0 MB",
+        "numeric": 10485816
+      },
+      {
+        "partition": 8,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 3,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975607460 UTC",
+        "numeric": 1792411348975607460
+      },
+      {
+        "partition": 3,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635196342 UTC",
+        "numeric": 1792411349635196342
+      },
+      {
+        "partition": 3,
+        "name": "elapsed_compute",
+        "value": "83.77µs",
+        "numeric": 83772
+      },
+      {
+        "partition": 3,
+        "name": "output_rows",
+        "value": "3",
+        "numeric": 3
+      },
+      {
+        "partition": 3,
+        "name": "output_bytes",
+        "value": "30.0 MB",
+        "numeric": 31457368
+      },
+      {
+        "partition": 3,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 1,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975612567 UTC",
+        "numeric": 1792411348975612567
+      },
+      {
+        "partition": 1,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635233998 UTC",
+        "numeric": 1792411349635233998
+      },
+      {
+        "partition": 1,
+        "name": "elapsed_compute",
+        "value": "17.27µs",
+        "numeric": 17274
+      },
+      {
+        "partition": 1,
+        "name": "output_rows",
+        "value": "4",
+        "numeric": 4
+      },
+      {
+        "partition": 1,
+        "name": "output_bytes",
+        "value": "40.0 MB",
+        "numeric": 41943144
+      },
+      {
+        "partition": 1,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 2,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975617960 UTC",
+        "numeric": 1792411348975617960
+      },
+      {
+        "partition": 2,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635201858 UTC",
+        "numeric": 1792411349635201858
+      },
+      {
+        "partition": 2,
+        "name": "elapsed_compute",
+        "value": "798ns",
+        "numeric": 798
+      },
+      {
+        "partition": 2,
+        "name": "output_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 2,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 2,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975623049 UTC",
+        "numeric": 1792411348975623049
+      },
+      {
+        "partition": 9,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635253533 UTC",
+        "numeric": 1792411349635253533
+      },
+      {
+        "partition": 9,
+        "name": "elapsed_compute",
+        "value": "11.65µs",
+        "numeric": 11649
+      },
+      {
+        "partition": 9,
+        "name": "output_rows",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 9,
+        "name": "output_bytes",
+        "value": "20.0 MB",
+        "numeric": 20971592
+      },
+      {
+        "partition": 9,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 6,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975627934 UTC",
+        "numeric": 1792411348975627934
+      },
+      {
+        "partition": 6,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635160837 UTC",
+        "numeric": 1792411349635160837
+      },
+      {
+        "partition": 6,
+        "name": "elapsed_compute",
+        "value": "8.80µs",
+        "numeric": 8800
+      },
+      {
+        "partition": 6,
+        "name": "output_rows",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 6,
+        "name": "output_bytes",
+        "value": "20.0 MB",
+        "numeric": 20971592
+      },
+      {
+        "partition": 6,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 4,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975633147 UTC",
+        "numeric": 1792411348975633147
+      },
+      {
+        "partition": 4,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635212738 UTC",
+        "numeric": 1792411349635212738
+      },
+      {
+        "partition": 4,
+        "name": "elapsed_compute",
+        "value": "11.39µs",
+        "numeric": 11389
+      },
+      {
+        "partition": 4,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 4,
+        "name": "output_bytes",
+        "value": "10.0 MB",
+        "numeric": 10485816
+      },
+      {
+        "partition": 4,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 11,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975640807 UTC",
+        "numeric": 1792411348975640807
+      },
+      {
+        "partition": 11,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635144053 UTC",
+        "numeric": 1792411349635144053
+      },
+      {
+        "partition": 11,
+        "name": "elapsed_compute",
+        "value": "6.89µs",
+        "numeric": 6892
+      },
+      {
+        "partition": 11,
+        "name": "output_rows",
+        "value": "2",
+        "numeric": 2
+      },
+      {
+        "partition": 11,
+        "name": "output_bytes",
+        "value": "20.0 MB",
+        "numeric": 20971592
+      },
+      {
+        "partition": 11,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 10,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975644672 UTC",
+        "numeric": 1792411348975644672
+      },
+      {
+        "partition": 10,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635145227 UTC",
+        "numeric": 1792411349635145227
+      },
+      {
+        "partition": 10,
+        "name": "elapsed_compute",
+        "value": "658ns",
+        "numeric": 658
+      },
+      {
+        "partition": 10,
+        "name": "output_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 5,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975648752 UTC",
+        "numeric": 1792411348975648752
+      },
+      {
+        "partition": 5,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635174934 UTC",
+        "numeric": 1792411349635174934
+      },
+      {
+        "partition": 5,
+        "name": "elapsed_compute",
+        "value": "12.52µs",
+        "numeric": 12519
+      },
+      {
+        "partition": 5,
+        "name": "output_rows",
+        "value": "4",
+        "numeric": 4
+      },
+      {
+        "partition": 5,
+        "name": "output_bytes",
+        "value": "40.0 MB",
+        "numeric": 41943144
+      },
+      {
+        "partition": 5,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 15,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975654292 UTC",
+        "numeric": 1792411348975654292
+      },
+      {
+        "partition": 15,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.643477743 UTC",
+        "numeric": 1792411349643477743
+      },
+      {
+        "partition": 15,
+        "name": "elapsed_compute",
+        "value": "8.81µs",
+        "numeric": 8813
+      },
+      {
+        "partition": 15,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 15,
+        "name": "output_bytes",
+        "value": "10.0 MB",
+        "numeric": 10485816
+      },
+      {
+        "partition": 15,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 13,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975659184 UTC",
+        "numeric": 1792411348975659184
+      },
+      {
+        "partition": 13,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.643593733 UTC",
+        "numeric": 1792411349643593733
+      },
+      {
+        "partition": 13,
+        "name": "elapsed_compute",
+        "value": "6.39µs",
+        "numeric": 6393
+      },
+      {
+        "partition": 13,
+        "name": "output_rows",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 13,
+        "name": "output_bytes",
+        "value": "10.0 MB",
+        "numeric": 10485816
+      },
+      {
+        "partition": 13,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      },
+      {
+        "partition": 14,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975662482 UTC",
+        "numeric": 1792411348975662482
+      },
+      {
+        "partition": 14,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635241422 UTC",
+        "numeric": 1792411349635241422
+      },
+      {
+        "partition": 14,
+        "name": "elapsed_compute",
+        "value": "845ns",
+        "numeric": 845
+      },
+      {
+        "partition": 14,
+        "name": "output_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      }
+    ]
+  },
+  {
+    "path": "0/0/0/0/0/0",
+    "name": "ProjectionExec",
+    "display": "ProjectionExec: expr=[id@0 as id, new_payload@1 as new_payload, true as __merge_source_sentinel]\n",
+    "statistics": {
+      "rows": "Absent",
+      "bytes": "Absent",
+      "rows_value": null,
+      "bytes_value": null
+    },
+    "partitioning": "UnknownPartitioning(1)",
+    "metrics": [
+      {
+        "partition": 0,
+        "name": "expr_0_eval_time",
+        "value": "1.20µs",
+        "numeric": 1197
+      },
+      {
+        "partition": 0,
+        "name": "expr_1_eval_time",
+        "value": "167ns",
+        "numeric": 167
+      },
+      {
+        "partition": 0,
+        "name": "expr_2_eval_time",
+        "value": "4.86µs",
+        "numeric": 4859
+      },
+      {
+        "partition": 0,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:28.975464907 UTC",
+        "numeric": 1792411348975464907
+      },
+      {
+        "partition": 0,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:29.635106297 UTC",
+        "numeric": 1792411349635106297
+      },
+      {
+        "partition": 0,
+        "name": "elapsed_compute",
+        "value": "9.56µs",
+        "numeric": 9562
+      },
+      {
+        "partition": 0,
+        "name": "output_rows",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 0,
+        "name": "output_bytes",
+        "value": "250.0 MB",
+        "numeric": 262144680
+      },
+      {
+        "partition": 0,
+        "name": "output_batches",
+        "value": "1",
+        "numeric": 1
+      }
+    ]
+  },
+  {
+    "path": "0/0/0/0/0/0/0",
+    "name": "StreamingTableExec",
+    "display": "StreamingTableExec: partition_sizes=1, projection=[id, new_payload]\n",
+    "statistics": {
+      "rows": "Absent",
+      "bytes": "Absent",
+      "rows_value": null,
+      "bytes_value": null
+    },
+    "partitioning": "UnknownPartitioning(1)",
+    "metrics": []
+  },
+  {
+    "path": "0/0/0/0/1",
+    "name": "RepartitionExec",
+    "display": "RepartitionExec: partitioning=Hash([id@0], 16), input_partitions=1\n",
+    "statistics": {
+      "rows": "Exact(400)",
+      "bytes": "Inexact(48350)",
+      "rows_value": 400,
+      "bytes_value": 48350
+    },
+    "partitioning": "Hash([Column { name: \"id\", index: 0 }], 16)",
+    "metrics": [
+      {
+        "partition": 1,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 1,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 1,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "fetch_time",
+        "value": "1.66s",
+        "numeric": 1661996984
+      },
+      {
+        "partition": 0,
+        "name": "repartition_time",
+        "value": "366.92ms",
+        "numeric": 366923186
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "233.47µs",
+        "numeric": 233468
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "236.96µs",
+        "numeric": 236960
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "107.50ms",
+        "numeric": 107503486
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "198.76µs",
+        "numeric": 198760
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "102.14µs",
+        "numeric": 102137
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "125.97µs",
+        "numeric": 125971
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "206.75µs",
+        "numeric": 206748
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "137.59µs",
+        "numeric": 137594
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "89.59µs",
+        "numeric": 89587
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "59.61µs",
+        "numeric": 59612
+      },
+      {
+        "partition": 4,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "121.32ms",
+        "numeric": 121316917
+      },
+      {
+        "partition": 4,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "108.24µs",
+        "numeric": 108242
+      },
+      {
+        "partition": 4,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "76.31ms",
+        "numeric": 76311295
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "80.35µs",
+        "numeric": 80346
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "108.71ms",
+        "numeric": 108708142
+      },
+      {
+        "partition": 0,
+        "name": "send_time",
+        "value": "64.20µs",
+        "numeric": 64197
+      },
+      {
+        "partition": 5,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 5,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 5,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "spill_count",
+        "value": "10",
+        "numeric": 10
+      },
+      {
+        "partition": 0,
+        "name": "spilled_bytes",
+        "value": "430.0 MB",
+        "numeric": 450937560
+      },
+      {
+        "partition": 0,
+        "name": "spilled_rows",
+        "value": "86",
+        "numeric": 86
+      },
+      {
+        "partition": 7,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 7,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 7,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 6,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 8,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 6,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 8,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 6,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 8,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 2,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 2,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 12,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 2,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 10,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 9,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 3,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 13,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 13,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 13,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 11,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 11,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 11,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 15,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 15,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 15,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "spill_count",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "spilled_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 14,
+        "name": "spilled_rows",
+        "value": "0",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:29.637697581 UTC",
+        "numeric": 1792411349637697581
+      },
+      {
+        "partition": 0,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097902436 UTC",
+        "numeric": 1792411352097902436
+      },
+      {
+        "partition": 0,
+        "name": "elapsed_compute",
+        "value": "58.12µs",
+        "numeric": 58120
+      },
+      {
+        "partition": 0,
+        "name": "output_rows",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 0,
+        "name": "output_bytes",
+        "value": "365.0 MB",
+        "numeric": 382734528
+      },
+      {
+        "partition": 0,
+        "name": "output_batches",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 8,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:29.637720586 UTC",
+        "numeric": 1792411349637720586
+      },
+      {
+        "partition": 8,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097948950 UTC",
+        "numeric": 1792411352097948950
+      },
+      {
+        "partition": 8,
+        "name": "elapsed_compute",
+        "value": "69.23µs",
+        "numeric": 69232
+      },
+      {
+        "partition": 8,
+        "name": "output_rows",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 8,
+        "name": "output_bytes",
+        "value": "360.0 MB",
+        "numeric": 377491584
+      },
+      {
+        "partition": 8,
+        "name": "output_batches",
+        "value": "24",
+        "numeric": 24
+      },
+      {
+        "partition": 4,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:29.637737904 UTC",
+        "numeric": 1792411349637737904
+      },
+      {
+        "partition": 4,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097911073 UTC",
+        "numeric": 1792411352097911073
+      },
+      {
+        "partition": 4,
+        "name": "elapsed_compute",
+        "value": "63.02µs",
+        "numeric": 63021
+      },
+      {
+        "partition": 4,
+        "name": "output_rows",
+        "value": "26",
+        "numeric": 26
+      },
+      {
+        "partition": 4,
+        "name": "output_bytes",
+        "value": "380.0 MB",
+        "numeric": 398463344
+      },
+      {
+        "partition": 4,
+        "name": "output_batches",
+        "value": "26",
+        "numeric": 26
+      },
+      {
+        "partition": 11,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:29.639447516 UTC",
+        "numeric": 1792411349639447516
+      },
+      {
+        "partition": 11,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097929877 UTC",
+        "numeric": 1792411352097929877
+      },
+      {
+        "partition": 11,
+        "name": "elapsed_compute",
+        "value": "72.38µs",
+        "numeric": 72375
+      },
+      {
+        "partition": 11,
+        "name": "output_rows",
+        "value": "24",
+        "numeric": 24
+      },
+      {
+        "partition": 11,
+        "name": "output_bytes",
+        "value": "325.0 MB",
+        "numeric": 340791024
+      },
+      {
+        "partition": 11,
+        "name": "output_batches",
+        "value": "23",
+        "numeric": 23
+      },
+      {
+        "partition": 6,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:29.639571685 UTC",
+        "numeric": 1792411349639571685
+      },
+      {
+        "partition": 6,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.100173442 UTC",
+        "numeric": 1792411352100173442
+      },
+      {
+        "partition": 6,
+        "name": "elapsed_compute",
+        "value": "79.48µs",
+        "numeric": 79480
+      },
+      {
+        "partition": 6,
+        "name": "output_rows",
+        "value": "27",
+        "numeric": 27
+      },
+      {
+        "partition": 6,
+        "name": "output_bytes",
+        "value": "395.0 MB",
+        "numeric": 414192160
+      },
+      {
+        "partition": 6,
+        "name": "output_batches",
+        "value": "27",
+        "numeric": 27
+      },
+      {
+        "partition": 9,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:29.639796379 UTC",
+        "numeric": 1792411349639796379
+      },
+      {
+        "partition": 9,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097922959 UTC",
+        "numeric": 1792411352097922959
+      },
+      {
+        "partition": 9,
+        "name": "elapsed_compute",
+        "value": "71.82µs",
+        "numeric": 71822
+      },
+      {
+        "partition": 9,
+        "name": "output_rows",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 9,
+        "name": "output_bytes",
+        "value": "375.0 MB",
+        "numeric": 393220400
+      },
+      {
+        "partition": 9,
+        "name": "output_batches",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 7,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:29.640257838 UTC",
+        "numeric": 1792411349640257838
+      },
+      {
+        "partition": 7,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097942153 UTC",
+        "numeric": 1792411352097942153
+      },
+      {
+        "partition": 7,
+        "name": "elapsed_compute",
+        "value": "61.37µs",
+        "numeric": 61368
+      },
+      {
+        "partition": 7,
+        "name": "output_rows",
+        "value": "22",
+        "numeric": 22
+      },
+      {
+        "partition": 7,
+        "name": "output_bytes",
+        "value": "270.0 MB",
+        "numeric": 283118720
+      },
+      {
+        "partition": 7,
+        "name": "output_batches",
+        "value": "22",
+        "numeric": 22
+      },
+      {
+        "partition": 3,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:29.641300887 UTC",
+        "numeric": 1792411349641300887
+      },
+      {
+        "partition": 3,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097945997 UTC",
+        "numeric": 1792411352097945997
+      },
+      {
+        "partition": 3,
+        "name": "elapsed_compute",
+        "value": "69.33µs",
+        "numeric": 69325
+      },
+      {
+        "partition": 3,
+        "name": "output_rows",
+        "value": "26",
+        "numeric": 26
+      },
+      {
+        "partition": 3,
+        "name": "output_bytes",
+        "value": "375.0 MB",
+        "numeric": 393220400
+      },
+      {
+        "partition": 3,
+        "name": "output_batches",
+        "value": "25",
+        "numeric": 25
+      },
+      {
+        "partition": 1,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:29.643001659 UTC",
+        "numeric": 1792411349643001659
+      },
+      {
+        "partition": 1,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097931343 UTC",
+        "numeric": 1792411352097931343
+      },
+      {
+        "partition": 1,
+        "name": "elapsed_compute",
+        "value": "81.53µs",
+        "numeric": 81535
+      },
+      {
+        "partition": 1,
+        "name": "output_rows",
+        "value": "26",
+        "numeric": 26
+      },
+      {
+        "partition": 1,
+        "name": "output_bytes",
+        "value": "370.0 MB",
+        "numeric": 387977472
+      },
+      {
+        "partition": 1,
+        "name": "output_batches",
+        "value": "26",
+        "numeric": 26
+      },
+      {
+        "partition": 5,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:29.643897670 UTC",
+        "numeric": 1792411349643897670
+      },
+      {
+        "partition": 5,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097895608 UTC",
+        "numeric": 1792411352097895608
+      },
+      {
+        "partition": 5,
+        "name": "elapsed_compute",
+        "value": "70.37µs",
+        "numeric": 70374
+      },
+      {
+        "partition": 5,
+        "name": "output_rows",
+        "value": "24",
+        "numeric": 24
+      },
+      {
+        "partition": 5,
+        "name": "output_bytes",
+        "value": "320.0 MB",
+        "numeric": 335548080
+      },
+      {
+        "partition": 5,
+        "name": "output_batches",
+        "value": "22",
+        "numeric": 22
+      },
+      {
+        "partition": 13,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:29.644969827 UTC",
+        "numeric": 1792411349644969827
+      },
+      {
+        "partition": 13,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097939586 UTC",
+        "numeric": 1792411352097939586
+      },
+      {
+        "partition": 13,
+        "name": "elapsed_compute",
+        "value": "61.57µs",
+        "numeric": 61573
+      },
+      {
+        "partition": 13,
+        "name": "output_rows",
+        "value": "24",
+        "numeric": 24
+      },
+      {
+        "partition": 13,
+        "name": "output_bytes",
+        "value": "335.0 MB",
+        "numeric": 351276896
+      },
+      {
+        "partition": 13,
+        "name": "output_batches",
+        "value": "23",
+        "numeric": 23
+      },
+      {
+        "partition": 15,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:29.645669186 UTC",
+        "numeric": 1792411349645669186
+      },
+      {
+        "partition": 15,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097931516 UTC",
+        "numeric": 1792411352097931516
+      },
+      {
+        "partition": 15,
+        "name": "elapsed_compute",
+        "value": "76.02µs",
+        "numeric": 76022
+      },
+      {
+        "partition": 15,
+        "name": "output_rows",
+        "value": "27",
+        "numeric": 27
+      },
+      {
+        "partition": 15,
+        "name": "output_bytes",
+        "value": "390.0 MB",
+        "numeric": 408949216
+      },
+      {
+        "partition": 15,
+        "name": "output_batches",
+        "value": "26",
+        "numeric": 26
+      }
+    ]
+  },
+  {
+    "path": "0/0/0/0/1/0",
+    "name": "FilteredReadExec",
+    "display": "LanceRead: uri=mnt/lance/hypotheses-9505-20261019/runs/pairs-h2-ws-b2-parallel-small/dataset/data, projection=[id, c0, c1, payload, row_marker], num_fragments=16, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--\n",
+    "statistics": {
+      "rows": "Exact(400)",
+      "bytes": "Inexact(48350)",
+      "rows_value": 400,
+      "bytes_value": 48350
+    },
+    "partitioning": "RoundRobinBatch(1)",
+    "metrics": [
+      {
+        "partition": 0,
+        "name": "fragments_scanned",
+        "value": "16",
+        "numeric": 16
+      },
+      {
+        "partition": 0,
+        "name": "ranges_scanned",
+        "value": "16",
+        "numeric": 16
+      },
+      {
+        "partition": 0,
+        "name": "rows_scanned",
+        "value": "400",
+        "numeric": 400
+      },
+      {
+        "partition": 0,
+        "name": "iops",
+        "value": "332",
+        "numeric": 332
+      },
+      {
+        "partition": 0,
+        "name": "requests",
+        "value": "152",
+        "numeric": 152
+      },
+      {
+        "partition": 0,
+        "name": "bytes_read",
+        "value": "2.10 B",
+        "numeric": 2097314032
+      },
+      {
+        "partition": 0,
+        "name": "task_wait_time",
+        "value": "1.59s",
+        "numeric": 1593112819
+      },
+      {
+        "partition": 0,
+        "name": "start_timestamp",
+        "value": "2026-10-19 12:02:29.637987379 UTC",
+        "numeric": 1792411349637987379
+      },
+      {
+        "partition": 0,
+        "name": "end_timestamp",
+        "value": "2026-10-19 12:02:32.097823967 UTC",
+        "numeric": 1792411352097823967
+      },
+      {
+        "partition": 0,
+        "name": "elapsed_compute",
+        "value": "1.59s",
+        "numeric": 1593162042
+      },
+      {
+        "partition": 0,
+        "name": "output_rows",
+        "value": "400",
+        "numeric": 400
+      },
+      {
+        "partition": 0,
+        "name": "output_bytes",
+        "value": "0.0 B",
+        "numeric": 0
+      },
+      {
+        "partition": 0,
+        "name": "output_batches",
+        "value": "0",
+        "numeric": 0
+      }
+    ]
+  }
+]

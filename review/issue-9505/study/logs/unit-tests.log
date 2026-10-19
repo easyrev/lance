@@ -1,0 +1,106 @@
+
+running 16 tests
+test io::exec::take::tests::no_context_take ... ok
+test io::exec::take::tests::test_simple_take::take_input_1_TakeInput__Ids ... ok
+test io::exec::take::tests::test_simple_take::take_input_2_TakeInput__Addrs ... ok
+test io::exec::take::tests::test_simple_take::take_input_3_TakeInput__IdsAndAddrs ... ok
+test io::exec::take::tests::test_take_filters_stale_physical_row_ids ... ok
+test io::exec::take::tests::test_take_no_row_addr ... ok
+test io::exec::take::tests::test_take_order ... ok
+test io::exec::take::tests::test_take_records_output_and_io_metrics ... ok
+test io::exec::take::tests::test_take_schema ... ok
+test io::exec::take::tests::test_take_statistics_measure_the_output_schema ... ok
+test io::exec::take::tests::test_take_statistics_suppress_a_carried_blob_payload::case_1_take_projects_descriptions ... ok
+test io::exec::take::tests::test_take_statistics_suppress_a_carried_blob_payload::case_2_take_projects_binary ... ok
+test io::exec::take::tests::test_take_struct ... ok
+test io::exec::take::tests::test_take_with_duplicate_row_addrs ... ok
+test io::exec::take::tests::test_take_with_unsorted_duplicate_row_addrs ... ok
+test io::exec::take::tests::test_with_new_children ... ok
+
+test result: ok. 16 passed; 0 failed; 0 ignored; 0 measured; 6174 filtered out; finished in 0.04s
+
+
+running 19 tests
+test dataset::write::merge_insert::tests::deferred_conditions::blob_v2_descriptor_condition ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::condition_node_sits_above_the_join ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::delete_by_key_scans_only_the_key ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::delete_if_over_column_the_source_omits ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::delete_if_reads_target_column_for_unmatched_rows_only ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::gate_legacy_blob_condition ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::legacy_blob_condition_filled_control ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::source_only_condition_is_not_deferred ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::update_if_and_delete_if_together ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::update_if_duplicate_source_keys_still_rejected ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::update_if_full_schema_source ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::update_if_mixed_source_and_target_columns ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::update_if_null_verdict_rejects ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::update_if_over_join_key ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::update_if_reads_target_column_for_matched_rows_only::case_1_rewrite_columns ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::update_if_reads_target_column_for_matched_rows_only::case_2_rewrite_rows ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::update_if_rewrite_rows_omitted_column::case_1_qualified ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::update_if_rewrite_rows_omitted_column::case_2_unqualified ... ok
+test dataset::write::merge_insert::tests::deferred_conditions::update_if_row_id_with_target_column ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 6171 filtered out; finished in 0.35s
+
+
+running 19 tests
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_keeps_small_or_disabled_lineage_inline::case_1_explicitly_disabled ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_keeps_small_or_disabled_lineage_inline::case_2_under_budget ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spill_preserves_lineage_through_deferred_condition ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spill_preserves_nulls_across_joins::case_1_inner::partial_source_1_false ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spill_preserves_nulls_across_joins::case_1_inner::partial_source_2_true ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spill_preserves_nulls_across_joins::case_2_right::partial_source_1_false ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spill_preserves_nulls_across_joins::case_2_right::partial_source_2_true ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spill_preserves_nulls_across_joins::case_3_left::partial_source_1_false ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spill_preserves_nulls_across_joins::case_3_left::partial_source_2_true ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spill_preserves_nulls_across_joins::case_4_full::partial_source_1_false ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spill_preserves_nulls_across_joins::case_4_full::partial_source_2_true ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spill_rebases_insert_lineage ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spill_rejects_invalid_budget_before_execution ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spill_retry_and_repeated_operations::case_1_keep_spilling ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spill_retry_and_repeated_operations::case_2_stop_spilling ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spills_carried_lineage::case_1_update_only ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spills_carried_lineage::case_2_mixed ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spills_carried_lineage::case_3_insert_only ... ok
+test dataset::write::merge_insert::tests::spilled_lineage::merge_insert_spills_carried_lineage::case_4_default_off ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 6171 filtered out; finished in 0.13s
+
+
+running 1 test
+test dataset::write::merge_insert::tests::external_error::test_merge_insert_execute_reader_preserves_error_message ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6189 filtered out; finished in 0.01s
+
+
+running 1 test
+test dataset::write::merge_insert::tests::test_merge_insert_execute_provider ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6189 filtered out; finished in 0.01s
+
+
+running 1 test
+test dataset::write::merge_insert::tests::test_merge_insert_execute_batches ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6189 filtered out; finished in 0.01s
+
+
+running 1 test
+test dataset::write::merge_insert::tests::test_merge_insert_execute_batches_empty ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6189 filtered out; finished in 0.01s
+
+
+running 1 test
+test dataset::write::merge_insert::tests::test_merge_insert_source_statistics_in_plan ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6189 filtered out; finished in 0.01s
+
+
+running 1 test
+test dataset::write::merge_insert::tests::test_merge_insert_spill_for_retry_false_fails_fast ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6189 filtered out; finished in 0.01s
+
+2026-10-19T12:07:42+00:00

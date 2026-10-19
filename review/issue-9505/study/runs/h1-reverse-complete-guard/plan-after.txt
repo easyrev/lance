@@ -1,0 +1,8 @@
+MergeInsert: on=[id], when_matched=UpdateAll, when_not_matched=InsertAll, when_not_matched_by_source=Keep
+  CoalescePartitionsExec
+    ProjectionExec: expr=[id@0 as id, c0@1 as c0, c1@2 as c1, __merge_source_sentinel@3 as __merge_source_sentinel, _rowid@5 as _rowid, _rowaddr@6 as _rowaddr, CASE WHEN _rowaddr@6 IS NULL THEN 2 WHEN _rowaddr@6 IS NOT NULL THEN 1 ELSE 0 END as __action]
+      RepartitionExec: partitioning=RoundRobinBatch(16), input_partitions=1
+        HashJoinExec: mode=CollectLeft, join_type=Right, on=[(id@0, id@0)], projection=[id@3, c0@4, c1@5, __merge_source_sentinel@6, id@0, _rowid@1, _rowaddr@2]
+          LanceRead: uri=mnt/lance/hypotheses-9505-20261019/runs/h1-reverse-complete-guard/dataset/data, projection=[id], num_fragments=4, range_before=None, range_after=None, row_id=true, row_addr=true, full_filter=--, refine_filter=--
+          ProjectionExec: expr=[id@0 as id, c0@1 as c0, c1@2 as c1, true as __merge_source_sentinel]
+            DataSourceExec: partitions=1, partition_sizes=[1]

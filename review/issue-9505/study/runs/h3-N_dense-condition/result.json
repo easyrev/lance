@@ -1,0 +1,401 @@
+{
+  "name": "h3-N_dense-condition",
+  "spec": {
+    "task": "take",
+    "workload": "N_dense",
+    "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/N_dense",
+    "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/N_dense-source-single.arrow",
+    "source_form": "reader",
+    "pool_bytes": 1073741824,
+    "partitions": 16,
+    "batch_size": 8192,
+    "policy": "current",
+    "join_reordering": true,
+    "repartition_joins": true,
+    "round_robin": true,
+    "statistics_registry": true,
+    "take_mode": "condition"
+  },
+  "spec_sha256": "b36c9dc9f57513d2f3ab98fa3e069a5c4c388d923c155a6bc04956192fd3fc97",
+  "freeze_sha256": "711befc89205b1a97d10e9622854dabc79c79ac88ae3cdeac625ca5942ca8f12",
+  "metrics": {
+    "status": "success",
+    "distribution": [
+      {
+        "partition": 0,
+        "rows": 11247,
+        "batches": 2
+      },
+      {
+        "partition": 1,
+        "rows": 11250,
+        "batches": 2
+      },
+      {
+        "partition": 2,
+        "rows": 11256,
+        "batches": 2
+      },
+      {
+        "partition": 3,
+        "rows": 11252,
+        "batches": 2
+      },
+      {
+        "partition": 4,
+        "rows": 11249,
+        "batches": 2
+      },
+      {
+        "partition": 5,
+        "rows": 11245,
+        "batches": 2
+      },
+      {
+        "partition": 6,
+        "rows": 11244,
+        "batches": 2
+      },
+      {
+        "partition": 7,
+        "rows": 11244,
+        "batches": 2
+      },
+      {
+        "partition": 8,
+        "rows": 11258,
+        "batches": 2
+      },
+      {
+        "partition": 9,
+        "rows": 11250,
+        "batches": 2
+      },
+      {
+        "partition": 10,
+        "rows": 11251,
+        "batches": 2
+      },
+      {
+        "partition": 11,
+        "rows": 11253,
+        "batches": 2
+      },
+      {
+        "partition": 12,
+        "rows": 11252,
+        "batches": 2
+      },
+      {
+        "partition": 13,
+        "rows": 11246,
+        "batches": 2
+      },
+      {
+        "partition": 14,
+        "rows": 11248,
+        "batches": 2
+      },
+      {
+        "partition": 15,
+        "rows": 11255,
+        "batches": 2
+      }
+    ],
+    "merge_seconds": 0.24424805,
+    "cpu_seconds": 0.33,
+    "io_delta": {
+      "cancelled_write_bytes": 0,
+      "rchar": 169411238,
+      "read_bytes": 0,
+      "syscr": 900,
+      "syscw": 492,
+      "wchar": 13459880,
+      "write_bytes": 13504512
+    },
+    "pool": {
+      "reserved": 0,
+      "peak_reserved": 14083048,
+      "per_consumer_current_peak": {
+        "HashJoinInput[0]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[10]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[11]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[12]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[13]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[14]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[15]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[1]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[2]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[3]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[4]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[5]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[6]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[7]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[8]": [
+          0,
+          540728
+        ],
+        "HashJoinInput[9]": [
+          0,
+          540728
+        ],
+        "RepartitionExec[0]": [
+          0,
+          393792
+        ],
+        "RepartitionExec[10]": [
+          0,
+          393792
+        ],
+        "RepartitionExec[11]": [
+          0,
+          393792
+        ],
+        "RepartitionExec[12]": [
+          0,
+          393792
+        ],
+        "RepartitionExec[13]": [
+          0,
+          393792
+        ],
+        "RepartitionExec[14]": [
+          0,
+          393792
+        ],
+        "RepartitionExec[15]": [
+          0,
+          393792
+        ],
+        "RepartitionExec[1]": [
+          0,
+          393792
+        ],
+        "RepartitionExec[2]": [
+          0,
+          393792
+        ],
+        "RepartitionExec[3]": [
+          0,
+          393792
+        ],
+        "RepartitionExec[4]": [
+          0,
+          393792
+        ],
+        "RepartitionExec[5]": [
+          0,
+          393792
+        ],
+        "RepartitionExec[6]": [
+          0,
+          196896
+        ],
+        "RepartitionExec[7]": [
+          0,
+          196896
+        ],
+        "RepartitionExec[8]": [
+          0,
+          196896
+        ],
+        "RepartitionExec[9]": [
+          0,
+          393792
+        ]
+      },
+      "failed_reservations": 0,
+      "infallible_grows": 0,
+      "interpretation": "Reservation mutations are serialized for exact tracked high-water accounting; unregistered arrays are not included."
+    },
+    "timing_scope": "Actual Lance/DF join and payload node plus common IPC sink; no writer, commit, NULL-address or conditional-rule implementation"
+  },
+  "validation": {
+    "validated": true,
+    "rows": 180000,
+    "validated_field_names": [
+      "id",
+      "c0",
+      "c1",
+      "c2",
+      "c3",
+      "c4",
+      "c5",
+      "c6"
+    ],
+    "oracle": "independent-U-take-full-field-row-sha256",
+    "scope": "join-and-payload-stage-only",
+    "validated_output_files": {
+      "output-0.arrow": {
+        "sha256": "1de2bd8b1d40860e0cc12b0c82748cf1cb105b19b6885aafb9550eeeb600d873",
+        "bytes": 840818
+      },
+      "output-1.arrow": {
+        "sha256": "d9ebc9f6e118b6853775263ee3f14b854b65627438c97f20ee9b4a120927b862",
+        "bytes": 841394
+      },
+      "output-10.arrow": {
+        "sha256": "0cc3eb126c719fe44c482e0cab13b66e5149053c9841e6c550dacc64a7ef08ec",
+        "bytes": 841394
+      },
+      "output-11.arrow": {
+        "sha256": "5a3eaea5472f36ef1e7d80b8324ef4211d12e2ecf5693089dbb96dc7e24ac34b",
+        "bytes": 841394
+      },
+      "output-12.arrow": {
+        "sha256": "8f67eb03836010dae9d96bbeccdac659f5b543201aa4aee9b38c0389e84032f1",
+        "bytes": 841394
+      },
+      "output-13.arrow": {
+        "sha256": "f8d369162f1777778eb1a1691383948b4c57849953a28d6aa45aa9b9421a630b",
+        "bytes": 840818
+      },
+      "output-14.arrow": {
+        "sha256": "78dbbe2273ba9e30358afdb1823118cc96730f73742060d8c5ff9adf9494fdfe",
+        "bytes": 840818
+      },
+      "output-15.arrow": {
+        "sha256": "5151c9237a6fef2ee4253d33c488bfcb39187a8e1e49544145587df5fe7bb188",
+        "bytes": 841394
+      },
+      "output-2.arrow": {
+        "sha256": "709d587b987ecc93487fd904e16ba606c20a93454ed1dd0136f396882b04e519",
+        "bytes": 841394
+      },
+      "output-3.arrow": {
+        "sha256": "94860dc1f933f039bcc11120d92f8670eb59be4fdbbcd6dd88f7d3195832fc03",
+        "bytes": 841394
+      },
+      "output-4.arrow": {
+        "sha256": "08026e9d9a63aefa145acef3975c1b5f9460192504ed3dec4abb43dfe463c16c",
+        "bytes": 841394
+      },
+      "output-5.arrow": {
+        "sha256": "6fe423bf4099d4c47d47b61bae46f8d9f8767af6c463cb90856b2da4962c4bb9",
+        "bytes": 840818
+      },
+      "output-6.arrow": {
+        "sha256": "84c3e2edfdbb2d3b58075d72f29da9d897746869ef2a4c95494936eaa7fef4e2",
+        "bytes": 840818
+      },
+      "output-7.arrow": {
+        "sha256": "b839030b630a8a9a6d621f29a7d7adfa3e949713cbc7de7be7b4c0f400b89e9f",
+        "bytes": 840818
+      },
+      "output-8.arrow": {
+        "sha256": "aa21cd9b5ed504708e028648bf1524108aa92acccbc96778e79150e3e6eb09c0",
+        "bytes": 841970
+      },
+      "output-9.arrow": {
+        "sha256": "4ed643c1887be8b31b027f0677a15a36f233ee15e4e0852fca6fb1c964b4b10c",
+        "bytes": 841394
+      }
+    },
+    "validator_identity": {
+      "module": "/mnt/lance/checkouts/U_main/python/python/lance/__init__.py",
+      "extension": "/mnt/lance/checkouts/U_main/python/python/lance/lance.abi3.so",
+      "extension_sha256": "5c9e85d8804aeac54f030db6a7a0b8f02373e89c2f106777bbb2647660a1d65a",
+      "version": "14.0.0-beta.19",
+      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+      "pyarrow": "25.0.1"
+    }
+  },
+  "resource": {
+    "operation": "execute",
+    "variant": "Probe",
+    "command": [
+      "/mnt/lance/hypotheses-9505-20261019/bin/probe-v1",
+      "--exact",
+      "dataset::write::merge_insert::hypotheses::run_frozen_hypothesis",
+      "--nocapture"
+    ],
+    "cwd": "/mnt/lance/checkouts/hypotheses-9505",
+    "cgroup": "/sys/fs/cgroup/lance-hypotheses-9505/h3-N_dense-condition-execute",
+    "exit_code": 0,
+    "timeout": false,
+    "confirmed_oom": false,
+    "before": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "0",
+      "memory.peak": "0",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.oom.group": "1",
+      "memory.stat": "anon 0\nfile 0\nkernel 0\nkernel_stack 0\npagetables 0\nsec_pagetables 0\npercpu 0\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 0\nfile_dirty 0\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 0\nshmem_thp 0\ninactive_anon 0\nactive_anon 0\ninactive_file 0\nactive_file 0\nunevictable 0\nslab_reclaimable 0\nslab_unreclaimable 0\nslab 0\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgscan 0\npgsteal 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgfault 0\npgmajfault 0\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "after": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "16232448",
+      "memory.peak": "147787776",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.oom.group": "1",
+      "memory.stat": "anon 0\nfile 13660160\nkernel 495616\nkernel_stack 0\npagetables 0\nsec_pagetables 0\npercpu 288\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 0\nfile_dirty 13656064\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 0\nshmem_thp 0\ninactive_anon 0\nactive_anon 0\ninactive_file 13660160\nactive_file 0\nunevictable 0\nslab_reclaimable 454472\nslab_unreclaimable 2632\nslab 457104\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgscan 0\npgsteal 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgfault 37096\npgmajfault 0\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 358555\nuser_usec 243987\nsystem_usec 114567\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "memory_event_delta": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "configured_pool_bytes": 1073741824,
+    "pool_policy": "ObservedPool wraps FairSpillPool, serializing reservation mutations to record tracked high-water and consumer peaks; scan, source IPC decode, Take and coalescer in-progress arrays are not all registered.",
+    "coordinator_seconds": 0.2988055149999127,
+    "temporary_directory": "/mnt/lance/hypotheses-9505-20261019/runs/h3-N_dense-condition/execute-tmp",
+    "sampled_tmp_peak_bytes": 0,
+    "sampled_tmp_peak_allocated_bytes": 0,
+    "sampled_tmp_peak_file_count": 0,
+    "tmp_files_at_exit": [],
+    "tmp_interpretation": "Sampled live file footprint, not cumulative writes; short-lived or already-unlinked files may be missed"
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "status": "success",
+  "error": null,
+  "merge_stats": {
+    "num_updated_rows": 25,
+    "num_inserted_rows": 0,
+    "num_deleted_rows": 0
+  },
+  "version_before": 1,
+  "version_after": 2,
+  "merge_seconds": 7.980710474,
+  "planning_seconds": 0.004310327,
+  "timing_scope": "execute and commit; planning and complete-input materialization excluded, no comparison to old API times",
+  "cpu_seconds": 10.55,
+  "io_delta": {
+    "cancelled_write_bytes": 0,
+    "rchar": 4199746026,
+    "read_bytes": 0,
+    "syscr": 401,
+    "syscw": 546,
+    "wchar": 2752589130,
+    "write_bytes": 2752724992
+  },
+  "pool": {
+    "reserved": 0,
+    "peak_reserved": 262150152,
+    "per_consumer_current_peak": {
+      "HashJoinInput[0]": [
+        0,
+        10485824
+      ],
+      "HashJoinInput[10]": [
+        0,
+        73
+      ],
+      "HashJoinInput[11]": [
+        0,
+        20972268
+      ],
+      "HashJoinInput[12]": [
+        0,
+        73
+      ],
+      "HashJoinInput[13]": [
+        0,
+        10485824
+      ],
+      "HashJoinInput[14]": [
+        0,
+        73
+      ],
+      "HashJoinInput[15]": [
+        0,
+        10485824
+      ],
+      "HashJoinInput[1]": [
+        0,
+        41943832
+      ],
+      "HashJoinInput[2]": [
+        0,
+        73
+      ],
+      "HashJoinInput[3]": [
+        0,
+        31458580
+      ],
+      "HashJoinInput[4]": [
+        0,
+        10485824
+      ],
+      "HashJoinInput[5]": [
+        0,
+        41944096
+      ],
+      "HashJoinInput[6]": [
+        0,
+        20971672
+      ],
+      "HashJoinInput[7]": [
+        0,
+        31457784
+      ],
+      "HashJoinInput[8]": [
+        0,
+        10485824
+      ],
+      "HashJoinInput[9]": [
+        0,
+        20972800
+      ]
+    },
+    "failed_reservations": 28,
+    "infallible_grows": 0,
+    "interpretation": "Reservation mutations are serialized for exact tracked high-water accounting; unregistered arrays are not included."
+  }
+}

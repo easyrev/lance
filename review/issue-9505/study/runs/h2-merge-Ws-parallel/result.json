@@ -1,0 +1,211 @@
+{
+  "name": "h2-merge-Ws-parallel",
+  "spec": {
+    "task": "merge",
+    "workload": "Ws",
+    "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws",
+    "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws-source-single.arrow",
+    "source_form": "reader",
+    "pool_bytes": 1073741824,
+    "partitions": 16,
+    "batch_size": 8192,
+    "policy": "p",
+    "join_reordering": false,
+    "repartition_joins": true,
+    "round_robin": true,
+    "statistics_registry": true
+  },
+  "spec_sha256": "50050bfbfb92a1f2614db03278fa77fff8682c1e4a80018b4ed373ea474b1620",
+  "freeze_sha256": "711befc89205b1a97d10e9622854dabc79c79ac88ae3cdeac625ca5942ca8f12",
+  "metrics": {
+    "status": "success",
+    "error": null,
+    "merge_stats": {
+      "num_updated_rows": 25,
+      "num_inserted_rows": 0,
+      "num_deleted_rows": 0
+    },
+    "version_before": 1,
+    "version_after": 2,
+    "merge_seconds": 7.980710474,
+    "planning_seconds": 0.004310327,
+    "timing_scope": "execute and commit; planning and complete-input materialization excluded, no comparison to old API times",
+    "cpu_seconds": 10.55,
+    "io_delta": {
+      "cancelled_write_bytes": 0,
+      "rchar": 4199746026,
+      "read_bytes": 0,
+      "syscr": 401,
+      "syscw": 546,
+      "wchar": 2752589130,
+      "write_bytes": 2752724992
+    },
+    "pool": {
+      "reserved": 0,
+      "peak_reserved": 262150152,
+      "per_consumer_current_peak": {
+        "HashJoinInput[0]": [
+          0,
+          10485824
+        ],
+        "HashJoinInput[10]": [
+          0,
+          73
+        ],
+        "HashJoinInput[11]": [
+          0,
+          20972268
+        ],
+        "HashJoinInput[12]": [
+          0,
+          73
+        ],
+        "HashJoinInput[13]": [
+          0,
+          10485824
+        ],
+        "HashJoinInput[14]": [
+          0,
+          73
+        ],
+        "HashJoinInput[15]": [
+          0,
+          10485824
+        ],
+        "HashJoinInput[1]": [
+          0,
+          41943832
+        ],
+        "HashJoinInput[2]": [
+          0,
+          73
+        ],
+        "HashJoinInput[3]": [
+          0,
+          31458580
+        ],
+        "HashJoinInput[4]": [
+          0,
+          10485824
+        ],
+        "HashJoinInput[5]": [
+          0,
+          41944096
+        ],
+        "HashJoinInput[6]": [
+          0,
+          20971672
+        ],
+        "HashJoinInput[7]": [
+          0,
+          31457784
+        ],
+        "HashJoinInput[8]": [
+          0,
+          10485824
+        ],
+        "HashJoinInput[9]": [
+          0,
+          20972800
+        ]
+      },
+      "failed_reservations": 28,
+      "infallible_grows": 0,
+      "interpretation": "Reservation mutations are serialized for exact tracked high-water accounting; unregistered arrays are not included."
+    }
+  },
+  "validation": {
+    "validated": true,
+    "rows": 400,
+    "expected_counts": {
+      "num_updated_rows": 25,
+      "num_inserted_rows": 0,
+      "num_deleted_rows": 0
+    },
+    "hashes": {
+      "id": "c7f268c5ba3b3b8608fc74d7f8b00eaa8d0049fef696729ac85c82746ed18b94",
+      "c0": "c50de7bca68e640a66d63523e82e788c07765b43e175427b31eb71840705163b",
+      "c1": "0b0f0ebd3e0d34ab15745691788027563edb96a7f0f6b04b8407fcd70288fa0b",
+      "payload": "5b29591b5687d1778bf99a1127ee49ef40062ee6c258c45ee93fa6ce74138515",
+      "new_payload": "12d7a44dd698a11e5d702fbd21e75a80e83b9d06c4c2d81bd1a9281c6dcb27eb",
+      "row_marker": "c7f268c5ba3b3b8608fc74d7f8b00eaa8d0049fef696729ac85c82746ed18b94"
+    },
+    "oracle": "deterministic-v2-all-fields",
+    "version": 2,
+    "snapshot": 1,
+    "unchanged": false,
+    "validated_field_names": [
+      "id",
+      "c0",
+      "c1",
+      "payload",
+      "new_payload",
+      "row_marker"
+    ],
+    "validated_output_files": {},
+    "validator_identity": {
+      "module": "/mnt/lance/checkouts/U_main/python/python/lance/__init__.py",
+      "extension": "/mnt/lance/checkouts/U_main/python/python/lance/lance.abi3.so",
+      "extension_sha256": "5c9e85d8804aeac54f030db6a7a0b8f02373e89c2f106777bbb2647660a1d65a",
+      "version": "14.0.0-beta.19",
+      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+      "pyarrow": "25.0.1"
+    }
+  },
+  "resource": {
+    "operation": "execute",
+    "variant": "Probe",
+    "command": [
+      "/mnt/lance/hypotheses-9505-20261019/bin/probe-v1",
+      "--exact",
+      "dataset::write::merge_insert::hypotheses::run_frozen_hypothesis",
+      "--nocapture"
+    ],
+    "cwd": "/mnt/lance/checkouts/hypotheses-9505",
+    "cgroup": "/sys/fs/cgroup/lance-hypotheses-9505/h2-merge-Ws-parallel-execute",
+    "exit_code": 0,
+    "timeout": false,
+    "confirmed_oom": false,
+    "before": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "0",
+      "memory.peak": "0",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.oom.group": "1",
+      "memory.stat": "anon 0\nfile 0\nkernel 0\nkernel_stack 0\npagetables 0\nsec_pagetables 0\npercpu 0\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 0\nfile_dirty 0\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 0\nshmem_thp 0\ninactive_anon 0\nactive_anon 0\ninactive_file 0\nactive_file 0\nunevictable 0\nslab_reclaimable 0\nslab_unreclaimable 0\nslab 0\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgscan 0\npgsteal 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgfault 0\npgmajfault 0\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "after": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "406929408",
+      "memory.peak": "7005306880",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.oom.group": "1",
+      "memory.stat": "anon 0\nfile 393609216\nkernel 11751424\nkernel_stack 0\npagetables 0\nsec_pagetables 0\npercpu 288\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 0\nfile_dirty 393457664\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 0\nshmem_thp 0\ninactive_anon 0\nactive_anon 0\ninactive_file 393609216\nactive_file 0\nunevictable 0\nslab_reclaimable 11710824\nslab_unreclaimable 2320\nslab 11713144\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgscan 0\npgsteal 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgfault 3152956\npgmajfault 0\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 10828002\nuser_usec 2725728\nsystem_usec 8102274\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "memory_event_delta": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "configured_pool_bytes": 1073741824,
+    "pool_policy": "ObservedPool wraps FairSpillPool, serializing reservation mutations to record tracked high-water and consumer peaks; scan, source IPC decode, Take and coalescer in-progress arrays are not all registered.",
+    "coordinator_seconds": 8.542686456999945,
+    "temporary_directory": "/mnt/lance/hypotheses-9505-20261019/runs/h2-merge-Ws-parallel/execute-tmp",
+    "sampled_tmp_peak_bytes": 791689168,
+    "sampled_tmp_peak_allocated_bytes": 791703552,
+    "sampled_tmp_peak_file_count": 6,
+    "tmp_files_at_exit": [],
+    "tmp_interpretation": "Sampled live file footprint, not cumulative writes; short-lived or already-unlinked files may be missed"
+  }
+}

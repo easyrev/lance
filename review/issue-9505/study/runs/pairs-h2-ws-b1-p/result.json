@@ -1,0 +1,151 @@
+{
+  "name": "pairs-h2-ws-b1-p",
+  "spec": {
+    "task": "merge",
+    "workload": "Ws",
+    "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws",
+    "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/Ws-source-single.arrow",
+    "source_form": "reader",
+    "pool_bytes": 1073741824,
+    "partitions": 16,
+    "batch_size": 8192,
+    "policy": "p",
+    "join_reordering": false,
+    "repartition_joins": false,
+    "round_robin": false,
+    "statistics_registry": true
+  },
+  "spec_sha256": "a4b62c4a1d5921da3cd27b14f355870a979c1f653fb9d63c5a387febea33f2f6",
+  "freeze_sha256": "711befc89205b1a97d10e9622854dabc79c79ac88ae3cdeac625ca5942ca8f12",
+  "metrics": {
+    "status": "success",
+    "error": null,
+    "merge_stats": {
+      "num_updated_rows": 25,
+      "num_inserted_rows": 0,
+      "num_deleted_rows": 0
+    },
+    "version_before": 1,
+    "version_after": 2,
+    "merge_seconds": 2.439624867,
+    "planning_seconds": 0.004254424,
+    "timing_scope": "execute and commit; planning and complete-input materialization excluded, no comparison to old API times",
+    "cpu_seconds": 4.5,
+    "io_delta": {
+      "cancelled_write_bytes": 4096,
+      "rchar": 2359459649,
+      "read_bytes": 0,
+      "syscr": 352,
+      "syscw": 241,
+      "wchar": 393246177,
+      "write_bytes": 393314304
+    },
+    "pool": {
+      "reserved": 262146380,
+      "peak_reserved": 262146380,
+      "per_consumer_current_peak": {
+        "HashJoinInput": [
+          262146380,
+          262146380
+        ]
+      },
+      "failed_reservations": 0,
+      "infallible_grows": 0,
+      "interpretation": "Reservation mutations are serialized for exact tracked high-water accounting; unregistered arrays are not included."
+    }
+  },
+  "validation": {
+    "validated": true,
+    "rows": 400,
+    "expected_counts": {
+      "num_updated_rows": 25,
+      "num_inserted_rows": 0,
+      "num_deleted_rows": 0
+    },
+    "hashes": {
+      "id": "dd07f41d2d484d6f7e06f3a7c6242d31cc960b3463f9775645f085f24114df6f",
+      "c0": "8649d67d8e66dc4acc0d7b9648857aece19047377111dbf457cadf48fb2d958a",
+      "c1": "392f9817bb10459a7580a8b03c8c720f5d27e3657521e2729c89c840d208bf65",
+      "payload": "1fe9f429f70b2bc628e4c6366cbe6bcfe56d2fb3a7ad151489bced0ab487af92",
+      "new_payload": "bd47a015ad1f33c529902b50b9e4a7589744b7e1764e084b9a463bdf7b9f4bfb",
+      "row_marker": "dd07f41d2d484d6f7e06f3a7c6242d31cc960b3463f9775645f085f24114df6f"
+    },
+    "oracle": "deterministic-v2-all-fields",
+    "version": 2,
+    "snapshot": 1,
+    "unchanged": false,
+    "validated_field_names": [
+      "id",
+      "c0",
+      "c1",
+      "payload",
+      "new_payload",
+      "row_marker"
+    ],
+    "validated_output_files": {},
+    "validator_identity": {
+      "module": "/mnt/lance/checkouts/U_main/python/python/lance/__init__.py",
+      "extension": "/mnt/lance/checkouts/U_main/python/python/lance/lance.abi3.so",
+      "extension_sha256": "5c9e85d8804aeac54f030db6a7a0b8f02373e89c2f106777bbb2647660a1d65a",
+      "version": "14.0.0-beta.19",
+      "python": "3.12.3 (main, Aug 31 2026, 10:18:26) [GCC 13.3.0]",
+      "pyarrow": "25.0.1"
+    }
+  },
+  "resource": {
+    "operation": "execute",
+    "variant": "Probe",
+    "command": [
+      "/mnt/lance/hypotheses-9505-20261019/bin/probe-v1",
+      "--exact",
+      "dataset::write::merge_insert::hypotheses::run_frozen_hypothesis",
+      "--nocapture"
+    ],
+    "cwd": "/mnt/lance/checkouts/hypotheses-9505",
+    "cgroup": "/sys/fs/cgroup/lance-hypotheses-9505/pairs-h2-ws-b1-p-execute",
+    "exit_code": 0,
+    "timeout": false,
+    "confirmed_oom": false,
+    "before": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "0",
+      "memory.peak": "0",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.oom.group": "1",
+      "memory.stat": "anon 0\nfile 0\nkernel 0\nkernel_stack 0\npagetables 0\nsec_pagetables 0\npercpu 0\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 0\nfile_dirty 0\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 0\nshmem_thp 0\ninactive_anon 0\nactive_anon 0\ninactive_file 0\nactive_file 0\nunevictable 0\nslab_reclaimable 0\nslab_unreclaimable 0\nslab 0\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgscan 0\npgsteal 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgfault 0\npgmajfault 0\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 0\nuser_usec 0\nsystem_usec 0\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "after": {
+      "memory.max": "8589934592",
+      "memory.swap.max": "0",
+      "memory.current": "406953984",
+      "memory.peak": "3172052992",
+      "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+      "memory.oom.group": "1",
+      "memory.stat": "anon 0\nfile 393367552\nkernel 11743232\nkernel_stack 0\npagetables 0\nsec_pagetables 0\npercpu 288\nsock 0\nvmalloc 0\nshmem 0\nzswap 0\nzswapped 0\nfile_mapped 0\nfile_dirty 393351168\nfile_writeback 0\nswapcached 0\nanon_thp 0\nfile_thp 0\nshmem_thp 0\ninactive_anon 0\nactive_anon 0\ninactive_file 393367552\nactive_file 0\nunevictable 0\nslab_reclaimable 11694224\nslab_unreclaimable 5552\nslab 11699776\nworkingset_refault_anon 0\nworkingset_refault_file 0\nworkingset_activate_anon 0\nworkingset_activate_file 0\nworkingset_restore_anon 0\nworkingset_restore_file 0\nworkingset_nodereclaim 0\npgscan 0\npgsteal 0\npgscan_kswapd 0\npgscan_direct 0\npgscan_khugepaged 0\npgsteal_kswapd 0\npgsteal_direct 0\npgsteal_khugepaged 0\npgfault 1285880\npgmajfault 0\npgrefill 0\npgactivate 0\npgdeactivate 0\npglazyfree 0\npglazyfreed 0\nzswpin 0\nzswpout 0\nzswpwb 0\nthp_fault_alloc 0\nthp_collapse_alloc 0\nthp_swpout 0\nthp_swpout_fallback 0",
+      "cpu.max": "max 100000",
+      "cpu.stat": "usage_usec 4595132\nuser_usec 1705389\nsystem_usec 2889743\ncore_sched.force_idle_usec 0\nnr_periods 0\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0",
+      "cgroup.events": "populated 0\nfrozen 0"
+    },
+    "memory_event_delta": {
+      "low": 0,
+      "high": 0,
+      "max": 0,
+      "oom": 0,
+      "oom_kill": 0,
+      "oom_group_kill": 0
+    },
+    "configured_pool_bytes": 1073741824,
+    "pool_policy": "ObservedPool wraps FairSpillPool, serializing reservation mutations to record tracked high-water and consumer peaks; scan, source IPC decode, Take and coalescer in-progress arrays are not all registered.",
+    "coordinator_seconds": 2.54210049699941,
+    "temporary_directory": "/mnt/lance/hypotheses-9505-20261019/runs/pairs-h2-ws-b1-p/execute-tmp",
+    "sampled_tmp_peak_bytes": 0,
+    "sampled_tmp_peak_allocated_bytes": 0,
+    "sampled_tmp_peak_file_count": 0,
+    "tmp_files_at_exit": [],
+    "tmp_interpretation": "Sampled live file footprint, not cumulative writes; short-lived or already-unlinked files may be missed"
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "status": "passed",
+  "errors": [],
+  "counters": {
+    "binary": 2,
+    "workspace_source": 1196,
+    "workspace_tree": 1,
+    "snapshot": 6,
+    "harness": 9,
+    "patch": 1,
+    "fixture_metadata": 1,
+    "previous_harness": 1,
+    "paired_freeze": 4,
+    "source_export": 27,
+    "dependency_lookup": 12,
+    "actual_dependency_source": 12,
+    "imported_fixture": 66,
+    "generated_fixture": 16,
+    "source_ipc": 7,
+    "validator": 1,
+    "previous_archive": 3149,
+    "run_set": 1,
+    "run": 457,
+    "stage_output": 496,
+    "pairs": 18,
+    "execution_logs": 4
+  },
+  "statuses": {
+    "execution_error": 4,
+    "success": 47,
+    "plan_only": 2
+  },
+  "task_statuses": {
+    "merge:execution_error": 4,
+    "merge:success": 16,
+    "merge:plan_only": 2,
+    "repartition:success": 11,
+    "take:success": 20
+  },
+  "run_count": 53,
+  "comparisons": [
+    {
+      "group": "pairs-h2-ws",
+      "numerator": "parallel-small",
+      "denominator": "p",
+      "ratios": [
+        1.2890316070876482,
+        1.3379835221653256,
+        1.354533300429757
+      ],
+      "median_ratio": 1.3379835221653256
+    },
+    {
+      "group": "pairs-h2-rr",
+      "numerator": "split",
+      "denominator": "small",
+      "ratios": [
+        0.28352084092872004,
+        0.25940554127560117,
+        0.2759123520881586
+      ],
+      "median_ratio": 0.2759123520881586
+    },
+    {
+      "group": "pairs-h3-wn",
+      "numerator": "generic",
+      "denominator": "condition",
+      "ratios": [
+        2.2764454297789745,
+        2.3354022620448416,
+        2.1983999494615234
+      ],
+      "median_ratio": 2.2764454297789745
+    },
+    {
+      "group": "pairs-h3-n",
+      "numerator": "generic",
+      "denominator": "early",
+      "ratios": [
+        1.941429885048604,
+        2.267787578857428,
+        1.9402641359728485
+      ],
+      "median_ratio": 1.941429885048604
+    },
+    {
+      "group": "pairs-h3-n",
+      "numerator": "condition",
+      "denominator": "early",
+      "ratios": [
+        6.578532364373214,
+        6.5524154275913284,
+        6.418625194922088
+      ],
+      "median_ratio": 6.5524154275913284
+    },
+    {
+      "group": "pairs-h3-n",
+      "numerator": "generic",
+      "denominator": "condition",
+      "ratios": [
+        0.2951159586236342,
+        0.34609948101093885,
+        0.30228656091460726
+      ],
+      "median_ratio": 0.30228656091460726
+    }
+  ],
+  "source_freeze_sha256": "711befc89205b1a97d10e9622854dabc79c79ac88ae3cdeac625ca5942ca8f12",
+  "binary_sha256": "f397efd2d71f160f5ca94f0775f093d7ba34fb5e8f2b167c1b4dca82625fb34d",
+  "verified_at": 1792411758.8572276,
+  "scope": "Hash audit of saved records, output files, current frozen sources, loaded-executable path/hash, dependency sources and fixtures; does not rerun field oracles.",
+  "limitations": [
+    "Not a workspace CI or upstream acceptance claim.",
+    "Sampled process memory is not a hard bound."
+  ]
+}

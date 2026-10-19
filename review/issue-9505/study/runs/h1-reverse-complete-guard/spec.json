@@ -1,0 +1,16 @@
+{
+  "task": "merge",
+  "workload": "fixed_reverse",
+  "fixture": "/mnt/lance/hypotheses-9505-20261019/fixtures/fixed_reverse",
+  "source_ipc": "/mnt/lance/hypotheses-9505-20261019/fixtures/fixed-reverse-source.arrow",
+  "source_form": "complete",
+  "pool_bytes": 8388608,
+  "partitions": 16,
+  "batch_size": 8192,
+  "policy": "guard",
+  "join_reordering": true,
+  "repartition_joins": true,
+  "round_robin": true,
+  "statistics_registry": true,
+  "insert": true
+}
