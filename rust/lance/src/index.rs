@@ -781,6 +781,38 @@ async fn fresh_fragments(
     Ok(fresh)
 }
 
+/// Retired fragment ids whose complete rewrite destinations remain fresh.
+/// Keep these ids as provenance rather than publishing mapped destinations:
+/// a concurrent history trim must still leave those rows on the scan path.
+async fn fresh_retired_provenance(
+    dataset: &Dataset,
+    reuse: &CompactFragReuseIndex,
+    segment: IndexMetadata,
+) -> Result<RoaringBitmap> {
+    let mut reusable = segment.fragment_bitmap.clone().ok_or_else(|| {
+        Error::invalid_input(format!(
+            "CreateIndex: segment {} is missing fragment coverage",
+            segment.uuid
+        ))
+    })?;
+    reuse.remap_fragment_bitmap(&mut reusable)?;
+    // Address translation does not prove that indexed values survived.
+    reusable &= fresh_fragments(dataset, reuse, &[segment]).await?;
+    for version in reuse.details.versions.iter().rev() {
+        for group in version.groups.iter().rev() {
+            if !group.new_frags.is_empty()
+                && group
+                    .new_frags
+                    .iter()
+                    .all(|fragment| reusable.contains(fragment.id as u32))
+            {
+                reusable.extend(group.old_frags.iter().map(|fragment| fragment.id as u32));
+            }
+        }
+    }
+    Ok(reusable)
+}
+
 /// Resolve the field ids a segment's staleness check must consider: the subtree of
 /// every field the segment declares, keyed and carried alike (see
 /// [`IndexSegment::fields`] and [`IndexSegment::covering_fields`]). A covered
@@ -828,6 +860,16 @@ async fn prune_stale_segment_coverage(
         .iter()
         .find(|index| lance_table::system_index::frag_reuse::metadata::is_tagged(index))
         .and_then(|entry| entry.fragment_bitmap.clone());
+    let reuse = if lineage.is_none()
+        && segments.iter().any(|segment| {
+            !segment
+                .fragment_bitmap()
+                .is_subset(&dataset.fragment_bitmap)
+        }) {
+        dataset.open_frag_reuse_index(&NoOpMetricsCollector).await?
+    } else {
+        None
+    };
     let historical_versions = segments
         .iter()
         .map(IndexSegment::dataset_version)
@@ -866,6 +908,25 @@ async fn prune_stale_segment_coverage(
             .filter(|segment| segment.dataset_version() == version)
         {
             let indexed_field_ids = indexed_field_ids(dataset, segment.fields())?;
+            let mut reusable = RoaringBitmap::new();
+            if let Some(reuse) = &reuse {
+                let metadata = segment.clone().into_metadata("staged");
+                if (!dataset.manifest.uses_stable_row_ids() || metadata.results_are_row_addrs())
+                    && !segment_has_fmindex_details(&metadata)
+                    && !segment_has_ngram_details(&metadata)
+                    // JSON targets can also ignore translation, including FM.
+                    && !metadata.index_details.as_ref().is_some_and(|details| {
+                        details.type_url.ends_with("JsonIndexDetails")
+                    })
+                    && append::fragment_reuse_affects_segment(
+                        reuse,
+                        segment.fragment_bitmap(),
+                        version,
+                    )
+                {
+                    reusable = fresh_retired_provenance(dataset, reuse, metadata).await?;
+                }
+            }
             let stale_fragments = segment
                 .fragment_bitmap()
                 .iter()
@@ -877,9 +938,10 @@ async fn prune_stale_segment_coverage(
                         return prune_historically_missing;
                     }
                     let Some(current_fragment) = current_fragments.get(fragment_id) else {
-                        return !lineage
-                            .as_ref()
-                            .is_some_and(|lineage| lineage.contains(*fragment_id));
+                        return !reusable.contains(*fragment_id)
+                            && !lineage
+                                .as_ref()
+                                .is_some_and(|lineage| lineage.contains(*fragment_id));
                     };
                     // A fragment the remap added may have no counterpart at
                     // this version to compare; the overlay check still applies.
@@ -3079,9 +3141,23 @@ impl DatasetIndexExt for Dataset {
             .as_ref()
             .map(|details| details.type_url.clone());
         let mut incoming_fragments = RoaringBitmap::new();
+        let reuse = self.open_frag_reuse_index(&NoOpMetricsCollector).await?;
         for segment in &new_indices {
             if let Some(fragment_bitmap) = &segment.fragment_bitmap {
-                incoming_fragments |= fragment_bitmap.clone();
+                // Existing segments are loaded with normalized v0 coverage.
+                // Compare in that same domain, but retain incoming provenance
+                // in the transaction so cleanup cannot leave a false claim.
+                let mut live_coverage = fragment_bitmap.clone();
+                if let Some(reuse) = &reuse {
+                    reuse.remap_fragment_bitmap(&mut live_coverage)?;
+                    live_coverage &= &dataset_fragments;
+                    if !incoming_fragments.is_disjoint(&live_coverage) {
+                        return Err(Error::invalid_input(format!(
+                            "CreateIndex: overlapping live fragment coverage in segment set for index '{index_name}'"
+                        )));
+                    }
+                }
+                incoming_fragments |= live_coverage;
             }
         }
 
