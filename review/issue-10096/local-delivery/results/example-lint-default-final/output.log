@@ -1,0 +1,53 @@
+    Checking datafusion-catalog-listing v54.1.0
+    Checking datafusion-functions-table v54.1.0
+    Checking lance-io v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-io)
+   Compiling lance-encoding v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-encoding)
+   Compiling lance-file v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-file)
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance-table v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-table)
+   Compiling lance-datafusion v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-datafusion)
+   Compiling lance-index v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-index)
+   Compiling lance v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance)
+error: method `downgrade` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:581:8
+    |
+533 | impl AimdThrottleState {
+    | ---------------------- method in this implementation
+...
+581 |     fn downgrade(&self) -> WeakThrottleState {
+    |        ^^^^^^^^^
+    |
+    = note: `-D dead-code` implied by `-D warnings`
+    = help: to override `-D warnings` add `#[expect(dead_code)]` or `#[allow(dead_code)]`
+
+error: struct `WeakThrottleState` is never constructed
+   --> rust/lance-io/src/object_store/throttle.rs:593:8
+    |
+593 | struct WeakThrottleState {
+    |        ^^^^^^^^^^^^^^^^^
+
+error: method `upgrade` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:601:8
+    |
+600 | impl WeakThrottleState {
+    | ---------------------- method in this implementation
+601 |     fn upgrade(&self) -> Option<AimdThrottleState> {
+    |        ^^^^^^^
+
+error: static `SHARED_THROTTLE_STATES` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:615:8
+    |
+615 | static SHARED_THROTTLE_STATES: LazyLock<
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+error: function `shared_throttle_state` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:622:15
+    |
+622 | pub(crate) fn shared_throttle_state(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+error: could not compile `lance-io` (lib) due to 5 previous errors
+warning: build failed, waiting for other jobs to finish...

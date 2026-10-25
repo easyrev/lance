@@ -1,0 +1,5 @@
+AnalyzeExec verbose=true, elapsed=5.914156ms, metrics=[]
+  TracedExec, elapsed=5.914156ms, metrics=[]
+    ProjectionExec: elapsed=5.914156ms, expr=[id@0 as id, val@1 as val], metrics=[output_rows=1, elapsed_compute=1.59µs, output_bytes=16.0 B, output_batches=1, expr_0_eval_time=440ns, expr_1_eval_time=160ns]
+      LanceRead: elapsed=5.862664ms, uri=mnt/lance/results/issue10096/measurement/baseline.lance/data, projection=[id, val], num_fragments=8, range_before=None, range_after=None, row_id=true, row_addr=false, full_filter=val = Int64(595905495), refine_filter=val = Int64(595905495), metrics=[output_rows=1, elapsed_compute=2.12ms, output_bytes=0.0 B, output_batches=0, fragments_scanned=8, ranges_scanned=8, rows_scanned=4.00 M, bytes_read=25.73 M, iops=8, requests=8, task_wait_time=2.09ms]
+

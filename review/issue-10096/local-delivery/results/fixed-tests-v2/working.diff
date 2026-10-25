@@ -1,0 +1,743 @@
+diff --git a/rust/lance/src/dataset/optimize/tests/concurrent_reindex.rs b/rust/lance/src/dataset/optimize/tests/concurrent_reindex.rs
+index caa1d9c36..2e62e988c 100644
+--- a/rust/lance/src/dataset/optimize/tests/concurrent_reindex.rs
++++ b/rust/lance/src/dataset/optimize/tests/concurrent_reindex.rs
+@@ -922,8 +922,13 @@ async fn test_index_under_the_remap_job_is_correct_or_retries() {
+ /// compaction: rewriting `s` in place on the compaction's output rewrites one
+ /// physical column for the parent, and must still withdraw the child index's
+ /// coverage of the fragments that output came from.
++#[rstest]
++#[case::rewrite_columns(false)]
++#[case::staged_replacement(true)]
+ #[tokio::test]
+-async fn test_index_on_a_packed_child_withdraws_a_rewritten_parent() {
++async fn test_index_on_a_packed_child_withdraws_a_rewritten_parent(
++    #[case] staged_replacement: bool,
++) {
+     use arrow_array::StructArray;
+     use arrow_schema::Fields;
+     use lance_encoding::constants::PACKED_STRUCT_META_KEY;
+@@ -956,39 +961,101 @@ async fn test_index_on_a_packed_child_withdraws_a_rewritten_parent() {
+         .await
+         .unwrap();
+     let mut builder = open_in_new_session(uri).await;
++    let staged = if staged_replacement {
++        Some(
++            builder
++                .create_index_builder(&["s.x"], IndexType::BTree, &ScalarIndexParams::default())
++                .name("x_idx".into())
++                .execute_uncommitted()
++                .await
++                .unwrap(),
++        )
++    } else {
++        None
++    };
+     compact_files(&mut table, deferred_compaction(2), None)
+         .await
+         .unwrap();
+ 
+-    let patch = RecordBatch::try_new(
+-        Arc::new(ArrowSchema::new(vec![
+-            ArrowField::new("id", DataType::Int32, false),
+-            packed,
+-        ])),
+-        vec![
+-            Arc::new(Int32Array::from(vec![3])) as ArrayRef,
+-            Arc::new(StructArray::new(
++    if let Some(segment) = staged {
++        let hook_uri = uri.to_string();
++        let hook = Box::pin(async move {
++            let table = open_in_new_session(&hook_uri).await;
++            let schema = table.schema().project(&["s"]).unwrap();
++            let values = Arc::new(StructArray::new(
+                 children,
+-                vec![Arc::new(Int32Array::from(vec![333])) as ArrayRef],
++                vec![Arc::new(Int32Array::from_iter_values(
++                    (0..12).map(|id| if id == 3 { 333 } else { id }),
++                ))],
+                 None,
+-            )) as ArrayRef,
+-        ],
+-    )
+-    .unwrap();
+-    MergeInsertBuilder::try_new(Arc::new(table), vec!["id".into()])
+-        .unwrap()
+-        .when_matched(WhenMatched::UpdateAll)
+-        .when_not_matched(WhenNotMatched::DoNothing)
+-        .write_mode(MergeInsertWriteMode::RewriteColumns)
+-        .try_build()
+-        .unwrap()
+-        .execute_batches(vec![patch])
+-        .await
++            )) as ArrayRef;
++            let batch =
++                RecordBatch::try_new(Arc::new(ArrowSchema::from(&schema)), vec![values]).unwrap();
++            let replacement = table.get_fragments()[0]
++                .write_columns(futures::stream::iter([Ok(batch)]), &schema)
++                .await
++                .unwrap();
++            assert_eq!(
++                replacement.1.fields.as_ref(),
++                &[table.schema().field("s").unwrap().id]
++            );
++            let read_version = table.manifest.version;
++            Dataset::commit(
++                crate::dataset::WriteDestination::Dataset(Arc::new(table)),
++                Operation::DataReplacement {
++                    replacements: vec![replacement],
++                },
++                Some(read_version),
++                None,
++                None,
++                Arc::new(Default::default()),
++                false,
++            )
++            .await
++            .unwrap();
++        });
++        let (mut publisher, race) = builder_racing(uri, hook).await;
++        let error = publisher
++            .commit_existing_index_segments("x_idx", "s.x", vec![segment])
++            .await
++            .unwrap_err();
++        assert!(
++            matches!(error, Error::RetryableCommitConflict { .. }),
++            "{error}"
++        );
++        assert!(error.to_string().contains("DataReplacement"), "{error}");
++        assert_eq!(race.attempts.load(Ordering::SeqCst), 1);
++    } else {
++        let patch = RecordBatch::try_new(
++            Arc::new(ArrowSchema::new(vec![
++                ArrowField::new("id", DataType::Int32, false),
++                packed,
++            ])),
++            vec![
++                Arc::new(Int32Array::from(vec![3])) as ArrayRef,
++                Arc::new(StructArray::new(
++                    children,
++                    vec![Arc::new(Int32Array::from(vec![333])) as ArrayRef],
++                    None,
++                )) as ArrayRef,
++            ],
++        )
+         .unwrap();
++        MergeInsertBuilder::try_new(Arc::new(table), vec!["id".into()])
++            .unwrap()
++            .when_matched(WhenMatched::UpdateAll)
++            .when_not_matched(WhenNotMatched::DoNothing)
++            .write_mode(MergeInsertWriteMode::RewriteColumns)
++            .try_build()
++            .unwrap()
++            .execute_batches(vec![patch])
++            .await
++            .unwrap();
+ 
+-    build_index(&mut builder, "s.x", "x_idx", false)
+-        .await
+-        .unwrap();
++        build_index(&mut builder, "s.x", "x_idx", false)
++            .await
++            .unwrap();
++    }
+ 
+     let dataset = open_in_new_session(uri).await;
+     for (filter, expected) in [("s.x = 333", 1), ("s.x = 3", 0)] {
+@@ -1010,7 +1077,10 @@ async fn test_index_on_a_packed_child_withdraws_a_rewritten_parent() {
+ #[case::untouched(false)]
+ #[case::updated_after_compaction(true)]
+ #[tokio::test]
+-async fn test_staged_index_commits_past_a_deferred_compaction(#[case] update: bool) {
++async fn test_staged_index_commits_past_a_deferred_compaction(
++    #[case] update: bool,
++    #[values(false, true)] publish_on_latest: bool,
++) {
+     let dir = TempStrDir::default();
+     let uri = dir.as_str();
+     let table = indexed_table(uri, 4).await;
+@@ -1042,6 +1112,10 @@ async fn test_staged_index_commits_past_a_deferred_compaction(#[case] update: bo
+         update_in_place(table, vec![0], vec![999]).await;
+     }
+ 
++    if publish_on_latest {
++        builder = open_in_new_session(uri).await;
++    }
++
+     builder
+         .commit_existing_index_segments("val_idx", "val", vec![merged])
+         .await
+@@ -1050,4 +1124,419 @@ async fn test_staged_index_commits_past_a_deferred_compaction(#[case] update: bo
+     assert_lookups_match_scan(uri, probes(24, [999])).await;
+     let expected = if update { Some(0) } else { None };
+     assert_covers_all_but_the_fragment_of(uri, expected).await;
++    let dataset = open_in_new_session(uri).await;
++    let segments = dataset.load_indices_by_name("val_idx").await.unwrap();
++    assert!(
++        segments
++            .iter()
++            .all(|segment| segment.dataset_version == pinned_version)
++    );
++    let mut scan = dataset.scan();
++    scan.filter("val = 120")
++        .unwrap()
++        .project(&["id", "val"])
++        .unwrap();
++    let plan = scan.explain_plan(false).await.unwrap();
++    assert!(plan.contains("ScalarIndexQuery"), "{plan}");
++    let stats = Arc::new(Mutex::new(None));
++    let observed = stats.clone();
++    scan.scan_stats_callback(Arc::new(move |counts| {
++        *observed.lock().unwrap() = Some(counts.clone());
++    }));
++    let indexed = scan.try_into_batch().await.unwrap();
++    assert_eq!(indexed.num_rows(), 1);
++    let stats = stats.lock().unwrap().take().unwrap();
++    assert_eq!(
++        stats.all_counts.get("rows_scanned").copied(),
++        Some(if update { 13 } else { 1 }),
++        "{stats:?}"
++    );
++    let mut control = dataset.scan();
++    control
++        .use_scalar_index(false)
++        .filter("val = 120")
++        .unwrap()
++        .project(&["id", "val"])
++        .unwrap();
++    assert_eq!(indexed, control.try_into_batch().await.unwrap());
++}
++
++#[derive(Clone, Copy)]
++enum StagedHistoryChange {
++    UpdatedSource,
++    UnrelatedColumn,
++    FoldedOverlay,
++    MissingBuild,
++    MissingInputs,
++    MissingRewrite,
++    Chained,
++    PartialGroup,
++}
++
++#[rstest]
++#[case::updated_source(StagedHistoryChange::UpdatedSource)]
++#[case::unrelated_column(StagedHistoryChange::UnrelatedColumn)]
++#[case::folded_overlay(StagedHistoryChange::FoldedOverlay)]
++#[case::missing_build(StagedHistoryChange::MissingBuild)]
++#[case::missing_inputs(StagedHistoryChange::MissingInputs)]
++#[case::missing_rewrite(StagedHistoryChange::MissingRewrite)]
++#[case::chained(StagedHistoryChange::Chained)]
++#[case::partial_group(StagedHistoryChange::PartialGroup)]
++#[tokio::test]
++async fn test_staged_index_checks_values_and_history(#[case] change: StagedHistoryChange) {
++    let dir = TempStrDir::default();
++    let uri = dir.as_str();
++    let mut table = indexed_table(uri, 4).await;
++    let built = table.manifest.version;
++    let fragments = if matches!(change, StagedHistoryChange::PartialGroup) {
++        vec![0]
++    } else {
++        vec![0, 1, 2, 3]
++    };
++    let segment = table
++        .create_index_builder(&["val"], IndexType::BTree, &ScalarIndexParams::default())
++        .name("val_idx".into())
++        .fragments(fragments)
++        .execute_uncommitted()
++        .await
++        .unwrap();
++    match change {
++        StagedHistoryChange::UpdatedSource => {
++            update_in_place(table, vec![0, 6], vec![999, 60]).await;
++            table = open_in_new_session(uri).await;
++        }
++        StagedHistoryChange::UnrelatedColumn => {
++            let patch = record_batch!(("id", Int32, vec![0]), ("spare", Int32, vec![999])).unwrap();
++            let schema = patch.schema();
++            let mut merge =
++                MergeInsertBuilder::try_new(Arc::new(table), vec!["id".into()]).unwrap();
++            merge
++                .when_matched(WhenMatched::UpdateAll)
++                .when_not_matched(WhenNotMatched::DoNothing)
++                .write_mode(MergeInsertWriteMode::RewriteColumns);
++            merge
++                .try_build()
++                .unwrap()
++                .execute_reader(RecordBatchIterator::new([Ok(patch)], schema))
++                .await
++                .unwrap();
++            table = open_in_new_session(uri).await;
++        }
++        StagedHistoryChange::FoldedOverlay => {
++            table = overlay_val(table, 0, 999).await;
++        }
++        StagedHistoryChange::MissingInputs => {
++            table
++                .update_config([("before_compaction", "true")])
++                .await
++                .unwrap();
++        }
++        _ => {}
++    }
++    let inputs = table.manifest.version;
++    let options = if matches!(change, StagedHistoryChange::FoldedOverlay) {
++        folding_compaction(2)
++    } else {
++        deferred_compaction(2)
++    };
++    compact_files(&mut table, options, None).await.unwrap();
++    let rewrite = table.manifest.version;
++    assert!(rewrite > inputs);
++    match change {
++        StagedHistoryChange::Chained => {
++            compact_files(&mut table, deferred_compaction(4), None)
++                .await
++                .unwrap();
++        }
++        StagedHistoryChange::MissingBuild => clean_up_versions(uri, vec![built]).await,
++        StagedHistoryChange::MissingInputs => clean_up_versions(uri, vec![inputs]).await,
++        StagedHistoryChange::MissingRewrite => {
++            table
++                .update_config([("after_compaction", "true")])
++                .await
++                .unwrap();
++            clean_up_versions(uri, vec![rewrite]).await;
++        }
++        _ => {}
++    }
++    let mut publisher = open_in_new_session(uri).await;
++    publisher
++        .commit_existing_index_segments("val_idx", "val", vec![segment])
++        .await
++        .unwrap();
++    assert_lookups_match_scan(uri, probes(24, [999])).await;
++    match change {
++        StagedHistoryChange::UpdatedSource | StagedHistoryChange::FoldedOverlay => {
++            assert_covers_all_but_the_fragment_of(uri, Some(0)).await;
++        }
++        StagedHistoryChange::Chained | StagedHistoryChange::UnrelatedColumn => {
++            assert_covers_all_but_the_fragment_of(uri, None).await
++        }
++        _ => assert!(
++            coverage(uri, "val_idx")
++                .await
++                .is_disjoint(&live_fragments(uri).await)
++        ),
++    }
++}
++
++#[rstest]
++#[case::update(Racing::UpdateInPlace)]
++#[case::cleanup(Racing::RemapAndTrim)]
++#[tokio::test]
++async fn test_staged_index_publication_retry_keeps_provenance(#[case] racing: Racing) {
++    let dir = TempStrDir::default();
++    let uri = dir.as_str().to_string();
++    let mut table = indexed_table(&uri, 4).await;
++    let built = table.manifest.version;
++    let segment = table
++        .create_index_builder(&["val"], IndexType::BTree, &ScalarIndexParams::default())
++        .name("val_idx".into())
++        .execute_uncommitted()
++        .await
++        .unwrap();
++    compact_files(&mut table, deferred_compaction(2), None)
++        .await
++        .unwrap();
++    let hook_uri = uri.clone();
++    let hook = Box::pin(async move {
++        let mut table = open_in_new_session(&hook_uri).await;
++        match racing {
++            Racing::UpdateInPlace => update_in_place(table, vec![0], vec![999]).await,
++            Racing::RemapAndTrim => {
++                remapping::remap_column_index(&mut table, &["id"], Some("id_idx".into()))
++                    .await
++                    .unwrap();
++                cleanup_frag_reuse_index(&mut table).await.unwrap();
++            }
++            _ => unreachable!(),
++        }
++    });
++    let (mut publisher, race) = builder_racing(&uri, hook).await;
++    publisher
++        .commit_existing_index_segments("val_idx", "val", vec![segment])
++        .await
++        .unwrap();
++    assert_eq!(race.attempts.load(Ordering::SeqCst), 2);
++    assert_lookups_match_scan(&uri, probes(24, [999])).await;
++    if matches!(racing, Racing::RemapAndTrim) {
++        assert!(
++            coverage(&uri, "val_idx")
++                .await
++                .is_disjoint(&live_fragments(&uri).await)
++        );
++    } else {
++        assert_covers_all_but_the_fragment_of(&uri, Some(0)).await;
++    }
++    let latest = open_in_new_session(&uri).await;
++    let raw = lance_table::io::manifest::read_manifest_indexes(
++        &latest.object_store,
++        &latest.manifest_location,
++        &latest.manifest,
++    )
++    .await
++    .unwrap();
++    let raw = raw
++        .iter()
++        .find(|segment| segment.name == "val_idx")
++        .unwrap();
++    assert_eq!(raw.dataset_version, built);
++    let expected = if matches!(racing, Racing::RemapAndTrim) {
++        0..4
++    } else {
++        2..4
++    };
++    assert_eq!(
++        *raw.fragment_bitmap.as_ref().unwrap(),
++        RoaringBitmap::from_iter(expected)
++    );
++}
++
++#[rstest]
++#[case::full(false)]
++#[case::partial(true)]
++#[tokio::test]
++async fn test_staged_index_replacement_uses_live_coverage(#[case] partial: bool) {
++    let dir = TempStrDir::default();
++    let uri = dir.as_str();
++    let mut table = indexed_table(uri, 4).await;
++    let segment = table
++        .create_index_builder(&["val"], IndexType::BTree, &ScalarIndexParams::default())
++        .name("val_idx".into())
++        .fragments(if partial {
++            vec![0, 1]
++        } else {
++            vec![0, 1, 2, 3]
++        })
++        .execute_uncommitted()
++        .await
++        .unwrap();
++    compact_files(&mut table, deferred_compaction(2), None)
++        .await
++        .unwrap();
++    build_index(&mut table, "val", "val_idx", false)
++        .await
++        .unwrap();
++    let mut publisher = open_in_new_session(uri).await;
++    let result = publisher
++        .commit_existing_index_segments("val_idx", "val", vec![segment.clone()])
++        .await;
++    if partial {
++        let error = result.unwrap_err();
++        assert!(matches!(error, Error::InvalidInput { .. }), "{error}");
++        assert!(error.to_string().contains("orphan fragments"), "{error}");
++    } else {
++        result.unwrap();
++        let indices = publisher.load_indices_by_name("val_idx").await.unwrap();
++        assert_eq!(indices.len(), 1);
++        assert_eq!(indices[0].uuid, segment.uuid);
++    }
++    assert_lookups_match_scan(uri, probes(24, [])).await;
++    assert_covers_all_but_the_fragment_of(uri, None).await;
++}
++
++#[tokio::test]
++async fn test_staged_fm_index_keeps_scan_fallback_after_compaction() {
++    let dir = TempStrDir::default();
++    let uri = dir.as_str();
++    let batch = record_batch!(
++        ("id", Int32, (0..24).collect::<Vec<_>>()),
++        (
++            "text",
++            Utf8,
++            (0..24).map(|id| format!("value-{id}")).collect::<Vec<_>>()
++        )
++    )
++    .unwrap();
++    let schema = batch.schema();
++    let mut table = Dataset::write(
++        RecordBatchIterator::new([Ok(batch)], schema),
++        uri,
++        Some(WriteParams {
++            max_rows_per_file: ROWS_PER_FRAGMENT as usize,
++            ..Default::default()
++        }),
++    )
++    .await
++    .unwrap();
++    build_index(&mut table, "id", "id_idx", false)
++        .await
++        .unwrap();
++    let segment = table
++        .create_index_builder(
++            &["text"],
++            IndexType::Fm,
++            &ScalarIndexParams::for_builtin(BuiltinIndexType::Fm),
++        )
++        .name("text_idx".into())
++        .execute_uncommitted()
++        .await
++        .unwrap();
++    compact_files(&mut table, deferred_compaction(2), None)
++        .await
++        .unwrap();
++    let mut publisher = open_in_new_session(uri).await;
++    publisher
++        .commit_existing_index_segments("text_idx", "text", vec![segment])
++        .await
++        .unwrap();
++    assert!(
++        coverage(uri, "text_idx")
++            .await
++            .is_disjoint(&live_fragments(uri).await)
++    );
++    for use_index in [false, true] {
++        let mut scan = publisher.scan();
++        scan.use_scalar_index(use_index)
++            .filter("contains(text, 'value-0')")
++            .unwrap();
++        assert_eq!(scan.try_into_batch().await.unwrap().num_rows(), 1);
++    }
++}
++
++#[tokio::test]
++async fn test_staged_vector_index_retains_coverage_without_stable_ids() {
++    use lance_datagen::{BatchCount, RowCount, array};
++
++    let dir = TempStrDir::default();
++    let uri = dir.as_str();
++    let reader = lance_datagen::gen_batch()
++        .col("id", array::step::<Int32Type>())
++        .col("vector", array::rand_vec::<Float32Type>(8.into()))
++        .into_reader_rows(RowCount::from(6), BatchCount::from(4));
++    let mut table = Dataset::write(
++        reader,
++        uri,
++        Some(WriteParams {
++            max_rows_per_file: 6,
++            max_rows_per_group: 6,
++            enable_stable_row_ids: false,
++            ..Default::default()
++        }),
++    )
++    .await
++    .unwrap();
++    build_index(&mut table, "id", "id_idx", false)
++        .await
++        .unwrap();
++    let params = crate::index::vector::VectorIndexParams::ivf_flat(1, MetricType::L2);
++    let segment = table
++        .create_index_builder(&["vector"], IndexType::Vector, &params)
++        .name("vector_idx".into())
++        .execute_uncommitted()
++        .await
++        .unwrap();
++    let built = segment.dataset_version;
++    assert!(!segment.results_are_row_addrs());
++    compact_files(&mut table, deferred_compaction(2), None)
++        .await
++        .unwrap();
++    let mut publisher = open_in_new_session(uri).await;
++    publisher
++        .commit_existing_index_segments("vector_idx", "vector", vec![segment])
++        .await
++        .unwrap();
++    assert_eq!(coverage(uri, "vector_idx").await, live_fragments(uri).await);
++    let latest = open_in_new_session(uri).await;
++    assert_eq!(
++        latest.load_indices_by_name("vector_idx").await.unwrap()[0].dataset_version,
++        built
++    );
++    let query = Float32Array::from(vec![0.0; 8]);
++    let mut exact = latest.scan();
++    exact
++        .nearest("vector", &query, 5)
++        .unwrap()
++        .use_index(false)
++        .project(&["id"])
++        .unwrap();
++    let exact = exact.try_into_batch().await.unwrap();
++    let expected = exact["id"]
++        .as_primitive::<Int32Type>()
++        .values()
++        .iter()
++        .copied()
++        .collect::<HashSet<_>>();
++    let mut indexed = latest.scan();
++    indexed
++        .nearest("vector", &query, 5)
++        .unwrap()
++        .nprobes(1)
++        .project(&["id"])
++        .unwrap();
++    let plan = indexed.explain_plan(false).await.unwrap();
++    assert!(plan.contains("ANN"), "{plan}");
++    let indexed = indexed.try_into_batch().await.unwrap();
++    let actual = indexed["id"]
++        .as_primitive::<Int32Type>()
++        .values()
++        .iter()
++        .copied()
++        .collect::<HashSet<_>>();
++    let recall = actual.intersection(&expected).count() as f64 / expected.len() as f64;
++    assert!(
++        recall >= 0.5,
++        "recall={recall}, expected={expected:?}, actual={actual:?}"
++    );
++    assert_eq!(actual, expected);
+ }
+diff --git a/rust/lance/src/index.rs b/rust/lance/src/index.rs
+index 55e743565..f8e4351f6 100644
+--- a/rust/lance/src/index.rs
++++ b/rust/lance/src/index.rs
+@@ -781,6 +781,38 @@ async fn fresh_fragments(
+     Ok(fresh)
+ }
+ 
++/// Retired fragment ids whose complete rewrite destinations remain fresh.
++/// Keep these ids as provenance rather than publishing mapped destinations:
++/// a concurrent history trim must still leave those rows on the scan path.
++async fn fresh_retired_provenance(
++    dataset: &Dataset,
++    reuse: &CompactFragReuseIndex,
++    segment: IndexMetadata,
++) -> Result<RoaringBitmap> {
++    let mut reusable = segment.fragment_bitmap.clone().ok_or_else(|| {
++        Error::invalid_input(format!(
++            "CreateIndex: segment {} is missing fragment coverage",
++            segment.uuid
++        ))
++    })?;
++    reuse.remap_fragment_bitmap(&mut reusable)?;
++    // Address translation does not prove that indexed values survived.
++    reusable &= fresh_fragments(dataset, reuse, &[segment]).await?;
++    for version in reuse.details.versions.iter().rev() {
++        for group in version.groups.iter().rev() {
++            if !group.new_frags.is_empty()
++                && group
++                    .new_frags
++                    .iter()
++                    .all(|fragment| reusable.contains(fragment.id as u32))
++            {
++                reusable.extend(group.old_frags.iter().map(|fragment| fragment.id as u32));
++            }
++        }
++    }
++    Ok(reusable)
++}
++
+ /// Resolve the field ids a segment's staleness check must consider: the subtree of
+ /// every field the segment declares, keyed and carried alike (see
+ /// [`IndexSegment::fields`] and [`IndexSegment::covering_fields`]). A covered
+@@ -828,6 +860,16 @@ async fn prune_stale_segment_coverage(
+         .iter()
+         .find(|index| lance_table::system_index::frag_reuse::metadata::is_tagged(index))
+         .and_then(|entry| entry.fragment_bitmap.clone());
++    let reuse = if lineage.is_none()
++        && segments.iter().any(|segment| {
++            !segment
++                .fragment_bitmap()
++                .is_subset(&dataset.fragment_bitmap)
++        }) {
++        dataset.open_frag_reuse_index(&NoOpMetricsCollector).await?
++    } else {
++        None
++    };
+     let historical_versions = segments
+         .iter()
+         .map(IndexSegment::dataset_version)
+@@ -866,6 +908,21 @@ async fn prune_stale_segment_coverage(
+             .filter(|segment| segment.dataset_version() == version)
+         {
+             let indexed_field_ids = indexed_field_ids(dataset, segment.fields())?;
++            let mut reusable = RoaringBitmap::new();
++            if let Some(reuse) = &reuse {
++                let metadata = segment.clone().into_metadata("staged");
++                if (!dataset.manifest.uses_stable_row_ids() || metadata.results_are_row_addrs())
++                    && !segment_has_fmindex_details(&metadata)
++                    && !segment_has_ngram_details(&metadata)
++                    && append::fragment_reuse_affects_segment(
++                        reuse,
++                        segment.fragment_bitmap(),
++                        version,
++                    )
++                {
++                    reusable = fresh_retired_provenance(dataset, reuse, metadata).await?;
++                }
++            }
+             let stale_fragments = segment
+                 .fragment_bitmap()
+                 .iter()
+@@ -877,9 +934,10 @@ async fn prune_stale_segment_coverage(
+                         return prune_historically_missing;
+                     }
+                     let Some(current_fragment) = current_fragments.get(fragment_id) else {
+-                        return !lineage
+-                            .as_ref()
+-                            .is_some_and(|lineage| lineage.contains(*fragment_id));
++                        return !reusable.contains(*fragment_id)
++                            && !lineage
++                                .as_ref()
++                                .is_some_and(|lineage| lineage.contains(*fragment_id));
+                     };
+                     // A fragment the remap added may have no counterpart at
+                     // this version to compare; the overlay check still applies.
+@@ -3079,9 +3137,23 @@ impl DatasetIndexExt for Dataset {
+             .as_ref()
+             .map(|details| details.type_url.clone());
+         let mut incoming_fragments = RoaringBitmap::new();
++        let reuse = self.open_frag_reuse_index(&NoOpMetricsCollector).await?;
+         for segment in &new_indices {
+             if let Some(fragment_bitmap) = &segment.fragment_bitmap {
+-                incoming_fragments |= fragment_bitmap.clone();
++                // Existing segments are loaded with normalized v0 coverage.
++                // Compare in that same domain, but retain incoming provenance
++                // in the transaction so cleanup cannot leave a false claim.
++                let mut live_coverage = fragment_bitmap.clone();
++                if let Some(reuse) = &reuse {
++                    reuse.remap_fragment_bitmap(&mut live_coverage)?;
++                    live_coverage &= &dataset_fragments;
++                    if !incoming_fragments.is_disjoint(&live_coverage) {
++                        return Err(Error::invalid_input(format!(
++                            "CreateIndex: overlapping live fragment coverage in segment set for index '{index_name}'"
++                        )));
++                    }
++                }
++                incoming_fragments |= live_coverage;
+             }
+         }
+ 
+diff --git a/rust/lance/src/io/commit/conflict_resolver.rs b/rust/lance/src/io/commit/conflict_resolver.rs
+index 7f25bf2e5..d96461ac3 100644
+--- a/rust/lance/src/io/commit/conflict_resolver.rs
++++ b/rust/lance/src/io/commit/conflict_resolver.rs
+@@ -23,7 +23,7 @@ use lance_index::mem_wal::{CompactedSsTable, MEM_WAL_INDEX_NAME};
+ use lance_select::{RowAddrTreeMap, RowSetOps};
+ use lance_table::format::IndexMetadata;
+ use lance_table::format::overlay::OverlayCoverage;
+-use lance_table::format::overlay::staleness::overlay_affects_index;
++use lance_table::format::overlay::staleness::{field_affects_index, overlay_affects_index};
+ use lance_table::format::pb::fragment_reuse_index_details::{InlineContent, Transition};
+ use lance_table::system_index::frag_reuse::FragReuseVersion;
+ use lance_table::system_index::frag_reuse::lineage::TaggedLineage;
+@@ -1505,10 +1505,17 @@ impl<'a> TransactionRebase<'a> {
+                     let newly_depended_fields = new_indices
+                         .iter()
+                         .flat_map(|idx| idx.fields.iter())
+-                        .collect::<HashSet<_>>();
++                        .copied()
++                        .collect::<Vec<_>>();
+                     for replacement in replacements {
+                         for field in replacement.1.fields.iter() {
+-                            if newly_depended_fields.contains(&field) {
++                            // A packed parent's file also replaces the indexed
++                            // values of its children.
++                            if newly_depended_fields.contains(field)
++                                || self.read_schema.as_ref().is_some_and(|schema| {
++                                    field_affects_index(*field, &newly_depended_fields, schema)
++                                })
++                            {
+                                 return Err(
+                                     self.retryable_conflict_err(other_transaction, other_version)
+                                 );

@@ -1,0 +1,40 @@
+diff --git a/rust/lance/src/dataset/optimize/tests/concurrent_reindex.rs b/rust/lance/src/dataset/optimize/tests/concurrent_reindex.rs
+index caa1d9c36..d83d24912 100644
+--- a/rust/lance/src/dataset/optimize/tests/concurrent_reindex.rs
++++ b/rust/lance/src/dataset/optimize/tests/concurrent_reindex.rs
+@@ -1010,7 +1010,10 @@ async fn test_index_on_a_packed_child_withdraws_a_rewritten_parent() {
+ #[case::untouched(false)]
+ #[case::updated_after_compaction(true)]
+ #[tokio::test]
+-async fn test_staged_index_commits_past_a_deferred_compaction(#[case] update: bool) {
++async fn test_staged_index_commits_past_a_deferred_compaction(
++    #[case] update: bool,
++    #[values(false, true)] publish_on_latest: bool,
++) {
+     let dir = TempStrDir::default();
+     let uri = dir.as_str();
+     let table = indexed_table(uri, 4).await;
+@@ -1042,6 +1045,10 @@ async fn test_staged_index_commits_past_a_deferred_compaction(#[case] update: bo
+         update_in_place(table, vec![0], vec![999]).await;
+     }
+ 
++    if publish_on_latest {
++        builder = open_in_new_session(uri).await;
++    }
++
+     builder
+         .commit_existing_index_segments("val_idx", "val", vec![merged])
+         .await
+@@ -1050,4 +1057,12 @@ async fn test_staged_index_commits_past_a_deferred_compaction(#[case] update: bo
+     assert_lookups_match_scan(uri, probes(24, [999])).await;
+     let expected = if update { Some(0) } else { None };
+     assert_covers_all_but_the_fragment_of(uri, expected).await;
++    let dataset = open_in_new_session(uri).await;
++    let segments = dataset.load_indices_by_name("val_idx").await.unwrap();
++    assert!(segments.iter().all(|segment| segment.dataset_version == pinned_version));
++    let mut scan = dataset.scan();
++    scan.filter("val = 120").unwrap().project(&["val"]).unwrap();
++    let plan = scan.explain_plan(false).await.unwrap();
++    assert!(plan.contains("ScalarIndexQuery"), "{plan}");
++    assert_eq!(plan.contains("LanceScan"), update, "{plan}");
+ }

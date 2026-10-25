@@ -1,0 +1,172 @@
+Stopping sccache server...
+Compile requests                   2154
+Compile requests executed          1809
+Cache hits                           38
+Cache hits (Assembler)                4
+Cache hits (C/C++)                    8
+Cache hits (Rust)                    26
+Cache misses                       1765
+Cache misses (Assembler)            136
+Cache misses (C/C++)                385
+Cache misses (Rust)                1244
+Cache hits rate                    2.11 %
+Cache hits rate (Assembler)        2.86 %
+Cache hits rate (C/C++)            2.04 %
+Cache hits rate (Rust)             2.05 %
+Cache timeouts                        0
+Cache read errors                     0
+Forced recaches                       0
+Cache write errors                    0
+Cache errors                          0
+Compilations                       1765
+Compilation failures                  6
+Non-cacheable compilations            0
+Non-cacheable calls                 339
+Non-compilation calls                 6
+Unsupported compiler calls            0
+Average cache write               0.001 s
+Average compiler                  1.031 s
+Average cache read hit            0.000 s
+Failed distributed compilations       0
+
+Non-cacheable reasons:
+multiple input files                162
+crate-type (bin)                    101
+crate-type (proc-macro)              50
+-                                     7
+missing input                         7
+-o                                    6
+crate-type (cdylib)                   2
+missing output_dir                    2
+crate-type                            1
+missing emit                          1
+
+Cache location                  Local disk: "/mnt/lance/cache/sccache"
+Base directories                /mnt/lance/checkouts/binding/, /mnt/lance/checkouts/dev/, /mnt/lance/checkouts/issue10096/, /mnt/lance/checkouts/sync-test-1792857890937859000/, /mnt/lance/checkouts/sync-test-1792858005398675000/, /mnt/lance/checkouts/sync-test-1792858080604247000/, /mnt/lance/checkouts/sync-test-1792858217222832000/, /mnt/lance/checkouts/sync-test-1792858362528271000/, /mnt/lance/checkouts/sync-test-1792858397435391000/, /mnt/lance/checkouts/sync-test-1792860258662925000/
+Use direct/preprocessor mode?   yes
+Version (client)                0.19.0
+Cache size                            7 GiB
+Max cache size                       40 GiB
+sccache: Starting the server...
+sccache: Listening on address 127.0.0.1:4226
+   Compiling lance-jsonb v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-jsonb)
+   Compiling lance-derive v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-derive)
+   Compiling lance-encoding v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-encoding)
+   Compiling lance-bitpacking v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/compression/bitpacking)
+   Compiling lance-file v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-file)
+   Compiling fsst v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/compression/fsst)
+   Compiling lance-table v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-table)
+   Compiling lance-datafusion v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-datafusion)
+   Compiling lance-linalg v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-linalg)
+   Compiling lance-datagen v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-datagen)
+   Compiling lance-index v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-index)
+   Compiling lance-arrow-scalar v58.0.0 (/mnt/lance/checkouts/issue10096/rust/arrow-scalar)
+   Compiling lance-tokenizer v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-tokenizer)
+   Compiling lance v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance)
+   Compiling lance-test-macros v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-test-macros)
+   Compiling lance-arrow-stats v58.0.0 (/mnt/lance/checkouts/issue10096/rust/arrow-stats)
+   Compiling lance-arrow v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-arrow)
+   Compiling lance-core v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-core)
+   Compiling lance-testing v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-testing)
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance-namespace v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-namespace)
+   Compiling lance-select v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-select)
+   Compiling lance-io v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-io)
+warning: method `downgrade` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:581:8
+    |
+533 | impl AimdThrottleState {
+    | ---------------------- method in this implementation
+...
+581 |     fn downgrade(&self) -> WeakThrottleState {
+    |        ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `WeakThrottleState` is never constructed
+   --> rust/lance-io/src/object_store/throttle.rs:593:8
+    |
+593 | struct WeakThrottleState {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: method `upgrade` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:601:8
+    |
+600 | impl WeakThrottleState {
+    | ---------------------- method in this implementation
+601 |     fn upgrade(&self) -> Option<AimdThrottleState> {
+    |        ^^^^^^^
+
+warning: static `SHARED_THROTTLE_STATES` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:615:8
+    |
+615 | static SHARED_THROTTLE_STATES: LazyLock<
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `shared_throttle_state` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:622:15
+    |
+622 | pub(crate) fn shared_throttle_state(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling lance-index-core v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-index-core)
+warning: `lance-io` (lib) generated 5 warnings
+warning: unused imports: `ObjectStoreParams`, `ObjectStoreRegistry`, `ObjectStore`, and `StorageOptionsAccessor`
+   --> rust/lance/src/dataset/blob/external.rs:339:9
+    |
+339 | ...   ObjectStore, ObjectStoreParams, ObjectStoreRegistry, StorageOptionsAccessor,
+    |       ^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `lance_table::format::BasePath`
+   --> rust/lance/src/dataset/blob/external.rs:341:9
+    |
+341 |     use lance_table::format::BasePath;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+   --> rust/lance/src/dataset/blob/external.rs:342:9
+    |
+342 |     use std::collections::HashMap;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `StorageOptionsAccessor`
+  --> rust/lance/src/dataset/tests/dataset_io.rs:62:37
+   |
+62 |     ObjectStore, ObjectStoreParams, StorageOptionsAccessor, WrappingObje...
+   |                                     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `lance` (lib test) generated 4 warnings (run `cargo fix --lib -p lance --tests` to apply 4 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3m 38s
+     Running unittests src/lib.rs (/mnt/lance/targets/issue10096/debug/deps/lance-a6335dd38961755d)
+
+running 4 tests
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_commits_past_a_deferred_compaction::case_1_untouched::publish_on_latest_1_false ... ok
+
+thread 'dataset::optimize::tests::concurrent_reindex::test_staged_index_commits_past_a_deferred_compaction::case_1_untouched::publish_on_latest_2_true' (182401) panicked at rust/lance/src/dataset/optimize/tests/concurrent_reindex.rs:166:5:
+assertion `left == right` failed
+  left: RoaringBitmap<[]>
+ right: RoaringBitmap<[4, 5]>
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_commits_past_a_deferred_compaction::case_1_untouched::publish_on_latest_2_true ... FAILED
+
+thread 'dataset::optimize::tests::concurrent_reindex::test_staged_index_commits_past_a_deferred_compaction::case_2_updated_after_compaction::publish_on_latest_2_true' (182403) panicked at rust/lance/src/dataset/optimize/tests/concurrent_reindex.rs:166:5:
+assertion `left == right` failed
+  left: RoaringBitmap<[]>
+ right: RoaringBitmap<[4]>
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_commits_past_a_deferred_compaction::case_2_updated_after_compaction::publish_on_latest_2_true ... FAILED
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_commits_past_a_deferred_compaction::case_2_updated_after_compaction::publish_on_latest_1_false ... ok
+
+failures:
+
+failures:
+    dataset::optimize::tests::concurrent_reindex::test_staged_index_commits_past_a_deferred_compaction::case_1_untouched::publish_on_latest_2_true
+    dataset::optimize::tests::concurrent_reindex::test_staged_index_commits_past_a_deferred_compaction::case_2_updated_after_compaction::publish_on_latest_2_true
+
+test result: FAILED. 2 passed; 2 failed; 0 ignored; 0 measured; 6671 filtered out; finished in 0.25s
+
+error: test failed, to rerun pass `-p lance --lib`

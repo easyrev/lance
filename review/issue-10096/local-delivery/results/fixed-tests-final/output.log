@@ -1,0 +1,127 @@
+   Compiling lance-encoding v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-encoding)
+warning: method `downgrade` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:581:8
+    |
+533 | impl AimdThrottleState {
+    | ---------------------- method in this implementation
+...
+581 |     fn downgrade(&self) -> WeakThrottleState {
+    |        ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `WeakThrottleState` is never constructed
+   --> rust/lance-io/src/object_store/throttle.rs:593:8
+    |
+593 | struct WeakThrottleState {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: method `upgrade` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:601:8
+    |
+600 | impl WeakThrottleState {
+    | ---------------------- method in this implementation
+601 |     fn upgrade(&self) -> Option<AimdThrottleState> {
+    |        ^^^^^^^
+
+warning: static `SHARED_THROTTLE_STATES` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:615:8
+    |
+615 | static SHARED_THROTTLE_STATES: LazyLock<
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `shared_throttle_state` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:622:15
+    |
+622 | pub(crate) fn shared_throttle_state(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+warning: `lance-io` (lib) generated 5 warnings
+   Compiling lance-file v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-file)
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance-table v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-table)
+   Compiling lance-datafusion v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-datafusion)
+   Compiling lance-index v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-index)
+   Compiling lance v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance)
+warning: unused imports: `ObjectStoreParams`, `ObjectStoreRegistry`, `ObjectStore`, and `StorageOptionsAccessor`
+   --> rust/lance/src/dataset/blob/external.rs:339:9
+    |
+339 | ...   ObjectStore, ObjectStoreParams, ObjectStoreRegistry, StorageOptionsAccessor,
+    |       ^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `lance_table::format::BasePath`
+   --> rust/lance/src/dataset/blob/external.rs:341:9
+    |
+341 |     use lance_table::format::BasePath;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+   --> rust/lance/src/dataset/blob/external.rs:342:9
+    |
+342 |     use std::collections::HashMap;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `StorageOptionsAccessor`
+  --> rust/lance/src/dataset/tests/dataset_io.rs:62:37
+   |
+62 |     ObjectStore, ObjectStoreParams, StorageOptionsAccessor, WrappingObje...
+   |                                     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `lance` (lib test) generated 4 warnings (run `cargo fix --lib -p lance --tests` to apply 4 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3m 11s
+     Running unittests src/lib.rs (/mnt/lance/targets/issue10096/debug/deps/lance-a6335dd38961755d)
+
+running 45 tests
+test dataset::optimize::tests::concurrent_reindex::test_index_retries_after_a_trimmed_compaction ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_retries_past_an_eager_compaction ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_over_a_cleaned_up_version::case_1_hides_the_compaction ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_over_a_cleaned_up_version::case_2_before_the_compaction ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_over_a_cleaned_up_version::case_3_hides_an_update_before_the_compaction ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_on_a_packed_child_withdraws_a_rewritten_parent::case_1_rewrite_columns ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_on_a_packed_child_withdraws_a_rewritten_parent::case_2_staged_replacement ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_commits_past_a_deferred_compaction::case_2_same_process ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_commits_past_a_deferred_compaction::case_1_other_process ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_commits_past_chained_deferred_compactions ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_over_a_cleaned_up_version::case_4_after_a_compaction_before_the_build ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_fm_index_keeps_scan_fallback_after_compaction::case_1_plain ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_over_a_cleaned_up_version::case_5_no_fragment_reuse_index ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_fm_index_keeps_scan_fallback_after_compaction::case_2_json_wrapper ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_retry_accounts_for_a_compaction_already_checked::case_4_remap_and_trim ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_retry_keeps_pruning_for_a_cleaned_up_update ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_leaves_out_a_partly_covered_group ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_withdraws_a_compaction_output_updated_in_place::case_1_other_process ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_withdraws_a_folded_overlay::case_1_by_the_compaction ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_withdraws_a_folded_overlay::case_2_by_the_compaction_same_process ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_retry_accounts_for_a_compaction_already_checked::case_1_update_in_place ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_retry_accounts_for_a_compaction_already_checked::case_3_update_and_clean_up_compaction ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_checks_values_and_history::case_2_unrelated_column ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_withdraws_a_compaction_output_updated_in_place::case_2_same_process ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_retry_accounts_for_a_compaction_already_checked::case_2_fold_overlay ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_withdraws_a_folded_overlay::case_3_by_a_later_compaction ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_checks_values_and_history::case_4_missing_build ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_checks_values_and_history::case_5_missing_inputs ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_withdraws_a_folded_overlay::case_4_never ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_checks_values_and_history::case_7_chained ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_checks_values_and_history::case_1_updated_source ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_commits_past_a_deferred_compaction::case_1_untouched::publish_on_latest_1_false ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_checks_values_and_history::case_6_missing_rewrite ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_checks_values_and_history::case_8_partial_group ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_commits_past_a_deferred_compaction::case_1_untouched::publish_on_latest_2_true ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_checks_values_and_history::case_3_folded_overlay ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_vector_index_retains_coverage_without_stable_ids ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_replacement_uses_live_coverage::case_1_full ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_replacement_uses_live_coverage::case_2_partial ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_publication_retry_keeps_provenance::case_2_cleanup ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_commits_past_a_deferred_compaction::case_2_updated_after_compaction::publish_on_latest_1_false ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_commits_past_a_deferred_compaction::case_2_updated_after_compaction::publish_on_latest_2_true ... ok
+test dataset::optimize::tests::concurrent_reindex::test_staged_index_publication_retry_keeps_provenance::case_1_update ... ok
+test dataset::optimize::tests::concurrent_reindex::test_index_under_the_remap_job_is_correct_or_retries ... ok
+test dataset::optimize::tests::concurrent_reindex::test_rebuild_commits_under_writes_and_deferred_compactions ... ok
+
+test result: ok. 45 passed; 0 failed; 0 ignored; 0 measured; 6632 filtered out; finished in 7.51s
+

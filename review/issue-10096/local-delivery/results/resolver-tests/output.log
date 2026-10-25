@@ -1,0 +1,222 @@
+warning: method `downgrade` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:581:8
+    |
+533 | impl AimdThrottleState {
+    | ---------------------- method in this implementation
+...
+581 |     fn downgrade(&self) -> WeakThrottleState {
+    |        ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `WeakThrottleState` is never constructed
+   --> rust/lance-io/src/object_store/throttle.rs:593:8
+    |
+593 | struct WeakThrottleState {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: method `upgrade` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:601:8
+    |
+600 | impl WeakThrottleState {
+    | ---------------------- method in this implementation
+601 |     fn upgrade(&self) -> Option<AimdThrottleState> {
+    |        ^^^^^^^
+
+warning: static `SHARED_THROTTLE_STATES` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:615:8
+    |
+615 | static SHARED_THROTTLE_STATES: LazyLock<
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `shared_throttle_state` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:622:15
+    |
+622 | pub(crate) fn shared_throttle_state(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+warning: `lance-io` (lib) generated 5 warnings
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: unused imports: `ObjectStoreParams`, `ObjectStoreRegistry`, `ObjectStore`, and `StorageOptionsAccessor`
+   --> rust/lance/src/dataset/blob/external.rs:339:9
+    |
+339 | ...   ObjectStore, ObjectStoreParams, ObjectStoreRegistry, StorageOptionsAccessor,
+    |       ^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^  ^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `lance_table::format::BasePath`
+   --> rust/lance/src/dataset/blob/external.rs:341:9
+    |
+341 |     use lance_table::format::BasePath;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `std::collections::HashMap`
+   --> rust/lance/src/dataset/blob/external.rs:342:9
+    |
+342 |     use std::collections::HashMap;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `StorageOptionsAccessor`
+  --> rust/lance/src/dataset/tests/dataset_io.rs:62:37
+   |
+62 |     ObjectStore, ObjectStoreParams, StorageOptionsAccessor, WrappingObje...
+   |                                     ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: `lance` (lib test) generated 4 warnings (run `cargo fix --lib -p lance --tests` to apply 4 suggestions)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.25s
+     Running unittests src/lib.rs (/mnt/lance/targets/issue10096/debug/deps/lance-a6335dd38961755d)
+
+running 146 tests
+test io::commit::conflict_resolver::tests::tagged_fri_rebase_returns_error_instead_of_panicking ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::index_over_committed_sp::index_built_before_a_stable_partition_and_a_cast_retries ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::bare_group_covered_by_a_concurrent_index_is_refused_on_retry ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::bare_group_uncovered_by_a_concurrent_index_lands_on_retry ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::index_over_committed_sp::index_built_before_a_stable_partition_and_a_column_rewrite_preserves_valid_coverage::case_1_payload ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::index_over_committed_sp::index_built_before_a_stable_partition_and_a_column_rewrite_preserves_valid_coverage::case_2_join_key ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::index_over_committed_sp::index_built_before_a_stable_partition_lands_translating ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::index_over_committed_sp::index_covering_part_of_a_partition_lands_claiming_nothing ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::mixed_rewrite_with_a_bare_group_over_covered_fragments_is_refused_whole ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::index_over_committed_sp::index_off_the_rewritten_fragments_lands_directly ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::mixed_rewrite_beside_a_mem_wal_index_follows_the_bare_group_rule ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::index_over_committed_sp::ngram_index_built_before_a_stable_partition_retries ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::mixed_rewrite_with_a_bare_group_over_uncovered_fragments_lands ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::overlapping_compaction_and_sp_rejected_fresh_session ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::real_deferred_compaction_rebases_over_concurrent_sp_fresh_session ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_double_consumption_covers_destinations ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::rewrite_entry_built_from_a_later_handle_is_refused_with_the_contract_error ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_double_consumption_is_rejected_fresh_session ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::rewrite_entry_built_at_the_read_version_merges_with_a_disjoint_concurrent_rewrite ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_lands_over_concurrent_user_index_and_blocks_v0_trim ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_merges_onto_swapped_transition_with_equal_count ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_lands_over_unrelated_concurrent_ops ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_compaction_sp_three_way_disjoint_merge ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_rebases_over_concurrent_fri_trim ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_reassembles_over_concurrent_v0_compaction ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_rejects_mixed_fri_create_index ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_reassembles_over_concurrent_v0_compaction_fresh_session ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_rebases_over_concurrent_tagged_compaction ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_compaction_rebases_over_concurrent_sp ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_rebases_over_real_deferred_compaction_fresh_session ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_retry_reassembles_the_same_intent_without_absorbing_others ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::sp_vs_sp_disjoint_merges_fresh_session ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_compactions_disjoint_both_land_fresh_session ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_compactions_overlapping_rejected_fresh_session ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::child_index_built_before_a_packed_parent_rewrite_lands_withdrawn ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::detached_in_place_rewrite_on_a_tagged_table_withdraws_like_the_main_chain ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::mem_wal_state::mem_wal_state_advances_on_a_table_tagged_after_the_index ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::mem_wal_state::mem_wal_state_advances_on_a_tagged_table ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::retry_withdraws_an_index_created_concurrently_on_the_rewritten_column ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_accepts_add_and_drop_columns ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_accepts_config_update ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_accepts_in_place_rewrite_of_an_unindexed_column ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_accepts_merge_insert_rewriting_rows ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_accepts_overwrite ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_accepts_partial_row_delete ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_accepts_restore ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_accepts_row_rewriting_update ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_accepts_whole_fragment_delete ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_alter_columns_follows_the_in_place_rewrite_rule ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_commit_of_a_staged_index_over_a_bare_rewritten_source_says_rebuild ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_commit_of_a_stale_staged_index_drops_rewritten_destinations ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_commit_of_a_stale_staged_index_sees_a_rewrite_on_a_retired_destination ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_installs_a_new_user_index ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_prunes_in_place_rewrite_from_a_direct_index ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_refuses_committing_a_staged_index_after_a_cast_of_its_column ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_refuses_stable_row_id_migration ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_retires_an_emptied_segment_beside_a_serving_sibling ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_with_a_newer_history_admits_append_and_add_columns ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_with_corrupt_history_admits_append_and_add_columns ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_with_corrupt_history_refuses_the_commit ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_withdraws_a_child_index_when_its_packed_parent_is_rewritten ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_withdraws_a_mixed_provenance_whole ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_withdraws_a_translated_index_after_an_in_place_rewrite ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::tagged_table_withdraws_exactly_through_an_external_history ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::v0_compaction_built_from_an_older_snapshot_is_refused::external_1_false ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::user_index_built_before_a_stable_partition_lands_translating ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::v0_compaction_built_in_another_session_commits::external_1_false ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::vector_index_live_only_remainder_is_withdrawn_whole_and_agrees_with_the_scan ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::v0_compaction_converts_over_concurrent_sp_lift ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::v0_compaction_built_in_another_session_commits::external_2_true ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::v0_compaction_converts_over_concurrent_tagged_compaction ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::v0_compaction_overlap_with_sp_still_conflicts ... ok
+test io::commit::conflict_resolver::tests::test_add_bases_id_conflict ... ok
+test io::commit::conflict_resolver::tests::test_add_bases_multiple_bases ... ok
+test io::commit::conflict_resolver::tests::test_add_bases_name_conflict ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::v0_compaction_race_keeps_legacy_behavior ... ok
+test io::commit::conflict_resolver::tests::test_add_bases_no_conflict_with_data_operations ... ok
+test io::commit::conflict_resolver::tests::test_add_bases_non_conflicting ... ok
+test io::commit::conflict_resolver::tests::test_add_bases_path_conflict ... ok
+test io::commit::conflict_resolver::tests::test_add_bases_with_none_name ... ok
+test io::commit::conflict_resolver::tests::test_column_rewrite_conflicts_with_a_projection_that_dropped_its_field::case_1_field_survives_the_projection ... ok
+test io::commit::conflict_resolver::tests::test_column_rewrite_conflicts_with_a_projection_that_dropped_its_field::case_2_field_dropped_by_the_projection ... ok
+test io::commit::conflict_resolver::tests::test_compacted_sstables_conflict_equal_generation_fails ... ok
+test io::commit::conflict_resolver::tests::test_compacted_sstables_conflict_higher_generation_retryable ... ok
+test io::commit::conflict_resolver::tests::test_compacted_sstables_conflict_lower_generation_fails ... ok
+test io::commit::conflict_resolver::tests::test_compacted_sstables_different_shards_ok ... ok
+test io::commit::conflict_resolver::tests::test_concurrent_index_drops_are_compatible ... ok
+test io::commit::conflict_resolver::tests::test_add_bases_with_zero_id ... ok
+test io::commit::conflict_resolver::tests::test_concurrent_merge_and_metadata_update_conflict::case_1_schema_metadata::replace_1_true::merge_commits_first_1_true ... ok
+test io::commit::conflict_resolver::tests::test_concurrent_merge_and_metadata_update_conflict::case_1_schema_metadata::replace_1_true::merge_commits_first_2_false ... ok
+test io::commit::conflict_resolver::tests::test_concurrent_merge_and_metadata_update_conflict::case_1_schema_metadata::replace_2_false::merge_commits_first_1_true ... ok
+test io::commit::conflict_resolver::tests::test_concurrent_merge_and_metadata_update_conflict::case_1_schema_metadata::replace_2_false::merge_commits_first_2_false ... ok
+test io::commit::conflict_resolver::tests::test_concurrent_merge_and_metadata_update_conflict::case_2_field_metadata::replace_1_true::merge_commits_first_1_true ... ok
+test io::commit::conflict_resolver::tests::test_concurrent_merge_and_metadata_update_conflict::case_2_field_metadata::replace_1_true::merge_commits_first_2_false ... ok
+test io::commit::conflict_resolver::tests::test_concurrent_merge_and_metadata_update_conflict::case_2_field_metadata::replace_2_false::merge_commits_first_1_true ... ok
+test io::commit::conflict_resolver::tests::test_concurrent_merge_and_metadata_update_conflict::case_2_field_metadata::replace_2_false::merge_commits_first_2_false ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::v0_compaction_built_from_an_older_snapshot_is_refused::external_2_true ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_1___update_full__::other_1___update_full__ ... ok
+test io::commit::conflict_resolver::tests::test_concurrent_overwrites_retryable ... ok
+test io::commit::conflict_resolver::tests::tagged_rewrite_conflicts::tagged_mutations::vector_index_translating_remainder_agrees_with_the_scan ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_1___update_full__::other_2___update_partial__ ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_1___update_full__::other_3___delete_full__ ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_1___update_full__::other_4___delete_partial__ ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_2___update_partial__::other_1___update_full__ ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_2___update_partial__::other_2___update_partial__ ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_2___update_partial__::other_3___delete_full__ ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_2___update_partial__::other_4___delete_partial__ ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_3___delete_full__::other_1___update_full__ ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_3___delete_full__::other_2___update_partial__ ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_3___delete_full__::other_3___delete_full__ ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_3___delete_full__::other_4___delete_partial__ ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_4___delete_partial__::other_1___update_full__ ... ok
+test io::commit::conflict_resolver::tests::test_conflicts ... ok
+test io::commit::conflict_resolver::tests::test_conflicts_data_replacement ... ok
+test io::commit::conflict_resolver::tests::test_create_index_conflicts_only_on_same_name ... ok
+test io::commit::conflict_resolver::tests::test_create_index_conflicts_with_concurrent_drop::case_1_optimize_after_drop ... ok
+test io::commit::conflict_resolver::tests::test_create_index_conflicts_with_concurrent_drop::case_2_drop_after_optimize ... ok
+test io::commit::conflict_resolver::tests::test_create_index_conflicts_with_concurrent_drop::case_3_append_segment_after_drop ... ok
+test io::commit::conflict_resolver::tests::test_create_index_conflicts_with_concurrent_drop::case_4_drop_after_append_segment ... ok
+test io::commit::conflict_resolver::tests::test_create_index_conflicts_with_deferred_rewrite_under_stable_row_ids ... ok
+test io::commit::conflict_resolver::tests::test_create_index_rebase_prunes_updated_field_coverage::case_1_indexed_field_updated ... ok
+test io::commit::conflict_resolver::tests::test_create_index_vs_update_mem_wal_state_rebase ... ok
+test io::commit::conflict_resolver::tests::test_create_ngram_index_conflicts_with_overlapping_deferred_rewrite ... ok
+test io::commit::conflict_resolver::tests::test_data_overlay_conflicts ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_4___delete_partial__::other_2___update_partial__ ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_4___delete_partial__::other_3___delete_full__ ... ok
+test io::commit::conflict_resolver::tests::test_index_replacement_compatible_with_removing_disjoint_segment ... ok
+test io::commit::conflict_resolver::tests::test_mem_wal_install_conflicts_with_merge ... ok
+test io::commit::conflict_resolver::tests::test_merge_claim_blocks_stale_append ... ok
+test io::commit::conflict_resolver::tests::test_conflicting_rebase::ours_4___delete_partial__::other_4___delete_partial__ ... ok
+test io::commit::conflict_resolver::tests::test_data_overlay_finish_conflicts_with_row_moving_update::case_1_coverage_overlaps_moved_row ... ok
+test io::commit::conflict_resolver::tests::test_data_overlay_finish_conflicts_with_row_moving_update::case_2_coverage_disjoint_from_moved_row ... ok
+test io::commit::conflict_resolver::tests::test_merge_preserves_unrelated_update_config_compatibility::case_1_config::merge_commits_first_1_true ... ok
+test io::commit::conflict_resolver::tests::test_merge_preserves_unrelated_update_config_compatibility::case_1_config::merge_commits_first_2_false ... ok
+test io::commit::conflict_resolver::tests::test_non_null_claim_barrier ... ok
+test io::commit::conflict_resolver::tests::test_merge_preserves_unrelated_update_config_compatibility::case_2_table_metadata::merge_commits_first_1_true ... ok
+test io::commit::conflict_resolver::tests::test_merge_preserves_unrelated_update_config_compatibility::case_2_table_metadata::merge_commits_first_2_false ... ok
+test io::commit::conflict_resolver::tests::test_rewrite_conflicts_with_data_overlay ... ok
+test io::commit::conflict_resolver::tests::test_update_config_conflicts_with_restore::case_1_field_metadata ... ok
+test io::commit::conflict_resolver::tests::test_update_config_conflicts_with_restore::case_2_schema_metadata ... ok
+test io::commit::conflict_resolver::tests::test_update_config_conflicts_with_restore::case_3_config_only ... ok
+test io::commit::conflict_resolver::tests::test_update_conflicts_with_data_overlay ... ok
+test io::commit::conflict_resolver::tests::test_update_mem_wal_state_vs_create_index_with_compacted_sstables ... ok
+test io::commit::conflict_resolver::tests::test_non_overlapping_rebase_delete_update ... ok
+test io::commit::conflict_resolver::tests::test_non_conflicting_rebase_delete_update ... ok
+test io::commit::conflict_resolver::tests::test_rebase_errors_when_read_version_was_cleaned_up ... ok
+
+test result: ok. 146 passed; 0 failed; 0 ignored; 0 measured; 6531 filtered out; finished in 1.86s
+

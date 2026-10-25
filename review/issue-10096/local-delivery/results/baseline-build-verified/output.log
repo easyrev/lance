@@ -1,0 +1,66 @@
+   Compiling lance-jsonb v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-jsonb)
+   Compiling lance-derive v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-derive)
+   Compiling lance-encoding v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-encoding)
+   Compiling lance-bitpacking v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/compression/bitpacking)
+   Compiling lance-file v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-file)
+   Compiling fsst v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/compression/fsst)
+   Compiling lance-datafusion v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-datafusion)
+   Compiling lance-table v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-table)
+   Compiling lance-linalg v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-linalg)
+   Compiling lance-datagen v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-datagen)
+   Compiling lance-index v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-index)
+   Compiling lance-arrow-scalar v58.0.0 (/mnt/lance/checkouts/issue10096/rust/arrow-scalar)
+   Compiling lance-tokenizer v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-tokenizer)
+   Compiling lance v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance)
+   Compiling lance-test-macros v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-test-macros)
+   Compiling lance-arrow-stats v58.0.0 (/mnt/lance/checkouts/issue10096/rust/arrow-stats)
+   Compiling lance-arrow v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-arrow)
+   Compiling lance-testing v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-testing)
+   Compiling lance-core v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-core)
+   Compiling lance-namespace v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-namespace)
+   Compiling lance-select v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-select)
+   Compiling lance-io v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-io)
+warning: method `downgrade` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:581:8
+    |
+533 | impl AimdThrottleState {
+    | ---------------------- method in this implementation
+...
+581 |     fn downgrade(&self) -> WeakThrottleState {
+    |        ^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `WeakThrottleState` is never constructed
+   --> rust/lance-io/src/object_store/throttle.rs:593:8
+    |
+593 | struct WeakThrottleState {
+    |        ^^^^^^^^^^^^^^^^^
+
+warning: method `upgrade` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:601:8
+    |
+600 | impl WeakThrottleState {
+    | ---------------------- method in this implementation
+601 |     fn upgrade(&self) -> Option<AimdThrottleState> {
+    |        ^^^^^^^
+
+warning: static `SHARED_THROTTLE_STATES` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:615:8
+    |
+615 | static SHARED_THROTTLE_STATES: LazyLock<
+    |        ^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `shared_throttle_state` is never used
+   --> rust/lance-io/src/object_store/throttle.rs:622:15
+    |
+622 | pub(crate) fn shared_throttle_state(
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+   Compiling lance-index-core v15.0.0-beta.1 (/mnt/lance/checkouts/issue10096/rust/lance-index-core)
+warning: `lance-io` (lib) generated 5 warnings
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+    Finished `release-with-debug` profile [optimized + debuginfo] target(s) in 4m 20s

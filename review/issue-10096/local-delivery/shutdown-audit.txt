@@ -1,0 +1,49 @@
+2026-10-25T03:55:28+00:00
+iZuf6b150xov6p41lvwhn4Z
+audit_pid=206886
+    PID    PPID %CPU   RSS     ELAPSED COMMAND
+   2292       1  0.5 150588   11:52:23 AliYunDunMonito
+   2227       1  0.1 31808    11:52:33 AliYunDun
+   3101       1  0.1 75116    11:51:18 AliSecCheck
+   1413       1  0.0 20528    11:52:53 aliyun-service.
+    118       2  0.0     0    11:52:58 kcompactd0
+ 202275       2  0.0     0       24:55 kworker/u32:0-flush-259:1
+ 202631       2  0.0     0       19:45 kworker/u32:3-flush-259:1
+   3227       1  0.0 11200    11:51:04 AliHips
+ 195659   11695  0.0 11836       32:07 sshd
+    137       2  0.0     0    11:52:58 kswapd0
+   1655       1  0.0  8952    11:52:53 AliYunDunUpdate
+   2380       1  0.0 70664    11:52:15 sing-box
+      1       0  0.0 14144    11:52:58 systemd
+     17       2  0.0     0    11:52:58 rcu_preempt
+  11710       1  0.0 28300    11:46:15 tuned
+ 123681   11695  0.0 11636    01:35:53 sshd
+ 177178       2  0.0     0    01:10:17 kworker/12:2-events
+ 182491       2  0.0     0    01:01:40 kworker/0:1-mm_percpu_wq
+ 195657       2  0.0     0       33:13 kworker/2:0-events
+   1417       1  0.0  5872    11:52:53 dbus-daemon
+  11692       1  0.0 25960    11:46:15 systemd-journal
+  32877       2  0.0     0    11:35:35 kworker/4:2-events
+  58854       2  0.0     0    11:25:45 kworker/15:2-events
+  19351       1  0.0  8712    11:41:48 tmux: server
+
+Task-like processes
+  19748   19351  0.0  2136    11:40:54 tail
+
+Tmux panes
+lance-dev-verify tail
+
+Task locks
+(unknown)       206888 FLOCK WRITE /mnt/lance...
+(unknown)       206887 FLOCK WRITE /mnt/lance...
+
+Earlier environment verification status
+0
+2026-10-24 12:31:06.913489506 -0400 /mnt/lance/results/dev-session.log
+2026-10-24 12:31:07.058494732 -0400 /mnt/lance/results/dev.exit
+
+Final source status
+ M rust/lance/src/dataset/optimize/tests/concurrent_reindex.rs
+ M rust/lance/src/index.rs
+ M rust/lance/src/io/commit/conflict_resolver.rs
+?? rust/lance/examples/
