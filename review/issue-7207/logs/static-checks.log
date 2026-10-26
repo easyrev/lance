@@ -1,9 +1,31 @@
-tested_commit=a108f280a
+tested_commit=02d6ed30dc995d9c5420a51ce1d23da89d020bc5
 
+===== cargo fmt --all --check =====
+fmt_exit=0
+
+===== cargo clippy -p lance --all-targets -- -D warnings =====
+    Checking lance-io v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-io)
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.71s
+    Checking lance-linalg v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-linalg)
+    Checking lance-file v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-file)
+    Checking lance-index-core v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-index-core)
+    Checking lance-table v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-table)
+    Checking lance-index v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-index)
+    Checking lance v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3m 28s
+clippy_exit=0
+
+===== RUSTDOCFLAGS=-D warnings cargo doc -p lance --no-deps =====
+    Checking lance-io v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-io)
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.52s
+    Checking lance-linalg v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-linalg)
+    Checking lance-file v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-file)
+    Checking lance-index-core v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-index-core)
+    Checking lance-table v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-table)
+    Checking lance-index v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-index)
+ Documenting lance v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 30.90s
    Generated /private/tmp/lance-target-7207/doc/lance/index.html
+rustdoc_exit=0

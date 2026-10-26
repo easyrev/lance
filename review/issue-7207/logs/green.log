@@ -1,14 +1,20 @@
-tested_commit=a108f280a
+tested_commit=02d6ed30dc995d9c5420a51ce1d23da89d020bc5
 ===== dataset::optimize::tests::test_rewrite_loss_reclaims_remapped_index_directory =====
+   Compiling lance-io v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-io)
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance-linalg v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-linalg)
+   Compiling lance-file v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-file)
+   Compiling lance-index-core v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-index-core)
+   Compiling lance-table v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-table)
+   Compiling lance-index v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance-index)
    Compiling lance v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance)
 warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
   |
   = note: `#[warn(linker_messages)]` on by default
 
 warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 28.28s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 5m 27s
      Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
 
 running 1 test
@@ -24,13 +30,13 @@ warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dw
   = note: `#[warn(linker_messages)]` on by default
 
 warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.85s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.05s
      Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
 
 running 1 test
 test dataset::optimize::tests::test_rewrite_loss_keeps_custom_remapper_index_for_replay ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.04s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.06s
 
 ===== dataset::optimize::tests::test_deferred_rewrite_loss_reclaims_spilled_fri_directory =====
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
@@ -40,13 +46,13 @@ warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dw
   = note: `#[warn(linker_messages)]` on by default
 
 warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.49s
      Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
 
 running 1 test
 test dataset::optimize::tests::test_deferred_rewrite_loss_reclaims_spilled_fri_directory ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 1.05s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 1.12s
 
 ===== dataset::optimize::tests::test_rebased_fri_loss_reclaims_original_and_replacement_directories =====
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
@@ -56,7 +62,7 @@ warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dw
   = note: `#[warn(linker_messages)]` on by default
 
 warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.48s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.42s
      Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
 
 running 1 test
@@ -88,13 +94,13 @@ warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dw
   = note: `#[warn(linker_messages)]` on by default
 
 warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s
      Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
 
 running 1 test
 test index::create::tests::test_landed_index_commit_returning_error_keeps_directory ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.04s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.03s
 
 ===== dataset::optimize::tests::test_rewrite_preempted_by_delete_reclaims_remapped_index_directory =====
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
@@ -104,13 +110,13 @@ warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dw
   = note: `#[warn(linker_messages)]` on by default
 
 warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.42s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s
      Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
 
 running 1 test
 test dataset::optimize::tests::test_rewrite_preempted_by_delete_reclaims_remapped_index_directory ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.04s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.05s
 
 ===== io::commit::tests::test_collect_transaction_index_ids_skips_keep_remaps =====
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
@@ -120,7 +126,7 @@ warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dw
   = note: `#[warn(linker_messages)]` on by default
 
 warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.44s
      Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
 
 running 1 test
@@ -136,7 +142,7 @@ warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dw
   = note: `#[warn(linker_messages)]` on by default
 
 warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.42s
      Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
 
 running 1 test
