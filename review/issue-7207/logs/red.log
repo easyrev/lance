@@ -1,0 +1,213 @@
+Lance issue #7207 red test log
+Reviewed baseline (upstream/main): 88d8b1cc7dadf1e27eba67b853d2113ac2c6c318
+Tested tree: pure branch commit 624151d1d (test and injection plumbing only; no cleanup implementation)
+
+Every test failed because unreferenced _indices UUID directories remained.
+
+===== rewrite =====
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.61s
+     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
+
+running 1 test
+
+thread 'dataset::optimize::tests::test_rewrite_loss_reclaims_remapped_index_directory' (12627001) panicked at rust/lance/src/dataset/optimize.rs:13972:9:
+assertion `left == right` failed
+  left: {"73b5b1b6-7faa-43e1-b1f5-581b8717fb2c", "a8c3f555-6c76-40a1-9711-b15cfcc9a601"}
+ right: {"a8c3f555-6c76-40a1-9711-b15cfcc9a601"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::test_rewrite_loss_reclaims_remapped_index_directory ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::test_rewrite_loss_reclaims_remapped_index_directory
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6761 filtered out; finished in 0.23s
+
+error: test failed, to rerun pass `-p lance --lib`
+
+===== keep =====
+    Blocking waiting for file lock on build directory
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.78s
+     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
+
+running 1 test
+
+thread 'dataset::optimize::tests::test_rewrite_loss_keeps_index_when_remap_reports_keep' (12627000) panicked at rust/lance/src/dataset/optimize.rs:14066:9:
+assertion `left == right` failed
+  left: {"48340a14-ec2a-4248-912b-c535ace8ed02", "73256c13-c890-4b22-93ec-2ac80c261b76", "8b0302bc-9bce-462f-9e5e-673e3d66511c"}
+ right: {"48340a14-ec2a-4248-912b-c535ace8ed02", "8b0302bc-9bce-462f-9e5e-673e3d66511c"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::test_rewrite_loss_keeps_index_when_remap_reports_keep ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::test_rewrite_loss_keeps_index_when_remap_reports_keep
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6761 filtered out; finished in 0.23s
+
+error: test failed, to rerun pass `-p lance --lib`
+
+===== create =====
+    Blocking waiting for file lock on build directory
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.22s
+     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
+
+running 1 test
+
+thread 'index::create::tests::test_create_index_loss_reclaims_new_index_directory' (12626999) panicked at rust/lance/src/index/create.rs:1253:9:
+assertion `left == right` failed
+  left: {"1b99d287-95fa-442e-9846-e14146fddba0", "bba69ce4-948f-4962-bc42-b0b48a434e51"}
+ right: {"1b99d287-95fa-442e-9846-e14146fddba0"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test index::create::tests::test_create_index_loss_reclaims_new_index_directory ... FAILED
+
+failures:
+
+failures:
+    index::create::tests::test_create_index_loss_reclaims_new_index_directory
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6761 filtered out; finished in 0.23s
+
+error: test failed, to rerun pass `-p lance --lib`
+
+===== landed =====
+    Blocking waiting for file lock on build directory
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.07s
+     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
+
+running 1 test
+
+thread 'index::create::tests::test_landed_index_commit_returning_error_keeps_directory' (12627002) panicked at rust/lance/src/index/create.rs:1298:9:
+assertion `left == right` failed
+  left: {"02fd8916-0224-4c6d-8d7a-caa848ff3b69", "dbc4fb4b-05ab-4cdc-bf18-78a03885bf0c"}
+ right: {"dbc4fb4b-05ab-4cdc-bf18-78a03885bf0c"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test index::create::tests::test_landed_index_commit_returning_error_keeps_directory ... FAILED
+
+failures:
+
+failures:
+    index::create::tests::test_landed_index_commit_returning_error_keeps_directory
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6761 filtered out; finished in 0.23s
+
+error: test failed, to rerun pass `-p lance --lib`
+
+===== delete =====
+    Blocking waiting for file lock on build directory
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.93s
+     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
+
+running 1 test
+
+thread 'dataset::optimize::tests::test_rewrite_preempted_by_delete_reclaims_remapped_index_directory' (12627003) panicked at rust/lance/src/dataset/optimize.rs:14232:9:
+assertion `left == right` failed
+  left: {"141b5bae-d978-47bd-99cb-d33e07b36ac4", "d104d379-bb08-42ff-9fe9-4411d1d5a239"}
+ right: {"d104d379-bb08-42ff-9fe9-4411d1d5a239"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::test_rewrite_preempted_by_delete_reclaims_remapped_index_directory ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::test_rewrite_preempted_by_delete_reclaims_remapped_index_directory
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6761 filtered out; finished in 0.24s
+
+error: test failed, to rerun pass `-p lance --lib`
+
+===== fri-spill =====
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.92s
+     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
+
+running 1 test
+
+thread 'dataset::optimize::tests::test_deferred_rewrite_loss_reclaims_spilled_fri_directory' (12628168) panicked at rust/lance/src/dataset/optimize.rs:14108:9:
+assertion `left == right` failed
+  left: {"203adc35-183c-4b18-9e3f-ea5b60aa8b55"}
+ right: {}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::test_deferred_rewrite_loss_reclaims_spilled_fri_directory ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::test_deferred_rewrite_loss_reclaims_spilled_fri_directory
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6761 filtered out; finished in 1.73s
+
+error: test failed, to rerun pass `-p lance --lib`
+
+===== fri-rebase =====
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.90s
+     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
+
+running 1 test
+
+thread 'dataset::optimize::tests::test_rebased_fri_loss_reclaims_original_and_replacement_directories' (12628510) panicked at rust/lance/src/dataset/optimize.rs:14172:9:
+assertion `left == right` failed
+  left: {"19711894-c53e-4482-9ad1-5195b2ed461a", "477120e6-cdb6-4293-a6f0-d8a908f9a7ea"}
+ right: {}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::test_rebased_fri_loss_reclaims_original_and_replacement_directories ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::test_rebased_fri_loss_reclaims_original_and_replacement_directories
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6761 filtered out; finished in 1.50s
+
+error: test failed, to rerun pass `-p lance --lib`
+
