@@ -1,0 +1,34 @@
+tested_commit=a108f280a
+mutation=mark externally supplied remapper outputs transaction-owned
+
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance)
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 16s
+     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
+
+running 1 test
+test dataset::optimize::tests::test_rewrite_loss_keeps_custom_remapper_index_for_replay ... FAILED
+
+failures:
+
+---- dataset::optimize::tests::test_rewrite_loss_keeps_custom_remapper_index_for_replay stdout ----
+
+thread 'dataset::optimize::tests::test_rewrite_loss_keeps_custom_remapper_index_for_replay' (12871785) panicked at rust/lance/src/dataset/optimize.rs:14103:9:
+assertion `left == right` failed
+  left: {"0d5c8020-16b5-4619-abc0-26a6c81f40f3", "de4abd00-8b30-4b09-b2c2-5766d9d4eaa2"}
+ right: {"0d5c8020-16b5-4619-abc0-26a6c81f40f3", "4fa2e024-1d89-462f-aeae-c4eb14cb1977", "de4abd00-8b30-4b09-b2c2-5766d9d4eaa2"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    dataset::optimize::tests::test_rewrite_loss_keeps_custom_remapper_index_for_replay
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.22s
+
+error: test failed, to rerun pass `-p lance --lib`
