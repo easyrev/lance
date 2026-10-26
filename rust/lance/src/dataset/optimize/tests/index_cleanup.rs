@@ -350,9 +350,11 @@ async fn test_owned_fri_rebase_then_terminal_loss(#[case] tagged: bool) {
         .unwrap_err();
     assert_injected_failure(&error);
     assert_eq!(handler.rewrite_calls.load(Ordering::SeqCst), 2);
-    let snapshots = handler.snapshots.lock().unwrap();
-    assert!(!snapshots[0].is_subset(&before));
-    assert_eq!(snapshots[1].difference(&snapshots[0]).count(), 1);
+    {
+        let snapshots = handler.snapshots.lock().unwrap();
+        assert!(!snapshots[0].is_subset(&before));
+        assert_eq!(snapshots[1].difference(&snapshots[0]).count(), 1);
+    }
     assert_eq!(index_directories(dir.as_str()), before);
     assert_eq!(
         Dataset::open(dir.as_str())
@@ -572,7 +574,7 @@ async fn test_borrowed_transaction_can_replay_after_verified_loss(#[case] rewrit
                 old_id,
                 new_id: metadata.uuid,
                 new_index_details: metadata.index_details.as_ref().unwrap().as_ref().clone(),
-                new_index_version: metadata.index_version,
+                new_index_version: metadata.index_version.try_into().unwrap(),
                 new_index_files: metadata.files,
             }],
             frag_reuse_index: None,
