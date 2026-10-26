@@ -1,0 +1,226 @@
+{
+  "baseline": "46d7bfdda8ac303d5363c851d6883facb249cb56",
+  "checked_prs": [
+    {
+      "pr": 10037,
+      "files": [
+        "Cargo.lock",
+        "java/lance-jni/Cargo.lock",
+        "python/Cargo.lock",
+        "rust/lance-table/Cargo.toml",
+        "rust/lance-table/src/format.rs",
+        "rust/lance-table/src/format/encoded_fragments.rs",
+        "rust/lance-table/src/format/manifest.rs",
+        "rust/lance-table/src/io/manifest.rs",
+        "rust/lance-table/src/transaction/manifest_build.rs",
+        "rust/lance/src/io/commit.rs"
+      ],
+      "overlap": [
+        "rust/lance/src/io/commit.rs"
+      ]
+    },
+    {
+      "pr": 10033,
+      "files": [
+        "rust/lance-io/src/object_store.rs",
+        "rust/lance-io/src/object_writer.rs",
+        "rust/lance-table/src/io/commit.rs"
+      ],
+      "overlap": []
+    },
+    {
+      "pr": 10034,
+      "files": [
+        "docs/src/guide/performance.md",
+        "python/python/lance/commit.py",
+        "python/python/lance/dataset.py",
+        "python/python/lance/lance/__init__.pyi",
+        "python/python/tests/test_dataset.py",
+        "python/src/dataset.rs",
+        "python/src/error.rs",
+        "rust/lance-core/src/error.rs",
+        "rust/lance/src/dataset.rs",
+        "rust/lance/src/dataset/optimize.rs",
+        "rust/lance/src/dataset/write.rs",
+        "rust/lance/src/dataset/write/commit.rs",
+        "rust/lance/src/dataset/write/insert.rs",
+        "rust/lance/src/io/commit.rs",
+        "rust/lance/src/io/commit/conflict_resolver.rs",
+        "rust/lance/src/io/commit/external_manifest.rs",
+        "rust/lance/src/io/commit/idempotency.rs"
+      ],
+      "overlap": [
+        "rust/lance/src/dataset.rs",
+        "rust/lance/src/dataset/optimize.rs",
+        "rust/lance/src/dataset/write/commit.rs",
+        "rust/lance/src/io/commit.rs",
+        "rust/lance/src/io/commit/conflict_resolver.rs"
+      ]
+    },
+    {
+      "pr": 9654,
+      "files": [
+        "rust/lance/src/dataset.rs",
+        "rust/lance/src/dataset/builder.rs",
+        "rust/lance/src/dataset/tests/dataset_transactions.rs",
+        "rust/lance/src/io/commit.rs"
+      ],
+      "overlap": [
+        "rust/lance/src/dataset.rs",
+        "rust/lance/src/io/commit.rs"
+      ]
+    },
+    {
+      "pr": 10148,
+      "files": [
+        "rust/lance-index-core/src/scalar.rs",
+        "rust/lance-index/src/scalar/bitmap.rs",
+        "rust/lance-index/src/scalar/bloomfilter.rs",
+        "rust/lance-index/src/scalar/btree.rs",
+        "rust/lance-index/src/scalar/fmindex.rs",
+        "rust/lance-index/src/scalar/inverted.rs",
+        "rust/lance-index/src/scalar/inverted/index/inverted_index.rs",
+        "rust/lance-index/src/scalar/json.rs",
+        "rust/lance-index/src/scalar/label_list.rs",
+        "rust/lance-index/src/scalar/minhash_lsh/index.rs",
+        "rust/lance-index/src/scalar/minhash_lsh/mod.rs",
+        "rust/lance-index/src/scalar/minhash_lsh/tests.rs",
+        "rust/lance-index/src/scalar/ngram.rs",
+        "rust/lance-index/src/scalar/registry.rs",
+        "rust/lance-index/src/scalar/remap_compat_tests.rs",
+        "rust/lance-index/src/scalar/rtree.rs",
+        "rust/lance-index/src/scalar/zonemap.rs",
+        "rust/lance-table/src/format/index.rs",
+        "rust/lance/src/dataset/index.rs",
+        "rust/lance/src/dataset/optimize.rs",
+        "rust/lance/src/dataset/optimize/remapping.rs",
+        "rust/lance/src/index.rs",
+        "rust/lance/src/index/append.rs",
+        "rust/lance/src/index/scalar_logical.rs",
+        "rust/lance/tests/external_scalar_plugin.rs",
+        "rust/lance/tests/external_scalar_statistics_plugin.rs"
+      ],
+      "overlap": [
+        "rust/lance/src/dataset/index.rs",
+        "rust/lance/src/dataset/optimize.rs",
+        "rust/lance/src/dataset/optimize/remapping.rs"
+      ]
+    },
+    {
+      "pr": 9961,
+      "files": [
+        "rust/lance/src/dataset/optimize.rs"
+      ],
+      "overlap": [
+        "rust/lance/src/dataset/optimize.rs"
+      ]
+    },
+    {
+      "pr": 9769,
+      "files": [
+        "python/python/tests/test_optimize.py",
+        "rust/lance/src/dataset.rs",
+        "rust/lance/src/dataset/index/frag_reuse.rs",
+        "rust/lance/src/dataset/optimize.rs",
+        "rust/lance/src/dataset/optimize/tests/binary_copy.rs",
+        "rust/lance/src/index.rs",
+        "rust/lance/src/index/frag_reuse.rs",
+        "rust/lance/src/index/frag_reuse_reader_tests.rs",
+        "rust/lance/src/index/frag_reuse_with_stable_row_ids.rs",
+        "rust/lance/src/index/frag_reuse_with_stable_row_ids/history.rs",
+        "rust/lance/src/index/vector.rs",
+        "rust/lance/src/io/commit.rs",
+        "rust/lance/src/io/commit/conflict_resolver.rs",
+        "rust/lance/src/session/index_caches.rs"
+      ],
+      "overlap": [
+        "rust/lance/src/dataset.rs",
+        "rust/lance/src/dataset/optimize.rs",
+        "rust/lance/src/index/frag_reuse.rs",
+        "rust/lance/src/io/commit.rs",
+        "rust/lance/src/io/commit/conflict_resolver.rs"
+      ]
+    },
+    {
+      "pr": 9960,
+      "files": [
+        "python/python/tests/test_optimize.py",
+        "rust/lance-table/src/feature_flags.rs",
+        "rust/lance/src/dataset.rs",
+        "rust/lance/src/dataset/index/frag_reuse.rs",
+        "rust/lance/src/dataset/optimize.rs",
+        "rust/lance/src/dataset/optimize/tests/binary_copy.rs",
+        "rust/lance/src/dataset/rowids/spill.rs",
+        "rust/lance/src/index.rs",
+        "rust/lance/src/index/frag_reuse.rs",
+        "rust/lance/src/index/frag_reuse_reader_tests.rs",
+        "rust/lance/src/index/frag_reuse_with_stable_row_ids.rs",
+        "rust/lance/src/index/frag_reuse_with_stable_row_ids/history.rs",
+        "rust/lance/src/index/vector.rs",
+        "rust/lance/src/io/commit.rs",
+        "rust/lance/src/io/commit/conflict_resolver.rs",
+        "rust/lance/src/session/index_caches.rs"
+      ],
+      "overlap": [
+        "rust/lance/src/dataset.rs",
+        "rust/lance/src/dataset/optimize.rs",
+        "rust/lance/src/index/frag_reuse.rs",
+        "rust/lance/src/io/commit.rs",
+        "rust/lance/src/io/commit/conflict_resolver.rs"
+      ]
+    },
+    {
+      "pr": 9947,
+      "files": [
+        "rust/lance/src/dataset.rs",
+        "rust/lance/src/dataset/index/frag_reuse.rs",
+        "rust/lance/src/dataset/tests/dataset_io.rs",
+        "rust/lance/src/dataset/tests/merge_coverage.rs",
+        "rust/lance/src/index.rs",
+        "rust/lance/src/index/api.rs",
+        "rust/lance/src/io/commit.rs",
+        "rust/lance/src/utils/test.rs"
+      ],
+      "overlap": [
+        "rust/lance/src/dataset.rs",
+        "rust/lance/src/io/commit.rs",
+        "rust/lance/src/utils/test.rs"
+      ]
+    },
+    {
+      "pr": 9271,
+      "files": [
+        "rust/lance/src/index.rs",
+        "rust/lance/src/index/create.rs",
+        "rust/lance/src/index/scalar/fmindex.rs"
+      ],
+      "overlap": []
+    },
+    {
+      "pr": 9816,
+      "files": [
+        "rust/lance-table/src/format/overlay/staleness.rs",
+        "rust/lance/src/dataset/tests/dataset_overlay_index_masking.rs",
+        "rust/lance/src/dataset/tests/merge_coverage.rs",
+        "rust/lance/src/dataset/tests/mod.rs",
+        "rust/lance/src/index.rs",
+        "rust/lance/src/index/create/tests/staged_tagged.rs",
+        "rust/lance/src/utils/test.rs"
+      ],
+      "overlap": [
+        "rust/lance/src/utils/test.rs"
+      ]
+    },
+    {
+      "pr": 6806,
+      "files": [
+        "rust/lance/src/dataset/transaction.rs",
+        "rust/lance/src/index.rs",
+        "rust/lance/src/io/commit/conflict_resolver.rs"
+      ],
+      "overlap": [
+        "rust/lance/src/io/commit/conflict_resolver.rs"
+      ]
+    }
+  ]
+}
