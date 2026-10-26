@@ -1502,11 +1502,13 @@ impl<'a> TransactionRebase<'a> {
                         );
                         return Ok(());
                     }
-                    let newly_depended_fields = new_indices
+                    let mut newly_depended_fields = new_indices
                         .iter()
                         .flat_map(|idx| idx.fields.iter())
                         .copied()
                         .collect::<Vec<_>>();
+                    newly_depended_fields.sort_unstable();
+                    newly_depended_fields.dedup();
                     for replacement in replacements {
                         for field in replacement.1.fields.iter() {
                             // A packed parent's file also replaces the indexed
