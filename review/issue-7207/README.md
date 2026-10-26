@@ -16,6 +16,11 @@ future for the Clippy large-future check), `a108f280a22e` (custom remapper
 ownership correction), and `02d6ed30d` (merge of the final `upstream/main`
 baseline; this merge does not change the patch files).
 
+The earlier research checkpoint at `46d7bfdda` is preserved through the remote
+review history. Its API proposal was not implemented because section 10 of the
+task required approval before a public API change. This README and `DESIGN.md`
+describe the later private-only implementation and its executed evidence.
+
 ## What to review
 
 Review whether cleanup is limited to index UUIDs owned by the transaction and
@@ -113,9 +118,11 @@ bytes, and wall time.
 ## Environment
 
 - Requested benchmark host: `ecs.g9a.4xlarge`, 16 vCPU, 64 GiB RAM, ESSD disks.
+- The research checkpoint recorded `/mnt/lance` as a 295 GiB data filesystem and
+  `sccache` at `/usr/local/bin/sccache`; see `logs/environment.log`.
 - This evidence bundle's Rust tests and static checks ran on macOS 27.0.1
   arm64 with `rustc 1.98.1` and `cargo 1.98.1`.
-- `sccache` was not installed. `CARGO_TARGET_DIR` was
+- `sccache` was not installed in the final test shell. `CARGO_TARGET_DIR` was
   `/private/tmp/lance-target-7207`.
 
 ## Results by revision
@@ -183,3 +190,8 @@ when the external-remapper ownership rule was added.
 | `logs/static-checks.log` | fmt, clippy, and rustdoc results |
 | `logs/bench-pycompile.log` | Python syntax check for the measurement script |
 | `logs/mutation-*.log` | Seven source-removal checks and their catching tests |
+| `logs/environment.log`, `logs/fetch.log`, `logs/separation.log` | Raw research-environment, fetch, and separation evidence from the earlier checkpoint |
+| `check_separation.py` | Earlier standalone branch-separation checker |
+| `results/issue7207.json`, `comments7207.json` | Issue and discussion snapshots |
+| `results/pr8118.json`, `comments8118.json` | Closed PR #8118 description and discussion snapshots |
+| `results/10096-*`, `overlap.json`, `recent-commits.txt` | Related-branch, open-PR, and recent-main overlap evidence |

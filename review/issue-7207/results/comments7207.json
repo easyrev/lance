@@ -1,0 +1,20 @@
+[
+  {
+    "url": "https://github.com/lance-format/lance/issues/7207#issuecomment-5419201183",
+    "author": "rafidowla",
+    "state": null,
+    "body": "We think we hit a variant of this specific to the FTS incremental-merge path introduced in #6737, and wanted to flag the difference in shape in case it's useful.\n\n**Symptom (production, lancedb 0.27.2):** repeated `optimize()` calls against a table with an FTS index on a `text` column started failing with:\n```\nCannot open index on column 'text': ... Object at location\n.../_indices/<uuid>/part_7_tokens.lance not found: No such file or\ndirectory ... Skipping index merge for this column.\n```\nThis recurred on every `optimize()` call touching that column for 12+ days straight, and left **5,073 orphaned `_indices/<uuid>` directories** on disk. Almost all are empty, but the \"active\" one specifically contains a `metadata.lance` stub with no matching token shard file \u2014 so every subsequent merge attempt fails against it permanently, not just once.\n\n**Reproduction (after upgrading to 0.37.1 / lance-index 10.0.0):** we couldn't reproduce the exact missing-shard signature directly, but we did reproduce the surrounding mechanism: concurrent writers + a periodic `optimize()` call racing the same table with no coordination reliably throws `Retryable commit conflict... Please retry` and `CreateIndex transaction was preempted` in ~83% of attempts under load. That looks like the same preempted-Rewrite mechanism described here, just landing on the newer FTS incremental-merge path.\n\n**Where this seems to differ from the disk-growth case described above:** in our case the stranded directory isn't just wasted/orphaned space \u2014 it's a partially-written directory (has `metadata.lance`, missing the actual token shard) that becomes the *active* index reference and is then permanently broken, so every future merge on that column fails rather than the table just accumulating dead weight. #8310 (closed, fixed in lance-index 10.0.0) is adjacent but is a panic, not this. PR #8312 (token-cursor normalization) doesn't look like it covers a partially-written directory missing its shard file either.\n\nIs this considered the same root cause as this issue, or worth tracking as a distinct variant given the failure mode is \"permanently broken index\" rather than \"temporary disk growth\"? Happy to share our repro scripts (concurrent writer + optimize racing, overlapping optimize loops) if useful \u2014 they reliably reproduce the commit-conflict class, though not yet the exact missing-shard signature.\n"
+  },
+  {
+    "url": "https://github.com/lance-format/lance/issues/7207#issuecomment-6408548007",
+    "author": "easyrev",
+    "state": null,
+    "body": "@LuciferYang In your closing note on #8118 you suggested doing this cleanup in the verified-loss arms of `commit_transaction`. You said you would open a separate PR for that. Are you still planning to? If not, I'd like to take it on.\n\nOn current `main`, those arms (`CommitOutcome::Foreign | Absent`) delete only the transaction file. `_indices/{uuid}` directories written by the losing transaction are never reclaimed.\n\nRough plan, following your note:\n\n- Collect the index ids this transaction minted, from the transaction itself: `rewritten_indices[].new_id`, `frag_reuse_index.uuid`, and the new ids in `CreateIndex`. Skip any id the latest manifest references.\n- Delete them only on paths where `verify_commit_outcome` has confirmed the commit did not land. This avoids the `propagate_commit_error_after_success` case that made #8118 unsafe.\n- Also cover the fragment-reuse uuids minted during rebase in `finish_rewrite`, since they are created inside the retry loop.\n- Tests inject a commit failure for Rewrite and CreateIndex, and assert that exactly the minted directories are removed, while live ones survive."
+  },
+  {
+    "url": "https://github.com/lance-format/lance/issues/7207#issuecomment-6408604886",
+    "author": "LuciferYang",
+    "state": null,
+    "body": "@easyrev feel free to submit pr"
+  }
+]
