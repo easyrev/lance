@@ -2,8 +2,8 @@
 
 Baseline: `46d7bfdda8ac303d5363c851d6883facb249cb56` (`upstream/main`, fetched for this investigation).
 
-Status: research only. No implementation, test, or measurement result is claimed.
-The proposed public trait addition requires approval under task section 10.
+Status: Option B approved by the user. Phase 2 starts with regression tests.
+The public IndexRemapper trait must remain unchanged. No test or measurement result is claimed yet.
 All source line numbers below refer to this baseline, not the original checkout.
 
 ## Decision to review
@@ -12,15 +12,15 @@ Commit outcome and artifact ownership are separate facts. The transaction record
 Both `Rewrite` and `CreateIndex` can enter through public APIs with caller-owned, replayable UUIDs.
 Therefore, collecting every UUID from either operation and deleting it after verified loss is unsafe.
 
-Recommended scope:
+Selected scope (Option B):
 
-- Clean indices created by a compaction remapper that explicitly guarantees exclusive ownership of its outputs.
+- Clean remapped indices only when compact_files receives remap_options=None and creates the built-in remapper.
 - Clean the fragment-reuse entry created inside that `commit_compaction` call.
 - Track fresh fragment-reuse entries created by each rebase, including tagged assemblies outside the transaction.
 - Preserve caller-supplied `Rewrite` and `CreateIndex` artifacts. Do not infer ownership from an operation variant.
 - Preserve data files, caller-owned row maps, and all artifacts after an unknown or landed commit outcome.
 
-### Option A: explicit remapper contract (recommended, approval required)
+### Option A: explicit remapper contract (maintainer follow-up only)
 
 Add this provided method to the public `IndexRemapper` trait in
 `rust/lance/src/dataset/optimize/remapping.rs:59`:
@@ -52,7 +52,7 @@ This policy is ephemeral. It is not added to `Transaction`, protobufs, or the fi
 This is an additive public API change, not an implementation change already made.
 Approval is needed before editing the trait.
 
-### Option B: no public API change, narrower coverage
+### Option B: no public API change, narrower coverage (selected)
 
 Use a private compaction implementation with an ownership argument.
 `compact_files` knows whether the caller supplied a remapper before it substitutes the default
@@ -66,6 +66,21 @@ It leaves remap directories from public/distributed `commit_compaction` calls fo
 even when those calls supplied `DatasetIndexRemapperOptions::default()`.
 The erased trait object does not identify that default implementation.
 Do not use UUID freshness heuristics, transaction properties, or type-name comparisons to bridge this gap.
+
+### LanceDB reporter coverage checked before implementation
+
+The reporter used Python LanceDB 0.30.1. Its tag `python-v0.30.1` resolves to
+`f5b21c0aa47238bd20d638bfd30c2784eab80ac5`.
+The [Python Rust binding, lines 660-664](https://github.com/lancedb/lancedb/blob/f5b21c0aa47238bd20d638bfd30c2784eab80ac5/python/src/table.rs#L660-L664)
+constructs `OptimizeAction::Compact { options: ..., remap_options: None }`.
+The [Rust optimize helper, lines 148-155](https://github.com/lancedb/lancedb/blob/f5b21c0aa47238bd20d638bfd30c2784eab80ac5/rust/lancedb/src/table/optimize.rs#L148-L155)
+forwards that exact option to `compact_files(&mut dataset, options, remap_options)`.
+Thus Option B covers the reporter's ordinary table.optimize compaction entry point.
+
+Current LanceDB main was also checked at `982b2a1229ecbce435ed10a24bd0e54d1228f7ca`.
+Its binding sets None at `python/src/table.rs:1593-1596`, and its helper forwards it at
+`rust/lancedb/src/table/optimize.rs:197-204`. OptimizeAction::All also passes None at line 224.
+Source excerpts and exact refs are in `results/lancedb-optimize-path.md`.
 
 ## 1. Commit outcomes and every error exit
 
@@ -222,6 +237,7 @@ Possible conflicts for the proposed implementation are:
 | --- | --- |
 | #9869, analyze-plan cleanup | No shared proposed source file. It cleans data/blob artifacts without committing. Related ownership principle, different implementation. |
 | #10096 PR1 branch, `f217e5afa6c06640374b67c59cc536c01e0f974a` | `conflict_resolver.rs` import and CreateIndex-vs-DataReplacement check. Also index.rs and concurrent_reindex tests. No direct hunk overlap with finish_rewrite, but a shared file and replay semantics need review. |
+| #10096 PR2, `fix/10096-packed-parent-index-conflict`, `86b4d717d20fbae583456523ee1dd4a8c3b6ac9a` | Rechecked all origin heads. Resolver import and CreateIndex-vs-DataReplacement check, plus concurrent_reindex tests. Shared file but no direct hunk overlap with the proposed rebase inventory. The branch is unchanged. |
 | #10146 | Splits conflict_resolver into check/init/finish/test modules. Direct move/edit conflicts for any resolver change or colocated test. |
 | #9821 | optimize.rs, remapping.rs, conflict_resolver.rs, FRI maintenance and validation. Shared compaction and conflict-check code. |
 | #10148 | dataset/index.rs, optimize.rs, remapping.rs. Direct risk around remapper creation and the proposed ownership method. |
@@ -239,7 +255,9 @@ Possible conflicts for the proposed implementation are:
 The #10096 identifier is an issue/work identifier, not a pull request returned by `/pulls/10096` (404).
 The exact origin branch refs were checked with `git ls-remote` and are saved in `results/10096-remote-refs.txt`.
 No matching upstream PR was found by head branch or author/issue search.
-No existing local branch or origin branch was changed. No PR2 branch was returned by the `*10096*` remote-ref query.
+No existing local branch or origin branch was changed. The initial query missed PR2 because it did not exist in that snapshot.
+The resumed check enumerated every origin head and found the PR2 refs above, plus review PR2 at
+`123f6b81b8973975c709c3b9c55b6bd9d7a887a0` (`review/10096-packed-parent-index-conflict`).
 
 Recent main changes include `c64641607` (#10206, read-version state), `ce0f70218` (#9914, manifest encoding),
 `4a519a29c` (#10123, overlay rebase), `59d4d98eb` (#10102, seed flags), and `468e56106` (#9808, deferred rewrite exemption).
@@ -288,8 +306,8 @@ The optional IVF_PQ race remains not measured.
 - Already fixed / duplicate PR: not found in the inspected baseline and GitHub searches.
 - Reporter path: no read-back verification arm, but the pre-write control-flow proof exists. Ownership is still required.
 - No safe operations: false. Built-in compaction outputs and internal rebase-created FRI entries can be owned safely.
-- Stop reason: task section 10 requires approval before the recommended additive public trait change.
-  Option B is a concrete alternative with narrower public/distributed coverage.
+- The user selected Option B. No public trait change is authorized or needed for the selected scope.
+- If the rebase FRI inventory requires a large diff, report its size before continuing with implementation.
 - FTS half-written active indices, data files, generic replayable input IDs, partial builds, and clone cleanup remain out of scope.
 
 Branch separation: the pure branch remains at the baseline with no review paths.

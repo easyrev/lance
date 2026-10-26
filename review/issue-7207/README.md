@@ -1,9 +1,10 @@
-# Issue 7207: research and approval gate
+# Issue 7207: implementation review
 
 Upstream baseline: `46d7bfdda8ac303d5363c851d6883facb249cb56`.
 
 This branch contains research, not an implementation ready for an upstream PR.
-Work stopped before the proposed public `IndexRemapper` method, as task section 10 requires.
+The user selected Option B: private ownership tracking, with no public IndexRemapper change.
+Phase 2 starts after verifying that LanceDB 0.30.1 table.optimize passes remap_options=None.
 No upstream PR or GitHub comment was created.
 
 ## Branches
