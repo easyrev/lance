@@ -230,8 +230,10 @@ The refresh from `88d8b1cc7` to `1afd963c1` adds #10103 (linalg dispatch),
 - Additional open PRs with textual overlap in at least one selected file are
   #10341, #10037, #10034, #8400, #9769, #9960, #5899, #10121, #10159, #9898,
   #8916, #9947, #9220, #9654, #9651, #9118, #9178, #8655, #9156, #8774,
-  #8801, #8614, #8457, #8246, #10034, #10164, #8644, #6806, #9821, #10146,
-  #9746, #9155, #9150, #8960, #8958, #8957, #8811, #6018, #8952.
+  #8801, #8614, #8457, #8246, #10164, #8644, #6806, #9821, #10146, #9746,
+  #9155, #9150, #8960, #8958, #8957, #8811, #6018, #8952, #10148, #9961,
+  and #9816. The earlier research snapshot also identified #10033 and #9271
+  as semantic overlaps without a proposed source-file overlap.
 - Recent `main` commits touching these areas include #10206, #9914, #9995,
   #10123, #9731, #9631, and #9611. The patch will stay at the verified-loss
   boundary and avoid broad conflict-resolver restructuring.
