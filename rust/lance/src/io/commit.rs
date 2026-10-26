@@ -1837,6 +1837,34 @@ pub(crate) async fn commit_transaction(
     affected_rows: Option<&RowAddrTreeMap>,
     index_cleanup: IndexCleanupMode,
 ) -> Result<(Manifest, ManifestLocation)> {
+    Box::pin(commit_transaction_inner(
+        dataset,
+        object_store,
+        commit_handler,
+        transaction,
+        write_config,
+        commit_config,
+        retry_timeout,
+        manifest_naming_scheme,
+        affected_rows,
+        index_cleanup,
+    ))
+    .await
+}
+
+#[allow(clippy::too_many_arguments)]
+async fn commit_transaction_inner(
+    dataset: &Dataset,
+    object_store: &ObjectStore,
+    commit_handler: &dyn CommitHandler,
+    transaction: &Transaction,
+    write_config: &ManifestWriteConfig,
+    commit_config: &CommitConfig,
+    retry_timeout: Duration,
+    manifest_naming_scheme: ManifestNamingScheme,
+    affected_rows: Option<&RowAddrTreeMap>,
+    index_cleanup: IndexCleanupMode,
+) -> Result<(Manifest, ManifestLocation)> {
     // Note: object_store has been configured with WriteParams, but dataset.object_store.as_ref()
     // has not necessarily. So for anything involving writing, use `object_store`.
     let read_version = transaction.read_version;
@@ -1940,12 +1968,12 @@ pub(crate) async fn commit_transaction(
                 cleanup_transaction_file(object_store, &dataset.base, &current_transaction_file)
                     .await;
                 if should_clean_indices {
-                    cleanup_lost_commit_indices(
+                    Box::pin(cleanup_lost_commit_indices(
                         &dataset,
                         object_store,
                         commit_handler,
                         &candidate_index_ids,
-                    )
+                    ))
                     .await;
                 }
                 return Err(error);
@@ -1960,12 +1988,12 @@ pub(crate) async fn commit_transaction(
                     )
                     .await;
                     if should_clean_indices {
-                        cleanup_lost_commit_indices(
+                        Box::pin(cleanup_lost_commit_indices(
                             &dataset,
                             object_store,
                             commit_handler,
                             &candidate_index_ids,
-                        )
+                        ))
                         .await;
                     }
                     return Err(error);
@@ -2200,12 +2228,12 @@ pub(crate) async fn commit_transaction(
                     .await;
                     if retry_start.elapsed() > retry_timeout {
                         if should_clean_indices {
-                            cleanup_lost_commit_indices(
+                            Box::pin(cleanup_lost_commit_indices(
                                 &dataset,
                                 object_store,
                                 commit_handler,
                                 &candidate_index_ids,
-                            )
+                            ))
                             .await;
                         }
                         return Err(timeout_error(retry_timeout, backoff.attempt() + 1));
@@ -2216,12 +2244,12 @@ pub(crate) async fn commit_transaction(
                             .await
                     {
                         if should_clean_indices {
-                            cleanup_lost_commit_indices(
+                            Box::pin(cleanup_lost_commit_indices(
                                 &dataset,
                                 object_store,
                                 commit_handler,
                                 &candidate_index_ids,
-                            )
+                            ))
                             .await;
                         }
                         return Err(error);
@@ -2270,12 +2298,12 @@ pub(crate) async fn commit_transaction(
                         )
                         .await;
                         if should_clean_indices {
-                            cleanup_lost_commit_indices(
+                            Box::pin(cleanup_lost_commit_indices(
                                 &dataset,
                                 object_store,
                                 commit_handler,
                                 &candidate_index_ids,
-                            )
+                            ))
                             .await;
                         }
                         return Err(err);
@@ -2293,8 +2321,13 @@ pub(crate) async fn commit_transaction(
 
     cleanup_transaction_file(object_store, &dataset.base, &current_transaction_file).await;
     if should_clean_indices {
-        cleanup_lost_commit_indices(&dataset, object_store, commit_handler, &candidate_index_ids)
-            .await;
+        Box::pin(cleanup_lost_commit_indices(
+            &dataset,
+            object_store,
+            commit_handler,
+            &candidate_index_ids,
+        ))
+        .await;
     }
     Err(crate::Error::commit_conflict_source(
         target_version,
