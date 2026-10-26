@@ -4004,6 +4004,7 @@ mod tests {
 
     mod binary_copy;
     mod concurrent_reindex;
+    mod index_cleanup;
     use self::remapping::RemappedIndex;
     use super::*;
     use crate::dataset::WriteDestination;
