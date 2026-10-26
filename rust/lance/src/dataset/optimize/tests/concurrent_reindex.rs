@@ -1090,16 +1090,9 @@ async fn packed_parent_dataset(uri: &str) -> Dataset {
     dataset
 }
 
-async fn replace_packed_parent(uri: &str, children: Fields) {
+async fn commit_data_replacement(uri: &str, column: &str, values: ArrayRef) {
     let table = open_in_new_session(uri).await;
-    let schema = table.schema().project(&["s"]).unwrap();
-    let values = Arc::new(StructArray::new(
-        children,
-        vec![Arc::new(Int32Array::from_iter_values(
-            (0..ROWS_PER_FRAGMENT).map(|id| if id == 3 { 333 } else { id }),
-        )) as ArrayRef],
-        None,
-    )) as ArrayRef;
+    let schema = table.schema().project(&[column]).unwrap();
     let batch = RecordBatch::try_new(Arc::new(ArrowSchema::from(&schema)), vec![values]).unwrap();
     let replacement = table.get_fragments()[0]
         .write_columns(futures::stream::iter([Ok(batch)]), &schema)
@@ -1107,7 +1100,7 @@ async fn replace_packed_parent(uri: &str, children: Fields) {
         .unwrap();
     assert_eq!(
         replacement.1.fields.as_ref(),
-        &[table.schema().field("s").unwrap().id]
+        &[table.schema().field(column).unwrap().id]
     );
     let read_version = table.manifest.version;
     Dataset::commit(
@@ -1125,35 +1118,20 @@ async fn replace_packed_parent(uri: &str, children: Fields) {
     .unwrap();
 }
 
-async fn rewrite_packed_parent(uri: &str, children: Fields) {
-    let table = open_in_new_session(uri).await;
-    let (packed, _) = packed_parent_field();
-    let patch = RecordBatch::try_new(
-        Arc::new(ArrowSchema::new(vec![
-            ArrowField::new("id", DataType::Int32, false),
-            packed,
-        ])),
-        vec![
-            Arc::new(Int32Array::from(vec![3])) as ArrayRef,
-            Arc::new(StructArray::new(
-                children,
-                vec![Arc::new(Int32Array::from(vec![333])) as ArrayRef],
-                None,
-            )) as ArrayRef,
-        ],
-    )
-    .unwrap();
-    let mut merge = MergeInsertBuilder::try_new(Arc::new(table), vec!["id".into()]).unwrap();
-    merge
-        .when_matched(WhenMatched::UpdateAll)
-        .when_not_matched(WhenNotMatched::DoNothing)
-        .write_mode(MergeInsertWriteMode::RewriteColumns);
-    merge
-        .try_build()
-        .unwrap()
-        .execute_batches(vec![patch])
-        .await
-        .unwrap();
+async fn replace_packed_parent(uri: &str, children: Fields) {
+    let values = Arc::new(StructArray::new(
+        children,
+        vec![Arc::new(Int32Array::from_iter_values(
+            (0..ROWS_PER_FRAGMENT).map(|id| if id == 3 { 333 } else { id }),
+        )) as ArrayRef],
+        None,
+    )) as ArrayRef;
+    commit_data_replacement(uri, "s", values).await;
+}
+
+async fn replace_spare(uri: &str) {
+    let values = Arc::new(Int32Array::from(vec![99; ROWS_PER_FRAGMENT as usize])) as ArrayRef;
+    commit_data_replacement(uri, "spare", values).await;
 }
 
 async fn count_filter_rows(dataset: &Dataset, filter: &str, use_index: bool) -> usize {
@@ -1162,126 +1140,100 @@ async fn count_filter_rows(dataset: &Dataset, filter: &str, use_index: bool) -> 
     scan.try_into_batch().await.unwrap().num_rows()
 }
 
-/// A CreateIndex on a packed child must reject a concurrent DataReplacement of
-/// the parent instead of publishing an index with stale child coverage.
-#[tokio::test]
-async fn packed_parent_create_index_conflicts_with_data_replacement() {
-    let dir = TempStrDir::default();
-    let uri = dir.as_str().to_string();
-    let _dataset = packed_parent_dataset(&uri).await;
-    let (_, children) = packed_parent_field();
-    let hook_uri = uri.clone();
-    let hook: Hook = Box::pin(async move {
-        replace_packed_parent(&hook_uri, children).await;
-    });
-    let (mut publisher, race) = builder_racing(&uri, hook).await;
-    let create = publisher
-        .create_index(
-            &["s.x"],
-            IndexType::BTree,
-            Some("x_idx".into()),
-            &ScalarIndexParams::default(),
-            false,
-        )
-        .await;
-    let dataset = open_in_new_session(&uri).await;
-    let indexed_333 = count_filter_rows(&dataset, "s.x = 333", true).await;
-    let indexed_3 = count_filter_rows(&dataset, "s.x = 3", true).await;
-    let scanned_333 = count_filter_rows(&dataset, "s.x = 333", false).await;
-    let scanned_3 = count_filter_rows(&dataset, "s.x = 3", false).await;
-    let Err(error) = create else {
-        panic!(
-            "CreateIndex committed over DataReplacement: indexed 333/3 = \
-             {indexed_333}/{indexed_3}, scan 333/3 = {scanned_333}/{scanned_3}"
-        )
-    };
-    assert!(
-        matches!(error, Error::RetryableCommitConflict { .. }),
-        "expected RetryableCommitConflict, got: {error:?}"
-    );
-    assert!(error.to_string().contains("DataReplacement"), "{error}");
-    assert_eq!(indexed_333, scanned_333);
-    assert_eq!(indexed_3, scanned_3);
-    assert_eq!((indexed_333, indexed_3), (1, 0));
-    assert!(race.attempts.load(Ordering::SeqCst) > 0);
+#[derive(Clone, Copy, Debug)]
+enum PackedChildIndexCase {
+    CreateIndex,
+    StagedSegment,
+    UnrelatedColumn,
 }
 
-/// A staged packed-child segment must reject the same parent replacement when
-/// it is published with `commit_existing_index_segments`.
+/// A packed-child index rejects replacements of the parent and accepts a
+/// replacement of an unrelated column.
+#[rstest]
+#[case::create_index(PackedChildIndexCase::CreateIndex)]
+#[case::staged_segment(PackedChildIndexCase::StagedSegment)]
+#[case::unrelated_column(PackedChildIndexCase::UnrelatedColumn)]
 #[tokio::test]
-async fn packed_parent_commit_existing_segment_conflicts_with_data_replacement() {
+async fn packed_parent_data_replacement_races_have_expected_outcomes(
+    #[case] case: PackedChildIndexCase,
+) {
     let dir = TempStrDir::default();
     let uri = dir.as_str().to_string();
     let _dataset = packed_parent_dataset(&uri).await;
     let mut builder = open_in_new_session(&uri).await;
-    let segment = builder
-        .create_index_builder(&["s.x"], IndexType::BTree, &ScalarIndexParams::default())
-        .name("x_idx".into())
-        .execute_uncommitted()
-        .await
-        .unwrap();
-    let (_, children) = packed_parent_field();
-    let hook_uri = uri.clone();
-    let hook: Hook = Box::pin(async move {
-        replace_packed_parent(&hook_uri, children).await;
-    });
-    let (mut publisher, race) = builder_racing(&uri, hook).await;
-    let publish = publisher
-        .commit_existing_index_segments("x_idx", "s.x", vec![segment])
-        .await;
-    let dataset = open_in_new_session(&uri).await;
-    let indexed_333 = count_filter_rows(&dataset, "s.x = 333", true).await;
-    let indexed_3 = count_filter_rows(&dataset, "s.x = 3", true).await;
-    let scanned_333 = count_filter_rows(&dataset, "s.x = 333", false).await;
-    let scanned_3 = count_filter_rows(&dataset, "s.x = 3", false).await;
-    let Err(error) = publish else {
-        panic!(
-            "staged segment committed over DataReplacement: indexed 333/3 = \
-             {indexed_333}/{indexed_3}, scan 333/3 = {scanned_333}/{scanned_3}"
-        )
+    let staged_segment = match case {
+        PackedChildIndexCase::StagedSegment => Some(
+            builder
+                .create_index_builder(&["s.x"], IndexType::BTree, &ScalarIndexParams::default())
+                .name("x_idx".into())
+                .execute_uncommitted()
+                .await
+                .unwrap(),
+        ),
+        _ => None,
     };
-    assert!(
-        matches!(error, Error::RetryableCommitConflict { .. }),
-        "expected RetryableCommitConflict, got: {error:?}"
-    );
-    assert!(error.to_string().contains("DataReplacement"), "{error}");
-    assert_eq!(indexed_333, scanned_333);
-    assert_eq!(indexed_3, scanned_3);
-    assert_eq!((indexed_333, indexed_3), (1, 0));
-    assert!(race.attempts.load(Ordering::SeqCst) > 0);
-}
-
-/// A `RewriteColumns` merge updates the packed parent through a different
-/// operation. The CreateIndex may commit after it prunes the rewritten child.
-#[tokio::test]
-async fn packed_parent_rewrite_columns_keeps_create_index_consistent() {
-    let dir = TempStrDir::default();
-    let uri = dir.as_str().to_string();
-    let _dataset = packed_parent_dataset(&uri).await;
-    let (_, children) = packed_parent_field();
-    let hook_uri = uri.clone();
-    let hook: Hook = Box::pin(async move {
-        rewrite_packed_parent(&hook_uri, children).await;
-    });
+    let hook: Hook = match case {
+        PackedChildIndexCase::UnrelatedColumn => {
+            let hook_uri = uri.clone();
+            Box::pin(async move {
+                replace_spare(&hook_uri).await;
+            })
+        }
+        _ => {
+            let (_, children) = packed_parent_field();
+            let hook_uri = uri.clone();
+            Box::pin(async move {
+                replace_packed_parent(&hook_uri, children).await;
+            })
+        }
+    };
     let (mut publisher, race) = builder_racing(&uri, hook).await;
-    publisher
-        .create_index(
-            &["s.x"],
-            IndexType::BTree,
-            Some("x_idx".into()),
-            &ScalarIndexParams::default(),
-            false,
-        )
-        .await
-        .unwrap();
-    let dataset = open_in_new_session(&uri).await;
-    assert!(dataset.load_index_by_name("x_idx").await.unwrap().is_some());
-    let indexed_333 = count_filter_rows(&dataset, "s.x = 333", true).await;
-    let indexed_3 = count_filter_rows(&dataset, "s.x = 3", true).await;
-    let scanned_333 = count_filter_rows(&dataset, "s.x = 333", false).await;
-    let scanned_3 = count_filter_rows(&dataset, "s.x = 3", false).await;
-    assert_eq!(indexed_333, scanned_333);
-    assert_eq!(indexed_3, scanned_3);
-    assert_eq!((indexed_333, indexed_3), (1, 0));
+    let result = match staged_segment {
+        Some(segment) => {
+            publisher
+                .commit_existing_index_segments("x_idx", "s.x", vec![segment])
+                .await
+        }
+        None => publisher
+            .create_index(
+                &["s.x"],
+                IndexType::BTree,
+                Some("x_idx".into()),
+                &ScalarIndexParams::default(),
+                false,
+            )
+            .await
+            .map(|_| ()),
+    };
+    match (case, result) {
+        (PackedChildIndexCase::UnrelatedColumn, Ok(())) => {
+            let dataset = open_in_new_session(&uri).await;
+            assert!(dataset.load_index_by_name("x_idx").await.unwrap().is_some());
+            let indexed_3 = count_filter_rows(&dataset, "s.x = 3", true).await;
+            let scanned_3 = count_filter_rows(&dataset, "s.x = 3", false).await;
+            assert_eq!(indexed_3, scanned_3);
+        }
+        (PackedChildIndexCase::UnrelatedColumn, Err(error)) => {
+            panic!("unrelated column replacement conflicted: {error:?}")
+        }
+        (_, Err(error)) => {
+            assert!(
+                matches!(error, Error::RetryableCommitConflict { .. }),
+                "expected RetryableCommitConflict, got: {error:?}"
+            );
+            assert!(error.to_string().contains("DataReplacement"), "{error}");
+            let dataset = open_in_new_session(&uri).await;
+            assert!(dataset.load_index_by_name("x_idx").await.unwrap().is_none());
+        }
+        (case, Ok(())) => {
+            let dataset = open_in_new_session(&uri).await;
+            let indexed_3 = count_filter_rows(&dataset, "s.x = 3", true).await;
+            let scanned_3 = count_filter_rows(&dataset, "s.x = 3", false).await;
+            panic!(
+                "{case:?} committed over DataReplacement: indexed/scan s.x = 3 = \
+                 {indexed_3}/{scanned_3}"
+            )
+        }
+    }
     assert!(race.attempts.load(Ordering::SeqCst) > 0);
 }
