@@ -1213,12 +1213,21 @@ pub async fn compact_files_with_planner(
         );
 
     let completed_tasks: Vec<RewriteResult> = result_stream.try_collect().await?;
+    // Only the built-in remapper is known to create index IDs that are owned by
+    // this call. A caller-supplied implementation may cache an ID and reuse it
+    // if `commit_compaction` is replayed after a terminal failure.
+    let index_cleanup = if remap_options.is_none() {
+        IndexCleanupMode::TransactionOwned
+    } else {
+        IndexCleanupMode::TransactionExceptRemaps
+    };
     let remap_options = remap_options.unwrap_or(Arc::new(DatasetIndexRemapperOptions::default()));
-    let metrics = commit_compaction(
+    let metrics = commit_compaction_with_index_cleanup(
         dataset,
         completed_tasks,
         remap_options,
         &compaction_plan.options,
+        index_cleanup,
     )
     .await?;
 
@@ -3479,11 +3488,34 @@ async fn records_stable_row_id_moves(
 /// With stable row IDs, tasks that recorded their row-address moves (see
 /// [`CompactionOptions::defer_index_remap`]) commit them even if `options` does not
 /// set `defer_index_remap`; either all tasks or none must have recorded them.
+///
+/// Index IDs returned through `remap_options` remain caller-owned because
+/// [`IndexRemapperOptions`] does not guarantee that a remapper creates a new ID
+/// for every call. They are retained if the commit is proven not to have landed.
 pub async fn commit_compaction(
     dataset: &mut Dataset,
     completed_tasks: Vec<RewriteResult>,
     remap_options: Arc<dyn IndexRemapperOptions>,
     options: &CompactionOptions,
+) -> Result<CompactionMetrics> {
+    // The trait does not promise that a remapper's output IDs were created by
+    // this call. Keep those directories so a caller can replay the same remap.
+    commit_compaction_with_index_cleanup(
+        dataset,
+        completed_tasks,
+        remap_options,
+        options,
+        IndexCleanupMode::TransactionExceptRemaps,
+    )
+    .await
+}
+
+async fn commit_compaction_with_index_cleanup(
+    dataset: &mut Dataset,
+    completed_tasks: Vec<RewriteResult>,
+    remap_options: Arc<dyn IndexRemapperOptions>,
+    options: &CompactionOptions,
+    index_cleanup: IndexCleanupMode,
 ) -> Result<CompactionMetrics> {
     if completed_tasks.is_empty() {
         return Ok(CompactionMetrics::default());
@@ -3955,7 +3987,7 @@ pub async fn commit_compaction(
             transaction,
             &Default::default(),
             &Default::default(),
-            IndexCleanupMode::TransactionOwned,
+            index_cleanup,
         )
         .await
     {
@@ -13973,7 +14005,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_rewrite_loss_keeps_index_when_remap_reports_keep() {
+    async fn test_rewrite_loss_keeps_custom_remapper_index_for_replay() {
         let test_dir = TempStrDir::default();
         let test_uri = test_dir.as_str();
         let handler = Arc::new(AmbiguousCommitHandler::default());
@@ -14019,7 +14051,11 @@ mod tests {
             .join("_indices")
             .join(remapped_uuid.to_string());
         std::fs::create_dir_all(&remapped_dir).unwrap();
-        std::fs::write(remapped_dir.join("payload"), b"minted by the rewrite").unwrap();
+        std::fs::write(
+            remapped_dir.join("payload"),
+            b"owned by the custom remapper",
+        )
+        .unwrap();
 
         let keep_answer = RemappedIndex {
             old_id: keep_index.uuid,
@@ -14040,22 +14076,23 @@ mod tests {
             index_version: replace_index.index_version as u32,
             files: replace_index.files.clone(),
         };
-        let live_directories =
-            BTreeSet::from([keep_index.uuid.to_string(), replace_index.uuid.to_string()]);
+        let live_directories = BTreeSet::from([
+            keep_index.uuid.to_string(),
+            replace_index.uuid.to_string(),
+            remapped_uuid.to_string(),
+        ]);
+        let remapper = Arc::new(AnswerRemapperOptions {
+            answers: vec![keep_answer, remap_answer],
+        });
+        let options = CompactionOptions {
+            target_rows_per_fragment: 1_000,
+            ..Default::default()
+        };
 
         handler.fail_next_rewrite(AmbiguousFailure::FailOutright);
-        let error = compact_files(
-            &mut dataset,
-            CompactionOptions {
-                target_rows_per_fragment: 1_000,
-                ..Default::default()
-            },
-            Some(Arc::new(AnswerRemapperOptions {
-                answers: vec![keep_answer, remap_answer],
-            })),
-        )
-        .await
-        .unwrap_err();
+        let error = compact_files(&mut dataset, options.clone(), Some(remapper.clone()))
+            .await
+            .unwrap_err();
         assert!(
             error
                 .to_string()
@@ -14064,6 +14101,22 @@ mod tests {
         );
 
         assert_eq!(index_directories(test_uri), live_directories);
+
+        // The same externally owned remap must remain usable when the caller
+        // retries the failed compaction.
+        compact_files(&mut dataset, options, Some(remapper))
+            .await
+            .unwrap();
+        assert_eq!(index_directories(test_uri), live_directories);
+        assert!(
+            dataset
+                .load_indices()
+                .await
+                .unwrap()
+                .iter()
+                .any(|index| index.uuid == remapped_uuid),
+            "the retried commit must reference the retained custom index directory"
+        );
     }
 
     #[tokio::test]
@@ -14211,11 +14264,12 @@ mod tests {
         let mut latest = Dataset::open(test_uri).await.unwrap();
         latest.delete("a < 100").await.unwrap();
 
-        let error = commit_compaction(
+        let error = commit_compaction_with_index_cleanup(
             &mut stale,
             vec![rewrite],
             Arc::new(DatasetIndexRemapperOptions::default()),
             &options,
+            IndexCleanupMode::TransactionOwned,
         )
         .await
         .unwrap_err();

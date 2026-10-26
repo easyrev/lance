@@ -1716,6 +1716,9 @@ async fn record_successful_commit(
 pub(crate) enum IndexCleanupMode {
     /// The caller may replay the transaction or reuse its index IDs.
     CallerOwned,
+    /// The transaction owns its other index IDs, but a remapper supplied the
+    /// rewritten index IDs and may replay them.
+    TransactionExceptRemaps,
     /// The IDs are transaction-internal and can be reclaimed after a proven
     /// terminal commit loss.
     TransactionOwned,
@@ -1726,7 +1729,11 @@ pub(crate) enum IndexCleanupMode {
 /// A `Keep` remap reuses an existing index directory and therefore never
 /// becomes a deletion candidate. Other operations do not mint index
 /// directories.
-fn collect_transaction_index_ids(operation: &Operation, index_ids: &mut HashSet<Uuid>) {
+fn collect_transaction_index_ids(
+    operation: &Operation,
+    index_cleanup: IndexCleanupMode,
+    index_ids: &mut HashSet<Uuid>,
+) {
     match operation {
         Operation::CreateIndex { new_indices, .. } => {
             index_ids.extend(new_indices.iter().map(|index| index.uuid));
@@ -1736,12 +1743,14 @@ fn collect_transaction_index_ids(operation: &Operation, index_ids: &mut HashSet<
             frag_reuse_index,
             ..
         } => {
-            index_ids.extend(
-                rewritten_indices
-                    .iter()
-                    .filter(|index| index.new_id != index.old_id)
-                    .map(|index| index.new_id),
-            );
+            if index_cleanup == IndexCleanupMode::TransactionOwned {
+                index_ids.extend(
+                    rewritten_indices
+                        .iter()
+                        .filter(|index| index.new_id != index.old_id)
+                        .map(|index| index.new_id),
+                );
+            }
             if let Some(index) = frag_reuse_index {
                 index_ids.insert(index.uuid);
             }
@@ -1902,9 +1911,13 @@ async fn commit_transaction_inner(
 
     let mut transaction = transaction.clone();
     let mut candidate_index_ids = HashSet::new();
-    let should_clean_indices = index_cleanup == IndexCleanupMode::TransactionOwned;
+    let should_clean_indices = index_cleanup != IndexCleanupMode::CallerOwned;
     if should_clean_indices {
-        collect_transaction_index_ids(&transaction.operation, &mut candidate_index_ids);
+        collect_transaction_index_ids(
+            &transaction.operation,
+            index_cleanup,
+            &mut candidate_index_ids,
+        );
     }
     // What a rewrite on a tagged fragment reuse history assembled for the
     // attempt; handed to the manifest build, never written back into
@@ -2003,7 +2016,11 @@ async fn commit_transaction_inner(
             let (rebased, assembly) = rebase.finish_with_tagged_rewrite(&dataset).await?;
             transaction = rebased;
             if should_clean_indices {
-                collect_transaction_index_ids(&transaction.operation, &mut candidate_index_ids);
+                collect_transaction_index_ids(
+                    &transaction.operation,
+                    index_cleanup,
+                    &mut candidate_index_ids,
+                );
                 if let Some(assembly) = &assembly {
                     candidate_index_ids.insert(assembly.entry.uuid);
                 }
@@ -2438,9 +2455,21 @@ mod tests {
         };
         let mut index_ids = HashSet::new();
 
-        collect_transaction_index_ids(&operation, &mut index_ids);
+        collect_transaction_index_ids(
+            &operation,
+            IndexCleanupMode::TransactionOwned,
+            &mut index_ids,
+        );
 
         assert_eq!(index_ids, HashSet::from([remapped_id]));
+
+        let mut caller_owned_remaps = HashSet::new();
+        collect_transaction_index_ids(
+            &operation,
+            IndexCleanupMode::TransactionExceptRemaps,
+            &mut caller_owned_remaps,
+        );
+        assert!(caller_owned_remaps.is_empty());
     }
 
     #[tokio::test]
