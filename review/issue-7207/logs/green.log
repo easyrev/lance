@@ -1,5 +1,4 @@
-tested_commit=794da143893a2eea6efde668995cbf34101f87e2
-
+tested_commit=a108f280a
 ===== dataset::optimize::tests::test_rewrite_loss_reclaims_remapped_index_directory =====
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
@@ -9,7 +8,7 @@ warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dw
   = note: `#[warn(linker_messages)]` on by default
 
 warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 31s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 28.28s
      Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
 
 running 1 test
@@ -17,8 +16,7 @@ test dataset::optimize::tests::test_rewrite_loss_reclaims_remapped_index_directo
 
 test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.12s
 
-
-===== dataset::optimize::tests::test_rewrite_loss_keeps_index_when_remap_reports_keep =====
+===== dataset::optimize::tests::test_rewrite_loss_keeps_custom_remapper_index_for_replay =====
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
 warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
@@ -26,67 +24,15 @@ warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dw
   = note: `#[warn(linker_messages)]` on by default
 
 warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.11s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.85s
      Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
 
 running 1 test
-test dataset::optimize::tests::test_rewrite_loss_keeps_index_when_remap_reports_keep ... ok
+test dataset::optimize::tests::test_rewrite_loss_keeps_custom_remapper_index_for_replay ... ok
 
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.05s
-
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.04s
 
 ===== dataset::optimize::tests::test_deferred_rewrite_loss_reclaims_spilled_fri_directory =====
-warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
-warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
-warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
-  |
-  = note: `#[warn(linker_messages)]` on by default
-
-warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.40s
-     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
-
-running 1 test
-test dataset::optimize::tests::test_deferred_rewrite_loss_reclaims_spilled_fri_directory ... ok
-
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 1.06s
-
-
-===== dataset::optimize::tests::test_rebased_fri_loss_reclaims_original_and_replacement_directories =====
-warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
-warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
-warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
-  |
-  = note: `#[warn(linker_messages)]` on by default
-
-warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s
-     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
-
-running 1 test
-test dataset::optimize::tests::test_rebased_fri_loss_reclaims_original_and_replacement_directories ... ok
-
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 1.12s
-
-
-===== index::create::tests::test_create_index_loss_reclaims_new_index_directory =====
-warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
-warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
-warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
-  |
-  = note: `#[warn(linker_messages)]` on by default
-
-warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.42s
-     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
-
-running 1 test
-test index::create::tests::test_create_index_loss_reclaims_new_index_directory ... ok
-
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.03s
-
-
-===== index::create::tests::test_landed_index_commit_returning_error_keeps_directory =====
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
 warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
@@ -98,10 +44,57 @@ warning: `lance` (lib test) generated 1 warning
      Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
 
 running 1 test
-test index::create::tests::test_landed_index_commit_returning_error_keeps_directory ... ok
+test dataset::optimize::tests::test_deferred_rewrite_loss_reclaims_spilled_fri_directory ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 1.05s
+
+===== dataset::optimize::tests::test_rebased_fri_loss_reclaims_original_and_replacement_directories =====
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.48s
+     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
+
+running 1 test
+test dataset::optimize::tests::test_rebased_fri_loss_reclaims_original_and_replacement_directories ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 1.09s
+
+===== index::create::tests::test_create_index_loss_reclaims_new_index_directory =====
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s
+     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
+
+running 1 test
+test index::create::tests::test_create_index_loss_reclaims_new_index_directory ... ok
 
 test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.03s
 
+===== index::create::tests::test_landed_index_commit_returning_error_keeps_directory =====
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s
+     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
+
+running 1 test
+test index::create::tests::test_landed_index_commit_returning_error_keeps_directory ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.04s
 
 ===== dataset::optimize::tests::test_rewrite_preempted_by_delete_reclaims_remapped_index_directory =====
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
@@ -119,7 +112,6 @@ test dataset::optimize::tests::test_rewrite_preempted_by_delete_reclaims_remappe
 
 test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.04s
 
-
 ===== io::commit::tests::test_collect_transaction_index_ids_skips_keep_remaps =====
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
@@ -128,14 +120,13 @@ warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dw
   = note: `#[warn(linker_messages)]` on by default
 
 warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.40s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.43s
      Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
 
 running 1 test
 test io::commit::tests::test_collect_transaction_index_ids_skips_keep_remaps ... ok
 
 test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.00s
-
 
 ===== io::commit::tests::test_lost_index_cleanup_keeps_latest_manifest_index =====
 warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
@@ -145,7 +136,7 @@ warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dw
   = note: `#[warn(linker_messages)]` on by default
 
 warning: `lance` (lib test) generated 1 warning
-    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.39s
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.41s
      Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
 
 running 1 test
