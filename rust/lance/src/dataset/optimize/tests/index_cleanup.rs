@@ -353,6 +353,7 @@ async fn test_owned_fri_rebase_then_terminal_loss(#[case] tagged: bool) {
     {
         let snapshots = handler.snapshots.lock().unwrap();
         assert!(!snapshots[0].is_subset(&before));
+        assert!(snapshots[0].is_subset(&snapshots[1]));
         assert_eq!(snapshots[1].difference(&snapshots[0]).count(), 1);
     }
     assert_eq!(index_directories(dir.as_str()), before);
