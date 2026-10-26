@@ -108,7 +108,9 @@ use crate::Result;
 use crate::dataset::utils::CapturedRowIds;
 use crate::index::frag_reuse_with_stable_row_ids::ensure_frag_reuse_recording_allowed;
 use crate::index::{DatasetIndexInternalExt, index_is_usable, load_all_indices};
-use crate::io::commit::{commit_transaction, default_commit_retry_timeout, migrate_fragments};
+use crate::io::commit::{
+    IndexCleanupMode, commit_transaction, default_commit_retry_timeout, migrate_fragments,
+};
 use arrow::array::AsArray;
 use arrow::datatypes::{UInt8Type, UInt32Type, UInt64Type};
 use arrow_array::builder::{LargeBinaryBuilder, PrimitiveBuilder, StringBuilder};
@@ -2575,6 +2577,7 @@ async fn reserve_fragment_ids(
         default_commit_retry_timeout(),
         dataset.manifest_location.naming_scheme,
         None,
+        IndexCleanupMode::CallerOwned,
     )
     .await?;
 
@@ -3948,7 +3951,12 @@ pub async fn commit_compaction(
     .build();
 
     if let Err(e) = dataset
-        .apply_commit(transaction, &Default::default(), &Default::default())
+        .apply_commit_with_index_cleanup(
+            transaction,
+            &Default::default(),
+            &Default::default(),
+            IndexCleanupMode::TransactionOwned,
+        )
         .await
     {
         // RewriteResult is serializable and may be retried after an earlier
@@ -4015,7 +4023,9 @@ mod tests {
     };
     use crate::dataset::scanner::ColumnOrdering;
     use crate::index::DatasetIndexExt;
-    use crate::index::frag_reuse::{load_frag_reuse_index_details, open_frag_reuse_index};
+    use crate::index::frag_reuse::{
+        FRAG_REUSE_INLINE_DETAILS_LIMIT, load_frag_reuse_index_details, open_frag_reuse_index,
+    };
     use crate::index::vector::{StageParams, VectorIndexParams};
     use crate::session::caches::{ManifestKey, RowIdIndexKey, TransactionKey};
     use crate::utils::test::{
@@ -4063,9 +4073,10 @@ mod tests {
     use lance_table::rowids::read_row_ids;
     use lance_testing::datagen::{BatchGenerator, IncrementingInt32, RandomVector};
     use rstest::rstest;
-    use std::collections::HashSet;
+    use std::collections::{BTreeSet, HashSet};
     use std::io::Cursor;
     use std::sync::Arc;
+    use tokio::sync::Notify;
     use uuid::Uuid;
 
     #[test]
@@ -4160,6 +4171,201 @@ mod tests {
             vec![Arc::new(Int64Array::from_iter_values(0..10_000))],
         )
         .unwrap()
+    }
+
+    fn two_column_sample_data() -> RecordBatch {
+        let schema = Schema::new(vec![
+            Field::new("a", DataType::Int64, false),
+            Field::new("b", DataType::Int64, false),
+        ]);
+        let values = Arc::new(Int64Array::from_iter_values(0..10_000));
+        RecordBatch::try_new(Arc::new(schema), vec![values.clone(), values]).unwrap()
+    }
+
+    fn index_directories(base_dir: &str) -> BTreeSet<String> {
+        let indices_dir = std::path::Path::new(base_dir).join("_indices");
+        let Ok(entries) = std::fs::read_dir(indices_dir) else {
+            return BTreeSet::new();
+        };
+        entries
+            .map(|entry| entry.unwrap())
+            .filter(|entry| entry.file_type().unwrap().is_dir())
+            .map(|entry| entry.file_name().into_string().unwrap())
+            .filter(|name| !name.starts_with('.'))
+            .collect()
+    }
+
+    #[derive(Debug)]
+    struct AnswerRemapper {
+        answers: Vec<RemappedIndex>,
+    }
+
+    #[async_trait]
+    impl IndexRemapper for AnswerRemapper {
+        async fn remap_indices(
+            &self,
+            _index_map: RowAddrRemap,
+            _affected_fragment_ids: &[u64],
+        ) -> Result<Vec<RemappedIndex>> {
+            Ok(self.answers.clone())
+        }
+    }
+
+    #[derive(Debug)]
+    struct AnswerRemapperOptions {
+        answers: Vec<RemappedIndex>,
+    }
+
+    #[async_trait]
+    impl IndexRemapperOptions for AnswerRemapperOptions {
+        async fn create_remapper(
+            &self,
+            _dataset: &Dataset,
+        ) -> Result<Option<Box<dyn IndexRemapper>>> {
+            Ok(Some(Box::new(AnswerRemapper {
+                answers: self.answers.clone(),
+            })))
+        }
+    }
+
+    /// Materialize a deliberately sparse row-address bitmap whose RoaringTreemap
+    /// encoding crosses the FRI spill threshold. The rewrite result itself is
+    /// synthetic so the cleanup test does not need to rewrite millions of rows.
+    async fn large_deferred_rewrite_result(dataset: &Dataset) -> RewriteResult {
+        assert_eq!(dataset.manifest.fragments.len(), 1);
+        let original = dataset.manifest.fragments[0].clone();
+        let fragment_id = u32::try_from(original.id).unwrap();
+        let physical_rows = original.physical_rows.unwrap();
+        assert!(physical_rows > 1_000_000);
+
+        let addrs: RoaringTreemap = (0..physical_rows as u32)
+            .filter(|offset| offset % 2 == 1)
+            .map(|offset| u64::from(RowAddress::new_from_parts(fragment_id, offset)))
+            .collect();
+        let mut row_addrs = Vec::with_capacity(addrs.serialized_size());
+        addrs.serialize_into(&mut row_addrs).unwrap();
+        assert!(
+            row_addrs.len() > FRAG_REUSE_INLINE_DETAILS_LIMIT,
+            "synthetic row-address payload must force FRI details to spill"
+        );
+
+        let mut new_fragment = original.clone();
+        new_fragment.physical_rows = Some(addrs.len() as usize);
+        new_fragment.deletion_file = None;
+        RewriteResult {
+            metrics: CompactionMetrics::default(),
+            new_fragments: vec![new_fragment],
+            read_version: dataset.manifest.version,
+            original_fragments: vec![original],
+            row_addrs: Some(row_addrs),
+        }
+    }
+
+    async fn write_large_deferred_fixture(base_dir: &str) -> Dataset {
+        const ROWS: i64 = 2_000_000;
+        let schema = Arc::new(Schema::new(vec![Field::new("id", DataType::Int64, false)]));
+        let batch = RecordBatch::try_new(
+            schema.clone(),
+            vec![Arc::new(Int64Array::from_iter_values(0..ROWS))],
+        )
+        .unwrap();
+        let reader = RecordBatchIterator::new(vec![Ok(batch)], schema);
+        let mut dataset = Dataset::write(
+            reader,
+            base_dir,
+            Some(WriteParams {
+                max_rows_per_file: (ROWS as usize) + 1,
+                enable_stable_row_ids: true,
+                ..Default::default()
+            }),
+        )
+        .await
+        .unwrap();
+        dataset.delete("id % 2 = 0").await.unwrap();
+        assert_eq!(dataset.count_rows(None).await.unwrap(), (ROWS / 2) as usize);
+        dataset
+    }
+
+    /// Pause a ReserveFragments commit after it lands so the test can commit a
+    /// concurrent append before the Rewrite attempt builds and rebases its FRI.
+    #[derive(Debug)]
+    struct PauseAfterReserveCommitHandler {
+        inner: AmbiguousCommitHandler,
+        reserve_committed: Notify,
+        resume_reserve: Notify,
+    }
+
+    impl PauseAfterReserveCommitHandler {
+        fn new() -> Self {
+            Self {
+                inner: AmbiguousCommitHandler::default(),
+                reserve_committed: Notify::new(),
+                resume_reserve: Notify::new(),
+            }
+        }
+
+        async fn wait_until_reserve_committed(&self) {
+            self.reserve_committed.notified().await;
+        }
+
+        fn resume_reserve(&self) {
+            self.resume_reserve.notify_one();
+        }
+    }
+
+    #[async_trait]
+    impl CommitHandler for PauseAfterReserveCommitHandler {
+        fn is_version_not_found_definitive(&self) -> bool {
+            self.inner.is_version_not_found_definitive()
+        }
+
+        fn propagate_commit_error_after_success(&self) -> bool {
+            self.inner.propagate_commit_error_after_success()
+        }
+
+        async fn commit(
+            &self,
+            manifest: &mut Manifest,
+            indices: Option<Vec<IndexMetadata>>,
+            base_path: &object_store::path::Path,
+            object_store: &ObjectStore,
+            manifest_writer: ManifestWriter,
+            naming_scheme: ManifestNamingScheme,
+            transaction: Option<lance_table::format::Transaction>,
+        ) -> std::result::Result<ManifestLocation, CommitError> {
+            let is_reserve = transaction
+                .as_ref()
+                .and_then(|transaction| transaction.as_pb().operation.as_ref())
+                .is_some_and(|operation| matches!(operation, PbOperation::ReserveFragments(_)));
+            let result = self
+                .inner
+                .commit(
+                    manifest,
+                    indices,
+                    base_path,
+                    object_store,
+                    manifest_writer,
+                    naming_scheme,
+                    transaction,
+                )
+                .await;
+            if is_reserve && result.is_ok() {
+                self.reserve_committed.notify_one();
+                self.resume_reserve.notified().await;
+            }
+            result
+        }
+
+        async fn resolve_version_location(
+            &self,
+            base_path: &object_store::path::Path,
+            version: u64,
+            object_store: &dyn object_store::ObjectStore,
+        ) -> Result<ManifestLocation> {
+            self.inner
+                .resolve_version_location(base_path, version, object_store)
+                .await
+        }
     }
 
     /// Build (or, with `replace`, rebuild) a scalar index named "scalar" on `col`.
@@ -13710,6 +13916,320 @@ mod tests {
     fn count_data_files_in(base_dir: &str) -> usize {
         let data_dir = std::path::Path::new(base_dir).join("data");
         count_all_files_in(&data_dir).unwrap_or(0)
+    }
+
+    #[tokio::test]
+    async fn test_rewrite_loss_reclaims_remapped_index_directory() {
+        let test_dir = TempStrDir::default();
+        let test_uri = test_dir.as_str();
+        let handler = Arc::new(AmbiguousCommitHandler::default());
+        let data = sample_data();
+        let reader = RecordBatchIterator::new(vec![Ok(data.slice(0, 400))], data.schema());
+        let mut dataset = Dataset::write(
+            reader,
+            test_uri,
+            Some(WriteParams {
+                max_rows_per_file: 100,
+                enable_stable_row_ids: true,
+                commit_handler: Some(handler.clone()),
+                ..Default::default()
+            }),
+        )
+        .await
+        .unwrap();
+
+        let live_index = dataset
+            .create_index(
+                &["a"],
+                IndexType::BTree,
+                Some("btree".to_string()),
+                &ScalarIndexParams::for_builtin(BuiltinIndexType::BTree),
+                false,
+            )
+            .await
+            .unwrap();
+        let live_directories = BTreeSet::from([live_index.uuid.to_string()]);
+        assert_eq!(index_directories(test_uri), live_directories);
+
+        handler.fail_next_rewrite(AmbiguousFailure::FailOutright);
+        let error = compact_files(
+            &mut dataset,
+            CompactionOptions {
+                target_rows_per_fragment: 1_000,
+                ..Default::default()
+            },
+            None,
+        )
+        .await
+        .unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("simulated outright commit failure"),
+            "compaction must fail at the injected Rewrite commit, got: {error}"
+        );
+
+        assert_eq!(index_directories(test_uri), live_directories);
+    }
+
+    #[tokio::test]
+    async fn test_rewrite_loss_keeps_index_when_remap_reports_keep() {
+        let test_dir = TempStrDir::default();
+        let test_uri = test_dir.as_str();
+        let handler = Arc::new(AmbiguousCommitHandler::default());
+        let data = two_column_sample_data();
+        let reader = RecordBatchIterator::new(vec![Ok(data.slice(0, 400))], data.schema());
+        let mut dataset = Dataset::write(
+            reader,
+            test_uri,
+            Some(WriteParams {
+                max_rows_per_file: 100,
+                enable_stable_row_ids: true,
+                commit_handler: Some(handler.clone()),
+                ..Default::default()
+            }),
+        )
+        .await
+        .unwrap();
+
+        let params = ScalarIndexParams::for_builtin(BuiltinIndexType::BTree);
+        let keep_index = dataset
+            .create_index(
+                &["a"],
+                IndexType::BTree,
+                Some("keep".to_string()),
+                &params,
+                false,
+            )
+            .await
+            .unwrap();
+        let replace_index = dataset
+            .create_index(
+                &["b"],
+                IndexType::BTree,
+                Some("replace".to_string()),
+                &params,
+                false,
+            )
+            .await
+            .unwrap();
+
+        let remapped_uuid = Uuid::new_v4();
+        let remapped_dir = std::path::Path::new(test_uri)
+            .join("_indices")
+            .join(remapped_uuid.to_string());
+        std::fs::create_dir_all(&remapped_dir).unwrap();
+        std::fs::write(remapped_dir.join("payload"), b"minted by the rewrite").unwrap();
+
+        let keep_answer = RemappedIndex {
+            old_id: keep_index.uuid,
+            new_id: keep_index.uuid,
+            index_details: keep_index.index_details.as_ref().unwrap().as_ref().clone(),
+            index_version: keep_index.index_version as u32,
+            files: keep_index.files.clone(),
+        };
+        let remap_answer = RemappedIndex {
+            old_id: replace_index.uuid,
+            new_id: remapped_uuid,
+            index_details: replace_index
+                .index_details
+                .as_ref()
+                .unwrap()
+                .as_ref()
+                .clone(),
+            index_version: replace_index.index_version as u32,
+            files: replace_index.files.clone(),
+        };
+        let live_directories =
+            BTreeSet::from([keep_index.uuid.to_string(), replace_index.uuid.to_string()]);
+
+        handler.fail_next_rewrite(AmbiguousFailure::FailOutright);
+        let error = compact_files(
+            &mut dataset,
+            CompactionOptions {
+                target_rows_per_fragment: 1_000,
+                ..Default::default()
+            },
+            Some(Arc::new(AnswerRemapperOptions {
+                answers: vec![keep_answer, remap_answer],
+            })),
+        )
+        .await
+        .unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("simulated outright commit failure"),
+            "compaction must fail at the injected Rewrite commit, got: {error}"
+        );
+
+        assert_eq!(index_directories(test_uri), live_directories);
+    }
+
+    #[tokio::test]
+    async fn test_deferred_rewrite_loss_reclaims_spilled_fri_directory() {
+        use crate::dataset::builder::DatasetBuilder;
+
+        let test_dir = TempStrDir::default();
+        let test_uri = test_dir.as_str();
+        let initial = write_large_deferred_fixture(test_uri).await;
+        let handler = Arc::new(AmbiguousCommitHandler::default());
+        let mut dataset = DatasetBuilder::from_uri(test_uri)
+            .with_commit_handler(handler.clone())
+            .load()
+            .await
+            .unwrap();
+        let rewrite = large_deferred_rewrite_result(&dataset).await;
+        assert_eq!(
+            dataset.count_rows(None).await.unwrap(),
+            initial.count_rows(None).await.unwrap()
+        );
+        let directories_before = index_directories(test_uri);
+
+        handler.fail_next_rewrite(AmbiguousFailure::FailOutright);
+        let error = commit_compaction(
+            &mut dataset,
+            vec![rewrite],
+            Arc::new(DatasetIndexRemapperOptions::default()),
+            &CompactionOptions {
+                defer_index_remap: true,
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("simulated outright commit failure"),
+            "compaction must fail at the injected Rewrite commit, got: {error}"
+        );
+
+        assert_eq!(index_directories(test_uri), directories_before);
+    }
+
+    #[tokio::test]
+    async fn test_rebased_fri_loss_reclaims_original_and_replacement_directories() {
+        use crate::dataset::builder::DatasetBuilder;
+
+        let test_dir = TempStrDir::default();
+        let test_uri = test_dir.as_str().to_string();
+        let _dataset = write_large_deferred_fixture(&test_uri).await;
+        let handler = Arc::new(PauseAfterReserveCommitHandler::new());
+        let mut stale = DatasetBuilder::from_uri(&test_uri)
+            .with_commit_handler(handler.clone())
+            .load()
+            .await
+            .unwrap();
+        let rewrite = large_deferred_rewrite_result(&stale).await;
+        let stale_version = stale.manifest.version;
+        let directories_before = index_directories(&test_uri);
+        handler
+            .inner
+            .fail_next_rewrite(AmbiguousFailure::FailOutright);
+
+        let commit_task = tokio::spawn(async move {
+            commit_compaction(
+                &mut stale,
+                vec![rewrite],
+                Arc::new(DatasetIndexRemapperOptions::default()),
+                &CompactionOptions {
+                    defer_index_remap: true,
+                    ..Default::default()
+                },
+            )
+            .await
+        });
+
+        handler.wait_until_reserve_committed().await;
+        let schema = Arc::new(Schema::new(vec![Field::new("id", DataType::Int64, false)]));
+        let batch = RecordBatch::try_new(
+            schema.clone(),
+            vec![Arc::new(Int64Array::from_iter_values([2_000_001_i64]))],
+        )
+        .unwrap();
+        let reader = RecordBatchIterator::new(vec![Ok(batch)], schema);
+        let appended = Dataset::write(
+            reader,
+            &test_uri,
+            Some(WriteParams {
+                mode: WriteMode::Append,
+                ..Default::default()
+            }),
+        )
+        .await
+        .unwrap();
+        assert!(appended.manifest.version > stale_version);
+        handler.resume_reserve();
+
+        let error = commit_task.await.unwrap().unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("simulated outright commit failure"),
+            "compaction must fail at the injected Rewrite commit, got: {error}"
+        );
+        assert_eq!(index_directories(&test_uri), directories_before);
+    }
+
+    #[tokio::test]
+    async fn test_rewrite_preempted_by_delete_reclaims_remapped_index_directory() {
+        let test_dir = TempStrDir::default();
+        let test_uri = test_dir.as_str();
+        let data = sample_data();
+        let reader = RecordBatchIterator::new(vec![Ok(data.slice(0, 400))], data.schema());
+        let mut stale = Dataset::write(
+            reader,
+            test_uri,
+            Some(WriteParams {
+                max_rows_per_file: 100,
+                ..Default::default()
+            }),
+        )
+        .await
+        .unwrap();
+        let live_index = stale
+            .create_index(
+                &["a"],
+                IndexType::BTree,
+                Some("btree".to_string()),
+                &ScalarIndexParams::for_builtin(BuiltinIndexType::BTree),
+                false,
+            )
+            .await
+            .unwrap();
+        let live_directories = BTreeSet::from([live_index.uuid.to_string()]);
+        let options = CompactionOptions {
+            target_rows_per_fragment: 1_000,
+            ..Default::default()
+        };
+        let plan = plan_compaction(&stale, &options).await.unwrap();
+        let rewrite = rewrite_files(Cow::Borrowed(&stale), plan.tasks()[0].clone(), &options)
+            .await
+            .unwrap();
+
+        let mut latest = Dataset::open(test_uri).await.unwrap();
+        latest.delete("a < 100").await.unwrap();
+
+        let error = commit_compaction(
+            &mut stale,
+            vec![rewrite],
+            Arc::new(DatasetIndexRemapperOptions::default()),
+            &options,
+        )
+        .await
+        .unwrap_err();
+        assert!(
+            matches!(error, Error::RetryableCommitConflict { .. }),
+            "expected a retryable Rewrite/Delete conflict, got: {error:?}"
+        );
+        assert!(
+            error.to_string().contains(
+                "This Rewrite transaction was preempted by concurrent transaction Delete"
+            ),
+            "unexpected reporter-path error: {error}"
+        );
+        assert_eq!(index_directories(test_uri), live_directories);
     }
 
     /// Once `commit_compaction` reaches the Rewrite commit, its input may be a

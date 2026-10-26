@@ -21,6 +21,7 @@ use crate::{
         },
         vector_index_details, vector_index_details_default,
     },
+    io::commit::IndexCleanupMode,
 };
 use futures::{FutureExt, future::BoxFuture};
 use lance_core::datatypes::format_field_path;
@@ -695,13 +696,20 @@ impl<'a> CreateIndexBuilder<'a> {
 
     #[instrument(skip_all)]
     async fn execute(mut self) -> Result<IndexMetadata> {
+        let index_cleanup = if self.index_uuid.is_none() {
+            IndexCleanupMode::TransactionOwned
+        } else {
+            IndexCleanupMode::CallerOwned
+        };
         // Multi-segment FM-Index path: split whole-table builds into fragment groups.
         // Explicit fragment selections stay on the single-segment path.
         if self.fragments.is_none()
             && let Some(num_segments) = self.fmindex_num_segments()
             && num_segments > 1
         {
-            return self.execute_multi_segment_fmindex(num_segments).await;
+            return self
+                .execute_multi_segment_fmindex(num_segments, index_cleanup)
+                .await;
         }
 
         let new_idx = self.execute_uncommitted().await?;
@@ -727,7 +735,12 @@ impl<'a> CreateIndexBuilder<'a> {
         .build();
 
         self.dataset
-            .apply_commit(transaction, &Default::default(), &Default::default())
+            .apply_commit_with_index_cleanup(
+                transaction,
+                &Default::default(),
+                &Default::default(),
+                index_cleanup,
+            )
             .await?;
 
         // Fetch the committed index metadata from the dataset.
@@ -761,7 +774,11 @@ impl<'a> CreateIndexBuilder<'a> {
     }
 
     /// Build FM-Index with multiple segments, each covering a subset of fragments.
-    async fn execute_multi_segment_fmindex(&mut self, num_segments: u32) -> Result<IndexMetadata> {
+    async fn execute_multi_segment_fmindex(
+        &mut self,
+        num_segments: u32,
+        index_cleanup: IndexCleanupMode,
+    ) -> Result<IndexMetadata> {
         // Validate column count: same check as execute_uncommitted
         if self.columns.len() != 1 {
             return Err(Error::index(
@@ -882,7 +899,12 @@ impl<'a> CreateIndexBuilder<'a> {
             .build();
 
             self.dataset
-                .apply_commit(transaction, &Default::default(), &Default::default())
+                .apply_commit_with_index_cleanup(
+                    transaction,
+                    &Default::default(),
+                    &Default::default(),
+                    index_cleanup,
+                )
                 .await?;
 
             let indices = self.dataset.load_indices_by_name(&index_name).await?;
@@ -959,7 +981,12 @@ impl<'a> CreateIndexBuilder<'a> {
         .build();
 
         self.dataset
-            .apply_commit(transaction, &Default::default(), &Default::default())
+            .apply_commit_with_index_cleanup(
+                transaction,
+                &Default::default(),
+                &Default::default(),
+                index_cleanup,
+            )
             .await?;
 
         let indices = self.dataset.load_indices_by_name(&index_name).await?;
@@ -1127,7 +1154,9 @@ mod tests {
     use crate::dataset::{WriteMode, WriteParams};
     use crate::index::{DatasetIndexExt, IndexSegment};
     use crate::utils::test::covering;
-    use crate::utils::test::{DatagenExt, FragmentCount, FragmentRowCount};
+    use crate::utils::test::{
+        AmbiguousCommitHandler, AmbiguousFailure, DatagenExt, FragmentCount, FragmentRowCount,
+    };
     use arrow::datatypes::{Float32Type, Int32Type, Int64Type};
     use arrow_array::cast::AsArray;
     use arrow_array::{
@@ -1156,6 +1185,118 @@ mod tests {
     use uuid::Uuid;
 
     lance_testing::define_stage_event_progress!(RecordingProgress, IndexBuildProgress, Result<()>);
+
+    fn index_directories(base_dir: &str) -> BTreeSet<String> {
+        let indices_dir = std::path::Path::new(base_dir).join("_indices");
+        let Ok(entries) = std::fs::read_dir(indices_dir) else {
+            return BTreeSet::new();
+        };
+        entries
+            .map(|entry| entry.unwrap())
+            .filter(|entry| entry.file_type().unwrap().is_dir())
+            .map(|entry| entry.file_name().into_string().unwrap())
+            .filter(|name| !name.starts_with('.'))
+            .collect()
+    }
+
+    fn two_column_batch() -> RecordBatch {
+        let schema = Arc::new(ArrowSchema::new(vec![
+            ArrowField::new("a", DataType::Int32, false),
+            ArrowField::new("b", DataType::Int32, false),
+        ]));
+        let values = Arc::new(Int32Array::from_iter_values(0..100));
+        RecordBatch::try_new(schema, vec![values.clone(), values]).unwrap()
+    }
+
+    async fn dataset_with_handler(base_dir: &str, handler: Arc<AmbiguousCommitHandler>) -> Dataset {
+        let batch = two_column_batch();
+        let reader = RecordBatchIterator::new(vec![Ok(batch.clone())], batch.schema());
+        Dataset::write(
+            reader,
+            base_dir,
+            Some(WriteParams {
+                commit_handler: Some(handler),
+                ..Default::default()
+            }),
+        )
+        .await
+        .unwrap()
+    }
+
+    #[tokio::test]
+    async fn test_create_index_loss_reclaims_new_index_directory() {
+        let test_dir = TempStrDir::default();
+        let test_uri = test_dir.as_str();
+        let handler = Arc::new(AmbiguousCommitHandler::default());
+        let mut dataset = dataset_with_handler(test_uri, handler.clone()).await;
+        let params = ScalarIndexParams::for_builtin(lance_index::scalar::BuiltinIndexType::BTree);
+        let live = CreateIndexBuilder::new(&mut dataset, &["a"], IndexType::BTree, &params)
+            .name("live".to_string())
+            .execute()
+            .await
+            .unwrap();
+        let live_directories = BTreeSet::from([live.uuid.to_string()]);
+
+        handler.fail_next(AmbiguousFailure::FailOutright);
+        let error = CreateIndexBuilder::new(&mut dataset, &["b"], IndexType::BTree, &params)
+            .name("lost".to_string())
+            .execute()
+            .await
+            .unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("simulated outright commit failure"),
+            "index creation must fail at the injected CreateIndex commit, got: {error}"
+        );
+
+        assert_eq!(index_directories(test_uri), live_directories);
+    }
+
+    #[tokio::test]
+    async fn test_landed_index_commit_returning_error_keeps_directory() {
+        let test_dir = TempStrDir::default();
+        let test_uri = test_dir.as_str();
+        let handler = Arc::new(AmbiguousCommitHandler::default());
+        let mut dataset = dataset_with_handler(test_uri, handler.clone()).await;
+        let params = ScalarIndexParams::for_builtin(lance_index::scalar::BuiltinIndexType::BTree);
+
+        handler.fail_next(AmbiguousFailure::FailOutright);
+        let lost = CreateIndexBuilder::new(&mut dataset, &["a"], IndexType::BTree, &params)
+            .name("lost".to_string())
+            .execute()
+            .await
+            .unwrap_err();
+        assert!(
+            lost.to_string()
+                .contains("simulated outright commit failure")
+        );
+
+        handler.propagate_error_after_success(true);
+        handler.fail_next(AmbiguousFailure::LandAndError);
+        let landed = CreateIndexBuilder::new(&mut dataset, &["b"], IndexType::BTree, &params)
+            .name("landed".to_string())
+            .execute()
+            .await
+            .unwrap_err();
+        assert!(
+            landed
+                .to_string()
+                .contains("simulated ambiguous commit failure"),
+            "the landed commit must still return its handler error, got: {landed}"
+        );
+
+        let latest = Dataset::open(test_uri).await.unwrap();
+        let live_directories = latest
+            .load_indices()
+            .await
+            .unwrap()
+            .iter()
+            .map(|index| index.uuid.to_string())
+            .collect::<BTreeSet<_>>();
+        assert_eq!(live_directories.len(), 1, "the second commit must be live");
+        assert_eq!(index_directories(test_uri), live_directories);
+    }
 
     #[test]
     fn test_inverted_training_params_include_build_only_fields() {

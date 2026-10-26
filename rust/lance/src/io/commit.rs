@@ -1709,6 +1709,17 @@ async fn record_successful_commit(
     }
 }
 
+/// Whether the commit call exclusively owns index directories named by its
+/// transaction.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum IndexCleanupMode {
+    /// The caller may replay the transaction or reuse its index IDs.
+    CallerOwned,
+    /// The IDs are transaction-internal and can be reclaimed after a proven
+    /// terminal commit loss.
+    TransactionOwned,
+}
+
 /// Attempt to commit a transaction, with retries and conflict resolution.
 #[allow(clippy::too_many_arguments)]
 pub(crate) async fn commit_transaction(
@@ -1721,6 +1732,7 @@ pub(crate) async fn commit_transaction(
     retry_timeout: Duration,
     manifest_naming_scheme: ManifestNamingScheme,
     affected_rows: Option<&RowAddrTreeMap>,
+    _index_cleanup: IndexCleanupMode,
 ) -> Result<(Manifest, ManifestLocation)> {
     // Note: object_store has been configured with WriteParams, but dataset.object_store.as_ref()
     // has not necessarily. So for anything involving writing, use `object_store`.
@@ -3554,6 +3566,7 @@ mod tests {
             DEFAULT_COMMIT_RETRY_TIMEOUT,
             dataset.manifest_location.naming_scheme,
             None,
+            IndexCleanupMode::CallerOwned,
         )
         .await
         .expect("the inline transaction must identify the landed commit");
