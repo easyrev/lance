@@ -1,0 +1,34 @@
+mutation=remove_keep_uuid_filter
+tested_commit=794da143893a2eea6efde668995cbf34101f87e2+dirty_mutation
+expected_catcher=test_collect_transaction_index_ids_skips_keep_remaps
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance)
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2m 19s
+     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
+
+running 1 test
+test io::commit::tests::test_collect_transaction_index_ids_skips_keep_remaps ... FAILED
+
+failures:
+
+---- io::commit::tests::test_collect_transaction_index_ids_skips_keep_remaps stdout ----
+
+thread 'io::commit::tests::test_collect_transaction_index_ids_skips_keep_remaps' (12769475) panicked at rust/lance/src/io/commit.rs:2442:9:
+assertion `left == right` failed
+  left: {1bb0d99f-4fa0-41f5-807b-c7266bfbbdf3, a089a975-10ca-4ffe-9c12-87c4483b3189}
+ right: {1bb0d99f-4fa0-41f5-807b-c7266bfbbdf3}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    io::commit::tests::test_collect_transaction_index_ids_skips_keep_remaps
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.14s
+
+error: test failed, to rerun pass `-p lance --lib`

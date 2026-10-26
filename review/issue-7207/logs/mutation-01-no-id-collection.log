@@ -1,0 +1,34 @@
+mutation=disable_id_collector
+tested_commit=794da143893a2eea6efde668995cbf34101f87e2+dirty_mutation
+expected_catcher=test_rewrite_loss_reclaims_remapped_index_directory
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance)
+warning: linker stderr: ld: __eh_frame section too large (max 16MB) to encode dwarf unwind offsets in compact unwind table, performance of exception handling might be affected
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1m 49s
+     Running unittests src/lib.rs (/private/tmp/lance-target-7207/debug/deps/lance-a310e976b612776d)
+
+running 1 test
+test dataset::optimize::tests::test_rewrite_loss_reclaims_remapped_index_directory ... FAILED
+
+failures:
+
+---- dataset::optimize::tests::test_rewrite_loss_reclaims_remapped_index_directory stdout ----
+
+thread 'dataset::optimize::tests::test_rewrite_loss_reclaims_remapped_index_directory' (12757390) panicked at rust/lance/src/dataset/optimize.rs:13972:9:
+assertion `left == right` failed
+  left: {"787435ef-9f9d-49c2-9bfc-30c9e6d9407c", "b1ff96e2-b3dd-4b0d-8d9f-065750ec32c2"}
+ right: {"787435ef-9f9d-49c2-9bfc-30c9e6d9407c"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    dataset::optimize::tests::test_rewrite_loss_reclaims_remapped_index_directory
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6763 filtered out; finished in 0.22s
+
+error: test failed, to rerun pass `-p lance --lib`

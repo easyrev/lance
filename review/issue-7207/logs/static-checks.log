@@ -1,0 +1,18 @@
+tested_commit=794da143893a2eea6efde668995cbf34101f87e2
+
+===== cargo fmt --all --check =====
+fmt_exit=0
+
+===== cargo clippy -p lance --all-targets -- -D warnings =====
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.91s
+clippy_exit=0
+
+===== RUSTDOCFLAGS=-D warnings cargo doc -p lance --no-deps =====
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+ Documenting lance v15.0.0-beta.1 (/Users/salamanca/.codex/worktrees/0968/Lance/rust/lance)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 10.50s
+   Generated /private/tmp/lance-target-7207/doc/lance/index.html
+doc_exit=0
