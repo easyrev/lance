@@ -43,7 +43,7 @@ use lance_table::format::{
 use lance_table::io::commit::{
     CommitConfig, CommitError, CommitHandler, ManifestLocation, ManifestNamingScheme,
 };
-use lance_table::io::manifest::read_manifest;
+use lance_table::io::manifest::{read_manifest, read_manifest_indexes};
 use lance_table::transaction::{
     FragReuseUpdate, PreparedIndices, canonicalize_non_reusable_field_ids,
     has_writer_placed_lineage, validate_detached_non_reusable_field_ids,
@@ -77,6 +77,7 @@ use log;
 use object_store::ObjectStoreExt;
 use object_store::path::Path;
 use prost::Message;
+use uuid::Uuid;
 
 pub mod conflict_resolver;
 #[cfg(all(feature = "dynamodb_tests", test))]
@@ -1720,6 +1721,108 @@ pub(crate) enum IndexCleanupMode {
     TransactionOwned,
 }
 
+/// Add index UUIDs minted by `operation` to `index_ids`.
+///
+/// A `Keep` remap reuses an existing index directory and therefore never
+/// becomes a deletion candidate. Other operations do not mint index
+/// directories.
+fn collect_transaction_index_ids(operation: &Operation, index_ids: &mut HashSet<Uuid>) {
+    match operation {
+        Operation::CreateIndex { new_indices, .. } => {
+            index_ids.extend(new_indices.iter().map(|index| index.uuid));
+        }
+        Operation::Rewrite {
+            rewritten_indices,
+            frag_reuse_index,
+            ..
+        } => {
+            index_ids.extend(
+                rewritten_indices
+                    .iter()
+                    .filter(|index| index.new_id != index.old_id)
+                    .map(|index| index.new_id),
+            );
+            if let Some(index) = frag_reuse_index {
+                index_ids.insert(index.uuid);
+            }
+        }
+        _ => {}
+    }
+}
+
+/// Best-effort removal of index directories minted by a transaction that was
+/// proven not to land.
+///
+/// The caller must own every ID in `index_ids` and invoke this function only
+/// after commit-outcome verification returned `Foreign` or `Absent`, or at a
+/// terminal pre-write conflict. A latest-manifest read is mandatory: without
+/// it, cleanup is skipped because another writer may already reference one of
+/// these UUIDs. IDs referenced by the latest manifest are never deleted.
+async fn cleanup_lost_commit_indices(
+    dataset: &Dataset,
+    object_store: &ObjectStore,
+    commit_handler: &dyn CommitHandler,
+    index_ids: &HashSet<Uuid>,
+) {
+    if index_ids.is_empty() {
+        return;
+    }
+
+    let location = match commit_handler
+        .resolve_latest_location(&dataset.base, object_store)
+        .await
+    {
+        Ok(location) => location,
+        Err(error) => {
+            log::warn!(
+                "Skipping cleanup of {} uncommitted index directories because the latest manifest location could not be resolved: {}",
+                index_ids.len(),
+                error
+            );
+            return;
+        }
+    };
+    let manifest = match read_manifest(object_store, &location.path, location.size).await {
+        Ok(manifest) => manifest,
+        Err(error) => {
+            log::warn!(
+                "Skipping cleanup of {} uncommitted index directories because the latest manifest could not be read: {}",
+                index_ids.len(),
+                error
+            );
+            return;
+        }
+    };
+    let live_indices = match read_manifest_indexes(object_store, &location, &manifest).await {
+        Ok(indices) => indices,
+        Err(error) => {
+            log::warn!(
+                "Skipping cleanup of {} uncommitted index directories because the latest index list could not be read: {}",
+                index_ids.len(),
+                error
+            );
+            return;
+        }
+    };
+    let live_ids = live_indices
+        .iter()
+        .map(|index| index.uuid)
+        .collect::<HashSet<_>>();
+
+    for index_id in index_ids.difference(&live_ids) {
+        let path = dataset.indices_dir().join(index_id.to_string());
+        if let Err(error) = object_store.remove_dir_all(path.clone()).await
+            && !error.is_not_found()
+        {
+            log::warn!(
+                "Failed to clean up uncommitted index directory '{}': {}",
+                path,
+                error
+            );
+        }
+    }
+}
+
 /// Attempt to commit a transaction, with retries and conflict resolution.
 #[allow(clippy::too_many_arguments)]
 pub(crate) async fn commit_transaction(
@@ -1732,7 +1835,7 @@ pub(crate) async fn commit_transaction(
     retry_timeout: Duration,
     manifest_naming_scheme: ManifestNamingScheme,
     affected_rows: Option<&RowAddrTreeMap>,
-    _index_cleanup: IndexCleanupMode,
+    index_cleanup: IndexCleanupMode,
 ) -> Result<(Manifest, ManifestLocation)> {
     // Note: object_store has been configured with WriteParams, but dataset.object_store.as_ref()
     // has not necessarily. So for anything involving writing, use `object_store`.
@@ -1770,6 +1873,11 @@ pub(crate) async fn commit_transaction(
     });
 
     let mut transaction = transaction.clone();
+    let mut candidate_index_ids = HashSet::new();
+    let should_clean_indices = index_cleanup == IndexCleanupMode::TransactionOwned;
+    if should_clean_indices {
+        collect_transaction_index_ids(&transaction.operation, &mut candidate_index_ids);
+    }
     // What a rewrite on a tagged fragment reuse history assembled for the
     // attempt; handed to the manifest build, never written back into
     // `transaction`.
@@ -1821,22 +1929,57 @@ pub(crate) async fn commit_transaction(
                 .filter(|version| !seen.contains(version))
                 .collect::<Vec<_>>();
             if rebase.needs_versions(&missing) {
-                return Err(Error::retryable_commit_conflict_source(
+                let error = Error::retryable_commit_conflict_source(
                     dataset.manifest.version,
                     format!(
                         "versions {missing:?} were cleaned up, so this index cannot be carried \
                          through the deferred compaction it covers; rebuild it"
                     )
                     .into(),
-                ));
+                );
+                cleanup_transaction_file(object_store, &dataset.base, &current_transaction_file)
+                    .await;
+                if should_clean_indices {
+                    cleanup_lost_commit_indices(
+                        &dataset,
+                        object_store,
+                        commit_handler,
+                        &candidate_index_ids,
+                    )
+                    .await;
+                }
+                return Err(error);
             }
 
             for (other_version, other_transaction) in other_transactions.iter() {
-                rebase.check_txn(other_transaction, *other_version)?;
+                if let Err(error) = rebase.check_txn(other_transaction, *other_version) {
+                    cleanup_transaction_file(
+                        object_store,
+                        &dataset.base,
+                        &current_transaction_file,
+                    )
+                    .await;
+                    if should_clean_indices {
+                        cleanup_lost_commit_indices(
+                            &dataset,
+                            object_store,
+                            commit_handler,
+                            &candidate_index_ids,
+                        )
+                        .await;
+                    }
+                    return Err(error);
+                }
             }
 
             let (rebased, assembly) = rebase.finish_with_tagged_rewrite(&dataset).await?;
             transaction = rebased;
+            if should_clean_indices {
+                collect_transaction_index_ids(&transaction.operation, &mut candidate_index_ids);
+                if let Some(assembly) = &assembly {
+                    candidate_index_ids.insert(assembly.entry.uuid);
+                }
+            }
             tagged_rewrite = assembly;
         } else {
             ensure_can_write_manifest(&dataset.manifest)?;
@@ -2056,10 +2199,33 @@ pub(crate) async fn commit_transaction(
                     )
                     .await;
                     if retry_start.elapsed() > retry_timeout {
+                        if should_clean_indices {
+                            cleanup_lost_commit_indices(
+                                &dataset,
+                                object_store,
+                                commit_handler,
+                                &candidate_index_ids,
+                            )
+                            .await;
+                        }
                         return Err(timeout_error(retry_timeout, backoff.attempt() + 1));
                     }
                     let sleep_fut = tokio::time::sleep(backoff.next_backoff());
-                    maybe_timeout(backoff.attempt(), retry_start, retry_timeout, sleep_fut).await?;
+                    if let Err(error) =
+                        maybe_timeout(backoff.attempt(), retry_start, retry_timeout, sleep_fut)
+                            .await
+                    {
+                        if should_clean_indices {
+                            cleanup_lost_commit_indices(
+                                &dataset,
+                                object_store,
+                                commit_handler,
+                                &candidate_index_ids,
+                            )
+                            .await;
+                        }
+                        return Err(error);
+                    }
                     continue;
                 } else {
                     break;
@@ -2103,6 +2269,15 @@ pub(crate) async fn commit_transaction(
                             &current_transaction_file,
                         )
                         .await;
+                        if should_clean_indices {
+                            cleanup_lost_commit_indices(
+                                &dataset,
+                                object_store,
+                                commit_handler,
+                                &candidate_index_ids,
+                            )
+                            .await;
+                        }
                         return Err(err);
                     }
                     CommitOutcome::Unknown => {
@@ -2117,6 +2292,10 @@ pub(crate) async fn commit_transaction(
     }
 
     cleanup_transaction_file(object_store, &dataset.base, &current_transaction_file).await;
+    if should_clean_indices {
+        cleanup_lost_commit_indices(&dataset, object_store, commit_handler, &candidate_index_ids)
+            .await;
+    }
     Err(crate::Error::commit_conflict_source(
         target_version,
         format!(
@@ -2198,6 +2377,86 @@ mod tests {
             .unwrap_err();
         assert!(matches!(error, Error::Cleanup { .. }));
         assert!(error.to_string().contains("lance.auto_cleanup.interval"));
+    }
+
+    #[test]
+    fn test_collect_transaction_index_ids_skips_keep_remaps() {
+        let old_id = Uuid::new_v4();
+        let remapped_id = Uuid::new_v4();
+        let operation = Operation::Rewrite {
+            groups: vec![],
+            rewritten_indices: vec![
+                lance_table::transaction::RewrittenIndex {
+                    old_id,
+                    new_id: old_id,
+                    new_index_details: prost_types::Any::default(),
+                    new_index_version: 0,
+                    new_index_files: None,
+                },
+                lance_table::transaction::RewrittenIndex {
+                    old_id,
+                    new_id: remapped_id,
+                    new_index_details: prost_types::Any::default(),
+                    new_index_version: 0,
+                    new_index_files: None,
+                },
+            ],
+            frag_reuse_index: None,
+        };
+        let mut index_ids = HashSet::new();
+
+        collect_transaction_index_ids(&operation, &mut index_ids);
+
+        assert_eq!(index_ids, HashSet::from([remapped_id]));
+    }
+
+    #[tokio::test]
+    async fn test_lost_index_cleanup_keeps_latest_manifest_index() {
+        use lance_index::scalar::{BuiltinIndexType, ScalarIndexParams};
+
+        let test_dir = TempStrDir::default();
+        let test_uri = test_dir.as_str();
+        let schema = simple_schema();
+        let mut dataset = Dataset::write(
+            RecordBatchIterator::new(vec![Ok(simple_batch(&schema, vec![1, 2, 3]))], schema),
+            test_uri,
+            None,
+        )
+        .await
+        .unwrap();
+        let live = dataset
+            .create_index(
+                &["x"],
+                IndexType::BTree,
+                None,
+                &ScalarIndexParams::for_builtin(BuiltinIndexType::BTree),
+                false,
+            )
+            .await
+            .unwrap();
+        let lost_id = Uuid::new_v4();
+        let lost_dir = std::path::Path::new(test_uri)
+            .join("_indices")
+            .join(lost_id.to_string());
+        std::fs::create_dir_all(&lost_dir).unwrap();
+        std::fs::write(lost_dir.join("payload"), b"orphaned").unwrap();
+        let live_dir = std::path::Path::new(test_uri)
+            .join("_indices")
+            .join(live.uuid.to_string());
+
+        cleanup_lost_commit_indices(
+            &dataset,
+            dataset.object_store.as_ref(),
+            dataset.commit_handler.as_ref(),
+            &HashSet::from([live.uuid, lost_id]),
+        )
+        .await;
+
+        assert!(live_dir.is_dir(), "cleanup deleted a live index directory");
+        assert!(
+            !lost_dir.exists(),
+            "cleanup left an orphaned index directory"
+        );
     }
 
     async fn test_commit_handler(handler: Arc<dyn CommitHandler>, should_succeed: bool) {
