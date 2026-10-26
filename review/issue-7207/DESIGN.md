@@ -1,8 +1,14 @@
 # Issue 7207 design and evidence map
 
-Baseline: `upstream/main` at `88d8b1cc7dadf1e27eba67b853d2113ac2c6c318`
-(`fix(namespace): address nested/non-ASCII locations when probing manifests and
-dropping tables (#10307)`).
+Baseline: `upstream/main` at `1afd963c16911f1476ba623d5f8037058ec51c2f`
+(`perf(linalg): select u8 l2/dot/cosine kernels once via Dispatch (#10103)`).
+
+The phase-one research started at `88d8b1cc7dadf1e27eba67b853d2113ac2c6c318`;
+that revision remains the labelled baseline for `logs/red.log`. A final fetch
+moved `upstream/main` to `1afd963c1`. The three intervening commits touch only
+linalg dispatch, spill-quota accounting, and Python commit lease-context tests;
+none touches this patch's implementation files. The pure branch merged the new
+baseline and all final green results are labelled `02d6ed30d`.
 
 ## Gate decision
 
@@ -205,6 +211,9 @@ Data files are deliberately out of scope. `RewriteResult` carries the same data-
 ## 4. Overlap with open and recent work
 
 Checked open PRs and recent `upstream/main` history through the baseline above.
+The refresh from `88d8b1cc7` to `1afd963c1` adds #10103 (linalg dispatch),
+#10231 (spill quota), and #10293 (Python commit lease contexts); none changes
+`commit_transaction`, `conflict_resolver.rs`, or index cleanup.
 
 - #9869 touches `merge_insert.rs` and blob cleanup. It does not overlap the
   selected commit/index cleanup files.

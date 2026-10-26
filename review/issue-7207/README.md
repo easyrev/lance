@@ -4,16 +4,17 @@
 
 | Role | Ref | Commit |
 | --- | --- | --- |
-| Pure PR | `fix/7207-reclaim-lost-commit-indices` | `a108f280a22e1654317f75ce57e18ae8f5cd382e` |
-| Review | `review/7207-reclaim-lost-commit-indices` | `bffadf8cba25c21024428366f79695c291fc05bc` before this documentation bundle |
-| Upstream baseline | `upstream/main` | `88d8b1cc7dadf1e27eba67b853d2113ac2c6c318` |
+| Pure PR | `fix/7207-reclaim-lost-commit-indices` | `02d6ed30dc995d9c5420a51ce1d23da89d020bc5` |
+| Review | `review/7207-reclaim-lost-commit-indices` | `0193dcfcb564bba6fb7d2f69aa75a6d07ff6346e` before the final evidence refresh |
+| Upstream baseline | `upstream/main` | `1afd963c16911f1476ba623d5f8037058ec51c2f` |
 | Upstream PR | Not opened; GitHub review comes first | — |
 
 The review branch contains the pure branch plus files under
 `review/issue-7207/` only. The pure branch history is `624151d1d` (tests and
 test hooks), `4cdeeb48e` (cleanup implementation), `794da1438` (bounded commit
-future for the Clippy large-future check), and `a108f280a22e` (custom remapper
-ownership correction).
+future for the Clippy large-future check), `a108f280a22e` (custom remapper
+ownership correction), and `02d6ed30d` (merge of the final `upstream/main`
+baseline; this merge does not change the patch files).
 
 ## What to review
 
@@ -81,7 +82,7 @@ cargo test -p lance --lib test_rewrite_preempted_by_delete_reclaims_remapped_ind
 Run the final checks from the pure commit:
 
 ```bash
-git switch fix/7207-reclaim-lost-commit-indices
+git switch fix/7207-reclaim-lost-commit-indices  # 02d6ed30d
 export CARGO_TARGET_DIR=/private/tmp/lance-target-7207
 cargo test -p lance --lib dataset::tests
 cargo test -p lance --lib dataset::optimize::tests
@@ -122,16 +123,18 @@ bytes, and wall time.
 | Date | Tested commit | Relation | Method | Result | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-26 | `88d8b1cc7` | Upstream baseline | Seven required tests on test-only tree `624151d1d` | All seven failed because orphan UUID directories remained | [red.log](logs/red.log) |
-| 2026-10-26 | `a108f280a` | Final pure commit | Nine targeted tests | 9 passed | [green.log](logs/green.log) |
-| 2026-10-26 | `a108f280a` | Final pure commit | Changed-module Rust suites | 1532 passed, 0 failed, 1 ignored | [modules.log](logs/modules.log) |
-| 2026-10-26 | `a108f280a` | Final pure commit | fmt, clippy, rustdoc | All passed | [static-checks.log](logs/static-checks.log) |
-| 2026-10-26 | `a108f280a` plus temporary source mutation | Final pure commit with custom-remapper ownership guard removed | Ownership mutation | New replay test failed because the external directory was deleted; source restored | [mutation-07-custom-remapper-ownership.log](logs/mutation-07-custom-remapper-ownership.log) |
+| 2026-10-26 | `02d6ed30d` | Final pure commit | Nine targeted tests | 9 passed | [green.log](logs/green.log) |
+| 2026-10-26 | `02d6ed30d` | Final pure commit | Changed-module Rust suites | 1532 passed, 0 failed, 1 ignored | [modules.log](logs/modules.log) |
+| 2026-10-26 | `02d6ed30d` | Final pure commit | fmt, clippy, rustdoc | All passed | [static-checks.log](logs/static-checks.log) |
+| 2026-10-26 | `02d6ed30d` plus temporary source mutation | Final pure commit with custom-remapper ownership guard removed | Ownership mutation | New replay test failed because the external directory was deleted; source restored | [mutation-07-custom-remapper-ownership.log](logs/mutation-07-custom-remapper-ownership.log) |
 | 2026-10-26 | `794da1438` plus temporary source mutations | Earlier pure commit | Six mutations | Each mutation was caught by its named test; source restored | `mutation-01` through `mutation-06` |
-| 2026-10-26 | `88d8b1cc7` and `a108f280a` | Baseline and final pure commit | Repeated optimize/delete race | Not measured | [RESULTS.md](results/RESULTS.md) |
+| 2026-10-26 | `1afd963c1` and `02d6ed30d` | Current baseline and final pure commit | Repeated optimize/delete race | Not measured | [RESULTS.md](results/RESULTS.md) |
 
 The red log names `624151d1d` as the tree under test; its only difference from
-the baseline in the relevant code is the new tests and failure-injection
-plumbing. The final implementation is not present in that tree. The baseline log
+the original `88d8b1cc7` research baseline in the relevant code is the new tests
+and failure-injection plumbing. The final implementation is not present in that
+tree. The final branch was then merged with current `upstream/main` at
+`1afd963c1`; the intervening commits do not touch the patch files. The baseline log
 retains the original test name `test_rewrite_loss_keeps_index_when_remap_reports_keep`;
 that scenario became `test_rewrite_loss_keeps_custom_remapper_index_for_replay`
 when the external-remapper ownership rule was added.

@@ -4,8 +4,8 @@ Status: **Not measured**.
 
 | Tested commit | Lost commits | Unreferenced `_indices/` directories | Total bytes | Wall time |
 | --- | ---: | ---: | ---: | ---: |
-| `88d8b1cc7dadf1e27eba67b853d2113ac2c6c318` (`upstream/main`) | Not measured | Not measured | Not measured | Not measured |
-| `a108f280a` (pure branch) | Not measured | Not measured | Not measured | Not measured |
+| `1afd963c16911f1476ba623d5f8037058ec51c2f` (`upstream/main`) | Not measured | Not measured | Not measured | Not measured |
+| `02d6ed30dc995d9c5420a51ce1d23da89d020bc5` (pure branch) | Not measured | Not measured | Not measured | Not measured |
 
 The measurement is optional for this change. The unit tests exercise injected
 verified-loss outcomes, live-manifest protection, rebase UUID replacement, the

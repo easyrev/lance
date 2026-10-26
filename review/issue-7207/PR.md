@@ -81,7 +81,8 @@ pass vacuously.
 
 ## Verification
 
-Tested pure commit: `a108f280a22e1654317f75ce57e18ae8f5cd382e`.
+Tested pure commit: `02d6ed30dc995d9c5420a51ce1d23da89d020bc5`, based on
+`upstream/main` at `1afd963c16911f1476ba623d5f8037058ec51c2f`.
 
 | Check | Result |
 | --- | --- |
@@ -104,7 +105,7 @@ and custom-remapper ownership.
 ## Measurement
 
 End-to-end optimize/delete race measurement is **not measured** for either
-`88d8b1cc7` or `a108f280a`. The required unit tests provide the correctness
+`1afd963c1` or `02d6ed30d`. The required unit tests provide the correctness
 evidence. The optional script and explicit result table live on the review
 branch under `review/issue-7207/bench/` and `review/issue-7207/results/`.
 
