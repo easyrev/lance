@@ -10,6 +10,8 @@
 use std::sync::Mutex;
 use std::sync::atomic::{AtomicI32, AtomicUsize, Ordering};
 
+use arrow_array::StructArray;
+use arrow_schema::Fields;
 use futures::future::BoxFuture;
 
 use super::*;
@@ -1050,4 +1052,236 @@ async fn test_staged_index_commits_past_a_deferred_compaction(#[case] update: bo
     assert_lookups_match_scan(uri, probes(24, [999])).await;
     let expected = if update { Some(0) } else { None };
     assert_covers_all_but_the_fragment_of(uri, expected).await;
+}
+
+fn packed_parent_field() -> (ArrowField, Fields) {
+    use lance_encoding::constants::PACKED_STRUCT_META_KEY;
+
+    let children = Fields::from(vec![ArrowField::new("x", DataType::Int32, false)]);
+    let mut packed = ArrowField::new("s", DataType::Struct(children.clone()), false);
+    packed.set_metadata([(PACKED_STRUCT_META_KEY.to_string(), "true".to_string())].into());
+    (packed, children)
+}
+
+async fn packed_parent_dataset(uri: &str) -> Dataset {
+    let (packed, children) = packed_parent_field();
+    let schema = Arc::new(ArrowSchema::new(vec![
+        ArrowField::new("id", DataType::Int32, false),
+        ArrowField::new("spare", DataType::Int32, false),
+        packed,
+    ]));
+    let ids = Arc::new(Int32Array::from_iter_values(0..12)) as ArrayRef;
+    let xs = Arc::new(StructArray::new(children, vec![ids.clone()], None)) as ArrayRef;
+    let batch = RecordBatch::try_new(schema.clone(), vec![ids.clone(), ids, xs]).unwrap();
+    let mut dataset = Dataset::write(
+        RecordBatchIterator::new([Ok(batch)], schema),
+        uri,
+        Some(WriteParams {
+            max_rows_per_file: ROWS_PER_FRAGMENT as usize,
+            data_storage_version: Some(LanceFileVersion::V2_1),
+            ..Default::default()
+        }),
+    )
+    .await
+    .unwrap();
+    build_index(&mut dataset, "id", "id_idx", false)
+        .await
+        .unwrap();
+    dataset
+}
+
+async fn replace_packed_parent(uri: &str, children: Fields) {
+    let table = open_in_new_session(uri).await;
+    let schema = table.schema().project(&["s"]).unwrap();
+    let values = Arc::new(StructArray::new(
+        children,
+        vec![Arc::new(Int32Array::from_iter_values(
+            (0..ROWS_PER_FRAGMENT).map(|id| if id == 3 { 333 } else { id }),
+        )) as ArrayRef],
+        None,
+    )) as ArrayRef;
+    let batch = RecordBatch::try_new(Arc::new(ArrowSchema::from(&schema)), vec![values]).unwrap();
+    let replacement = table.get_fragments()[0]
+        .write_columns(futures::stream::iter([Ok(batch)]), &schema)
+        .await
+        .unwrap();
+    assert_eq!(
+        replacement.1.fields.as_ref(),
+        &[table.schema().field("s").unwrap().id]
+    );
+    let read_version = table.manifest.version;
+    Dataset::commit(
+        crate::dataset::WriteDestination::Dataset(Arc::new(table)),
+        Operation::DataReplacement {
+            replacements: vec![replacement],
+        },
+        Some(read_version),
+        None,
+        None,
+        Arc::new(Default::default()),
+        false,
+    )
+    .await
+    .unwrap();
+}
+
+async fn rewrite_packed_parent(uri: &str, children: Fields) {
+    let table = open_in_new_session(uri).await;
+    let (packed, _) = packed_parent_field();
+    let patch = RecordBatch::try_new(
+        Arc::new(ArrowSchema::new(vec![
+            ArrowField::new("id", DataType::Int32, false),
+            packed,
+        ])),
+        vec![
+            Arc::new(Int32Array::from(vec![3])) as ArrayRef,
+            Arc::new(StructArray::new(
+                children,
+                vec![Arc::new(Int32Array::from(vec![333])) as ArrayRef],
+                None,
+            )) as ArrayRef,
+        ],
+    )
+    .unwrap();
+    let mut merge = MergeInsertBuilder::try_new(Arc::new(table), vec!["id".into()]).unwrap();
+    merge
+        .when_matched(WhenMatched::UpdateAll)
+        .when_not_matched(WhenNotMatched::DoNothing)
+        .write_mode(MergeInsertWriteMode::RewriteColumns);
+    merge
+        .try_build()
+        .unwrap()
+        .execute_batches(vec![patch])
+        .await
+        .unwrap();
+}
+
+async fn count_filter_rows(dataset: &Dataset, filter: &str, use_index: bool) -> usize {
+    let mut scan = dataset.scan();
+    scan.use_scalar_index(use_index).filter(filter).unwrap();
+    scan.try_into_batch().await.unwrap().num_rows()
+}
+
+/// A CreateIndex on a packed child must reject a concurrent DataReplacement of
+/// the parent instead of publishing an index with stale child coverage.
+#[tokio::test]
+async fn packed_parent_create_index_conflicts_with_data_replacement() {
+    let dir = TempStrDir::default();
+    let uri = dir.as_str().to_string();
+    let _dataset = packed_parent_dataset(&uri).await;
+    let (_, children) = packed_parent_field();
+    let hook_uri = uri.clone();
+    let hook: Hook = Box::pin(async move {
+        replace_packed_parent(&hook_uri, children).await;
+    });
+    let (mut publisher, race) = builder_racing(&uri, hook).await;
+    let create = publisher
+        .create_index(
+            &["s.x"],
+            IndexType::BTree,
+            Some("x_idx".into()),
+            &ScalarIndexParams::default(),
+            false,
+        )
+        .await;
+    let dataset = open_in_new_session(&uri).await;
+    let indexed_333 = count_filter_rows(&dataset, "s.x = 333", true).await;
+    let indexed_3 = count_filter_rows(&dataset, "s.x = 3", true).await;
+    let scanned_333 = count_filter_rows(&dataset, "s.x = 333", false).await;
+    let scanned_3 = count_filter_rows(&dataset, "s.x = 3", false).await;
+    let Err(error) = create else {
+        panic!(
+            "CreateIndex committed over DataReplacement: indexed 333/3 = \
+             {indexed_333}/{indexed_3}, scan 333/3 = {scanned_333}/{scanned_3}"
+        )
+    };
+    assert!(
+        matches!(error, Error::RetryableCommitConflict { .. }),
+        "expected RetryableCommitConflict, got: {error:?}"
+    );
+    assert!(error.to_string().contains("DataReplacement"), "{error}");
+    assert_eq!(indexed_333, scanned_333);
+    assert_eq!(indexed_3, scanned_3);
+    assert_eq!((indexed_333, indexed_3), (1, 0));
+    assert!(race.attempts.load(Ordering::SeqCst) > 0);
+}
+
+/// A staged packed-child segment must reject the same parent replacement when
+/// it is published with `commit_existing_index_segments`.
+#[tokio::test]
+async fn packed_parent_commit_existing_segment_conflicts_with_data_replacement() {
+    let dir = TempStrDir::default();
+    let uri = dir.as_str().to_string();
+    let _dataset = packed_parent_dataset(&uri).await;
+    let mut builder = open_in_new_session(&uri).await;
+    let segment = builder
+        .create_index_builder(&["s.x"], IndexType::BTree, &ScalarIndexParams::default())
+        .name("x_idx".into())
+        .execute_uncommitted()
+        .await
+        .unwrap();
+    let (_, children) = packed_parent_field();
+    let hook_uri = uri.clone();
+    let hook: Hook = Box::pin(async move {
+        replace_packed_parent(&hook_uri, children).await;
+    });
+    let (mut publisher, race) = builder_racing(&uri, hook).await;
+    let publish = publisher
+        .commit_existing_index_segments("x_idx", "s.x", vec![segment])
+        .await;
+    let dataset = open_in_new_session(&uri).await;
+    let indexed_333 = count_filter_rows(&dataset, "s.x = 333", true).await;
+    let indexed_3 = count_filter_rows(&dataset, "s.x = 3", true).await;
+    let scanned_333 = count_filter_rows(&dataset, "s.x = 333", false).await;
+    let scanned_3 = count_filter_rows(&dataset, "s.x = 3", false).await;
+    let Err(error) = publish else {
+        panic!(
+            "staged segment committed over DataReplacement: indexed 333/3 = \
+             {indexed_333}/{indexed_3}, scan 333/3 = {scanned_333}/{scanned_3}"
+        )
+    };
+    assert!(
+        matches!(error, Error::RetryableCommitConflict { .. }),
+        "expected RetryableCommitConflict, got: {error:?}"
+    );
+    assert!(error.to_string().contains("DataReplacement"), "{error}");
+    assert_eq!(indexed_333, scanned_333);
+    assert_eq!(indexed_3, scanned_3);
+    assert_eq!((indexed_333, indexed_3), (1, 0));
+    assert!(race.attempts.load(Ordering::SeqCst) > 0);
+}
+
+/// A `RewriteColumns` merge updates the packed parent through a different
+/// operation. The CreateIndex may commit after it prunes the rewritten child.
+#[tokio::test]
+async fn packed_parent_rewrite_columns_keeps_create_index_consistent() {
+    let dir = TempStrDir::default();
+    let uri = dir.as_str().to_string();
+    let _dataset = packed_parent_dataset(&uri).await;
+    let (_, children) = packed_parent_field();
+    let hook_uri = uri.clone();
+    let hook: Hook = Box::pin(async move {
+        rewrite_packed_parent(&hook_uri, children).await;
+    });
+    let (mut publisher, race) = builder_racing(&uri, hook).await;
+    publisher
+        .create_index(
+            &["s.x"],
+            IndexType::BTree,
+            Some("x_idx".into()),
+            &ScalarIndexParams::default(),
+            false,
+        )
+        .await
+        .unwrap();
+    let dataset = open_in_new_session(&uri).await;
+    assert!(dataset.load_index_by_name("x_idx").await.unwrap().is_some());
+    let indexed_333 = count_filter_rows(&dataset, "s.x = 333", true).await;
+    let indexed_3 = count_filter_rows(&dataset, "s.x = 3", true).await;
+    let scanned_333 = count_filter_rows(&dataset, "s.x = 333", false).await;
+    let scanned_3 = count_filter_rows(&dataset, "s.x = 3", false).await;
+    assert_eq!(indexed_333, scanned_333);
+    assert_eq!(indexed_3, scanned_3);
+    assert_eq!((indexed_333, indexed_3), (1, 0));
+    assert!(race.attempts.load(Ordering::SeqCst) > 0);
 }
