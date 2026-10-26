@@ -35,6 +35,15 @@ latest manifest's index list, then removes the remaining owned
 `_indices/{uuid}/` directories. The original commit error is preserved; delete
 failures are best effort and are logged separately.
 
+The mode distinguishes three ownership cases. `CallerOwned` disables cleanup.
+`TransactionOwned` covers default `compact_files()` with its internally created
+remapper. `TransactionExceptRemaps` preserves every
+`rewritten_indices[].new_id` returned by a caller-supplied
+`IndexRemapperOptions`, while still reclaiming fragment-reuse IDs that the
+commit path minted. The public `commit_compaction()` entry uses the conservative
+`TransactionExceptRemaps` mode because its remapper trait does not promise that
+an output UUID is unique to one invocation.
+
 The collector excludes `new_id == old_id`, which is the `RemapResult::Keep`
 case. It accumulates fragment-reuse IDs even after a rebase replaces the UUID in
 the transaction, and it includes the tagged assembly returned by
@@ -44,7 +53,8 @@ the transaction, and it includes the tagged assembly returned by
 
 | Operation/path | Ownership decision |
 | --- | --- |
-| Internal compaction Rewrite | Transaction-owned; the UUIDs exist only inside this commit call and are not returned in `RewriteResult`. |
+| Default `compact_files()` Rewrite with the built-in remapper | Transaction-owned; the UUIDs are generated inside this commit call and are not returned in `RewriteResult`. |
+| Public `commit_compaction()` or `compact_files()` with a caller-supplied remapper | Remapped-index IDs are caller-owned and preserved; the remapper may return the same `new_id` on a replay. Fragment-reuse IDs minted by the commit path remain transaction-owned. |
 | Fragment-reuse UUID created during initial assembly or rebase | Transaction-owned; the value is minted inside the call. |
 | Consumed `CreateIndexBuilder::execute` with no caller UUID | Transaction-owned; the builder mints the UUID and returns only after commit. |
 | Generic `Dataset::commit` or Python caller transaction | Caller-owned; the same operation and IDs can be submitted again. |
@@ -56,7 +66,7 @@ the transaction, and it includes the tagged assembly returned by
 | Test | Guard protected |
 | --- | --- |
 | `test_rewrite_loss_reclaims_remapped_index_directory` | Verified-loss cleanup removes the remapped UUID and keeps a live index directory. |
-| `test_rewrite_loss_keeps_index_when_remap_reports_keep` | `new_id == old_id` is excluded. |
+| `test_rewrite_loss_keeps_custom_remapper_index_for_replay` | A caller-supplied remapper's directory survives verified loss, and the same UUID remains usable on retry. |
 | `test_deferred_rewrite_loss_reclaims_spilled_fri_directory` | Deferred fragment-reuse directory cleanup. |
 | `test_rebased_fri_loss_reclaims_original_and_replacement_directories` | IDs from earlier and replacement rebase attempts are accumulated and removed. |
 | `test_create_index_loss_reclaims_new_index_directory` | A generated internal CreateIndex UUID is removed after verified loss. |
@@ -71,7 +81,7 @@ pass vacuously.
 
 ## Verification
 
-Tested pure commit: `794da143893a2eea6efde668995cbf34101f87e2`.
+Tested pure commit: `a108f280a22e1654317f75ce57e18ae8f5cd382e`.
 
 | Check | Result |
 | --- | --- |
@@ -86,15 +96,15 @@ Tested pure commit: `794da143893a2eea6efde668995cbf34101f87e2`.
 | `cargo clippy -p lance --all-targets -- -D warnings` | Passed |
 | `RUSTDOCFLAGS='-D warnings' cargo doc -p lance --no-deps` | Passed |
 
-Six temporary source removals were checked independently. Each was caught by
+Seven temporary source removals were checked independently. Each was caught by
 its named test: UUID collection, rebase accumulation, live-manifest
-subtraction, Keep filtering, reporter preemption cleanup, and verified-loss
-cleanup.
+subtraction, Keep filtering, reporter preemption cleanup, verified-loss cleanup,
+and custom-remapper ownership.
 
 ## Measurement
 
 End-to-end optimize/delete race measurement is **not measured** for either
-`88d8b1cc7` or `794da1438`. The required unit tests provide the correctness
+`88d8b1cc7` or `a108f280a`. The required unit tests provide the correctness
 evidence. The optional script and explicit result table live on the review
 branch under `review/issue-7207/bench/` and `review/issue-7207/results/`.
 
@@ -106,6 +116,9 @@ branch under `review/issue-7207/bench/` and `review/issue-7207/results/`.
 - The FTS half-written active-index failure in the rafidowla report. That needs
   separate handling for a directory that becomes selected while incomplete.
 - Caller-owned and replayable index operations listed above.
+- Remapped-index directories on the public `commit_compaction()` path and on
+  custom-remapper `compact_files()` calls. Those IDs are retained because the
+  trait does not prove per-call ownership.
 - Non-commit rebase-construction failures that have already written an index
   directory. This patch stays at the verified commit-outcome boundary.
 

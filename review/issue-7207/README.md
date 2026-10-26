@@ -4,15 +4,16 @@
 
 | Role | Ref | Commit |
 | --- | --- | --- |
-| Pure PR | `fix/7207-reclaim-lost-commit-indices` | `794da143893a2eea6efde668995cbf34101f87e2` |
-| Review | `review/7207-reclaim-lost-commit-indices` | `4a755b4ff6157cc9646b8a0fb8dda56ed15c71a6` before this evidence bundle |
+| Pure PR | `fix/7207-reclaim-lost-commit-indices` | `a108f280a22e1654317f75ce57e18ae8f5cd382e` |
+| Review | `review/7207-reclaim-lost-commit-indices` | `bffadf8cba25c21024428366f79695c291fc05bc` before this documentation bundle |
 | Upstream baseline | `upstream/main` | `88d8b1cc7dadf1e27eba67b853d2113ac2c6c318` |
 | Upstream PR | Not opened; GitHub review comes first | — |
 
 The review branch contains the pure branch plus files under
 `review/issue-7207/` only. The pure branch history is `624151d1d` (tests and
-test hooks), `4cdeeb48e` (cleanup implementation), and `794da1438` (bounded
-commit future for the Clippy large-future check).
+test hooks), `4cdeeb48e` (cleanup implementation), `794da1438` (bounded commit
+future for the Clippy large-future check), and `a108f280a22e` (custom remapper
+ownership correction).
 
 ## What to review
 
@@ -20,7 +21,8 @@ Review whether cleanup is limited to index UUIDs owned by the transaction and
 is reached only after the current attempt is proven not to have landed. The
 highest-risk cases are a landed manifest that still returns an error, a rebase
 that replaces a fragment-reuse UUID, and caller-owned operations that can replay
-the same transaction.
+the same transaction. In particular, external `IndexRemapper` implementations
+may reuse a `new_id` across retries and must not trigger directory cleanup.
 
 ## Design and scope
 
@@ -31,11 +33,16 @@ internal retries and it does not run for `Ours` or `Unknown`.
 
 The transaction-owned scope is:
 
-- Internal compaction `Rewrite` directories from `rewritten_indices[].new_id`,
-  excluding `new_id == old_id`.
+- Default `compact_files()` with the built-in remapper: Rewrite directories from
+  `rewritten_indices[].new_id`, excluding `new_id == old_id`.
 - `Rewrite.frag_reuse_index.uuid`, including UUIDs replaced by later rebase
   attempts and tagged assemblies returned by `finish_rewrite`.
 - A consumed `CreateIndexBuilder::execute` call that generated its own UUID.
+
+The public `commit_compaction()` entry and `compact_files()` calls with a
+caller-supplied remapper preserve all `rewritten_indices[].new_id` directories,
+because the remapper trait does not prove per-call ownership. Their internal FRI
+UUIDs are still reclaimed.
 
 Generic `Dataset::commit`, Python caller-built transactions, distributed or
 uncommitted index builds, `commit_existing_index_segments`, explicit
@@ -63,7 +70,7 @@ Generate the red evidence from the test-only pure commit:
 git switch 624151d1d
 export CARGO_TARGET_DIR=/private/tmp/lance-target-7207
 cargo test -p lance --lib test_rewrite_loss_reclaims_remapped_index_directory
-cargo test -p lance --lib test_rewrite_loss_keeps_index_when_remap_reports_keep
+cargo test -p lance --lib test_rewrite_loss_keeps_custom_remapper_index_for_replay
 cargo test -p lance --lib test_deferred_rewrite_loss_reclaims_spilled_fri_directory
 cargo test -p lance --lib test_rebased_fri_loss_reclaims_original_and_replacement_directories
 cargo test -p lance --lib test_create_index_loss_reclaims_new_index_directory
@@ -115,15 +122,19 @@ bytes, and wall time.
 | Date | Tested commit | Relation | Method | Result | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | 2026-10-26 | `88d8b1cc7` | Upstream baseline | Seven required tests on test-only tree `624151d1d` | All seven failed because orphan UUID directories remained | [red.log](logs/red.log) |
-| 2026-10-26 | `794da1438` | Final pure commit | Nine targeted tests | 9 passed | [green.log](logs/green.log) |
-| 2026-10-26 | `794da1438` | Final pure commit | Changed-module Rust suites | 1532 passed, 0 failed, 1 ignored | [modules.log](logs/modules.log) |
-| 2026-10-26 | `794da1438` | Final pure commit | fmt, clippy, rustdoc | All passed | [static-checks.log](logs/static-checks.log) |
-| 2026-10-26 | `794da1438` plus temporary source mutation | Final pure commit with one guard removed | Six mutations | Each mutation caught by its named test; source restored | `mutation-*.log` |
-| 2026-10-26 | `88d8b1cc7` and `794da1438` | Baseline and final pure commit | Repeated optimize/delete race | Not measured | [RESULTS.md](results/RESULTS.md) |
+| 2026-10-26 | `a108f280a` | Final pure commit | Nine targeted tests | 9 passed | [green.log](logs/green.log) |
+| 2026-10-26 | `a108f280a` | Final pure commit | Changed-module Rust suites | 1532 passed, 0 failed, 1 ignored | [modules.log](logs/modules.log) |
+| 2026-10-26 | `a108f280a` | Final pure commit | fmt, clippy, rustdoc | All passed | [static-checks.log](logs/static-checks.log) |
+| 2026-10-26 | `a108f280a` plus temporary source mutation | Final pure commit with custom-remapper ownership guard removed | Ownership mutation | New replay test failed because the external directory was deleted; source restored | [mutation-07-custom-remapper-ownership.log](logs/mutation-07-custom-remapper-ownership.log) |
+| 2026-10-26 | `794da1438` plus temporary source mutations | Earlier pure commit | Six mutations | Each mutation was caught by its named test; source restored | `mutation-01` through `mutation-06` |
+| 2026-10-26 | `88d8b1cc7` and `a108f280a` | Baseline and final pure commit | Repeated optimize/delete race | Not measured | [RESULTS.md](results/RESULTS.md) |
 
 The red log names `624151d1d` as the tree under test; its only difference from
 the baseline in the relevant code is the new tests and failure-injection
-plumbing. The final implementation is not present in that tree.
+plumbing. The final implementation is not present in that tree. The baseline log
+retains the original test name `test_rewrite_loss_keeps_index_when_remap_reports_keep`;
+that scenario became `test_rewrite_loss_keeps_custom_remapper_index_for_replay`
+when the external-remapper ownership rule was added.
 
 ## Mutation coverage
 
@@ -135,6 +146,7 @@ plumbing. The final implementation is not present in that tree.
 | `new_id == old_id` filter | `test_collect_transaction_index_ids_skips_keep_remaps` | `mutation-04-no-keep-filter.log` |
 | Reporter pre-write cleanup | `test_rewrite_preempted_by_delete_reclaims_remapped_index_directory` | `mutation-05-no-reporter-cleanup.log` |
 | Verified-loss cleanup | `test_rewrite_loss_reclaims_remapped_index_directory` | `mutation-06-no-verified-loss-cleanup.log` |
+| External remapper ownership | `test_rewrite_loss_keeps_custom_remapper_index_for_replay` | `mutation-07-custom-remapper-ownership.log` |
 
 ## Open risks and merge points
 
@@ -144,6 +156,10 @@ plumbing. The final implementation is not present in that tree.
   directory are not covered by this small change.
 - Caller-owned operations remain excluded even when they write index
   directories, because the caller can replay the same UUID.
+- Public `commit_compaction()` and custom `compact_files()` remappers also keep
+  their remapped-index directories after verified loss. This trades a possible
+  leak on those paths for replay safety; default `optimize()` still reclaims
+  them.
 - #10146 can conflict through its `conflict_resolver.rs` split. #10034 and
   #10159 can conflict in retry/outcome handling. The local #10096 PR1 and
   open Rewrite/FRI PRs can conflict near rebase assembly.
@@ -163,4 +179,4 @@ plumbing. The final implementation is not present in that tree.
 | `logs/modules.log` | Passing changed-module suites |
 | `logs/static-checks.log` | fmt, clippy, and rustdoc results |
 | `logs/bench-pycompile.log` | Python syntax check for the measurement script |
-| `logs/mutation-*.log` | Six source-removal checks and their catching tests |
+| `logs/mutation-*.log` | Seven source-removal checks and their catching tests |

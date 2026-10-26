@@ -22,9 +22,17 @@ The research gate passes with a reduced scope.
   transactions remain replayable and must not trigger deletion.
 
 The cleanup will run only for operations whose index IDs were minted inside the
-call that invokes `commit_transaction`: internal compaction Rewrite operations,
-fragment-reuse entries created during rebase, and internal committed
-`CreateIndexBuilder::execute` calls whose UUID was not supplied by the caller.
+call that invokes `commit_transaction`: default `compact_files()` Rewrite
+operations using the built-in remapper, fragment-reuse entries created during
+rebase, and internal committed `CreateIndexBuilder::execute` calls whose UUID
+was not supplied by the caller.
+
+`commit_compaction()` is public and accepts an arbitrary
+`IndexRemapperOptions`. Its trait contract does not say that a returned
+`new_id` was created by this invocation or cannot be reused by a retry. The
+public entry and a `compact_files()` call that supplies a custom remapper
+therefore preserve all `rewritten_indices[].new_id` directories. They still
+reclaim fragment-reuse directories, whose UUIDs are minted by the commit path.
 
 ## 1. Commit outcome paths
 
@@ -95,8 +103,9 @@ return the same error. It will not add cleanup to internal retry boundaries.
 
 ### Rewrite remaps
 
-`remap_index` allocates `Uuid::new_v4()` at `rust/lance/src/index.rs:2085`.
-`commit_compaction` converts the remapper's results into
+The built-in `DatasetIndexRemapper` calls `remap_index`, which allocates
+`Uuid::new_v4()` at `rust/lance/src/index.rs:2085`. `commit_compaction` converts
+the remapper's results into
 `RewrittenIndex` values at `rust/lance/src/dataset/optimize.rs:3774-3794`:
 
 ```rust
@@ -108,8 +117,14 @@ return the same error. It will not add cleanup to internal retry boundaries.
 ```
 
 The transaction stores each `new_id` in
-`rust/lance-table/src/transaction/operation.rs:378-387`. The collector will
-include `new_id` only when `new_id != old_id`.
+`rust/lance-table/src/transaction/operation.rs:378-387`. The public
+`IndexRemapperOptions` contract at
+`rust/lance/src/dataset/optimize/remapping.rs:56-80` permits another
+implementation to return any UUID, including one retained for replay. The
+collector therefore includes `new_id` only when (a) the caller reached the
+default built-in remapper through `compact_files()` and (b) `new_id != old_id`.
+The public `commit_compaction()` entry and custom `compact_files()` remappers
+skip every rewritten-index ID but retain their internally minted FRI IDs.
 
 ### v0 fragment-reuse entries
 
@@ -163,10 +178,25 @@ in replay-safe mode.
 | `CreateIndexBuilder::execute_uncommitted` | Yes. It returns metadata to the caller for later commit. | Do not delete. | `rust/lance/src/index/create.rs:176-179`. |
 | `commit_existing_index_segments` and distributed index publication | Yes. Segment IDs and files are supplied by the caller and can be retried. | Do not delete. | Public trait declaration at `rust/lance/src/index/api.rs:403-410`; implementation entry at `rust/lance/src/index.rs:3010`; Python binding at `python/src/dataset.rs:2920-2930`. |
 | `commit_optimize_indices` / distributed optimize publication | Yes. Results are assembled and committed by the caller. | Do not delete. | `rust/lance/src/index.rs:3406`. |
-| Internal `commit_compaction` Rewrite | No caller-visible index IDs. `RewriteResult` contains fragments, version, and row addresses, but no index UUIDs. A replay creates a new transaction. | Safe to delete when the internal commit is terminal and verified lost. | `rust/lance/src/dataset/optimize.rs:2533-2553`, `:3932-3951`. |
+| Default `compact_files()` Rewrite with the built-in remapper | No caller-visible index IDs. `RewriteResult` contains fragments, version, and row addresses, but no index UUIDs. A replay creates new remap and FRI IDs. | Safe to delete remapped and FRI IDs when the commit is terminal and verified lost. | `rust/lance/src/dataset/optimize.rs:2533-2553`, `:3932-3951`; built-in allocation at `rust/lance/src/index.rs:2085`. |
+| Public `commit_compaction()`, or `compact_files()` with a caller-supplied remapper | The caller supplies the remapper and can invoke it again with the same `RemappedIndex.new_id`. The trait gives no per-call ownership promise. | Do not delete `rewritten_indices[].new_id`; FRI IDs remain transaction-owned. | Public entry at `rust/lance/src/dataset/optimize.rs:3482-3487`; arbitrary output at `rust/lance/src/dataset/optimize/remapping.rs:45-80`; retry protection test in `:14005-14121`. |
 | Fragment-reuse IDs minted by `finish_rewrite` | No. They exist only in the commit call. | Safe to delete. | `rust/lance/src/io/commit/conflict_resolver.rs:3068-3097`, `:3172-3183`. |
 | Internal `CreateIndexBuilder::execute` with no caller-provided UUID | No. The consumed builder mints the ID and returns only success metadata. | Safe to delete. | `rust/lance/src/index/create.rs:405`, `:697-746`, `:764-972`. |
 | `CreateIndexBuilder` with caller-provided `index_uuid` | Yes. The caller chose and can retain the ID. | Do not delete. | `rust/lance/src/index/create.rs:135-137`, `:398-407`. |
+
+The implementation expresses this ownership split with three private commit
+cleanup modes:
+
+- `CallerOwned`: do not collect or delete transaction index IDs.
+- `TransactionExceptRemaps`: collect transaction-owned FRI IDs, but not
+  `rewritten_indices[].new_id` values returned by a caller-supplied remapper.
+- `TransactionOwned`: collect all IDs minted by the default built-in path.
+
+Only `compact_files()` with `remap_options = None` selects
+`TransactionOwned`. The public `commit_compaction()` entry and calls that supply
+an external remapper select `TransactionExceptRemaps`. `CreateIndexBuilder`
+continues to select between `TransactionOwned` for its generated UUID and
+`CallerOwned` for an explicit caller UUID.
 
 A caller-supplied `Rewrite` through `Dataset::commit` is also excluded even though it carries index IDs in its operation. The commit layer cannot prove whether those IDs were minted for this call or retained for replay.
 
@@ -218,12 +248,20 @@ Delete on the same fragment, then run the Rewrite with low retries. Its error
 must be `Error::RetryableCommitConflict` with the preemption message, proving the
 failure came from `check_txn` before a manifest write.
 
+The custom-remapper ownership test reuses one `Arc<AnswerRemapperOptions>` whose
+answer contains a fixed, externally created UUID. It injects a verified loss,
+asserts that UUID's directory still exists, then calls `compact_files()` again
+with the same remapper and asserts that the successful manifest references the
+retained UUID. This catches both deletion on the first failure and a commit that
+would otherwise point at a removed directory.
+
 ## Implementation invariant
 
-A private ownership mode will distinguish caller-replayable commits from the
-selected internal operations. The commit loop accumulates minted IDs across
-attempts. A cleanup helper is invoked only on terminal verified loss or the
-proven pre-write preemption path; it:
+A private ownership mode distinguishes calls that can replay their IDs, calls
+that own all IDs, and hybrid compaction calls that own only FRI IDs. The
+collector excludes `rewritten_indices[].new_id` in the hybrid case. The commit
+loop accumulates minted IDs across attempts. A cleanup helper is invoked only
+on terminal verified loss or the proven pre-write preemption path; it:
 
 1. resolves and reads the latest manifest inside the helper;
 2. skips all deletion if either read fails, logging the failure;
