@@ -494,6 +494,7 @@ impl<'a> CommitBuilder<'a> {
                     self.retry_timeout,
                     manifest_naming_scheme,
                     self.affected_rows.as_ref(),
+                    crate::io::commit::IndexCleanupMode::CallerOwned,
                 )
                 .await?
             }

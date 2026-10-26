@@ -854,6 +854,9 @@ pub struct AmbiguousCommitHandler {
     /// Number of version resolutions requested (a proxy for how often commit
     /// verification ran).
     resolve_calls: AtomicUsize,
+    /// Whether a successfully landed commit should still be returned as an
+    /// error, matching the conservative handler default.
+    propagate_after_success: AtomicBool,
 }
 
 impl Default for AmbiguousCommitHandler {
@@ -864,6 +867,7 @@ impl Default for AmbiguousCommitHandler {
             resolve_not_found_remaining: AtomicUsize::new(0),
             not_found_is_definitive: AtomicBool::new(true),
             resolve_calls: AtomicUsize::new(0),
+            propagate_after_success: AtomicBool::new(false),
         }
     }
 }
@@ -893,6 +897,11 @@ impl AmbiguousCommitHandler {
     pub fn resolve_calls(&self) -> usize {
         self.resolve_calls.load(Ordering::SeqCst)
     }
+
+    pub fn propagate_error_after_success(&self, propagate: bool) {
+        self.propagate_after_success
+            .store(propagate, Ordering::SeqCst);
+    }
 }
 
 #[async_trait::async_trait]
@@ -902,7 +911,7 @@ impl CommitHandler for AmbiguousCommitHandler {
     }
 
     fn propagate_commit_error_after_success(&self) -> bool {
-        false
+        self.propagate_after_success.load(Ordering::SeqCst)
     }
 
     async fn commit(
