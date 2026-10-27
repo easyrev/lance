@@ -37,6 +37,7 @@ enum CommitFault {
     Fail,
     LandAndError,
     AppendAndConflict,
+    Conflict,
     PublishIndicesAndFail,
     DropIndexAndFail,
     FailLatestRead,
@@ -135,6 +136,7 @@ impl CommitHandler for IndexCleanupHandler {
         };
 
         match fault {
+            Some(CommitFault::Conflict) => return Err(CommitError::CommitConflict),
             Some(CommitFault::AppendAndConflict) => {
                 let batch = record_batch!(("id", Int32, vec![100])).unwrap();
                 Dataset::write(
@@ -389,6 +391,89 @@ async fn test_owned_fri_rebase_then_terminal_loss(#[case] tagged: bool) {
     );
 }
 
+#[rstest]
+#[case::retries_exhausted(false)]
+#[case::retry_timeout(true)]
+#[tokio::test]
+async fn test_owned_indices_after_terminal_conflict(#[case] timeout: bool) {
+    let dir = TempStrDir::default();
+    let handler = Arc::new(IndexCleanupHandler::new(dir.as_str()));
+    let mut dataset = indexed_fixture(dir.as_str(), handler.clone()).await;
+    let before = index_directories(dir.as_str());
+    let old_id = dataset.load_indices().await.unwrap()[0].uuid;
+    let metadata = dataset
+        .create_index_builder(&["id"], IndexType::BTree, &ScalarIndexParams::default())
+        .name("staged_idx".into())
+        .execute_uncommitted()
+        .await
+        .unwrap();
+    let transaction = Transaction::new(
+        dataset.version_id(),
+        Operation::Rewrite {
+            groups: vec![],
+            rewritten_indices: vec![RewrittenIndex {
+                old_id,
+                new_id: metadata.uuid,
+                new_index_details: metadata.index_details.as_ref().unwrap().as_ref().clone(),
+                new_index_version: metadata.index_version.try_into().unwrap(),
+                new_index_files: metadata.files,
+            }],
+            frag_reuse_index: None,
+        },
+        None,
+    );
+    handler.arm([CommitFault::Conflict]);
+    let error = commit_transaction(
+        &dataset,
+        &dataset.object_store,
+        handler.as_ref(),
+        &transaction,
+        &Default::default(),
+        &lance_table::io::commit::CommitConfig {
+            num_retries: if timeout { 2 } else { 1 },
+            ..Default::default()
+        },
+        if timeout {
+            std::time::Duration::ZERO
+        } else {
+            std::time::Duration::from_secs(1)
+        },
+        dataset.manifest_location.naming_scheme,
+        None,
+        IndexOwnership::BuiltinCompaction,
+    )
+    .await
+    .unwrap_err();
+    if timeout {
+        assert!(
+            matches!(error, Error::TooMuchWriteContention { .. }),
+            "{error:?}"
+        );
+        assert!(
+            error
+                .to_string()
+                .contains("failed on retry_timeout of 0.000 seconds"),
+            "{error}"
+        );
+    } else {
+        assert!(matches!(error, Error::CommitConflict { .. }), "{error:?}");
+        assert!(
+            error
+                .to_string()
+                .contains("Failed to commit the transaction after 1 retries"),
+            "{error}"
+        );
+    }
+    assert_eq!(handler.rewrite_calls.load(Ordering::SeqCst), 1);
+    assert_eq!(
+        handler.snapshots.lock().unwrap()[0]
+            .difference(&before)
+            .count(),
+        1
+    );
+    assert_eq!(index_directories(dir.as_str()), before);
+}
+
 #[tokio::test]
 async fn test_owned_indices_unknown_outcome_keeps_directories() {
     let dir = TempStrDir::default();
@@ -516,20 +601,58 @@ impl IndexRemapper for KeepRemapper {
     }
 }
 
+#[rstest]
+#[case::custom_remapper(false)]
+#[case::owned_commit_boundary(true)]
 #[tokio::test]
-async fn test_kept_index_survives_concurrent_drop() {
+async fn test_kept_index_survives_concurrent_drop(#[case] owned_commit: bool) {
     let dir = TempStrDir::default();
     let handler = Arc::new(IndexCleanupHandler::new(dir.as_str()));
     let mut dataset = indexed_fixture(dir.as_str(), handler.clone()).await;
     let before = index_directories(dir.as_str());
     let index = dataset.load_indices().await.unwrap()[0].clone();
+    let remapper = KeepRemapper(index);
     handler.arm([CommitFault::DropIndexAndFail]);
-    let error = compact_files(
-        &mut dataset,
-        compaction_options(false),
-        Some(Arc::new(KeepRemapper(index))),
-    )
-    .await
+    let error = if owned_commit {
+        let remapped = remapper
+            .remap_indices(RowAddrRemap::direct(HashMap::new()), &[])
+            .await
+            .unwrap();
+        let rewritten_indices = remapped
+            .into_iter()
+            .map(|index| RewrittenIndex {
+                old_id: index.old_id,
+                new_id: index.new_id,
+                new_index_details: index.index_details,
+                new_index_version: index.index_version,
+                new_index_files: index.files,
+            })
+            .collect();
+        let transaction = Transaction::new(
+            dataset.version_id(),
+            Operation::Rewrite {
+                groups: vec![],
+                rewritten_indices,
+                frag_reuse_index: None,
+            },
+            None,
+        );
+        dataset
+            .apply_commit_with_index_ownership(
+                transaction,
+                &Default::default(),
+                &Default::default(),
+                IndexOwnership::BuiltinCompaction,
+            )
+            .await
+    } else {
+        compact_files(
+            &mut dataset,
+            compaction_options(false),
+            Some(Arc::new(remapper)),
+        )
+        .await
+    }
     .unwrap_err();
     assert_injected_failure(&error);
     assert_eq!(handler.rewrite_calls.load(Ordering::SeqCst), 1);

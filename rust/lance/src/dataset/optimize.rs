@@ -108,7 +108,9 @@ use crate::Result;
 use crate::dataset::utils::CapturedRowIds;
 use crate::index::frag_reuse_with_stable_row_ids::ensure_frag_reuse_recording_allowed;
 use crate::index::{DatasetIndexInternalExt, index_is_usable, load_all_indices};
-use crate::io::commit::{commit_transaction, default_commit_retry_timeout, migrate_fragments};
+use crate::io::commit::{
+    IndexOwnership, commit_transaction, default_commit_retry_timeout, migrate_fragments,
+};
 use arrow::array::AsArray;
 use arrow::datatypes::{UInt8Type, UInt32Type, UInt64Type};
 use arrow_array::builder::{LargeBinaryBuilder, PrimitiveBuilder, StringBuilder};
@@ -1146,6 +1148,9 @@ impl CompactionPlanner for DefaultCompactionPlanner {
 /// This method tries to preserve the insertion order of rows in the dataset.
 ///
 /// If no compaction is needed, this method will not make a new version of the table.
+/// On verified terminal commit loss, index directories created by the built-in
+/// remapper are reclaimed when `remap_options` is `None`. Caller-supplied
+/// remappers retain their outputs for replay.
 pub async fn compact_files(
     dataset: &mut Dataset,
     options: CompactionOptions,
@@ -1211,12 +1216,18 @@ pub async fn compact_files_with_planner(
         );
 
     let completed_tasks: Vec<RewriteResult> = result_stream.try_collect().await?;
+    let index_ownership = if remap_options.is_none() {
+        IndexOwnership::BuiltinCompaction
+    } else {
+        IndexOwnership::Compaction
+    };
     let remap_options = remap_options.unwrap_or(Arc::new(DatasetIndexRemapperOptions::default()));
-    let metrics = commit_compaction(
+    let metrics = commit_compaction_impl(
         dataset,
         completed_tasks,
         remap_options,
         &compaction_plan.options,
+        index_ownership,
     )
     .await?;
 
@@ -2575,6 +2586,7 @@ async fn reserve_fragment_ids(
         default_commit_retry_timeout(),
         dataset.manifest_location.naming_scheme,
         None,
+        IndexOwnership::Borrowed,
     )
     .await?;
 
@@ -3476,11 +3488,31 @@ async fn records_stable_row_id_moves(
 /// With stable row IDs, tasks that recorded their row-address moves (see
 /// [`CompactionOptions::defer_index_remap`]) commit them even if `options` does not
 /// set `defer_index_remap`; either all tasks or none must have recorded them.
+/// Fragment-reuse details created by this call can be reclaimed after verified
+/// terminal commit loss. Remapper outputs are retained because a caller-supplied
+/// remapper may return indices that its caller can replay.
 pub async fn commit_compaction(
     dataset: &mut Dataset,
     completed_tasks: Vec<RewriteResult>,
     remap_options: Arc<dyn IndexRemapperOptions>,
     options: &CompactionOptions,
+) -> Result<CompactionMetrics> {
+    commit_compaction_impl(
+        dataset,
+        completed_tasks,
+        remap_options,
+        options,
+        IndexOwnership::Compaction,
+    )
+    .await
+}
+
+async fn commit_compaction_impl(
+    dataset: &mut Dataset,
+    completed_tasks: Vec<RewriteResult>,
+    remap_options: Arc<dyn IndexRemapperOptions>,
+    options: &CompactionOptions,
+    index_ownership: IndexOwnership,
 ) -> Result<CompactionMetrics> {
     if completed_tasks.is_empty() {
         return Ok(CompactionMetrics::default());
@@ -3948,7 +3980,12 @@ pub async fn commit_compaction(
     .build();
 
     if let Err(e) = dataset
-        .apply_commit(transaction, &Default::default(), &Default::default())
+        .apply_commit_with_index_ownership(
+            transaction,
+            &Default::default(),
+            &Default::default(),
+            index_ownership,
+        )
         .await
     {
         // RewriteResult is serializable and may be retried after an earlier
