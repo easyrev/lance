@@ -2576,7 +2576,7 @@ async fn reserve_fragment_ids(
         None,
     );
 
-    let (manifest, _) = commit_transaction(
+    let (manifest, _) = Box::pin(commit_transaction(
         dataset,
         dataset.object_store.as_ref(),
         dataset.commit_handler.as_ref(),
@@ -2587,7 +2587,7 @@ async fn reserve_fragment_ids(
         dataset.manifest_location.naming_scheme,
         None,
         IndexOwnership::Borrowed,
-    )
+    ))
     .await?;
 
     // Need +1 since max_fragment_id is inclusive in this case and ranges are exclusive

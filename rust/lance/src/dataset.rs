@@ -1761,7 +1761,8 @@ impl Dataset {
         commit_config: &CommitConfig,
         index_ownership: IndexOwnership,
     ) -> Result<()> {
-        let (manifest, manifest_location) = commit_transaction(
+        // The per-attempt inventory must not enlarge every writer's inline future.
+        let (manifest, manifest_location) = Box::pin(commit_transaction(
             self,
             self.object_store.as_ref(),
             self.commit_handler.as_ref(),
@@ -1772,7 +1773,7 @@ impl Dataset {
             self.manifest_location.naming_scheme,
             None,
             index_ownership,
-        )
+        ))
         .await?;
 
         self.set_manifest(Arc::new(manifest), manifest_location);
