@@ -137,7 +137,7 @@ use crate::dataset::refs::{BranchContents, BranchIdentifier, Branches, Tags};
 use crate::dataset::sql::SqlQueryBuilder;
 use crate::datatypes::Schema;
 use crate::io::commit::{
-    commit_detached_transaction, commit_new_dataset, commit_transaction,
+    IndexOwnership, commit_detached_transaction, commit_new_dataset, commit_transaction,
     default_commit_retry_timeout, detect_overlapping_fragments, fix_schema,
 };
 use crate::session::Session;
@@ -1745,6 +1745,22 @@ impl Dataset {
         write_config: &ManifestWriteConfig,
         commit_config: &CommitConfig,
     ) -> Result<()> {
+        self.apply_commit_with_index_ownership(
+            transaction,
+            write_config,
+            commit_config,
+            IndexOwnership::Borrowed,
+        )
+        .await
+    }
+
+    pub(crate) async fn apply_commit_with_index_ownership(
+        &mut self,
+        transaction: Transaction,
+        write_config: &ManifestWriteConfig,
+        commit_config: &CommitConfig,
+        index_ownership: IndexOwnership,
+    ) -> Result<()> {
         let (manifest, manifest_location) = commit_transaction(
             self,
             self.object_store.as_ref(),
@@ -1755,6 +1771,7 @@ impl Dataset {
             default_commit_retry_timeout(),
             self.manifest_location.naming_scheme,
             None,
+            index_ownership,
         )
         .await?;
 

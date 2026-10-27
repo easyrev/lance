@@ -13,7 +13,7 @@ use lance_table::{
     io::commit::{CommitConfig, CommitHandler, ManifestNamingScheme},
 };
 
-use crate::io::commit::default_commit_retry_timeout;
+use crate::io::commit::{IndexOwnership, default_commit_retry_timeout};
 use crate::{
     Dataset, Error, Result,
     dataset::{
@@ -494,6 +494,7 @@ impl<'a> CommitBuilder<'a> {
                     self.retry_timeout,
                     manifest_naming_scheme,
                     self.affected_rows.as_ref(),
+                    IndexOwnership::Borrowed,
                 )
                 .await?
             }

@@ -27,7 +27,9 @@ use std::time::{Duration, Instant};
 
 use conflict_resolver::TransactionRebase;
 use lance_core::utils::backoff::{Backoff, SlotBackoff};
-use lance_core::utils::tracing::{AUDIT_MODE_DELETE, AUDIT_TYPE_TRANSACTION, TRACE_FILE_AUDIT};
+use lance_core::utils::tracing::{
+    AUDIT_MODE_DELETE, AUDIT_TYPE_INDEX, AUDIT_TYPE_TRANSACTION, TRACE_FILE_AUDIT,
+};
 #[cfg(test)]
 use lance_file::version::LanceFileVersion;
 
@@ -43,7 +45,7 @@ use lance_table::format::{
 use lance_table::io::commit::{
     CommitConfig, CommitError, CommitHandler, ManifestLocation, ManifestNamingScheme,
 };
-use lance_table::io::manifest::read_manifest;
+use lance_table::io::manifest::{read_manifest, read_manifest_indexes};
 use lance_table::transaction::{
     FragReuseUpdate, PreparedIndices, canonicalize_non_reusable_field_ids,
     has_writer_placed_lineage, validate_detached_non_reusable_field_ids,
@@ -77,6 +79,7 @@ use log;
 use object_store::ObjectStoreExt;
 use object_store::path::Path;
 use prost::Message;
+use uuid::Uuid;
 
 pub mod conflict_resolver;
 #[cfg(all(feature = "dynamodb_tests", test))]
@@ -216,6 +219,100 @@ async fn cleanup_transaction_file(
                 transaction_file,
                 e
             );
+        }
+    }
+}
+
+/// Ownership of index artifacts supplied to the commit layer. This is local
+/// to one invocation and must not become part of a replayable transaction.
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum IndexOwnership {
+    /// Public transactions and staged index segments belong to their caller.
+    Borrowed,
+    /// Compaction builds its own FRI entry, but its remapper may reuse outputs.
+    Compaction,
+    /// compact_files selected the built-in remapper from remap_options=None.
+    BuiltinCompaction,
+}
+
+fn owned_index_ids(transaction: &Transaction, ownership: IndexOwnership) -> HashSet<Uuid> {
+    let mut ids = HashSet::new();
+    if let Operation::Rewrite {
+        rewritten_indices,
+        frag_reuse_index,
+        ..
+    } = &transaction.operation
+    {
+        if matches!(ownership, IndexOwnership::BuiltinCompaction) {
+            ids.extend(
+                rewritten_indices
+                    .iter()
+                    .filter(|index| index.new_id != index.old_id)
+                    .map(|index| index.new_id),
+            );
+        }
+        if !matches!(ownership, IndexOwnership::Borrowed) {
+            ids.extend(frag_reuse_index.iter().map(|index| index.uuid));
+        }
+    }
+    ids
+}
+
+/// Best-effort removal of index directories after verified terminal loss.
+///
+/// The commit layer must prove that none of this invocation's attempts landed
+/// before calling this function. Candidates must be exclusively owned by this
+/// invocation: caller-replayable inputs and Keep IDs are never eligible. Rebase
+/// outputs are owned even when the input transaction belongs to the caller.
+/// Reading the latest manifest and its complete index list here protects live
+/// IDs without adding reads or read failures to the successful commit path.
+async fn cleanup_index_dirs(
+    object_store: &ObjectStore,
+    commit_handler: &dyn CommitHandler,
+    base_path: &Path,
+    ids: &HashSet<Uuid>,
+) {
+    if ids.is_empty() {
+        return;
+    }
+    let indices = async {
+        let location = commit_handler
+            .resolve_latest_location(base_path, object_store)
+            .await?;
+        let manifest = read_manifest(object_store, &location.path, location.size).await?;
+        read_manifest_indexes(object_store, &location, &manifest).await
+    }
+    .await;
+    let live_ids: HashSet<_> = match indices {
+        Ok(indices) => indices.into_iter().map(|index| index.uuid).collect(),
+        Err(error) => {
+            log::warn!(
+                "Skipping uncommitted index cleanup under '{}': cannot read the latest indices: {}",
+                base_path,
+                error
+            );
+            return;
+        }
+    };
+    for id in ids.difference(&live_ids) {
+        let path = base_path
+            .clone()
+            .join(crate::dataset::INDICES_DIR)
+            .join(id.to_string());
+        match object_store.remove_dir_all(path.clone()).await {
+            Ok(()) => tracing::info!(
+                target: TRACE_FILE_AUDIT,
+                mode = AUDIT_MODE_DELETE,
+                r#type = AUDIT_TYPE_INDEX,
+                path = %path,
+            ),
+            // Inline FRI details do not create a directory.
+            Err(Error::NotFound { .. }) => {}
+            Err(error) => log::warn!(
+                "Failed to clean up uncommitted index directory '{}': {}",
+                path,
+                error
+            ),
         }
     }
 }
@@ -1721,6 +1818,7 @@ pub(crate) async fn commit_transaction(
     retry_timeout: Duration,
     manifest_naming_scheme: ManifestNamingScheme,
     affected_rows: Option<&RowAddrTreeMap>,
+    index_ownership: IndexOwnership,
 ) -> Result<(Manifest, ManifestLocation)> {
     // Note: object_store has been configured with WriteParams, but dataset.object_store.as_ref()
     // has not necessarily. So for anything involving writing, use `object_store`.
@@ -1757,6 +1855,7 @@ pub(crate) async fn commit_transaction(
         indices: read_version_indices.as_slice(),
     });
 
+    let mut index_ids = owned_index_ids(transaction, index_ownership);
     let mut transaction = transaction.clone();
     // What a rewrite on a tagged fragment reuse history assembled for the
     // attempt; handed to the manifest build, never written back into
@@ -1798,6 +1897,12 @@ pub(crate) async fn commit_transaction(
             // Use small amount of backoff to handle transactions that all
             // started at exact same time better.
 
+            let previous_fri = match &transaction.operation {
+                Operation::Rewrite {
+                    frag_reuse_index, ..
+                } => frag_reuse_index.as_ref().map(|index| index.uuid),
+                _ => None,
+            };
             let mut rebase =
                 TransactionRebase::try_new(&original_dataset, transaction, affected_rows).await?;
             rebase.load_current_lineage(&dataset).await?;
@@ -1820,10 +1925,30 @@ pub(crate) async fn commit_transaction(
             }
 
             for (other_version, other_transaction) in other_transactions.iter() {
-                rebase.check_txn(other_transaction, *other_version)?;
+                if let Err(error) = rebase.check_txn(other_transaction, *other_version) {
+                    // No manifest write has started in this iteration. Only
+                    // verified losses reach another iteration; landed and
+                    // unknown outcomes return immediately. Thus this terminal
+                    // pre-write rejection also proves nonpublication by us.
+                    cleanup_index_dirs(object_store, commit_handler, &dataset.base, &index_ids)
+                        .await;
+                    return Err(error);
+                }
             }
 
             let (rebased, assembly) = rebase.finish_with_tagged_rewrite(&dataset).await?;
+            if let Operation::Rewrite {
+                frag_reuse_index: Some(index),
+                ..
+            } = &rebased.operation
+                && Some(index.uuid) != previous_fri
+            {
+                index_ids.insert(index.uuid);
+            }
+            if let Some(assembly) = &assembly {
+                // Tagged assembly entries never appear in the transaction.
+                index_ids.insert(assembly.entry.uuid);
+            }
             transaction = rebased;
             tagged_rewrite = assembly;
         } else {
@@ -2044,10 +2169,19 @@ pub(crate) async fn commit_transaction(
                     )
                     .await;
                     if retry_start.elapsed() > retry_timeout {
+                        cleanup_index_dirs(object_store, commit_handler, &dataset.base, &index_ids)
+                            .await;
                         return Err(timeout_error(retry_timeout, backoff.attempt() + 1));
                     }
                     let sleep_fut = tokio::time::sleep(backoff.next_backoff());
-                    maybe_timeout(backoff.attempt(), retry_start, retry_timeout, sleep_fut).await?;
+                    if let Err(error) =
+                        maybe_timeout(backoff.attempt(), retry_start, retry_timeout, sleep_fut)
+                            .await
+                    {
+                        cleanup_index_dirs(object_store, commit_handler, &dataset.base, &index_ids)
+                            .await;
+                        return Err(error);
+                    }
                     continue;
                 } else {
                     break;
@@ -2091,6 +2225,8 @@ pub(crate) async fn commit_transaction(
                             &current_transaction_file,
                         )
                         .await;
+                        cleanup_index_dirs(object_store, commit_handler, &dataset.base, &index_ids)
+                            .await;
                         return Err(err);
                     }
                     CommitOutcome::Unknown => {
@@ -2105,6 +2241,7 @@ pub(crate) async fn commit_transaction(
     }
 
     cleanup_transaction_file(object_store, &dataset.base, &current_transaction_file).await;
+    cleanup_index_dirs(object_store, commit_handler, &dataset.base, &index_ids).await;
     Err(crate::Error::commit_conflict_source(
         target_version,
         format!(
@@ -3554,6 +3691,7 @@ mod tests {
             DEFAULT_COMMIT_RETRY_TIMEOUT,
             dataset.manifest_location.naming_scheme,
             None,
+            IndexOwnership::Borrowed,
         )
         .await
         .expect("the inline transaction must identify the landed commit");
