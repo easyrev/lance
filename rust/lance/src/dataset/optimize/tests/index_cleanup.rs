@@ -4,7 +4,7 @@
 use super::*;
 use std::collections::{BTreeSet, VecDeque};
 use std::sync::Mutex;
-use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 
 use arrow_array::record_batch;
 use lance_index::frag_reuse::{FragReuseIndexDetails, FragReuseVersion};
@@ -53,6 +53,7 @@ struct IndexCleanupHandler {
     kept_ids: Mutex<Vec<String>>,
     rewrite_calls: AtomicUsize,
     fail_latest_read: AtomicBool,
+    stale_latest_version: AtomicU64,
 }
 
 impl IndexCleanupHandler {
@@ -64,6 +65,7 @@ impl IndexCleanupHandler {
             kept_ids: Mutex::default(),
             rewrite_calls: AtomicUsize::new(0),
             fail_latest_read: AtomicBool::new(false),
+            stale_latest_version: AtomicU64::new(0),
         }
     }
 
@@ -85,6 +87,12 @@ impl CommitHandler for IndexCleanupHandler {
     ) -> Result<ManifestLocation> {
         if self.fail_latest_read.load(Ordering::SeqCst) {
             return Err(Error::io("injected latest manifest read failure"));
+        }
+        let stale_version = self.stale_latest_version.load(Ordering::SeqCst);
+        if stale_version != 0 {
+            return ConditionalPutCommitHandler
+                .resolve_version_location(base_path, stale_version, &object_store.inner)
+                .await;
         }
         ConditionalPutCommitHandler
             .resolve_latest_location(base_path, object_store)
@@ -201,6 +209,10 @@ impl CommitHandler for IndexCleanupHandler {
             )
             .await?;
         if matches!(fault, Some(CommitFault::LandAndError)) {
+            // Even a stale head lookup must not make a known landed commit's
+            // directories eligible for cleanup.
+            self.stale_latest_version
+                .store(manifest.version - 1, Ordering::SeqCst);
             Err(CommitError::OtherError(Error::io(
                 "injected index cleanup commit failure",
             )))
