@@ -266,6 +266,8 @@ fn owned_index_ids(transaction: &Transaction, ownership: IndexOwnership) -> Hash
 /// outputs are owned even when the input transaction belongs to the caller.
 /// Reading the latest manifest and its complete index list here protects live
 /// IDs without adding reads or read failures to the successful commit path.
+/// Callers box this cold path so its manifest-read state does not inflate every
+/// commit future.
 async fn cleanup_index_dirs(
     object_store: &ObjectStore,
     commit_handler: &dyn CommitHandler,
@@ -1930,8 +1932,13 @@ pub(crate) async fn commit_transaction(
                     // verified losses reach another iteration; landed and
                     // unknown outcomes return immediately. Thus this terminal
                     // pre-write rejection also proves nonpublication by us.
-                    cleanup_index_dirs(object_store, commit_handler, &dataset.base, &index_ids)
-                        .await;
+                    Box::pin(cleanup_index_dirs(
+                        object_store,
+                        commit_handler,
+                        &dataset.base,
+                        &index_ids,
+                    ))
+                    .await;
                     return Err(error);
                 }
             }
@@ -2169,8 +2176,13 @@ pub(crate) async fn commit_transaction(
                     )
                     .await;
                     if retry_start.elapsed() > retry_timeout {
-                        cleanup_index_dirs(object_store, commit_handler, &dataset.base, &index_ids)
-                            .await;
+                        Box::pin(cleanup_index_dirs(
+                            object_store,
+                            commit_handler,
+                            &dataset.base,
+                            &index_ids,
+                        ))
+                        .await;
                         return Err(timeout_error(retry_timeout, backoff.attempt() + 1));
                     }
                     let sleep_fut = tokio::time::sleep(backoff.next_backoff());
@@ -2178,8 +2190,13 @@ pub(crate) async fn commit_transaction(
                         maybe_timeout(backoff.attempt(), retry_start, retry_timeout, sleep_fut)
                             .await
                     {
-                        cleanup_index_dirs(object_store, commit_handler, &dataset.base, &index_ids)
-                            .await;
+                        Box::pin(cleanup_index_dirs(
+                            object_store,
+                            commit_handler,
+                            &dataset.base,
+                            &index_ids,
+                        ))
+                        .await;
                         return Err(error);
                     }
                     continue;
@@ -2225,8 +2242,13 @@ pub(crate) async fn commit_transaction(
                             &current_transaction_file,
                         )
                         .await;
-                        cleanup_index_dirs(object_store, commit_handler, &dataset.base, &index_ids)
-                            .await;
+                        Box::pin(cleanup_index_dirs(
+                            object_store,
+                            commit_handler,
+                            &dataset.base,
+                            &index_ids,
+                        ))
+                        .await;
                         return Err(err);
                     }
                     CommitOutcome::Unknown => {
@@ -2241,7 +2263,13 @@ pub(crate) async fn commit_transaction(
     }
 
     cleanup_transaction_file(object_store, &dataset.base, &current_transaction_file).await;
-    cleanup_index_dirs(object_store, commit_handler, &dataset.base, &index_ids).await;
+    Box::pin(cleanup_index_dirs(
+        object_store,
+        commit_handler,
+        &dataset.base,
+        &index_ids,
+    ))
+    .await;
     Err(crate::Error::commit_conflict_source(
         target_version,
         format!(
