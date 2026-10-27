@@ -484,7 +484,7 @@ impl<'a> CommitBuilder<'a> {
                 )
                 .await?
             } else {
-                commit_transaction(
+                Box::pin(commit_transaction(
                     dataset,
                     object_store.as_ref(),
                     commit_handler.as_ref(),
@@ -495,7 +495,7 @@ impl<'a> CommitBuilder<'a> {
                     manifest_naming_scheme,
                     self.affected_rows.as_ref(),
                     IndexOwnership::Borrowed,
-                )
+                ))
                 .await?
             }
         } else if self.detached {
