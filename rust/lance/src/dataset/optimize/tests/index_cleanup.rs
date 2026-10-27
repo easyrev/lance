@@ -7,20 +7,18 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 use arrow_array::record_batch;
-use lance_core::utils::deletion::DeletionVector;
+use lance_index::frag_reuse::{FragReuseIndexDetails, FragReuseVersion};
 use lance_table::feature_flags::FLAG_FRAGMENT_REUSE_INDEX;
 use lance_table::format::IndexMetadata;
 use lance_table::format::Transaction as TableTransaction;
-use lance_table::io::deletion::write_deletion_file;
 
 use crate::dataset::builder::DatasetBuilder;
 use crate::index::frag_reuse::{
-    FRAG_REUSE_INLINE_DETAILS_LIMIT, build_tagged_frag_reuse_entry, load_raw_frag_reuse_content,
+    FRAG_REUSE_INLINE_DETAILS_LIMIT, build_frag_reuse_index_metadata,
+    build_tagged_frag_reuse_entry, load_raw_frag_reuse_content,
 };
 use crate::index::frag_reuse_reader::tests::persist_fixture;
-use crate::utils::test::{
-    FailingProxyStore, commit_padding_reuse_history, inline_padding_capacity,
-};
+use crate::utils::test::{FailingProxyStore, padding_reuse_versions};
 use lance_io::object_store::ObjectStoreParams;
 
 fn index_directories(uri: &str) -> BTreeSet<String> {
@@ -255,7 +253,33 @@ fn assert_injected_failure(error: &Error) {
 }
 
 async fn install_external_fri(dataset: &mut Dataset, tagged: bool) {
-    let mut metadata = commit_padding_reuse_history(dataset, inline_padding_capacity() + 1).await;
+    // Tagged replay requires unique history stamps. Combine the padding groups
+    // in one version instead of installing several versions with the same stamp.
+    let details = FragReuseIndexDetails {
+        versions: vec![FragReuseVersion {
+            dataset_version: 1,
+            groups: padding_reuse_versions(5000)
+                .into_iter()
+                .flat_map(|version| version.groups)
+                .collect(),
+        }],
+    };
+    let bitmap = details.new_frag_bitmap();
+    let mut metadata = build_frag_reuse_index_metadata(dataset, None, details, bitmap)
+        .await
+        .unwrap();
+    let transaction = Transaction::new(
+        dataset.version_id(),
+        Operation::CreateIndex {
+            new_indices: vec![metadata.clone()],
+            removed_indices: vec![],
+        },
+        None,
+    );
+    dataset
+        .apply_commit(transaction, &Default::default(), &Default::default())
+        .await
+        .unwrap();
     if tagged {
         let content = load_raw_frag_reuse_content(dataset, &metadata)
             .await
@@ -366,6 +390,34 @@ async fn test_owned_fri_rebase_then_terminal_loss(#[case] tagged: bool) {
 }
 
 #[tokio::test]
+async fn test_owned_indices_unknown_outcome_keeps_directories() {
+    let dir = TempStrDir::default();
+    let initial_handler = Arc::new(IndexCleanupHandler::new(dir.as_str()));
+    let mut dataset = indexed_fixture(dir.as_str(), initial_handler).await;
+    let before = index_directories(dir.as_str());
+    let handler = Arc::new(AmbiguousCommitHandler::default());
+    dataset.commit_handler = handler.clone();
+    handler.fail_next_rewrite(AmbiguousFailure::LandAndError);
+    handler.fail_resolve.store(true, Ordering::SeqCst);
+    let error = compact_files(&mut dataset, compaction_options(false), None)
+        .await
+        .unwrap_err();
+    assert!(error.is_commit_status_unknown(), "{error:?}");
+    assert!(
+        error
+            .to_string()
+            .contains("simulated ambiguous commit failure"),
+        "{error}"
+    );
+    let after = index_directories(dir.as_str());
+    assert!(before.is_subset(&after));
+    assert_eq!(after.difference(&before).count(), 1);
+    let latest = Dataset::open(dir.as_str()).await.unwrap();
+    assert_eq!(latest.fragments().len(), 1);
+    assert_eq!(latest.count_rows(None).await.unwrap(), 8);
+}
+
+#[tokio::test]
 async fn test_owned_indices_landed_error_keeps_directories() {
     let dir = TempStrDir::default();
     let handler = Arc::new(IndexCleanupHandler::new(dir.as_str()));
@@ -409,21 +461,6 @@ impl CompactionPlanner for DeleteAfterPlanning {
     }
 }
 
-struct AllFragmentsPlanner;
-
-#[async_trait]
-impl CompactionPlanner for AllFragmentsPlanner {
-    async fn plan(&self, dataset: &Dataset) -> Result<CompactionPlan> {
-        Ok(CompactionPlan {
-            tasks: vec![TaskData {
-                fragments: dataset.fragments().as_ref().clone(),
-            }],
-            read_version: dataset.version_id(),
-            options: compaction_options(false),
-        })
-    }
-}
-
 #[tokio::test]
 async fn test_owned_indices_preempted_by_delete_before_manifest_write() {
     let dir = TempStrDir::default();
@@ -456,46 +493,44 @@ async fn test_owned_indices_preempted_by_delete_before_manifest_write() {
     assert_eq!(index_directories(dir.as_str()), before);
 }
 
+#[derive(Clone)]
+struct KeepRemapper(IndexMetadata);
+
+#[async_trait]
+impl IndexRemapperOptions for KeepRemapper {
+    async fn create_remapper(&self, _: &Dataset) -> Result<Option<Box<dyn IndexRemapper>>> {
+        Ok(Some(Box::new(self.clone())))
+    }
+}
+
+#[async_trait]
+impl IndexRemapper for KeepRemapper {
+    async fn remap_indices(&self, _: RowAddrRemap, _: &[u64]) -> Result<Vec<RemappedIndex>> {
+        Ok(vec![RemappedIndex {
+            old_id: self.0.uuid,
+            new_id: self.0.uuid,
+            index_details: self.0.index_details.as_ref().unwrap().as_ref().clone(),
+            index_version: self.0.index_version.try_into().unwrap(),
+            files: self.0.files.clone(),
+        }])
+    }
+}
+
 #[tokio::test]
-async fn test_owned_indices_keep_id_after_concurrent_drop() {
+async fn test_kept_index_survives_concurrent_drop() {
     let dir = TempStrDir::default();
     let handler = Arc::new(IndexCleanupHandler::new(dir.as_str()));
     let mut dataset = indexed_fixture(dir.as_str(), handler.clone()).await;
     let before = index_directories(dir.as_str());
-    let batch = record_batch!(("id", Int32, vec![100, 101])).unwrap();
-    dataset = Dataset::write(
-        RecordBatchIterator::new([Ok(batch.clone())], batch.schema()),
-        dir.as_str(),
-        Some(WriteParams {
-            mode: WriteMode::Append,
-            commit_handler: Some(handler.clone()),
-            ..Default::default()
-        }),
+    let index = dataset.load_indices().await.unwrap()[0].clone();
+    handler.arm([CommitFault::DropIndexAndFail]);
+    let error = compact_files(
+        &mut dataset,
+        compaction_options(false),
+        Some(Arc::new(KeepRemapper(index))),
     )
     .await
-    .unwrap();
-    let indices = load_all_indices(&dataset).await.unwrap().as_ref().clone();
-    let mut fragments = dataset.fragments().as_ref().clone();
-    for fragment in &mut fragments[..4] {
-        let deleted: DeletionVector = (0..2u32).collect();
-        fragment.deletion_file = write_deletion_file(
-            &dataset.base,
-            fragment.id,
-            dataset.version_id(),
-            &deleted,
-            &dataset.object_store,
-        )
-        .await
-        .unwrap();
-    }
-    // Retain fully deleted indexed fragments beside live, unindexed data.
-    // The custom planner includes them so the built-in remapper returns Keep.
-    Arc::make_mut(&mut dataset.manifest).fragments = fragments.into();
-    persist_fixture(&mut dataset, indices).await;
-    handler.arm([CommitFault::DropIndexAndFail]);
-    let error = compact_files_with_planner(&mut dataset, None, &AllFragmentsPlanner)
-        .await
-        .unwrap_err();
+    .unwrap_err();
     assert_injected_failure(&error);
     assert_eq!(handler.rewrite_calls.load(Ordering::SeqCst), 1);
     assert_eq!(
