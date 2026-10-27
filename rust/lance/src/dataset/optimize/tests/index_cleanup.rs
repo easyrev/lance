@@ -652,6 +652,7 @@ async fn test_kept_index_survives_concurrent_drop(#[case] owned_commit: bool) {
             Some(Arc::new(remapper)),
         )
         .await
+        .map(|_| ())
     }
     .unwrap_err();
     assert_injected_failure(&error);
