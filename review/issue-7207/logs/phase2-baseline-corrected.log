@@ -1,0 +1,84 @@
+c1d9e6e5392c21ad0cc77322e13cf47d0356bdb5
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/root/worksapce/Lance/rust/lance)
+warning: value assigned to `dataset` is never read
+   --> rust/lance/src/dataset/optimize/tests/index_cleanup.rs:463:23
+    |
+463 |     let mut dataset = indexed_fixture(dir.as_str(), handler.clone()).await;
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this value is reassigned later and never used
+...
+466 |     dataset = Dataset::write(
+    |     ------- `dataset` is overwritten here before the previous value is read
+    |
+    = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: `lance` (lib test) generated 1 warning
+    Finished `ci` profile [unoptimized + debuginfo] target(s) in 3m 13s
+     Running unittests src/lib.rs (/mnt/lance/targets/issue7207/ci/deps/lance-f528a6e6d4d83497)
+
+running 15 tests
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_indices_after_verified_loss::case_1_verified_absent' (4125) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:311:5:
+assertion `left == right` failed
+  left: {"177af871-6d36-48c0-a164-f7fcf27c0936", "1e6ce411-f3de-43de-b48e-7ba07cb850d0"}
+ right: {"1e6ce411-f3de-43de-b48e-7ba07cb850d0"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::index_cleanup::test_owned_indices_after_verified_loss::case_1_verified_absent ... FAILED
+test dataset::optimize::tests::index_cleanup::test_index_cleanup_delete_failure_preserves_commit_error ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_indices_after_verified_loss::case_2_latest_manifest_references_output ... ok
+test dataset::optimize::tests::index_cleanup::test_index_cleanup_latest_read_failure_preserves_commit_error ... ok
+test dataset::optimize::tests::index_cleanup::test_borrowed_remap_outputs_survive_verified_loss::case_2_public_commit_compaction ... ok
+test dataset::optimize::tests::index_cleanup::test_borrowed_transaction_can_replay_after_verified_loss::case_1_create_index ... ok
+test dataset::optimize::tests::index_cleanup::test_borrowed_remap_outputs_survive_verified_loss::case_1_custom_remapper ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_indices_landed_error_keeps_directories ... ok
+test dataset::optimize::tests::index_cleanup::test_borrowed_transaction_can_replay_after_verified_loss::case_2_rewrite ... ok
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_indices_keep_id_after_concurrent_drop' (4127) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:501:5:
+assertion `left == right` failed
+  left: {}
+ right: {"2175a04b-7419-43eb-a83d-0cf74890feb5"}
+test dataset::optimize::tests::index_cleanup::test_owned_indices_keep_id_after_concurrent_drop ... FAILED
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_indices_preempted_by_delete_before_manifest_write' (4129) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:456:5:
+assertion `left == right` failed
+  left: {"4fb4e2c6-240c-409f-8a4c-19620741f381", "88bc2f8e-805e-4bd9-b92c-c17464b45fb4"}
+ right: {"4fb4e2c6-240c-409f-8a4c-19620741f381"}
+test dataset::optimize::tests::index_cleanup::test_owned_indices_preempted_by_delete_before_manifest_write ... FAILED
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_1_v0' (4121) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:331:5:
+assertion `left == right` failed
+  left: {"5e7d59ef-7641-464b-9850-94202df4fa40", "db70929f-91cb-4ed7-91b6-7fb37e873316", "f2c4fe11-f73e-46e0-8035-73fc90701080"}
+ right: {"5e7d59ef-7641-464b-9850-94202df4fa40", "db70929f-91cb-4ed7-91b6-7fb37e873316"}
+test dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_1_v0 ... FAILED
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_2_tagged' (4122) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:248:5:
+InvalidInput { source: "the fragment reuse entry records the same compaction version more than once", location: Location { file: "rust/lance/src/index/frag_reuse.rs", line: 1421, column: 20 }, backtrace: MaybeBacktrace }
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_2_tagged' (4124) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:248:5:
+InvalidInput { source: "the fragment reuse entry records the same compaction version more than once", location: Location { file: "rust/lance/src/index/frag_reuse.rs", line: 1421, column: 20 }, backtrace: MaybeBacktrace }
+test dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_2_tagged ... FAILED
+test dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_2_tagged ... FAILED
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_1_v0' (4123) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:356:5:
+assertion `left == right` failed
+  left: {"3ce544a3-5379-4605-9d7f-acce84d51242", "7a59a120-6d77-49eb-8f87-938220c6b600", "c5240d9c-e983-45a7-b19e-d7b0cce88554", "fe17fc07-df3f-4291-a16b-67a954c534c2"}
+ right: {"3ce544a3-5379-4605-9d7f-acce84d51242", "7a59a120-6d77-49eb-8f87-938220c6b600"}
+test dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_1_v0 ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_1_v0
+    dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_2_tagged
+    dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_1_v0
+    dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_2_tagged
+    dataset::optimize::tests::index_cleanup::test_owned_indices_after_verified_loss::case_1_verified_absent
+    dataset::optimize::tests::index_cleanup::test_owned_indices_keep_id_after_concurrent_drop
+    dataset::optimize::tests::index_cleanup::test_owned_indices_preempted_by_delete_before_manifest_write
+
+test result: FAILED. 8 passed; 7 failed; 0 ignored; 0 measured; 6755 filtered out; finished in 0.23s
+
+error: test failed, to rerun pass `-p lance --lib`

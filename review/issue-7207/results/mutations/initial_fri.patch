@@ -1,0 +1,12 @@
+diff --git a/rust/lance/src/io/commit.rs b/rust/lance/src/io/commit.rs
+index 942ac993b..d0ee620cd 100644
+--- a/rust/lance/src/io/commit.rs
++++ b/rust/lance/src/io/commit.rs
+@@ -252,7 +252,6 @@ fn owned_index_ids(transaction: &Transaction, ownership: IndexOwnership) -> Hash
+             );
+         }
+         if !matches!(ownership, IndexOwnership::Borrowed) {
+-            ids.extend(frag_reuse_index.iter().map(|index| index.uuid));
+         }
+     }
+     ids

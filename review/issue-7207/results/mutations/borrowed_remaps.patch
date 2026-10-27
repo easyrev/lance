@@ -1,0 +1,13 @@
+diff --git a/rust/lance/src/io/commit.rs b/rust/lance/src/io/commit.rs
+index 942ac993b..8f94f318c 100644
+--- a/rust/lance/src/io/commit.rs
++++ b/rust/lance/src/io/commit.rs
+@@ -243,7 +243,7 @@ fn owned_index_ids(transaction: &Transaction, ownership: IndexOwnership) -> Hash
+         ..
+     } = &transaction.operation
+     {
+-        if matches!(ownership, IndexOwnership::BuiltinCompaction) {
++        if matches!(ownership, IndexOwnership::BuiltinCompaction | IndexOwnership::Compaction) {
+             ids.extend(
+                 rewritten_indices
+                     .iter()

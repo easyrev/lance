@@ -1,0 +1,37 @@
+Base commit: d09358d6f21ea9c360b4663cf5b242deb97d9ebd
+Mutation: borrowed_remaps
+Test: test_borrowed_remap_outputs_survive_verified_loss
+e8f1a87e5caf8d86c9953dfd05cdf43281092422b67f21bf79a4a27962f11b48  rust/lance/src/io/commit.rs
+42daf93507c829f62386e5e41876b3fd81cc97bdb2b283cc031332f2dc861dc6  /mnt/lance/checkouts/issue7207-review/review/issue-7207/results/mutations/borrowed_remaps.patch
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/root/worksapce/Lance/rust/lance)
+    Finished `ci` profile [unoptimized + debuginfo] target(s) in 2m 56s
+     Running unittests src/lib.rs (/mnt/lance/targets/issue7207/ci/deps/lance-f528a6e6d4d83497)
+
+running 2 tests
+
+thread 'dataset::optimize::tests::index_cleanup::test_borrowed_remap_outputs_survive_verified_loss::case_2_public_commit_compaction' (40158) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:727:5:
+assertion `left == right` failed
+  left: {"fcc11657-dace-4cce-a5e2-f9e824bb9466"}
+ right: {"203d70b6-4a5d-434a-b8e0-1ecf713ec1e4", "fcc11657-dace-4cce-a5e2-f9e824bb9466"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'dataset::optimize::tests::index_cleanup::test_borrowed_remap_outputs_survive_verified_loss::case_1_custom_remapper' (40157) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:727:5:
+assertion `left == right` failed
+  left: {"38f8d1f5-fd89-42df-939b-9f1f960ec902"}
+ right: {"38f8d1f5-fd89-42df-939b-9f1f960ec902", "c9c5962f-78e4-4ecc-9012-05e2f6078a87"}
+test dataset::optimize::tests::index_cleanup::test_borrowed_remap_outputs_survive_verified_loss::case_2_public_commit_compaction ... FAILED
+test dataset::optimize::tests::index_cleanup::test_borrowed_remap_outputs_survive_verified_loss::case_1_custom_remapper ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::index_cleanup::test_borrowed_remap_outputs_survive_verified_loss::case_1_custom_remapper
+    dataset::optimize::tests::index_cleanup::test_borrowed_remap_outputs_survive_verified_loss::case_2_public_commit_compaction
+
+test result: FAILED. 0 passed; 2 failed; 0 ignored; 0 measured; 6772 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p lance --lib`

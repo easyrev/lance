@@ -1,0 +1,39 @@
+Base commit: d09358d6f21ea9c360b4663cf5b242deb97d9ebd
+Mutation: initial_fri
+Test: test_owned_external_fri_after_verified_loss::case_1_v0
+8f44c4a9e111a832d92637457a3f0b240ac4240857a8d707b1777900a87a392f  rust/lance/src/io/commit.rs
+932d148b5ff97b7fc7d6134bd589b059821559bfcfe2ea09f6e0274caa7acc04  /mnt/lance/checkouts/issue7207-review/review/issue-7207/results/mutations/initial_fri.patch
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/root/worksapce/Lance/rust/lance)
+warning: unused variable: `frag_reuse_index`
+   --> rust/lance/src/io/commit.rs:242:9
+    |
+242 |         frag_reuse_index,
+    |         ^^^^^^^^^^^^^^^^ help: try ignoring the field: `frag_reuse_index: _`
+    |
+    = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: `lance` (lib test) generated 1 warning (run `cargo fix --lib -p lance --tests` to apply 1 suggestion)
+    Finished `ci` profile [unoptimized + debuginfo] target(s) in 2m 57s
+     Running unittests src/lib.rs (/mnt/lance/targets/issue7207/ci/deps/lance-f528a6e6d4d83497)
+
+running 1 test
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_1_v0' (39072) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:369:5:
+assertion `left == right` failed
+  left: {"19fa3d38-3b5e-481e-ad1e-60ff32a7bb61", "57c0d2f3-4a08-411d-a3c5-d666a774ed56", "9231cd5b-dd91-4288-9bdc-4ec109e9db99"}
+ right: {"19fa3d38-3b5e-481e-ad1e-60ff32a7bb61", "9231cd5b-dd91-4288-9bdc-4ec109e9db99"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_1_v0 ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_1_v0
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6773 filtered out; finished in 0.07s
+
+error: test failed, to rerun pass `-p lance --lib`

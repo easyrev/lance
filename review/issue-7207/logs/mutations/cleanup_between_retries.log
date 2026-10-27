@@ -1,0 +1,28 @@
+Base commit: d09358d6f21ea9c360b4663cf5b242deb97d9ebd
+Mutation: cleanup_between_retries
+Test: test_owned_fri_rebase_then_terminal_loss::case_1_v0
+77413eb40cacca27074794df2e87e61f603ea2ef916dcfa5dd8dd4befaf2d0a3  rust/lance/src/io/commit.rs
+f186bda9562d9cbe8736cb3dbd70f057b664c9ca1a376ce63d75eba760488578  /mnt/lance/checkouts/issue7207-review/review/issue-7207/results/mutations/cleanup_between_retries.patch
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/root/worksapce/Lance/rust/lance)
+    Finished `ci` profile [unoptimized + debuginfo] target(s) in 2m 55s
+     Running unittests src/lib.rs (/mnt/lance/targets/issue7207/ci/deps/lance-f528a6e6d4d83497)
+
+running 1 test
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_1_v0' (40290) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:391:9:
+assertion failed: snapshots[0].is_subset(&snapshots[1])
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_1_v0 ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_1_v0
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6773 filtered out; finished in 0.12s
+
+error: test failed, to rerun pass `-p lance --lib`

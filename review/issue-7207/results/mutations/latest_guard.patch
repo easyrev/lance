@@ -1,0 +1,13 @@
+diff --git a/rust/lance/src/io/commit.rs b/rust/lance/src/io/commit.rs
+index 942ac993b..efc41e8cd 100644
+--- a/rust/lance/src/io/commit.rs
++++ b/rust/lance/src/io/commit.rs
+@@ -296,7 +296,7 @@ async fn cleanup_index_dirs(
+             return;
+         }
+     };
+-    for id in ids.difference(&live_ids) {
++    for id in ids {
+         let path = base_path
+             .clone()
+             .join(crate::dataset::INDICES_DIR)

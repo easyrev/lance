@@ -1,0 +1,19 @@
+diff --git a/rust/lance/src/io/commit.rs b/rust/lance/src/io/commit.rs
+index 942ac993b..57433fb34 100644
+--- a/rust/lance/src/io/commit.rs
++++ b/rust/lance/src/io/commit.rs
+@@ -1932,13 +1932,7 @@ pub(crate) async fn commit_transaction(
+                     // verified losses reach another iteration; landed and
+                     // unknown outcomes return immediately. Thus this terminal
+                     // pre-write rejection also proves nonpublication by us.
+-                    Box::pin(cleanup_index_dirs(
+-                        object_store,
+-                        commit_handler,
+-                        &dataset.base,
+-                        &index_ids,
+-                    ))
+-                    .await;
++
+                     return Err(error);
+                 }
+             }

@@ -3,8 +3,8 @@
 import subprocess
 import sys
 
-PURE = "fix/7207-reclaim-lost-commit-indices"
-REVIEW = "review/7207-reclaim-lost-commit-indices"
+PURE = "fix/7207-reclaim-lost-commit-indices-option-b"
+REVIEW = "review/7207-reclaim-lost-commit-indices-option-b"
 BASELINE = "46d7bfdda8ac303d5363c851d6883facb249cb56"
 
 

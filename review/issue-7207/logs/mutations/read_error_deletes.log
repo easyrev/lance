@@ -1,0 +1,30 @@
+Base commit: d09358d6f21ea9c360b4663cf5b242deb97d9ebd
+Mutation: read_error_deletes
+Test: test_index_cleanup_latest_read_failure_preserves_commit_error
+ed0d492555acaf52829e5676bb0395a4ac071cea2dc29f8ccbf4c1cb9bc8015f  rust/lance/src/io/commit.rs
+685aa2f65f8c4028e2e3948661e839356bbbf405fb474e8079f38a155de38d6d  /mnt/lance/checkouts/issue7207-review/review/issue-7207/results/mutations/read_error_deletes.patch
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/root/worksapce/Lance/rust/lance)
+    Finished `ci` profile [unoptimized + debuginfo] target(s) in 2m 55s
+     Running unittests src/lib.rs (/mnt/lance/targets/issue7207/ci/deps/lance-f528a6e6d4d83497)
+
+running 1 test
+
+thread 'dataset::optimize::tests::index_cleanup::test_index_cleanup_latest_read_failure_preserves_commit_error' (41326) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:816:5:
+assertion `left == right` failed
+  left: {"c0d1ab2d-5d52-47b9-b758-b186d66817b0"}
+ right: {"34da3e57-ca2c-4ab7-be9a-fe983d5bec22", "c0d1ab2d-5d52-47b9-b758-b186d66817b0"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::index_cleanup::test_index_cleanup_latest_read_failure_preserves_commit_error ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::index_cleanup::test_index_cleanup_latest_read_failure_preserves_commit_error
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6773 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p lance --lib`

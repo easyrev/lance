@@ -1,0 +1,71 @@
+9f5c301849c164fe60ee34167b6138e671f9df32
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/root/worksapce/Lance/rust/lance)
+    Finished `ci` profile [unoptimized + debuginfo] target(s) in 2m 53s
+     Running unittests src/lib.rs (/mnt/lance/targets/issue7207/ci/deps/lance-f528a6e6d4d83497)
+
+running 16 tests
+test dataset::optimize::tests::index_cleanup::test_index_cleanup_latest_read_failure_preserves_commit_error ... ok
+test dataset::optimize::tests::index_cleanup::test_kept_index_survives_concurrent_drop ... ok
+test dataset::optimize::tests::index_cleanup::test_index_cleanup_delete_failure_preserves_commit_error ... ok
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_indices_after_verified_loss::case_1_verified_absent' (4577) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:335:5:
+assertion `left == right` failed
+  left: {"88655dc8-104f-4d6b-8167-bad355acb738", "ad84fecd-5a6b-4307-b8a4-36a47085ecdf"}
+ right: {"ad84fecd-5a6b-4307-b8a4-36a47085ecdf"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::index_cleanup::test_owned_indices_after_verified_loss::case_2_latest_manifest_references_output ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_indices_after_verified_loss::case_1_verified_absent ... FAILED
+test dataset::optimize::tests::index_cleanup::test_borrowed_remap_outputs_survive_verified_loss::case_1_custom_remapper ... ok
+test dataset::optimize::tests::index_cleanup::test_borrowed_remap_outputs_survive_verified_loss::case_2_public_commit_compaction ... ok
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_indices_preempted_by_delete_before_manifest_write' (4580) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:493:5:
+assertion `left == right` failed
+  left: {"97b7e2b0-3cb0-4dad-aeaf-16292daacc74", "a21f66f1-fab5-46a2-9592-03d01c16ce0a"}
+ right: {"97b7e2b0-3cb0-4dad-aeaf-16292daacc74"}
+test dataset::optimize::tests::index_cleanup::test_owned_indices_preempted_by_delete_before_manifest_write ... FAILED
+test dataset::optimize::tests::index_cleanup::test_borrowed_transaction_can_replay_after_verified_loss::case_2_rewrite ... ok
+test dataset::optimize::tests::index_cleanup::test_borrowed_transaction_can_replay_after_verified_loss::case_1_create_index ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_indices_landed_error_keeps_directories ... ok
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_1_v0' (4573) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:355:5:
+assertion `left == right` failed
+  left: {"4a7d062d-6461-42dd-96ba-3b534f853a95", "51faa9e3-81b9-4b14-89cf-6b61136b2fcd", "5d7b3cc1-7028-4c0c-86dd-a7b414e80bee"}
+ right: {"4a7d062d-6461-42dd-96ba-3b534f853a95", "5d7b3cc1-7028-4c0c-86dd-a7b414e80bee"}
+test dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_1_v0 ... FAILED
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_2_tagged' (4574) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:355:5:
+assertion `left == right` failed
+  left: {"2241bec6-e6cc-4426-8473-6ea48fa7f580", "5cede026-0ee2-4d28-b5e4-b6a292c288ed", "815e1191-f795-4f82-8865-c5c30eaf62d6", "bd06a40c-3d2f-4415-b122-c1c6436e411e"}
+ right: {"2241bec6-e6cc-4426-8473-6ea48fa7f580", "5cede026-0ee2-4d28-b5e4-b6a292c288ed", "815e1191-f795-4f82-8865-c5c30eaf62d6"}
+test dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_2_tagged ... FAILED
+test dataset::optimize::tests::index_cleanup::test_owned_indices_unknown_outcome_keeps_directories ... ok
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_2_tagged' (4576) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:380:5:
+assertion `left == right` failed
+  left: {"2502620c-8c03-4c56-8334-7d05dbc40188", "5559351e-5021-4c1b-8ac0-d92e73c0b120", "c6e1ebd2-4ac3-417b-9759-ee489796fe8e", "c7b9c335-824e-4ce8-89ae-d074f622ea18", "e4e19df8-47e3-4a97-9558-73dad4a210f7"}
+ right: {"c6e1ebd2-4ac3-417b-9759-ee489796fe8e", "c7b9c335-824e-4ce8-89ae-d074f622ea18", "e4e19df8-47e3-4a97-9558-73dad4a210f7"}
+test dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_2_tagged ... FAILED
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_1_v0' (4575) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:380:5:
+assertion `left == right` failed
+  left: {"5e15db90-146c-44db-9d2d-45512ff76e80", "6b03983c-43ae-4995-8386-63db1205db56", "a604aa32-1751-44d5-b440-472c71561ccd", "b4f5a1b6-a56e-4ef7-8af8-bfb1ddc0f8d7"}
+ right: {"5e15db90-146c-44db-9d2d-45512ff76e80", "b4f5a1b6-a56e-4ef7-8af8-bfb1ddc0f8d7"}
+test dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_1_v0 ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_1_v0
+    dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_2_tagged
+    dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_1_v0
+    dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_2_tagged
+    dataset::optimize::tests::index_cleanup::test_owned_indices_after_verified_loss::case_1_verified_absent
+    dataset::optimize::tests::index_cleanup::test_owned_indices_preempted_by_delete_before_manifest_write
+
+test result: FAILED. 10 passed; 6 failed; 0 ignored; 0 measured; 6755 filtered out; finished in 0.23s
+
+error: test failed, to rerun pass `-p lance --lib`

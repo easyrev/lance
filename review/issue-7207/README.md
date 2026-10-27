@@ -1,108 +1,134 @@
-# Issue 7207: implementation review
+# Issue 7207: Option B implementation review
 
-Upstream baseline: `46d7bfdda8ac303d5363c851d6883facb249cb56`.
+Original upstream baseline: 46d7bfdda8ac303d5363c851d6883facb249cb56.
 
-This branch contains research, not an implementation ready for an upstream PR.
-The user selected Option B: private ownership tracking, with no public IndexRemapper change.
-Phase 2 starts after verifying that LanceDB 0.30.1 table.optimize passes remap_options=None.
-No upstream PR or GitHub comment was created.
+This implementation uses private ownership tracking. The public IndexRemapper trait and all public signatures remain unchanged.
+The user requested a new branch pair because the original remote pair is an independent control group. See CONTROL.md.
 
 ## Branches
 
 | Role | Branch | Commit |
 | --- | --- | --- |
-| Pure | `fix/7207-reclaim-lost-commit-indices` | `46d7bfdda8ac303d5363c851d6883facb249cb56` (no implementation yet) |
-| Review | `review/7207-reclaim-lost-commit-indices` | The commit containing this README, obtainable with `git rev-parse review/7207-reclaim-lost-commit-indices` |
-| Upstream baseline | `upstream/main` | `46d7bfdda8ac303d5363c851d6883facb249cb56` |
+| Pure implementation | fix/7207-reclaim-lost-commit-indices-option-b | d09358d6f21ea9c360b4663cf5b242deb97d9ebd |
+| Review | review/7207-reclaim-lost-commit-indices-option-b | The commit containing this report; use git rev-parse with the branch name |
+| Original upstream baseline | upstream/main at investigation start | 46d7bfdda8ac303d5363c851d6883facb249cb56 |
+| Control pure, preserved | origin/fix/7207-reclaim-lost-commit-indices | 02d6ed30dc995d9c5420a51ce1d23da89d020bc5 |
+| Control review, preserved | origin/review/7207-reclaim-lost-commit-indices | 297b020bfb582938e2b785a406800f750e9aaf4b |
 
-The final handoff records the exact review commit and remote verification.
-Existing #10096 branches were inspected without modification.
+The final handoff records the review commit and verifies both new remote refs.
+The control group and both #10096 branches are preserved. No upstream PR or GitHub comment is created.
 
-## Findings and decision
+## Design and scope
 
-Read [DESIGN.md](DESIGN.md) for line-level evidence, all commit error exits, ownership, replay, overlap, and planned tests.
+DESIGN.md contains the Phase 1 source references, every commit error exit, UUID producers, replay analysis, and overlap table.
+The ordinary LanceDB table.optimize path passes remap_options=None in both the reporter's 0.30.1 release and the inspected current main.
+The exact revisions and source excerpts are in results/lancedb-optimize-path.md.
 
-The verified-loss arms still remove only transaction files.
-The reporter's preempted Rewrite returns before a manifest write and never reaches those arms.
-Control flow proves that this invocation did not publish, but deletion also needs exclusive ownership of the index directories.
+The commit layer collects IDs from an internal, call-local ownership policy:
 
-Generic Rewrite and CreateIndex transactions are replayable.
-Custom remappers have no exclusive-ownership contract.
-The recommended fix adds a provided `IndexRemapper::owns_remapped_indices()` method, defaulting to false.
-Only the built-in remapper initially opts in. This public API addition needs approval before implementation.
+- compact_files with remap_options=None owns the built-in remapper's fresh outputs.
+- Public commit_compaction and calls with a supplied remapper preserve remap outputs for caller replay.
+- Compaction owns the FRI entry it creates locally.
+- Every successful rebase contributes its fresh FRI UUID, including tagged assembly entries that are absent from the transaction.
+- Generic Rewrite and CreateIndex inputs remain caller-owned.
 
-An alternative changes only private code and covers default `compact_files` calls.
-It excludes remap outputs from public/distributed `commit_compaction`, even with the built-in remapper.
-Both options can preserve generic replay inputs and track FRI entries minted during rebase.
+Cleanup runs on terminal verified foreign/absent outcomes, conflict exhaustion, and verified-loss retry timeouts.
+The reporter's check_txn rejection also gets cleanup: no manifest write started in that iteration, and only verified losses can reach another iteration.
+No index cleanup runs between retries, after a landed commit, or after an unknown outcome.
 
-## Environment
+The helper reads the latest manifest and its complete index list inside cleanup, then excludes referenced UUIDs.
+Keep IDs are never eligible. Read failure skips deletion. Delete failure is logged without replacing the commit error.
+The helper deletes only candidate _indices/UUID prefixes, never data files or external row-map directories.
+
+## Evidence by tested revision
+
+| Revision | Result |
+| --- | --- |
+| 9f5c301849c164fe60ee34167b6138e671f9df32, tests only on baseline production code | 6 expected leak regressions fail; 10 safety cases pass; logs/red.log |
+| Same tests-only revision | 1,651 module tests pass, the same 6 regressions fail, 1 existing test is ignored; logs/baseline-modules.log |
+| 35be8cd539d65d28e60d6addc497e543132a960a, historical implementation | 19 new cases pass; 1,660 module tests pass and 1 is ignored |
+| d09358d6f21ea9c360b4663cf5b242deb97d9ebd | Clippy all targets passes; logs/clippy.log |
+| Same final implementation | Rustdoc with warnings denied passes; logs/rustdoc.log |
+| Same final implementation | 1,660 module tests pass, including all 19 new cases; 1 existing test is ignored. Formatting passes. See logs/fixed-modules-final.log and logs/fmt-check-final.log |
+| Same final implementation after restoring every mutation | 1,660 module tests pass, 0 fail, 1 existing test is ignored; logs/post-mutation-modules.log |
+| Same final implementation plus individual saved patches | All 13 mutations rejected by actual matching test failures; source restored to the final implementation. See MUTATIONS.md, results/mutations.tsv, and logs/mutation-run.log |
+
+The final implementation adds three private-boundary safety cases after the baseline test checkpoint:
+owned-policy Keep eligibility, terminal conflict exhaustion, and retry timeout.
+The original retention tests are correctly baseline-green. No claim is made that all safety tests fail on main.
+
+The historical 35be8cd results are not proof for the later future-size correction.
+That correction boxes internal commit futures after Clippy detected large writer futures.
+The complete final checks and mutation logs identify their actual tested commit.
+Earlier fixture/type-check logs are diagnostics, not red-regression evidence.
+
+## Commands and environment
 
 Requested host: ecs.g9a.4xlarge, 16 vCPU, 64 GiB RAM, ESSD disks.
-The shell reports 16 CPUs and 61 GiB of memory. The ECS SKU and disk class were supplied by the task, not queried from cloud metadata.
-The repository is on a 49 GiB system filesystem. `/mnt/lance` is a 295 GiB data filesystem with about 196 GiB available.
-`sccache` is installed at `/usr/local/bin/sccache`.
+Observed: 16 CPUs, about 61 GiB memory, repository on a 49 GiB system filesystem, and a 295 GiB data filesystem at /mnt/lance.
+The task supplied the ECS SKU and disk class; they were not queried from cloud metadata.
 
-Future build shells must use:
+Rust 1.98.1 follows rust-toolchain.toml. Existing Cargo and sccache caches are reused.
+CARGO_TARGET_DIR=/mnt/lance/targets/issue7207 keeps build outputs off the system disk.
+RUSTC_WRAPPER=/usr/local/bin/sccache uses the installed compiler cache.
+The repository's ci profile is used without ad hoc LTO changes.
+The host's exact environment exports are in /mnt/lance/results/issue7207/env.sh.
 
-```bash
-export CARGO_TARGET_DIR=/mnt/lance/target-issue-7207
-export RUSTC_WRAPPER=/usr/local/bin/sccache
-```
+Run from the pure checkout with that environment:
 
-No build directory was populated and no long-running job was started.
-The sandbox mounts `.git` read-only, so the authorized fetch and branch operations used escalation.
-The managed-environment status tool and `/etc/codex/network-policy.json` were unavailable in this executor.
-GitHub reads succeeded through the escalated CLI. No credentials were inspected.
+    cargo test --locked --profile ci -p lance --lib dataset::optimize::tests::index_cleanup -- --nocapture
+    cargo test --locked --profile ci -p lance --lib -- dataset::optimize io::commit dataset::write::commit dataset::tests
+    cargo clippy --locked --profile ci -p lance --all-targets -- -D warnings
+    cargo fmt --all --check
+    RUSTDOCFLAGS='-D warnings' cargo doc --locked --profile ci -p lance --no-deps
 
-## Results by revision
+Run the separation checker:
 
-| Revision | Check | Result |
-| --- | --- | --- |
-| `46d7bfdda8ac303d5363c851d6883facb249cb56` | Static code and GitHub research | Completed for the design decision |
-| Same baseline | Regression tests / baseline red tests | Not run: stopped before implementation |
-| Same baseline | Clippy / fmt / rustdoc / module tests | Not run: no source change |
-| No fixed revision exists | Mutation tests | Not run |
-| Baseline and fixed revision | IVF_PQ race, lost commits, orphan count/bytes, wall time | Not measured |
+    python3 /path/to/review/issue-7207/check_separation.py
 
-The tests and commands in DESIGN.md are plans, not execution evidence.
-In particular, retention tests for Keep and landed-error should be baseline-green.
-No failed test log or benchmark script is presented as a reproduction.
+Pass the two origin/Option-B refs as positional arguments to check the published refs.
+The checker verifies that pure has no review/issue-* paths, pure is an ancestor of review,
+and all differences are under review/issue-7207/.
 
-## Reproduction and branch checks
+The temporary /tmp review checkout and scratch logs were lost when the host restarted.
+The committed tests survived. Final red evidence was regenerated, and active logs now live in the persistent review checkout.
 
-Reproduce the static investigation with the baseline checkout and the source references in DESIGN.md.
-GitHub discussion snapshots and branch overlap results are under `results/`.
+## Mutation verification
 
-Run the separation check locally:
+bench/mutations.sh removes one component at a time, runs its matching test, and restores source after every run.
+Each log names the base commit, test, source hash, and saved patch hash.
+A compile failure does not count as a rejected mutation.
+All 13 mutations were rejected. See MUTATIONS.md for the protection-to-test mapping, bench/README.md for commands, and results/mutations.tsv for raw results.
 
-```bash
-python3 review/issue-7207/check_separation.py
-```
+## Optional end-to-end measurement
 
-Run it against fetched remote tracking refs:
+Not measured. No concurrent IVF_PQ storage-growth result is claimed for this implementation or the control group.
+The optional end-to-end race was not attempted; the required evidence is the deterministic Rust regression suite.
 
-```bash
-python3 review/issue-7207/check_separation.py \
-  origin/fix/7207-reclaim-lost-commit-indices \
-  origin/review/7207-reclaim-lost-commit-indices
-```
+| Revision | Lost commits | Unreferenced index directories | Orphan bytes | Wall time |
+| --- | --- | --- | --- | --- |
+| Original upstream baseline | Not measured | Not measured | Not measured | Not measured |
+| Option B implementation | Not measured | Not measured | Not measured | Not measured |
+| Independent control group | Not measured | Not measured | Not measured | Not measured |
 
-The checker requires no review path in pure, pure as an ancestor of review,
-and review-only differences under `review/issue-7207/`.
-Logs identify the revisions checked. The final handoff reports the post-publication check.
+## Limitations and maintainer questions
 
-## Files
+Generic CreateIndex, caller-owned Rewrite inputs, custom/public remap outputs, and partial builds remain outside automatic reclamation.
+A failure before a builder returns metadata can still leave untracked directories.
+Data files remain excluded because replayed RewriteResult paths can belong to an earlier committed attempt (#7722).
+The FTS half-written directory that becomes active is a separate failure.
 
-- `DESIGN.md`: findings, exact API proposal, alternative scope, and planned tests.
-- `PR.md`: explicitly incomplete PR outline. Do not submit it.
-- `check_separation.py`: local and remote branch separation check.
-- `logs/environment.log`: disk, memory, CPU, and sccache observations.
-- `logs/fetch.log`: upstream fetch output.
-- `logs/separation.log`: separation check at the research checkpoint.
-- `results/issue7207.json`, `comments7207.json`: issue and claim/reply snapshots.
-- `results/pr8118.json`, `comments8118.json`: prior PR description and both discussion comments.
-- `results/10096-*`: unchanged branch refs and overlap diff.
-- `results/overlap.json`: file lists for inspected related PRs.
-- `results/recent-commits.txt`: recent commits touching the commit code.
+PR.md includes the requested follow-up question about an explicit remapper ownership contract (Option A).
+No public trait addition is included here.
 
-The host has no build or measurement job from this investigation and can be released while the design awaits a decision.
+## File list
+
+- DESIGN.md: research, control-flow proof, ownership/replay analysis, and overlap.
+- PR.md: upstream PR draft for review only.
+- CONTROL.md: independent control refs and source-revision boundary.
+- MUTATIONS.md: each removed protection and the regression test that rejected it.
+- check_separation.py: local and remote branch separation check.
+- bench/mutate.pl and bench/mutations.sh: mutation definitions and runner.
+- bench/README.md: verification usage and measurement status.
+- logs/: raw baseline, final verification, and mutation output.
+- results/: source snapshots, #10096 PR1/PR2 overlap, control refs, mutation patches, and summary.

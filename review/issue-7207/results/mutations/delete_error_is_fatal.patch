@@ -1,0 +1,17 @@
+diff --git a/rust/lance/src/io/commit.rs b/rust/lance/src/io/commit.rs
+index 942ac993b..927eec597 100644
+--- a/rust/lance/src/io/commit.rs
++++ b/rust/lance/src/io/commit.rs
+@@ -310,11 +310,7 @@ async fn cleanup_index_dirs(
+             ),
+             // Inline FRI details do not create a directory.
+             Err(Error::NotFound { .. }) => {}
+-            Err(error) => log::warn!(
+-                "Failed to clean up uncommitted index directory '{}': {}",
+-                path,
+-                error
+-            ),
++            Err(error) => panic!("cleanup delete failed: {error}"),
+         }
+     }
+ }

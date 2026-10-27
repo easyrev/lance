@@ -1,0 +1,28 @@
+Base commit: d09358d6f21ea9c360b4663cf5b242deb97d9ebd
+Mutation: delete_error_is_fatal
+Test: test_index_cleanup_delete_failure_preserves_commit_error
+3a091e29e801c9b5cc9635b682e8fb23a68266957796bed986274861aed9ea89  rust/lance/src/io/commit.rs
+c1d9de1e858a6378cedec0671e5de6c4ceab2e4b911e614d68e3f74952213268  /mnt/lance/checkouts/issue7207-review/review/issue-7207/results/mutations/delete_error_is_fatal.patch
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/root/worksapce/Lance/rust/lance)
+    Finished `ci` profile [unoptimized + debuginfo] target(s) in 2m 55s
+     Running unittests src/lib.rs (/mnt/lance/targets/issue7207/ci/deps/lance-f528a6e6d4d83497)
+
+running 1 test
+
+thread 'dataset::optimize::tests::index_cleanup::test_index_cleanup_delete_failure_preserves_commit_error' (40704) panicked at rust/lance/src/io/commit.rs:313:27:
+cleanup delete failed: LanceError(IO): Generic N/A error: LanceError(IO): Generic FailingProxyStore error: injected index delete failure, rust/lance/src/utils/test/failing_store.rs:85:22, rust/lance-io/src/object_store.rs:1772:9
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::index_cleanup::test_index_cleanup_delete_failure_preserves_commit_error ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::index_cleanup::test_index_cleanup_delete_failure_preserves_commit_error
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6773 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p lance --lib`

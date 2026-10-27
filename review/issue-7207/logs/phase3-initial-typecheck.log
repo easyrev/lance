@@ -1,0 +1,38 @@
+3331aaf9c6bb207bb137532b0c9a3e3992215cd6
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/root/worksapce/Lance/rust/lance)
+error[E0308]: `if` and `else` have incompatible types
+   --> rust/lance/src/dataset/optimize/tests/index_cleanup.rs:649:9
+    |
+616 |         let error = if owned_commit {
+    |  ___________________-
+617 | |           let remapped = remapper
+618 | |               .remap_indices(RowAddrRemap::direct(HashMap::new()), &[])
+619 | |               .await
+...   |
+640 | | /         dataset
+641 | | |             .apply_commit_with_index_ownership(
+642 | | |                 transaction,
+643 | | |                 &Default::default(),
+...   | |
+647 | | |             .await
+    | | |__________________- expected because of this
+648 | |       } else {
+649 | | /         compact_files(
+650 | | |             &mut dataset,
+651 | | |             compaction_options(false),
+652 | | |             Some(Arc::new(remapper)),
+653 | | |         )
+654 | | |         .await
+    | | |______________^ expected `Result<(), Error>`, found `Result<CompactionMetrics, Error>`
+655 | |       }
+    | |_______- `if` and `else` have incompatible types
+    |
+    = note: expected enum `std::result::Result<(), _>`
+               found enum `std::result::Result<dataset::optimize::CompactionMetrics, _>`
+
+For more information about this error, try `rustc --explain E0308`.
+error: could not compile `lance` (lib test) due to 1 previous error

@@ -1,0 +1,12 @@
+diff --git a/rust/lance/src/io/commit.rs b/rust/lance/src/io/commit.rs
+index 942ac993b..7ddc2803c 100644
+--- a/rust/lance/src/io/commit.rs
++++ b/rust/lance/src/io/commit.rs
+@@ -1950,7 +1950,6 @@ pub(crate) async fn commit_transaction(
+             } = &rebased.operation
+                 && Some(index.uuid) != previous_fri
+             {
+-                index_ids.insert(index.uuid);
+             }
+             if let Some(assembly) = &assembly {
+                 // Tagged assembly entries never appear in the transaction.

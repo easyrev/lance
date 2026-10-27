@@ -2,8 +2,7 @@
 
 Baseline: `46d7bfdda8ac303d5363c851d6883facb249cb56` (`upstream/main`, fetched for this investigation).
 
-Status: Option B approved by the user. Phase 2 starts with regression tests.
-The public IndexRemapper trait must remain unchanged. No test or measurement result is claimed yet.
+Status: Option B is implemented on the separate option-b branch pair. The public IndexRemapper trait is unchanged. Baseline red evidence and fixed test results are in README.md and logs. The original remote pair is an independent control group, as recorded in CONTROL.md.
 All source line numbers below refer to this baseline, not the original checkout.
 
 ## Decision to review
@@ -297,9 +296,7 @@ The Keep and landed-error tests cannot honestly be reported as failing on unmodi
 main already has their required safety behavior. Record baseline-green protection tests separately from red regression tests.
 This is an evidence constraint, not a reason to weaken either assertion.
 
-No tests, lint, docs build, mutation tests, or end-to-end race were run at this design gate.
-No red.log was created because there is no measured red result.
-The optional IVF_PQ race remains not measured.
+The design gate preceded implementation. It is now superseded by the revision-labelled evidence in README.md and logs/red.log. Mutation verification is recorded separately from unmodified-source checks. The optional IVF_PQ race remains not measured.
 
 ## Gate answers
 
@@ -310,6 +307,24 @@ The optional IVF_PQ race remains not measured.
 - If the rebase FRI inventory requires a large diff, report its size before continuing with implementation.
 - FTS half-written active indices, data files, generic replayable input IDs, partial builds, and clone cleanup remain out of scope.
 
-Branch separation: the pure branch remains at the baseline with no review paths.
-The review branch contains only `review/issue-7207/` additions and has the pure branch as an ancestor.
+Branch separation: the pure branch contains implementation and regression tests with no review paths. The Option B review branch has pure as an ancestor and differs only under review/issue-7207/.
 See `logs/separation.log` for the check.
+
+## Final Option B source boundary
+
+The final implementation is on the separate option-b branch pair. The original remote pair is the user's independent control group.
+Its source is not merged into this implementation.
+
+Production changes are limited to dataset.rs, dataset/optimize.rs, dataset/write/commit.rs, and io/commit.rs.
+The new regression module is dataset/optimize/tests/index_cleanup.rs.
+conflict_resolver.rs, index.rs, index/create.rs, and the public remapping traits remain unchanged.
+The rebase inventory uses metadata returned by the existing resolver and needs no resolver refactor.
+
+Consequently, #10096 PR1 and PR2 have no direct source-hunk overlap with this final patch:
+their relevant changes are in conflict_resolver.rs, index.rs, and concurrent_reindex.rs.
+The replay semantics remain related and should be reviewed together.
+The Phase 1 table records the broader potential overlap considered before the implementation boundary was selected.
+
+The tests-only baseline checkpoint is 9f5c301849c164fe60ee34167b6138e671f9df32.
+The final implementation checkpoint is d09358d6f21ea9c360b4663cf5b242deb97d9ebd.
+README.md identifies all actual validation results and their logs.

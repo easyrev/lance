@@ -1,0 +1,32 @@
+35be8cd539d65d28e60d6addc497e543132a960a
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/root/worksapce/Lance/rust/lance)
+    Finished `ci` profile [unoptimized + debuginfo] target(s) in 2m 55s
+     Running unittests src/lib.rs (/mnt/lance/targets/issue7207/ci/deps/lance-f528a6e6d4d83497)
+
+running 19 tests
+test dataset::optimize::tests::index_cleanup::test_kept_index_survives_concurrent_drop::case_2_owned_commit_boundary ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_indices_after_terminal_conflict::case_1_retries_exhausted ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_indices_after_terminal_conflict::case_2_retry_timeout ... ok
+test dataset::optimize::tests::index_cleanup::test_borrowed_remap_outputs_survive_verified_loss::case_2_public_commit_compaction ... ok
+test dataset::optimize::tests::index_cleanup::test_index_cleanup_latest_read_failure_preserves_commit_error ... ok
+test dataset::optimize::tests::index_cleanup::test_index_cleanup_delete_failure_preserves_commit_error ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_indices_after_verified_loss::case_1_verified_absent ... ok
+test dataset::optimize::tests::index_cleanup::test_kept_index_survives_concurrent_drop::case_1_custom_remapper ... ok
+test dataset::optimize::tests::index_cleanup::test_borrowed_transaction_can_replay_after_verified_loss::case_2_rewrite ... ok
+test dataset::optimize::tests::index_cleanup::test_borrowed_remap_outputs_survive_verified_loss::case_1_custom_remapper ... ok
+test dataset::optimize::tests::index_cleanup::test_borrowed_transaction_can_replay_after_verified_loss::case_1_create_index ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_indices_after_verified_loss::case_2_latest_manifest_references_output ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_indices_landed_error_keeps_directories ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_indices_preempted_by_delete_before_manifest_write ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_1_v0 ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_external_fri_after_verified_loss::case_2_tagged ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_1_v0 ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_indices_unknown_outcome_keeps_directories ... ok
+test dataset::optimize::tests::index_cleanup::test_owned_fri_rebase_then_terminal_loss::case_2_tagged ... ok
+
+test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 6755 filtered out; finished in 0.25s
+

@@ -1,0 +1,20 @@
+diff --git a/rust/lance/src/io/commit.rs b/rust/lance/src/io/commit.rs
+index 942ac993b..c549336b3 100644
+--- a/rust/lance/src/io/commit.rs
++++ b/rust/lance/src/io/commit.rs
+@@ -287,14 +287,7 @@ async fn cleanup_index_dirs(
+     .await;
+     let live_ids: HashSet<_> = match indices {
+         Ok(indices) => indices.into_iter().map(|index| index.uuid).collect(),
+-        Err(error) => {
+-            log::warn!(
+-                "Skipping uncommitted index cleanup under '{}': cannot read the latest indices: {}",
+-                base_path,
+-                error
+-            );
+-            return;
+-        }
++        Err(_error) => HashSet::new(),
+     };
+     for id in ids.difference(&live_ids) {
+         let path = base_path

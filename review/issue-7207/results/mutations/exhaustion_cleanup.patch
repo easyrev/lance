@@ -1,0 +1,19 @@
+diff --git a/rust/lance/src/io/commit.rs b/rust/lance/src/io/commit.rs
+index 942ac993b..8f1c81a0e 100644
+--- a/rust/lance/src/io/commit.rs
++++ b/rust/lance/src/io/commit.rs
+@@ -2263,13 +2263,7 @@ pub(crate) async fn commit_transaction(
+     }
+ 
+     cleanup_transaction_file(object_store, &dataset.base, &current_transaction_file).await;
+-    Box::pin(cleanup_index_dirs(
+-        object_store,
+-        commit_handler,
+-        &dataset.base,
+-        &index_ids,
+-    ))
+-    .await;
++    
+     Err(crate::Error::commit_conflict_source(
+         target_version,
+         format!(

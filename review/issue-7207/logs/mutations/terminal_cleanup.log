@@ -1,0 +1,30 @@
+Base commit: d09358d6f21ea9c360b4663cf5b242deb97d9ebd
+Mutation: terminal_cleanup
+Test: test_owned_indices_after_verified_loss::case_1_verified_absent
+afb933eb26770f17ce5f365c87464c0dea198da7edf89cd7592db0a9c7966a7e  rust/lance/src/io/commit.rs
+512962cfcac541b86b376083dee9c98a58f1d0e286d4a53cffc593ff416455d0  /mnt/lance/checkouts/issue7207-review/review/issue-7207/results/mutations/terminal_cleanup.patch
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/root/worksapce/Lance/rust/lance)
+    Finished `ci` profile [unoptimized + debuginfo] target(s) in 2m 55s
+     Running unittests src/lib.rs (/mnt/lance/targets/issue7207/ci/deps/lance-f528a6e6d4d83497)
+
+running 1 test
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_indices_after_verified_loss::case_1_verified_absent' (38647) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:349:5:
+assertion `left == right` failed
+  left: {"0c2d405c-968f-44e0-9406-b4e569e8753d", "60d743c1-5fc5-445d-b0f6-51c59ee9a8bc"}
+ right: {"0c2d405c-968f-44e0-9406-b4e569e8753d"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::index_cleanup::test_owned_indices_after_verified_loss::case_1_verified_absent ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::index_cleanup::test_owned_indices_after_verified_loss::case_1_verified_absent
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6773 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p lance --lib`

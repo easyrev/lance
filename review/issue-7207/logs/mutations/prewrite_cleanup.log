@@ -1,0 +1,30 @@
+Base commit: d09358d6f21ea9c360b4663cf5b242deb97d9ebd
+Mutation: prewrite_cleanup
+Test: test_owned_indices_preempted_by_delete_before_manifest_write
+04dc74400555753b3602d5a5e124ff26bd4f6d7fce343db3641f49706384db2d  rust/lance/src/io/commit.rs
+7757de222c1fc6df94a67a138799d7e9a8cb493c9209be917705a47a11add3d2  /mnt/lance/checkouts/issue7207-review/review/issue-7207/results/mutations/prewrite_cleanup.patch
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance v15.0.0-beta.1 (/root/worksapce/Lance/rust/lance)
+    Finished `ci` profile [unoptimized + debuginfo] target(s) in 2m 55s
+     Running unittests src/lib.rs (/mnt/lance/targets/issue7207/ci/deps/lance-f528a6e6d4d83497)
+
+running 1 test
+
+thread 'dataset::optimize::tests::index_cleanup::test_owned_indices_preempted_by_delete_before_manifest_write' (39926) panicked at rust/lance/src/dataset/optimize/tests/index_cleanup.rs:590:5:
+assertion `left == right` failed
+  left: {"52ece3ba-ac2b-45f2-8662-f4ca7646ad54", "7136f229-520e-4f06-a00a-69db9637cb3b"}
+ right: {"52ece3ba-ac2b-45f2-8662-f4ca7646ad54"}
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test dataset::optimize::tests::index_cleanup::test_owned_indices_preempted_by_delete_before_manifest_write ... FAILED
+
+failures:
+
+failures:
+    dataset::optimize::tests::index_cleanup::test_owned_indices_preempted_by_delete_before_manifest_write
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 6773 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `-p lance --lib`

@@ -1,0 +1,12 @@
+diff --git a/rust/lance/src/io/commit.rs b/rust/lance/src/io/commit.rs
+index 942ac993b..080d8ff7b 100644
+--- a/rust/lance/src/io/commit.rs
++++ b/rust/lance/src/io/commit.rs
+@@ -2229,6 +2229,7 @@ pub(crate) async fn commit_transaction(
+                         )
+                         .await;
+                         if commit_handler.propagate_commit_error_after_success() {
++                            Box::pin(cleanup_index_dirs(object_store, commit_handler, &dataset.base, &index_ids)).await;
+                             return Err(err);
+                         }
+                         return Ok((committed_manifest, location));

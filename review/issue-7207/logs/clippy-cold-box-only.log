@@ -1,0 +1,177 @@
+d1ccee987d36c61ae572c5084600a40e689d4eea
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.1: fp16kernels feature is not enabled, skipping build of bf16 kernels
+    Checking lance v15.0.0-beta.1 (/root/worksapce/Lance/rust/lance)
+error: large future with a size of 16512 bytes
+    --> rust/lance/src/dataset/write/merge_insert.rs:5221:9
+     |
+5221 | /         MergeInsertTestBuilder::new()
+5222 | |             .with_version(version)
+5223 | |             .with_stable_row_ids(enable_stable_row_ids)
+5224 | |             .with_test_keys(&[4, 5, 6])
+...    |
+5235 | |             })
+5236 | |             .run_test()
+     | |_______________________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#large_futures
+     = note: requested on the command line with `-D clippy::large-futures`
+help: consider `Box::pin` on it
+     |
+5221 ~         Box::pin(MergeInsertTestBuilder::new()
+5222 +             .with_version(version)
+5223 +             .with_stable_row_ids(enable_stable_row_ids)
+5224 +             .with_test_keys(&[4, 5, 6])
+5225 +             .with_expected_left_keys(&[])
+5226 +             .with_expected_right_keys(&[4, 5, 6, 7, 8, 9])
+5227 +             .with_expected_stats(&[3, 3, 3])
+5228 +             .with_job_builder(|ds| {
+5229 +                 MergeInsertBuilder::try_new(ds, vec!["key".to_string()])
+5230 +                     .unwrap()
+5231 +                     .when_matched(WhenMatched::UpdateAll)
+5232 +                     .when_not_matched_by_source(WhenNotMatchedBySource::Delete)
+5233 +                     .try_build()
+5234 +                     .unwrap()
+5235 +             })
+5236 +             .run_test())
+     |
+
+error: large future with a size of 16512 bytes
+    --> rust/lance/src/dataset/write/merge_insert.rs:5246:9
+     |
+5246 | /         MergeInsertTestBuilder::new()
+5247 | |             .with_version(version)
+5248 | |             .with_stable_row_ids(enable_stable_row_ids)
+5249 | |             .with_test_keys(&[4, 5, 6])
+...    |
+5259 | |             })
+5260 | |             .run_test()
+     | |_______________________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#large_futures
+help: consider `Box::pin` on it
+     |
+5246 ~         Box::pin(MergeInsertTestBuilder::new()
+5247 +             .with_version(version)
+5248 +             .with_stable_row_ids(enable_stable_row_ids)
+5249 +             .with_test_keys(&[4, 5, 6])
+5250 +             .with_expected_left_keys(&[1, 2, 3])
+5251 +             .with_expected_right_keys(&[4, 5, 6, 7, 8, 9])
+5252 +             .with_expected_stats(&[3, 3, 0])
+5253 +             .with_job_builder(|ds| {
+5254 +                 MergeInsertBuilder::try_new(ds, vec!["key".to_string()])
+5255 +                     .unwrap()
+5256 +                     .when_matched(WhenMatched::UpdateAll)
+5257 +                     .try_build()
+5258 +                     .unwrap()
+5259 +             })
+5260 +             .run_test())
+     |
+
+error: large future with a size of 16512 bytes
+    --> rust/lance/src/dataset/write/merge_insert.rs:5270:9
+     |
+5270 | /         MergeInsertTestBuilder::new()
+5271 | |             .with_version(version)
+5272 | |             .with_stable_row_ids(enable_stable_row_ids)
+5273 | |             .with_test_keys(&[6])
+...    |
+5286 | |             })
+5287 | |             .run_test()
+     | |_______________________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#large_futures
+help: consider `Box::pin` on it
+     |
+5270 ~         Box::pin(MergeInsertTestBuilder::new()
+5271 +             .with_version(version)
+5272 +             .with_stable_row_ids(enable_stable_row_ids)
+5273 +             .with_test_keys(&[6])
+5274 +             .with_expected_left_keys(&[1, 2, 3, 4, 5])
+5275 +             .with_expected_right_keys(&[6, 7, 8, 9])
+5276 +             .with_expected_stats(&[3, 1, 0])
+5277 +             .with_job_builder(|ds| {
+5278 +                 let keys = vec!["key".to_string()];
+5279 +                 MergeInsertBuilder::try_new(ds.clone(), keys)
+5280 +                     .unwrap()
+5281 +                     .when_matched(
+5282 +                         WhenMatched::update_if(&ds, "source.filterme != target.filterme").unwrap(),
+5283 +                     )
+5284 +                     .try_build()
+5285 +                     .unwrap()
+5286 +             })
+5287 +             .run_test())
+     |
+
+error: large future with a size of 16512 bytes
+    --> rust/lance/src/dataset/write/merge_insert.rs:5297:9
+     |
+5297 | /         MergeInsertTestBuilder::new()
+5298 | |             .with_version(version)
+5299 | |             .with_stable_row_ids(enable_stable_row_ids)
+5300 | |             .with_test_keys(&[4, 5, 6])
+...    |
+5312 | |             })
+5313 | |             .run_test()
+     | |_______________________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#large_futures
+help: consider `Box::pin` on it
+     |
+5297 ~         Box::pin(MergeInsertTestBuilder::new()
+5298 +             .with_version(version)
+5299 +             .with_stable_row_ids(enable_stable_row_ids)
+5300 +             .with_test_keys(&[4, 5, 6])
+5301 +             .with_expected_left_keys(&[1, 2, 3])
+5302 +             .with_expected_right_keys(&[4, 5, 6])
+5303 +             .with_expected_stats(&[0, 3, 0])
+5304 +             .with_job_builder(|ds| {
+5305 +                 let keys = vec!["key".to_string()];
+5306 +                 MergeInsertBuilder::try_new(ds, keys)
+5307 +                     .unwrap()
+5308 +                     .when_matched(WhenMatched::UpdateAll)
+5309 +                     .when_not_matched(WhenNotMatched::DoNothing)
+5310 +                     .try_build()
+5311 +                     .unwrap()
+5312 +             })
+5313 +             .run_test())
+     |
+
+error: large future with a size of 16512 bytes
+    --> rust/lance/src/dataset/write/merge_insert.rs:5323:9
+     |
+5323 | /         MergeInsertTestBuilder::new()
+5324 | |             .with_version(version)
+5325 | |             .with_stable_row_ids(enable_stable_row_ids)
+5326 | |             .with_test_keys(&[1, 4, 5, 6])
+...    |
+5339 | |             })
+5340 | |             .run_test()
+     | |_______________________^
+     |
+     = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.98.0/index.html#large_futures
+help: consider `Box::pin` on it
+     |
+5323 ~         Box::pin(MergeInsertTestBuilder::new()
+5324 +             .with_version(version)
+5325 +             .with_stable_row_ids(enable_stable_row_ids)
+5326 +             .with_test_keys(&[1, 4, 5, 6])
+5327 +             .with_expected_left_keys(&[1])
+5328 +             .with_expected_right_keys(&[4, 5, 6, 7, 8, 9])
+5329 +             .with_expected_stats(&[3, 3, 2])
+5330 +             .with_job_builder(|ds| {
+5331 +                 let keys = vec!["key".to_string()];
+5332 +                 let condition = create_delete_condition();
+5333 +                 MergeInsertBuilder::try_new(ds, keys)
+5334 +                     .unwrap()
+5335 +                     .when_matched(WhenMatched::UpdateAll)
+5336 +                     .when_not_matched_by_source(WhenNotMatchedBySource::DeleteIf(condition))
+5337 +                     .try_build()
+5338 +                     .unwrap()
+5339 +             })
+5340 +             .run_test())
+     |
+
+error: could not compile `lance` (lib test) due to 5 previous errors

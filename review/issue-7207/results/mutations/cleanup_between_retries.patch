@@ -1,0 +1,12 @@
+diff --git a/rust/lance/src/io/commit.rs b/rust/lance/src/io/commit.rs
+index 942ac993b..766ed95fe 100644
+--- a/rust/lance/src/io/commit.rs
++++ b/rust/lance/src/io/commit.rs
+@@ -2167,6 +2167,7 @@ pub(crate) async fn commit_transaction(
+                 }
+ 
+                 if next_attempt_i < num_attempts {
++                    Box::pin(cleanup_index_dirs(object_store, commit_handler, &dataset.base, &index_ids)).await;
+                     // The transaction file from this attempt is now stale; clean it up
+                     // before the next attempt writes a new one (possibly rebased).
+                     cleanup_transaction_file(
