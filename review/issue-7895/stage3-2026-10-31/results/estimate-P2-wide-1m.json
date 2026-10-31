@@ -1,0 +1,47 @@
+{
+  "child": {
+    "build": "P2",
+    "case": "wide-partial-lance",
+    "conflict": false,
+    "experiment": "estimate",
+    "merge_stats": {
+      "num_deleted_rows": 0,
+      "num_inserted_rows": 0,
+      "num_updated_rows": 100000
+    },
+    "received_bytes": 0,
+    "run": 1,
+    "spill_peak_bytes": 0,
+    "status": "ok",
+    "verification": {
+      "rows": 1000000,
+      "sampled_ids": [
+        0,
+        999999
+      ],
+      "sampled_rows": 2,
+      "version_count": 2
+    },
+    "wall_s": 2.011789404999945
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/P2/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P2",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/pilot-wide-1m/spec-lance.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/estimate-P2-wide-1m/spill"
+  ],
+  "cpu_system_s": 2.854172,
+  "cpu_total_s": 6.825412,
+  "cpu_user_s": 3.97124,
+  "exit_code": 0,
+  "outer_wall_s": 2.2843074798583984,
+  "page_faults": 0,
+  "peak_rss_kib": 4317740,
+  "status": "ok"
+}

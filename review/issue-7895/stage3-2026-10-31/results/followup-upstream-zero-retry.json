@@ -1,0 +1,35 @@
+{
+  "child": {
+    "build": "U",
+    "conflict": true,
+    "error_type": "OSError",
+    "execute_wall_s": 22.253169573006744,
+    "message": "Too many concurrent writers. Attempted 0 retries., /mnt/lance/9617-preflight/worktree/rust/lance/src/dataset/write/retry.rs:103:9",
+    "run": 1,
+    "spill_peak_bytes": 0,
+    "status": "error"
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/U/bin/python",
+    "bench_worker.py",
+    "--build",
+    "U",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/specs/followup-upstream-zero-retry.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/followup-upstream-zero-retry/spill",
+    "--conflict"
+  ],
+  "cpu_system_s": 13.959137,
+  "cpu_total_s": 42.5918,
+  "cpu_user_s": 28.632663,
+  "exit_code": 1,
+  "memory_cap_gib": null,
+  "outer_wall_s": 22.776151657104492,
+  "page_faults": 5,
+  "peak_rss_kib": 9377080,
+  "status": "error",
+  "tmp_root": "/mnt/lance/9617-bench/tmp"
+}

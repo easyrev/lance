@@ -1,0 +1,35 @@
+{
+  "child": {
+    "build": "U",
+    "conflict": true,
+    "error_type": "OSError",
+    "execute_wall_s": 115.21697361200495,
+    "message": "Too many concurrent writers. Attempted 1 times, but failed on retry_timeout of 30.000 seconds., /mnt/lance/9617-preflight/worktree/rust/lance/src/io/commit.rs:133:5",
+    "run": 1,
+    "spill_peak_bytes": 17708303624,
+    "status": "error"
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/U/bin/python",
+    "bench_worker.py",
+    "--build",
+    "U",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/specs/followup-upstream-default-retry.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/followup-upstream-default-retry/spill",
+    "--conflict"
+  ],
+  "cpu_system_s": 23.260528,
+  "cpu_total_s": 52.102896,
+  "cpu_user_s": 28.842368,
+  "exit_code": 1,
+  "memory_cap_gib": null,
+  "outer_wall_s": 116.51010966300964,
+  "page_faults": 1420,
+  "peak_rss_kib": 9701000,
+  "status": "error",
+  "tmp_root": "/mnt/lance/9617-bench/tmp"
+}

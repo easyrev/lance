@@ -1,0 +1,30 @@
+{
+  "child": {
+    "build": "P2",
+    "conflict": false,
+    "error_type": "AssertionError",
+    "message": "sampled row mismatch for id=0",
+    "run": 1,
+    "status": "error"
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/P2/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P2",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/smoke-full/spec-lance-no-conflict.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/smoke-P2-lance-no-conflict/spill"
+  ],
+  "cpu_system_s": 0.053675999999999995,
+  "cpu_total_s": 1.680864,
+  "cpu_user_s": 1.6271879999999999,
+  "exit_code": 1,
+  "outer_wall_s": 0.19574618339538574,
+  "page_faults": 0,
+  "peak_rss_kib": 205020,
+  "status": "error"
+}

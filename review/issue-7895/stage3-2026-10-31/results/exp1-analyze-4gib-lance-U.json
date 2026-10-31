@@ -1,0 +1,38 @@
+{
+  "child": {
+    "analysis_only": true,
+    "build": "U",
+    "case": "4gib-lance",
+    "conflict": false,
+    "experiment": "experiment1-2",
+    "plan_path": "/mnt/lance/9617-bench/plans/exp1-analyze-4gib-lance-U.txt",
+    "plan_sha256": "506e5f52299c94f1d6db595597acce7e99223f1f6db0d5f5a99e8e36fd1ea41a",
+    "run": 0,
+    "status": "ok"
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/U/bin/python",
+    "bench_worker.py",
+    "--build",
+    "U",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/specs/exp1-4gib-lance.json",
+    "--run-number",
+    "0",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/exp1-analyze-4gib-lance-U/spill",
+    "--analyze",
+    "--plan-out",
+    "/mnt/lance/9617-bench/plans/exp1-analyze-4gib-lance-U.txt"
+  ],
+  "cpu_system_s": 4.663384,
+  "cpu_total_s": 13.195257999999999,
+  "cpu_user_s": 8.531874,
+  "exit_code": 0,
+  "memory_cap_gib": null,
+  "outer_wall_s": 6.540306329727173,
+  "page_faults": 0,
+  "peak_rss_kib": 6256916,
+  "status": "ok",
+  "tmp_root": "/mnt/lance/9617-bench/tmp"
+}

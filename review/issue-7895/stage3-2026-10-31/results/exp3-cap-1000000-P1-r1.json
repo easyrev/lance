@@ -1,0 +1,58 @@
+{
+  "child": {
+    "build": "P1",
+    "case": "1000000rows-wide",
+    "conflict": false,
+    "experiment": "experiment3",
+    "merge_stats": {
+      "num_deleted_rows": 0,
+      "num_inserted_rows": 0,
+      "num_updated_rows": 100000
+    },
+    "parquet_adapter_options": {},
+    "parquet_adapter_variant": null,
+    "received_bytes": 0,
+    "run": 1,
+    "spill_peak_bytes": 0,
+    "status": "ok",
+    "verification": {
+      "rows": 1000000,
+      "sampled_ids": [
+        0,
+        999999
+      ],
+      "sampled_rows": 2,
+      "version_count": 3
+    },
+    "wall_s": 2.8239907839997613
+  },
+  "command": [
+    "systemd-run",
+    "--scope",
+    "-p",
+    "MemoryMax=16G",
+    "-p",
+    "MemorySwapMax=0",
+    "--",
+    "/mnt/lance/9617-preflight/venv/P1/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P1",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/specs/exp3-1000000.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/exp3-cap-1000000-P1-r1/spill"
+  ],
+  "cpu_system_s": 5.161253,
+  "cpu_total_s": 10.307493000000001,
+  "cpu_user_s": 5.14624,
+  "exit_code": 0,
+  "memory_cap_gib": 16,
+  "outer_wall_s": 3.2116663455963135,
+  "page_faults": 1,
+  "peak_rss_kib": 10752108,
+  "status": "ok",
+  "tmp_root": "/mnt/lance/9617-bench/tmp"
+}

@@ -1,0 +1,50 @@
+{
+  "child": {
+    "build": "P2",
+    "case": "parquet-no-conflict",
+    "conflict": false,
+    "experiment": "smoke",
+    "merge_stats": {
+      "num_deleted_rows": 0,
+      "num_inserted_rows": 1024,
+      "num_updated_rows": 1024
+    },
+    "parquet_rows_per_row_group": 2048,
+    "parquet_uncompressed_bytes_per_row": 995.173828125,
+    "received_bytes": 0,
+    "run": 1,
+    "spill_peak_bytes": 0,
+    "status": "ok",
+    "verification": {
+      "rows": 17408,
+      "sampled_ids": [
+        0,
+        16383,
+        16384
+      ],
+      "sampled_rows": 3,
+      "version_count": 3
+    },
+    "wall_s": 0.026740222999251273
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/P2/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P2",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/smoke-full-v2/spec-parquet-no-conflict.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/smoke-v2-P2-parquet-no-conflict/spill"
+  ],
+  "cpu_system_s": 0.037870999999999995,
+  "cpu_total_s": 1.685284,
+  "cpu_user_s": 1.647413,
+  "exit_code": 0,
+  "outer_wall_s": 0.2033064365386963,
+  "page_faults": 0,
+  "peak_rss_kib": 255124,
+  "status": "ok"
+}

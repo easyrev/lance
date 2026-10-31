@@ -1,0 +1,59 @@
+{
+  "child": {
+    "build": "P2",
+    "case": "4gib-parquet",
+    "conflict": true,
+    "experiment": "parquet-variants",
+    "merge_stats": {
+      "num_deleted_rows": 0,
+      "num_inserted_rows": 691843,
+      "num_updated_rows": 691843
+    },
+    "parquet_adapter_options": {
+      "batch_readahead": 1,
+      "batch_size": 21136,
+      "fragment_readahead": 1
+    },
+    "parquet_adapter_variant": "byte_budget",
+    "parquet_rows_per_row_group": 8192,
+    "parquet_uncompressed_bytes_per_row": 3175.6781005859375,
+    "received_bytes": 0,
+    "run": 1,
+    "spill_peak_bytes": 0,
+    "status": "ok",
+    "verification": {
+      "rows": 4691843,
+      "sampled_ids": [
+        0,
+        3999999,
+        4000000
+      ],
+      "sampled_rows": 3,
+      "version_count": 4
+    },
+    "wall_s": 8.018026762998488
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/P2/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P2",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/specs/parquet-byte_budget-4gib.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/expv-byte_budget-4gib-conflict-r1/spill",
+    "--conflict"
+  ],
+  "cpu_system_s": 9.940507,
+  "cpu_total_s": 31.963415,
+  "cpu_user_s": 22.022908,
+  "exit_code": 0,
+  "memory_cap_gib": null,
+  "outer_wall_s": 8.748034238815308,
+  "page_faults": 0,
+  "peak_rss_kib": 15261908,
+  "status": "ok",
+  "tmp_root": "/mnt/lance/9617-bench/tmp"
+}

@@ -1,0 +1,57 @@
+{
+  "child": {
+    "build": "P2",
+    "case": "4gib-parquet",
+    "conflict": false,
+    "experiment": "parquet-variants",
+    "merge_stats": {
+      "num_deleted_rows": 0,
+      "num_inserted_rows": 691843,
+      "num_updated_rows": 691843
+    },
+    "parquet_adapter_options": {
+      "batch_readahead": 1,
+      "fragment_readahead": 1
+    },
+    "parquet_adapter_variant": "readahead_1",
+    "parquet_rows_per_row_group": 8192,
+    "parquet_uncompressed_bytes_per_row": 3175.6781005859375,
+    "received_bytes": 0,
+    "run": 1,
+    "spill_peak_bytes": 0,
+    "status": "ok",
+    "verification": {
+      "rows": 4691843,
+      "sampled_ids": [
+        0,
+        3999999,
+        4000000
+      ],
+      "sampled_rows": 3,
+      "version_count": 3
+    },
+    "wall_s": 3.9014484219987935
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/P2/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P2",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/specs/parquet-readahead_1-4gib.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/expv-readahead_1-4gib-no-conflict-r1/spill"
+  ],
+  "cpu_system_s": 8.696156,
+  "cpu_total_s": 24.581496,
+  "cpu_user_s": 15.88534,
+  "exit_code": 0,
+  "memory_cap_gib": null,
+  "outer_wall_s": 4.511946678161621,
+  "page_faults": 2,
+  "peak_rss_kib": 11929964,
+  "status": "ok",
+  "tmp_root": "/mnt/lance/9617-bench/tmp"
+}

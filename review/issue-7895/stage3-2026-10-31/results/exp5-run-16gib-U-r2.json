@@ -1,0 +1,33 @@
+{
+  "child": {
+    "build": "U",
+    "conflict": false,
+    "error_type": "OSError",
+    "message": "Arrow error: Io error: IO error: No space left on device (os error 28)",
+    "run": 2,
+    "spill_peak_bytes": 4126859264,
+    "status": "error"
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/U/bin/python",
+    "bench_worker.py",
+    "--build",
+    "U",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/specs/exp5-16gib.json",
+    "--run-number",
+    "2",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/loop-tmp/exp5-run-16gib-U-r2/spill"
+  ],
+  "cpu_system_s": 7.436379,
+  "cpu_total_s": 16.209602,
+  "cpu_user_s": 8.773223,
+  "exit_code": 1,
+  "memory_cap_gib": null,
+  "outer_wall_s": 27.571603775024414,
+  "page_faults": 0,
+  "peak_rss_kib": 6576372,
+  "status": "error",
+  "tmp_root": "/mnt/lance/9617-bench/loop-tmp"
+}

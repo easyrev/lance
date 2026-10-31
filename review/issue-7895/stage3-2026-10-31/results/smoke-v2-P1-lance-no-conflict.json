@@ -1,0 +1,48 @@
+{
+  "child": {
+    "build": "P1",
+    "case": "lance-no-conflict",
+    "conflict": false,
+    "experiment": "smoke",
+    "merge_stats": {
+      "num_deleted_rows": 0,
+      "num_inserted_rows": 1024,
+      "num_updated_rows": 1024
+    },
+    "received_bytes": 0,
+    "run": 1,
+    "spill_peak_bytes": 0,
+    "status": "ok",
+    "verification": {
+      "rows": 17408,
+      "sampled_ids": [
+        0,
+        16383,
+        16384
+      ],
+      "sampled_rows": 3,
+      "version_count": 3
+    },
+    "wall_s": 0.023669053000048734
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/P1/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P1",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/smoke-full-v2/spec-lance-no-conflict.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/smoke-v2-P1-lance-no-conflict/spill"
+  ],
+  "cpu_system_s": 0.04801,
+  "cpu_total_s": 1.6733820000000001,
+  "cpu_user_s": 1.625372,
+  "exit_code": 0,
+  "outer_wall_s": 0.19199848175048828,
+  "page_faults": 0,
+  "peak_rss_kib": 196460,
+  "status": "ok"
+}

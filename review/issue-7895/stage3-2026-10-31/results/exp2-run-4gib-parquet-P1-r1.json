@@ -1,0 +1,55 @@
+{
+  "child": {
+    "build": "P1",
+    "case": "4gib-parquet",
+    "conflict": true,
+    "experiment": "experiment1-2",
+    "merge_stats": {
+      "num_deleted_rows": 0,
+      "num_inserted_rows": 691843,
+      "num_updated_rows": 691843
+    },
+    "parquet_adapter_options": {},
+    "parquet_adapter_variant": null,
+    "parquet_rows_per_row_group": 8192,
+    "parquet_uncompressed_bytes_per_row": 3175.6781005859375,
+    "received_bytes": 0,
+    "run": 1,
+    "spill_peak_bytes": 0,
+    "status": "ok",
+    "verification": {
+      "rows": 4691843,
+      "sampled_ids": [
+        0,
+        3999999,
+        4000000
+      ],
+      "sampled_rows": 3,
+      "version_count": 4
+    },
+    "wall_s": 13.089073708999422
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/P1/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P1",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/specs/exp1-4gib-parquet.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/exp2-run-4gib-parquet-P1-r1/spill",
+    "--conflict"
+  ],
+  "cpu_system_s": 17.922618,
+  "cpu_total_s": 48.726181,
+  "cpu_user_s": 30.803563,
+  "exit_code": 0,
+  "memory_cap_gib": null,
+  "outer_wall_s": 13.857683420181274,
+  "page_faults": 0,
+  "peak_rss_kib": 19627232,
+  "status": "ok",
+  "tmp_root": "/mnt/lance/9617-bench/tmp"
+}

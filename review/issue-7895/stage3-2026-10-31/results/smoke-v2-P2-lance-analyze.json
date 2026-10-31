@@ -1,0 +1,36 @@
+{
+  "child": {
+    "analysis_only": true,
+    "build": "P2",
+    "case": "lance-no-conflict",
+    "conflict": false,
+    "experiment": "smoke",
+    "plan_path": "/mnt/lance/9617-bench/plans/smoke-v2-P2-lance-analyze.txt",
+    "plan_sha256": "aa6b9323680435d8e9a473b3220bd9a45a6434fc126bdec527307e03dbdbba2d",
+    "run": 0,
+    "status": "ok"
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/P2/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P2",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/smoke-full-v2/spec-lance-no-conflict.json",
+    "--run-number",
+    "0",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/smoke-v2-P2-lance-analyze/spill",
+    "--analyze",
+    "--plan-out",
+    "/mnt/lance/9617-bench/plans/smoke-v2-P2-lance-analyze.txt"
+  ],
+  "cpu_system_s": 0.042022,
+  "cpu_total_s": 1.634885,
+  "cpu_user_s": 1.592863,
+  "exit_code": 0,
+  "outer_wall_s": 0.20649075508117676,
+  "page_faults": 0,
+  "peak_rss_kib": 202372,
+  "status": "ok"
+}

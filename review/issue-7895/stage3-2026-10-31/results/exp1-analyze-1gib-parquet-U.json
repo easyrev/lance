@@ -1,0 +1,38 @@
+{
+  "child": {
+    "analysis_only": true,
+    "build": "U",
+    "case": "1gib-parquet",
+    "conflict": false,
+    "experiment": "experiment1-2",
+    "plan_path": "/mnt/lance/9617-bench/plans/exp1-analyze-1gib-parquet-U.txt",
+    "plan_sha256": "4306828b931e14f754cc2215e012d10012537724814fc54af59d103e91b37d9d",
+    "run": 0,
+    "status": "ok"
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/U/bin/python",
+    "bench_worker.py",
+    "--build",
+    "U",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/specs/exp1-1gib-parquet.json",
+    "--run-number",
+    "0",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/exp1-analyze-1gib-parquet-U/spill",
+    "--analyze",
+    "--plan-out",
+    "/mnt/lance/9617-bench/plans/exp1-analyze-1gib-parquet-U.txt"
+  ],
+  "cpu_system_s": 4.131456,
+  "cpu_total_s": 8.973131,
+  "cpu_user_s": 4.841675,
+  "exit_code": 0,
+  "memory_cap_gib": null,
+  "outer_wall_s": 1.784588098526001,
+  "page_faults": 0,
+  "peak_rss_kib": 6378444,
+  "status": "ok",
+  "tmp_root": "/mnt/lance/9617-bench/tmp"
+}

@@ -1,0 +1,36 @@
+{
+  "child": {
+    "analysis_only": true,
+    "build": "P1",
+    "case": "wide-partial-lance",
+    "conflict": false,
+    "experiment": "estimate",
+    "plan_path": "/mnt/lance/9617-bench/plans/estimate-P1-wide-1m-analyze.txt",
+    "plan_sha256": "a3daa1fdf9a29e7e7bdb9859845dbd1f9900ca4232afe15cdb2af86344bb77c8",
+    "run": 0,
+    "status": "ok"
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/P1/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P1",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/pilot-wide-1m/spec-lance.json",
+    "--run-number",
+    "0",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/estimate-P1-wide-1m-analyze/spill",
+    "--analyze",
+    "--plan-out",
+    "/mnt/lance/9617-bench/plans/estimate-P1-wide-1m-analyze.txt"
+  ],
+  "cpu_system_s": 4.883329,
+  "cpu_total_s": 10.037061,
+  "cpu_user_s": 5.153732,
+  "exit_code": 0,
+  "outer_wall_s": 3.0806827545166016,
+  "page_faults": 0,
+  "peak_rss_kib": 10158572,
+  "status": "ok"
+}

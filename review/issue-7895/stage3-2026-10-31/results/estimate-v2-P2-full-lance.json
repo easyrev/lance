@@ -1,0 +1,30 @@
+{
+  "child": {
+    "build": "P2",
+    "conflict": false,
+    "error_type": "AssertionError",
+    "message": "sampled row mismatch for id=0",
+    "run": 1,
+    "status": "error"
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/P2/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P2",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/pilot-full-v2/spec-lance.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/estimate-v2-P2-full-lance/spill"
+  ],
+  "cpu_system_s": 1.58867,
+  "cpu_total_s": 4.6800820000000005,
+  "cpu_user_s": 3.091412,
+  "exit_code": 1,
+  "outer_wall_s": 1.3547279834747314,
+  "page_faults": 0,
+  "peak_rss_kib": 2747800,
+  "status": "error"
+}

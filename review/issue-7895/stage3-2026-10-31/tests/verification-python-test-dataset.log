@@ -1,0 +1,15 @@
+........................................................................ [ 16%]
+........................................................................ [ 33%]
+........................................................................ [ 50%]
+........................................................................ [ 67%]
+...................s........................ssss........................ [ 83%]
+.....................................................................    [100%]
+=============================== warnings summary ===============================
+python/tests/test_dataset.py::test_sharded_iterator_fragments
+python/tests/test_dataset.py::test_sharded_iterator_batches
+python/tests/test_dataset.py::test_sharded_iterator_non_full_batch
+  /root/worksapce/Lance/python/python/lance/_dataset/sharded_batch_iterator.py:69: UserWarning: ShardedBatchIterator is deprecated, use :class:`Sampler` instead
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+424 passed, 5 skipped, 3 warnings in 31.63s

@@ -1,0 +1,31 @@
+{
+  "child": {
+    "build": "P2",
+    "conflict": true,
+    "error_type": "AssertionError",
+    "message": "version count 4 != expected 3",
+    "run": 1,
+    "status": "error"
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/P2/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P2",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/smoke-full-v2/spec-lance-no-conflict.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/smoke-v2b-P2-lance-conflict/spill",
+    "--conflict"
+  ],
+  "cpu_system_s": 0.054756,
+  "cpu_total_s": 1.695451,
+  "cpu_user_s": 1.640695,
+  "exit_code": 1,
+  "outer_wall_s": 0.22983169555664062,
+  "page_faults": 0,
+  "peak_rss_kib": 249864,
+  "status": "error"
+}

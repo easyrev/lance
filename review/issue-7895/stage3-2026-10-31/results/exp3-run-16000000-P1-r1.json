@@ -1,0 +1,32 @@
+{
+  "child": {},
+  "command": [
+    "systemd-run",
+    "--scope",
+    "-p",
+    "MemoryMax=56G",
+    "-p",
+    "MemorySwapMax=0",
+    "--",
+    "/mnt/lance/9617-preflight/venv/P1/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P1",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/specs/exp3-16000000.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/exp3-run-16000000-P1-r1/spill"
+  ],
+  "cpu_system_s": 26.225508,
+  "cpu_total_s": 55.650688,
+  "cpu_user_s": 29.42518,
+  "exit_code": 137,
+  "memory_cap_gib": 56,
+  "outer_wall_s": 176.518000125885,
+  "page_faults": 13,
+  "peak_rss_kib": 58715188,
+  "status": "error",
+  "tmp_root": "/mnt/lance/9617-bench/tmp"
+}

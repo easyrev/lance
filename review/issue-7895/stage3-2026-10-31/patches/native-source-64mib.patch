@@ -1,0 +1,14 @@
+diff --git a/rust/lance/src/dataset/write/merge_insert.rs b/rust/lance/src/dataset/write/merge_insert.rs
+index 5ff0c4cd5..4b9423ff3 100644
+--- a/rust/lance/src/dataset/write/merge_insert.rs
++++ b/rust/lance/src/dataset/write/merge_insert.rs
+@@ -1691,7 +1691,8 @@ impl MergeInsertJob {
+     fn dataset_source_provider(source: Arc<Dataset>) -> Arc<dyn TableProvider> {
+         Arc::new(
+             crate::datafusion::dataframe::LanceTableProvider::new(source, false, false)
+-                .with_blob_handling(lance_core::datatypes::BlobHandling::default()),
++                .with_blob_handling(lance_core::datatypes::BlobHandling::default())
++                .with_batch_size_bytes(64 * 1024 * 1024),
+         )
+     }
+ 

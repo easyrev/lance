@@ -1,0 +1,52 @@
+{
+  "child": {
+    "build": "P2",
+    "case": "4gib-lance",
+    "conflict": false,
+    "experiment": "experiment1-2",
+    "merge_stats": {
+      "num_deleted_rows": 0,
+      "num_inserted_rows": 691843,
+      "num_updated_rows": 691843
+    },
+    "parquet_adapter_options": {},
+    "parquet_adapter_variant": null,
+    "received_bytes": 0,
+    "run": 3,
+    "spill_peak_bytes": 0,
+    "status": "ok",
+    "verification": {
+      "rows": 4691843,
+      "sampled_ids": [
+        0,
+        3999999,
+        4000000
+      ],
+      "sampled_rows": 3,
+      "version_count": 3
+    },
+    "wall_s": 34.872062103000644
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/P2/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P2",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/specs/exp1-4gib-lance.json",
+    "--run-number",
+    "3",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/cold-run-4gib-lance-P2-r3/spill"
+  ],
+  "cpu_system_s": 3.539906,
+  "cpu_total_s": 9.856954,
+  "cpu_user_s": 6.317048,
+  "exit_code": 0,
+  "memory_cap_gib": null,
+  "outer_wall_s": 36.84983777999878,
+  "page_faults": 1457,
+  "peak_rss_kib": 3584676,
+  "status": "ok",
+  "tmp_root": "/mnt/lance/9617-bench/tmp"
+}

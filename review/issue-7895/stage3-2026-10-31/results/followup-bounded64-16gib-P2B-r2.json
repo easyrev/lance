@@ -1,0 +1,57 @@
+{
+  "child": {
+    "build": "P2B",
+    "case": "followup-16gib-lance",
+    "conflict": false,
+    "disk_read_bytes": 139264,
+    "disk_read_ms": 3167,
+    "disk_reads": 34,
+    "disk_write_bytes": 4068741120,
+    "disk_write_ms": 1176912,
+    "experiment": "followup-lance-16gib",
+    "merge_stats": {
+      "num_deleted_rows": 0,
+      "num_inserted_rows": 2767375,
+      "num_updated_rows": 2767375
+    },
+    "parquet_adapter_options": {},
+    "parquet_adapter_variant": null,
+    "received_bytes": 0,
+    "run": 2,
+    "spill_peak_bytes": 0,
+    "status": "ok",
+    "verification": {
+      "rows": 6767375,
+      "sampled_ids": [
+        0,
+        3999999,
+        4000000
+      ],
+      "sampled_rows": 3,
+      "version_count": 3
+    },
+    "wall_s": 25.481130638996547
+  },
+  "command": [
+    "/mnt/lance/9617-bench/venv/P2-bounded/bin/python",
+    "bench_worker.py",
+    "--build",
+    "P2B",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/specs/followup-16gib-lance.json",
+    "--run-number",
+    "2",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/followup-bounded64-16gib-P2B-r2/spill"
+  ],
+  "cpu_system_s": 17.934537,
+  "cpu_total_s": 44.491834,
+  "cpu_user_s": 26.557297,
+  "exit_code": 0,
+  "memory_cap_gib": null,
+  "outer_wall_s": 26.552748918533325,
+  "page_faults": 0,
+  "peak_rss_kib": 12150428,
+  "status": "ok",
+  "tmp_root": "/mnt/lance/9617-bench/tmp"
+}

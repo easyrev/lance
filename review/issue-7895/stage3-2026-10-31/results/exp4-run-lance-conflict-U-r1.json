@@ -1,0 +1,54 @@
+{
+  "child": {
+    "build": "U",
+    "case": "oss-4gib-lance",
+    "conflict": true,
+    "experiment": "experiment4",
+    "merge_stats": {
+      "num_deleted_rows": 0,
+      "num_inserted_rows": 691843,
+      "num_updated_rows": 691843
+    },
+    "parquet_adapter_options": {},
+    "parquet_adapter_variant": null,
+    "received_bytes": 4497223957,
+    "run": 1,
+    "spill_peak_bytes": 4427028488,
+    "status": "ok",
+    "verification": {
+      "rows": 4691843,
+      "sampled_ids": [
+        0,
+        3999999,
+        4000000
+      ],
+      "sampled_rows": 3,
+      "version_count": 4
+    },
+    "wall_s": 21.417947860001732
+  },
+  "command": [
+    "/mnt/lance/9617-preflight/venv/U/bin/python",
+    "bench_worker.py",
+    "--build",
+    "U",
+    "--spec",
+    "/mnt/lance/9617-bench/fixtures/specs/exp4-lance.json",
+    "--run-number",
+    "1",
+    "--tmpdir",
+    "/mnt/lance/9617-bench/tmp/exp4-run-lance-conflict-U-r1/spill",
+    "--conflict",
+    "--oss"
+  ],
+  "cpu_system_s": 21.955314,
+  "cpu_total_s": 40.279762000000005,
+  "cpu_user_s": 18.324448,
+  "exit_code": 0,
+  "memory_cap_gib": null,
+  "outer_wall_s": 22.799684524536133,
+  "page_faults": 15,
+  "peak_rss_kib": 5956548,
+  "status": "ok",
+  "tmp_root": "/mnt/lance/9617-bench/tmp"
+}
