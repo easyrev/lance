@@ -173,3 +173,34 @@ review 分支的 tip 是本报告的提交本身，报告无法在自己的内�
 - 没有从 review 分支向 fix 分支合并或 cherry-pick。
 - 没有补测试、没有修任何已知缺口（清单在 `README.md`）。
 - review 分支只有一次 `git push --force-with-lease`；此后不再改写它的历史。
+
+## 附录：分离检查输出
+
+以下输出取自本报告的父提交（`7c686a1caf409613e346ef7930d53e0e7d100083`），即 review 分支内容
+完整的状态；它之后的提交只改本文件，不改变被检查的树。
+
+```text
+$ git ls-tree -r --name-only fix/7207-failed-commit-index-cleanup | grep '^review/issue-'
+（输出为空）
+
+$ git merge-base --is-ancestor fix/7207-failed-commit-index-cleanup review/7207-failed-commit-index-cleanup
+（退出码 0）
+
+$ git diff --name-only fix/7207-failed-commit-index-cleanup review/7207-failed-commit-index-cleanup | grep -v '^review/issue-7207/'
+（输出为空）
+
+$ bash scripts/check_separation.sh fix/7207-failed-commit-index-cleanup review/7207-failed-commit-index-cleanup 7207
+pure:   fix/7207-failed-commit-index-cleanup -> 794031b872e6bb8b4117a0b675075bffa2893de2
+review: review/7207-failed-commit-index-cleanup -> 7c686a1caf409613e346ef7930d53e0e7d100083
+review material path: review/issue-7207/
+
+PASS [pure-clean]: pure ref contains no review/issue-*/ files
+PASS [up-to-date]: pure commit is an ancestor of review
+PASS [tree-diff]: all differences are under review/issue-7207/
+PASS [commit-split]: every review-side commit touches only review/issue-7207/
+
+RESULT: separated
+```
+
+远端核对在 `git push --force-with-lease` 之后对 `origin` 的两个引用复跑同一脚本，两侧 SHA
+与上表一致，结果同为 `RESULT: separated`。
