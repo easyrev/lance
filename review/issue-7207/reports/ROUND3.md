@@ -206,12 +206,44 @@ test io::commit::repro_7207::repro_7207_leaked_index_dirs ... ok
 
 ## 7. 分离检查与分支 SHA
 
-按 skill 附录 A 的脚本执行，本地（提交前，review tip 为合并提交）与推送后对远端引用各一次：
+按 skill 附录 A 的脚本执行。合并提交之后、写 review 材料之前跑一次（本地、提交前）：
 
 ```text
 $ bash check_separation.sh fix/7207-failed-commit-index-cleanup review/7207-failed-commit-index-cleanup 7207
 pure:   fix/7207-failed-commit-index-cleanup -> 98f701cc4bd409c40f938aa74913f443625108a8
 review: review/7207-failed-commit-index-cleanup -> e8ab5f68ad466db6f8197330b7ae8cef9eb89a9f
+review material path: review/issue-7207/
+
+PASS [pure-clean]: pure ref contains no review/issue-*/ files
+PASS [up-to-date]: pure commit is an ancestor of review
+PASS [tree-diff]: all differences are under review/issue-7207/
+PASS [commit-split]: every review-side commit touches only review/issue-7207/
+
+RESULT: separated
+```
+
+提交之后、推送之前再跑一次（本地、提交后）：
+
+```text
+$ bash check_separation.sh fix/7207-failed-commit-index-cleanup review/7207-failed-commit-index-cleanup 7207
+pure:   fix/7207-failed-commit-index-cleanup -> 98f701cc4bd409c40f938aa74913f443625108a8
+review: review/7207-failed-commit-index-cleanup -> 07c4af27cb7964c764aaa5b1e0e145ae105dc9a7
+review material path: review/issue-7207/
+
+PASS [pure-clean]: pure ref contains no review/issue-*/ files
+PASS [up-to-date]: pure commit is an ancestor of review
+PASS [tree-diff]: all differences are under review/issue-7207/
+PASS [commit-split]: every review-side commit touches only review/issue-7207/
+
+RESULT: separated
+```
+
+推送后对远端引用复跑一次：
+
+```text
+$ bash check_separation.sh origin/fix/7207-failed-commit-index-cleanup origin/review/7207-failed-commit-index-cleanup 7207
+pure:   origin/fix/7207-failed-commit-index-cleanup -> 98f701cc4bd409c40f938aa74913f443625108a8
+review: origin/review/7207-failed-commit-index-cleanup -> 07c4af27cb7964c764aaa5b1e0e145ae105dc9a7
 review material path: review/issue-7207/
 
 PASS [pure-clean]: pure ref contains no review/issue-*/ files
@@ -239,12 +271,14 @@ $ git diff --name-only fix/... review/... | grep -v '^review/issue-7207/'
 
 | Ref | 本地 | 远端 `easyrev/lance` |
 | --- | --- | --- |
-| `fix/7207-failed-commit-index-cleanup` | `98f701cc4bd409c40f938aa74913f443625108a8` | 推送后核对 |
-| `review/7207-failed-commit-index-cleanup` | 本报告所在 tip 的父提交 `e8ab5f68ad466db6f8197330b7ae8cef9eb89a9f` 加上只改 `review/issue-7207/` 的提交 | 推送后核对 |
+| `fix/7207-failed-commit-index-cleanup` | `98f701cc4bd409c40f938aa74913f443625108a8` | `98f701cc4bd409c40f938aa74913f443625108a8` |
+| `review/7207-failed-commit-index-cleanup`（分离检查时） | `07c4af27cb7964c764aaa5b1e0e145ae105dc9a7` | `07c4af27cb7964c764aaa5b1e0e145ae105dc9a7` |
 | `upstream/main`（本轮合并用） | `134c2bf954` | — |
 
-review 分支的 tip 包含本报告，报告无法预知自己的 SHA；推送后以 `git ls-remote` 的核对结果为准，
-做法与上一轮相同。
+两个分支都是普通 push（`794031b87..98f701cc4` 与 `fd26fbf0d..07c4af27c`），没有 rebase、
+没有 amend、没有强推。review 分支的 tip 包含本报告，报告无法预知自己这个提交的 SHA；分离检查
+记录的是它的父提交 `07c4af27c`（只改本报告与 README 的提交在其上），推送后以 `git ls-remote`
+核对的结果为准，做法与上一轮相同。
 
 ## 8. 新发现的缺口与拿不准的地方
 
@@ -262,6 +296,10 @@ review 分支的 tip 包含本报告，报告无法预知自己的 SHA；推送�
    handler 加了 `is_version_not_found_definitive() -> true`。它对本轮之前的既有测试没有行为影响
    （那些用例要么走内置 handler 的冲突路径，要么用 `AmbiguousCommitHandler`），但这确实改了一处
    共享测试支撑，逐条核对的结论写在 4.1。
-5. **计划编号检查需要跑在 fix 分支上。** 交接单里的 `git diff upstream/main HEAD` 若在 review
+5. **review 材料的提交拆分。** 交接单要求 `README.md`、`reports/`、`results/` 分别更新。三类改动
+   在本地都改好后，挂钩子重跑时一次性暂存成了一个提交 `07c4af27c`，没有拆成三个；内容与分离检查
+   不受影响（只触及 `review/issue-7207/`），但比约定的提交粒度粗。此后按约定用单独提交补记远端
+   分离检查的结果。
+6. **计划编号检查需要跑在 fix 分支上。** 交接单里的 `git diff upstream/main HEAD` 若在 review
    分支上执行，会命中 `review/issue-7207/` 里引述旧编号的文档；这些文档是 review 材料，不属于
    代码/提交信息。fix 分支上的输出为空（见第 6 节）。
