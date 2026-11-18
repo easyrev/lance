@@ -267,8 +267,10 @@ pub struct EncodingOptions {
     ///
     /// This cache is applied on a per-column basis
     pub cache_bytes_per_column: u64,
-    /// The maximum size of a page in bytes, if a single array would create
-    /// a page larger than this then it will be split into multiple pages
+    /// Target page size in bytes. The 2.0 encoder estimates page count from the
+    /// in-memory Arrow buffer size when flushing a single array. In 2.1 and later,
+    /// this option plans splits by uncompressed value bytes for eligible wide
+    /// variable-width values only.
     pub max_page_bytes: u64,
     /// If false (the default) then arrays will be copied (deeply) before
     /// being cached.  This ensures any data kept alive by the array can

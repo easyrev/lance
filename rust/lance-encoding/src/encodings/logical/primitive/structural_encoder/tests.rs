@@ -9,9 +9,10 @@ use arrow_array::builder::{ListBuilder, StringBuilder};
 use arrow_array::types::{Int8Type, Int32Type};
 use arrow_array::{
     Array, ArrayRef, DictionaryArray, FixedSizeListArray, Float32Array, Float64Array, Int8Array,
-    PrimitiveArray, StringArray, UInt16Array, new_null_array,
+    LargeBinaryArray, LargeStringArray, ListArray, PrimitiveArray, StringArray, StructArray,
+    UInt16Array, UInt64Array, new_null_array,
 };
-use arrow_buffer::{BooleanBuffer, NullBuffer, ScalarBuffer};
+use arrow_buffer::{BooleanBuffer, NullBuffer, OffsetBuffer, ScalarBuffer};
 use arrow_schema::{DataType, Field as ArrowField};
 use bytes::Bytes;
 use futures::FutureExt;
@@ -28,15 +29,19 @@ use crate::constants::{
 };
 use crate::data::{BlockInfo, DataBlock, FixedWidthDataBlock};
 use crate::decoder::PageEncoding;
+use crate::encoder::{
+    ColumnIndexSequence, EncodedPage, EncodingOptions, MIN_PAGE_BUFFER_ALIGNMENT, OutOfLineBuffers,
+};
 use crate::encodings::logical::primitive::dict::dictionary_encode;
 use crate::encodings::logical::primitive::miniblock::{MiniBlockChunk, MiniBlockCompressed};
 use crate::encodings::logical::primitive::{MiniBlockScheduler, StructuralPageScheduler};
 use crate::format::metadata;
 use crate::format::metadata::compressive_encoding::Compression;
-use crate::repdef::build_control_word_iterator;
+use crate::repdef::{RepDefBuilder, build_control_word_iterator};
 use crate::testing::{
     TestCases, TestEncoding, check_round_trip_encoding_of_data,
-    check_round_trip_encoding_of_data_with_expected,
+    check_round_trip_encoding_of_data_with_expected, create_test_field_encoder,
+    test_encoding_strategy,
 };
 
 use super::{DictionaryEncodingPolicy, MiniblockChunkSize, PrimitiveStructuralEncoder};
@@ -1290,21 +1295,27 @@ async fn encode_first_page(
     field: arrow_schema::Field,
     array: ArrayRef,
     version: TestEncoding,
-) -> crate::encoder::EncodedPage {
-    use crate::repdef::RepDefBuilder;
-    use crate::{
-        encoder::{
-            ColumnIndexSequence, EncodingOptions, MIN_PAGE_BUFFER_ALIGNMENT, OutOfLineBuffers,
-        },
-        testing::{create_test_field_encoder, test_encoding_strategy},
-    };
+) -> EncodedPage {
+    encode_all_pages(field, vec![array], version, 32 * 1024 * 1024)
+        .await
+        .into_iter()
+        .next()
+        .unwrap()
+}
 
+#[cfg_attr(coverage, coverage(off))]
+async fn encode_all_pages(
+    field: ArrowField,
+    arrays: Vec<ArrayRef>,
+    version: TestEncoding,
+    max_page_bytes: u64,
+) -> Vec<EncodedPage> {
     let lance_field = lance_core::datatypes::Field::try_from(&field).unwrap();
     let encoding_strategy = test_encoding_strategy(version);
     let mut column_index_seq = ColumnIndexSequence::default();
     let encoding_options = EncodingOptions {
-        cache_bytes_per_column: 1,
-        max_page_bytes: 32 * 1024 * 1024,
+        cache_bytes_per_column: u64::MAX,
+        max_page_bytes,
         keep_original_array: true,
         buffer_alignment: MIN_PAGE_BUFFER_ALIGNMENT,
     };
@@ -1318,19 +1329,284 @@ async fn encode_first_page(
     .unwrap();
 
     let mut external_buffers = OutOfLineBuffers::new(0, MIN_PAGE_BUFFER_ALIGNMENT);
-    let repdef = RepDefBuilder::default();
-    let num_rows = array.len() as u64;
     let mut pages = Vec::new();
-    for task in encoder
-        .maybe_encode(array, &mut external_buffers, repdef, 0, num_rows)
-        .unwrap()
-    {
-        pages.push(task.await.unwrap());
+    let mut row_number = 0;
+    for array in arrays {
+        let num_rows = array.len() as u64;
+        assert!(
+            encoder
+                .maybe_encode(
+                    array,
+                    &mut external_buffers,
+                    RepDefBuilder::default(),
+                    row_number,
+                    num_rows,
+                )
+                .unwrap()
+                .is_empty()
+        );
+        row_number += num_rows;
     }
     for task in encoder.flush(&mut external_buffers).unwrap() {
         pages.push(task.await.unwrap());
     }
-    pages.into_iter().next().unwrap()
+    pages
+}
+
+const WIDE_TEST_PAGE_BYTES: u64 = 200 * 1024;
+
+fn wide_unique(num_rows: usize) -> impl Iterator<Item = String> {
+    let suffix = "x".repeat(40 * 1024 - 8);
+    (0..num_rows).map(move |row_number| format!("{row_number:08}{suffix}"))
+}
+
+fn wide_large_strings(num_rows: usize) -> ArrayRef {
+    Arc::new(LargeStringArray::from_iter_values(wide_unique(num_rows)))
+}
+
+fn nullable_wide_strings() -> impl Iterator<Item = Option<String>> {
+    wide_unique(20)
+        .enumerate()
+        .map(|(index, string)| (![2, 10, 18].contains(&index)).then_some(string))
+}
+
+fn wide_binary_list() -> ArrayRef {
+    let values = Arc::new(LargeBinaryArray::from_iter_values(wide_unique(20)));
+    Arc::new(ListArray::new(
+        Arc::new(ArrowField::new_list_field(DataType::LargeBinary, false)),
+        OffsetBuffer::new(ScalarBuffer::from(vec![0, 7, 13, 20])),
+        values,
+        None,
+    ))
+}
+
+#[rstest::rstest]
+#[case::single_array(&[20])]
+#[case::multiple_arrays(&[7, 6, 7])]
+#[tokio::test]
+async fn test_wide_value_page_boundaries(
+    #[case] chunk_lengths: &[usize],
+    #[values(
+        TestEncoding::StructuralU16,
+        TestEncoding::StructuralU32,
+        TestEncoding::StructuralSparse
+    )]
+    version: TestEncoding,
+) {
+    let array = wide_large_strings(20);
+    let field = ArrowField::new("wide", DataType::LargeUtf8, false);
+    let mut start = 0;
+    let arrays = chunk_lengths
+        .iter()
+        .map(|&len| {
+            let chunk = array.slice(start, len);
+            start += len;
+            chunk
+        })
+        .collect();
+    let pages = encode_all_pages(field, arrays, version, WIDE_TEST_PAGE_BYTES).await;
+    let boundaries: Vec<_> = pages
+        .iter()
+        .map(|page| (page.row_number, page.num_rows))
+        .collect();
+    assert_eq!(boundaries, [(0, 5), (5, 5), (10, 5), (15, 5)]);
+}
+
+#[rstest::rstest]
+#[tokio::test]
+async fn test_wide_value_pages_with_nulls(
+    #[values(
+        TestEncoding::StructuralU16,
+        TestEncoding::StructuralU32,
+        TestEncoding::StructuralSparse
+    )]
+    version: TestEncoding,
+) {
+    let array = Arc::new(nullable_wide_strings().collect::<LargeStringArray>());
+    let field = ArrowField::new("wide", DataType::LargeUtf8, true);
+    let pages = encode_all_pages(field, vec![array], version, WIDE_TEST_PAGE_BYTES).await;
+    assert!(pages.len() > 1);
+    assert_eq!(pages.iter().map(|page| page.num_rows).sum::<u64>(), 20);
+}
+
+#[rstest::rstest]
+#[tokio::test]
+async fn test_wide_value_one_oversized_per_page(
+    #[values(
+        TestEncoding::StructuralU16,
+        TestEncoding::StructuralU32,
+        TestEncoding::StructuralSparse
+    )]
+    version: TestEncoding,
+) {
+    let suffix = "x".repeat(300 * 1024 - 8);
+    let array = LargeStringArray::from_iter_values((0..3).map(|row| format!("{row:08}{suffix}")));
+    let field = ArrowField::new("wide", DataType::LargeUtf8, false);
+    let pages = encode_all_pages(field, vec![Arc::new(array)], version, WIDE_TEST_PAGE_BYTES).await;
+    assert_eq!(pages.len(), 3);
+    assert!(pages.iter().all(|page| page.num_rows == 1));
+}
+
+fn repeated_wide_strings() -> ArrayRef {
+    let strings: Vec<_> = wide_unique(4).collect();
+    Arc::new(LargeStringArray::from_iter_values(
+        (0..20).map(|index| strings[index / 5].as_str()),
+    ))
+}
+
+#[rstest::rstest]
+#[case::repeated(repeated_wide_strings(), WIDE_TEST_PAGE_BYTES, None)]
+#[case::mixed_widths(
+    Arc::new(LargeStringArray::from_iter_values(wide_unique(19).chain(std::iter::once("x".repeat(1024))))),
+    WIDE_TEST_PAGE_BYTES, None,
+)]
+#[case::under_limit(wide_large_strings(4), WIDE_TEST_PAGE_BYTES, None)]
+#[case::zero_limit(wide_large_strings(20), 0, None)]
+#[case::fixed_width(Arc::new(UInt64Array::from_iter_values(0..100_000)), 1, None)]
+#[case::list(wide_binary_list(), WIDE_TEST_PAGE_BYTES, None)]
+#[case::miniblock(
+    wide_large_strings(20),
+    WIDE_TEST_PAGE_BYTES,
+    Some(STRUCTURAL_ENCODING_MINIBLOCK)
+)]
+#[tokio::test]
+async fn test_wide_value_split_keeps_single_page(
+    #[case] array: ArrayRef,
+    #[case] max_page_bytes: u64,
+    #[case] layout: Option<&str>,
+    #[values(
+        TestEncoding::StructuralU16,
+        TestEncoding::StructuralU32,
+        TestEncoding::StructuralSparse
+    )]
+    version: TestEncoding,
+) {
+    let metadata = layout
+        .map(|layout| (STRUCTURAL_ENCODING_META_KEY.to_string(), layout.to_string()))
+        .into_iter()
+        .collect();
+    let field = ArrowField::new("wide", array.data_type().clone(), false).with_metadata(metadata);
+    let pages = encode_all_pages(field, vec![array], version, max_page_bytes).await;
+    assert_eq!(pages.len(), 1);
+}
+
+#[rstest::rstest]
+#[tokio::test]
+async fn test_wide_value_split_encoded_size(
+    #[values(
+        TestEncoding::StructuralU16,
+        TestEncoding::StructuralU32,
+        TestEncoding::StructuralSparse
+    )]
+    version: TestEncoding,
+) {
+    let array = wide_large_strings(20);
+    let field = ArrowField::new("wide", DataType::LargeUtf8, false);
+    let split_pages = encode_all_pages(
+        field.clone(),
+        vec![array.clone()],
+        version,
+        WIDE_TEST_PAGE_BYTES,
+    )
+    .await;
+    let unsplit_pages = encode_all_pages(field, vec![array], version, u64::MAX).await;
+    let encoded_bytes = |pages: &[EncodedPage]| {
+        pages
+            .iter()
+            .flat_map(|page| &page.data)
+            .map(|buf| buf.len())
+            .sum::<usize>()
+    };
+    let split = encoded_bytes(&split_pages);
+    let unsplit = encoded_bytes(&unsplit_pages);
+    assert_eq!(split_pages.len(), 4);
+    assert_eq!(unsplit_pages.len(), 1);
+    assert!(
+        split <= unsplit + unsplit / 50,
+        "{split} > 1.02 × {unsplit}"
+    );
+}
+
+#[rstest::rstest]
+#[case::empty_null_slots(
+    crate::encodings::logical::primitive::wide_value_split::tests::repeated_wide_binary(
+        255, 1_020
+    )
+)]
+#[case::null_payloads(
+    crate::encodings::logical::primitive::wide_value_split::tests::wide_binary_with_null_payloads(
+    )
+)]
+#[case::nullable_wide_constant(
+    crate::encodings::logical::primitive::wide_value_split::tests::nullable_wide_constant()
+)]
+#[tokio::test]
+async fn test_dictionary_eligible_wide_values_encoded_size(
+    #[case] array: LargeBinaryArray,
+    #[values(
+        TestEncoding::StructuralU16,
+        TestEncoding::StructuralU32,
+        TestEncoding::StructuralSparse
+    )]
+    version: TestEncoding,
+) {
+    let array: ArrayRef = Arc::new(array);
+    let field = ArrowField::new("wide", DataType::LargeBinary, true);
+    let limited = encode_all_pages(
+        field.clone(),
+        vec![array.clone()],
+        version,
+        16 * 1024 * 1024,
+    )
+    .await;
+    let unlimited = encode_all_pages(field, vec![array], version, u64::MAX).await;
+    let encoded_bytes = |pages: &[EncodedPage]| {
+        pages
+            .iter()
+            .flat_map(|page| &page.data)
+            .map(|buf| buf.len())
+            .sum::<usize>()
+    };
+    assert_eq!(encoded_bytes(&limited), encoded_bytes(&unlimited));
+    assert_eq!(limited.len(), 1);
+    assert_eq!(unlimited.len(), 1);
+}
+
+fn wide_string_struct() -> ArrayRef {
+    let strings = nullable_wide_strings().collect::<LargeStringArray>();
+    let validity = NullBuffer::from((0..20).map(|index| index != 6).collect::<Vec<_>>());
+    Arc::new(StructArray::new(
+        vec![Arc::new(ArrowField::new("wide", DataType::LargeUtf8, true))].into(),
+        vec![Arc::new(strings)],
+        Some(validity),
+    ))
+}
+
+#[rstest::rstest]
+#[case::nullable_large_binary(
+    Arc::new(nullable_wide_strings().collect::<LargeBinaryArray>()),
+)]
+#[case::utf8(Arc::new(StringArray::from_iter_values(wide_unique(20))))]
+#[case::nullable_struct(wide_string_struct())]
+#[tokio::test]
+async fn test_wide_value_split_round_trip(
+    #[case] array: ArrayRef,
+    #[values(
+        TestEncoding::StructuralU16,
+        TestEncoding::StructuralU32,
+        TestEncoding::StructuralSparse
+    )]
+    version: TestEncoding,
+) {
+    let field = ArrowField::new("wide", array.data_type().clone(), true);
+    let pages = encode_all_pages(field, vec![array.clone()], version, WIDE_TEST_PAGE_BYTES).await;
+    assert!(pages.len() > 1);
+
+    let test_cases = TestCases::default()
+        .with_encoding(version)
+        .with_page_sizes(vec![1024 * 1024])
+        .with_max_page_size(WIDE_TEST_PAGE_BYTES);
+    check_round_trip_encoding_of_data(vec![array], &test_cases, HashMap::new()).await;
 }
 
 fn variable_offset_test_field() -> arrow_schema::Field {

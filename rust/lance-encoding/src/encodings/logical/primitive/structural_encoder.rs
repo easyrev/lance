@@ -51,6 +51,7 @@ use crate::statistics::{ComputeStat, GetStat, Stat};
 use crate::utils::accumulation::AccumulationQueue;
 use crate::utils::bytepack::BytepackedIntegerEncoder;
 
+use super::wide_value_split::wide_value_page_counts;
 use super::{
     DEFAULT_DICT_DIVISOR, DEFAULT_DICT_MAX_CARDINALITY, DEFAULT_DICT_MAX_SIZE_BYTES,
     DEFAULT_DICT_SIZE_RATIO, DEFAULT_DICT_VALUES_COMPRESSION, FILL_BYTE, MINIBLOCK_ALIGNMENT,
@@ -208,6 +209,7 @@ pub struct PrimitiveStructuralEncoder {
     // Accumulates arrays until we have enough data to justify a disk page
     accumulation_queue: AccumulationQueue,
 
+    max_page_bytes: u64,
     keep_original_array: bool,
     flush_next: bool,
     accumulated_repdefs: Vec<RepDefBuilder>,
@@ -268,6 +270,7 @@ pub(super) struct PrimitivePageData {
 pub(super) struct PrimitivePlanContext<'a> {
     pub(super) field: &'a Field,
     pub(super) encoding_metadata: &'a HashMap<String, String>,
+    pub(super) max_page_bytes: u64,
 }
 
 pub(super) enum PrimitiveEncodeAttempt {
@@ -336,6 +339,7 @@ impl PrimitiveStructuralEncoder {
                 column_index,
                 options.keep_original_array,
             ),
+            max_page_bytes: options.max_page_bytes,
             keep_original_array: options.keep_original_array,
             flush_next: false,
             accumulated_repdefs: Vec::new(),
@@ -2161,7 +2165,38 @@ impl PrimitiveStructuralEncoder {
         Ok(sliced)
     }
 
-    pub(super) fn split_pages_for_miniblock_repdef_budget(
+    pub(super) fn split_dense_pages(
+        ctx: &PrimitivePlanContext<'_>,
+        arrays: Vec<ArrayRef>,
+        repdef: SerializedRepDefs,
+        budget: MiniBlockRepDefBudget,
+        row_number: u64,
+        num_rows: u64,
+    ) -> Result<Vec<PrimitivePageData>> {
+        if budget == MiniBlockRepDefBudget::WithinBudget
+            && let Some(counts) = wide_value_page_counts(ctx, &arrays, &repdef, num_rows)?
+        {
+            let mut pages = Vec::with_capacity(counts.len());
+            let mut start = 0;
+            for count in counts {
+                let end = start + count;
+                pages.push(PrimitivePageData {
+                    arrays: Self::slice_arrays(&arrays, start as u64, count as u64)?,
+                    structure: PrimitivePageStructure::Dense {
+                        repdef: Self::slice_repdef(&repdef, start..end),
+                        single_row_miniblock_repdef_levels: None,
+                    },
+                    row_number: row_number + start as u64,
+                    num_rows: count as u64,
+                });
+                start = end;
+            }
+            return Ok(pages);
+        }
+        Self::split_pages_for_miniblock_repdef_budget(arrays, repdef, budget, row_number, num_rows)
+    }
+
+    fn split_pages_for_miniblock_repdef_budget(
         arrays: Vec<ArrayRef>,
         repdef: SerializedRepDefs,
         budget: MiniBlockRepDefBudget,
@@ -2631,6 +2666,7 @@ impl PrimitiveStructuralEncoder {
         let plan_ctx = PrimitivePlanContext {
             field: &self.field,
             encoding_metadata: &self.encoding_metadata,
+            max_page_bytes: self.max_page_bytes,
         };
         let mut pages = None;
         for page_encoding in self.page_encodings.iter() {
@@ -2746,6 +2782,7 @@ impl PrimitivePageEncodingBehavior for RejectSparsePrimitiveEncoding {
 }
 
 fn plan_dense_primitive_pages(
+    ctx: &PrimitivePlanContext<'_>,
     arrays: &[ArrayRef],
     normalized: &NormalizedStructuralPlan,
     row_number: u64,
@@ -2757,7 +2794,8 @@ fn plan_dense_primitive_pages(
         num_rows,
         num_values,
     )?;
-    PrimitiveStructuralEncoder::split_pages_for_miniblock_repdef_budget(
+    PrimitiveStructuralEncoder::split_dense_pages(
+        ctx,
         arrays.to_vec(),
         repdef,
         miniblock_repdef_budget,
@@ -2769,7 +2807,7 @@ fn plan_dense_primitive_pages(
 impl PrimitivePageEncodingBehavior for DenseU16PrimitiveEncoding {
     fn try_plan_pages(
         &self,
-        _ctx: &PrimitivePlanContext<'_>,
+        ctx: &PrimitivePlanContext<'_>,
         arrays: &[ArrayRef],
         normalized: &NormalizedStructuralPlan,
         row_number: u64,
@@ -2777,7 +2815,7 @@ impl PrimitivePageEncodingBehavior for DenseU16PrimitiveEncoding {
         num_values: u64,
     ) -> Result<Option<Vec<PrimitivePageData>>> {
         Ok(Some(plan_dense_primitive_pages(
-            arrays, normalized, row_number, num_rows, num_values,
+            ctx, arrays, normalized, row_number, num_rows, num_values,
         )?))
     }
 
@@ -2804,7 +2842,7 @@ impl PrimitivePageEncodingBehavior for DenseU16PrimitiveEncoding {
 impl PrimitivePageEncodingBehavior for DenseU32PrimitiveEncoding {
     fn try_plan_pages(
         &self,
-        _ctx: &PrimitivePlanContext<'_>,
+        ctx: &PrimitivePlanContext<'_>,
         arrays: &[ArrayRef],
         normalized: &NormalizedStructuralPlan,
         row_number: u64,
@@ -2812,7 +2850,7 @@ impl PrimitivePageEncodingBehavior for DenseU32PrimitiveEncoding {
         num_values: u64,
     ) -> Result<Option<Vec<PrimitivePageData>>> {
         Ok(Some(plan_dense_primitive_pages(
-            arrays, normalized, row_number, num_rows, num_values,
+            ctx, arrays, normalized, row_number, num_rows, num_values,
         )?))
     }
 
