@@ -96,6 +96,7 @@ const DEFAULT_RLE_COMPRESSION_THRESHOLD: f64 = 0.5;
 
 // Minimum block size (32kb) to trigger general block compression
 const MIN_BLOCK_SIZE_FOR_GENERAL_COMPRESSION: u64 = 32 * 1024;
+pub(crate) const PER_VALUE_COMPRESSION_MIN_VALUE_BYTES: u64 = 32 * 1024;
 const RLE_BLOCK_HEADER_BYTES: u128 = std::mem::size_of::<u64>() as u128;
 
 /// Trait for compression algorithms that compress an entire block of data into one opaque
@@ -1065,7 +1066,9 @@ pub fn try_variable_width_per_value(
     let max_len = data.expect_single_stat::<UInt64Type>(Stat::MaxLength);
     let data_size = data.expect_single_stat::<UInt64Type>(Stat::DataSize);
     let per_value_requested = compression.is_some_and(|compression| compression != "fsst");
-    if (max_len > 32 * 1024 || per_value_requested) && data_size >= FSST_LEAST_INPUT_SIZE as u64 {
+    if (max_len > PER_VALUE_COMPRESSION_MIN_VALUE_BYTES || per_value_requested)
+        && data_size >= FSST_LEAST_INPUT_SIZE as u64
+    {
         // FSST uses a dedicated encoder and cannot be a general buffer compressor.
         // Keep the existing default fallback when large values request FSST.
         let requested_scheme = match (general_compression, compression) {

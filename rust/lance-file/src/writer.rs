@@ -45,7 +45,10 @@ pub struct FileWriterOptions {
     /// encoders, including encoders nested inside structs, lists, and maps.
     /// The default is 8 MiB per cache owner.
     pub data_cache_bytes: Option<u64>,
-    /// A best-effort maximum encoded page size.
+    /// Target page size in bytes. The 2.0 writer estimates page count from the
+    /// in-memory Arrow buffer size when flushing a single array. In 2.1 and later,
+    /// this option plans splits by uncompressed value bytes for eligible wide
+    /// variable-width values only.
     pub max_page_bytes: Option<u64>,
     /// Keep input arrays instead of copying buffered slices.
     ///

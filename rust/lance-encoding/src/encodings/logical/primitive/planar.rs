@@ -196,15 +196,14 @@ impl PrimitivePageEncodingBehavior for PlanarPrimitiveEncoding {
                 num_rows,
             }]));
         }
-        Ok(Some(
-            PrimitiveStructuralEncoder::split_pages_for_miniblock_repdef_budget(
-                arrays.to_vec(),
-                repdef,
-                budget,
-                row_number,
-                num_rows,
-            )?,
-        ))
+        Ok(Some(PrimitiveStructuralEncoder::split_dense_pages(
+            ctx,
+            arrays.to_vec(),
+            repdef,
+            budget,
+            row_number,
+            num_rows,
+        )?))
     }
 
     fn try_encode_page(

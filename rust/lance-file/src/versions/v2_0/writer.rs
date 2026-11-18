@@ -38,11 +38,9 @@ use crate::writer::{
 };
 
 const PAD_BUFFER: [u8; PAGE_BUFFER_ALIGNMENT] = [72; PAGE_BUFFER_ALIGNMENT];
-// In 2.1+, we split large pages on read instead of write to avoid empty pages
-// and small pages issues. However, we keep the write-time limit at 32MB to avoid
-// potential regressions in 2.0 format readers.
-//
-// This limit is not applied in the 2.1 writer
+// Keep the 32 MiB write-time limit for compatibility with 2.0 readers.
+// In 2.1+, the write-time limit applies only to eligible wide variable-width
+// values. Other large pages are split on read.
 const MAX_PAGE_BYTES: usize = 32 * 1024 * 1024;
 // Total in-memory budget for buffering serialized page metadata before flushing
 // to the spill file. Divided evenly across columns (with a floor of 64 bytes).
