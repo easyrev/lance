@@ -88,7 +88,6 @@ def test_write_with_max_page_bytes(tmp_path):
         ) as writer:
             writer.write_batch(pa.table({"a": [1, 2, 3]}))
         reader = LanceFileReader(str(path))
-        # Only 2.0 splits large pages on write.   In 2.1+ we split on read.
         expected_pages = 3 if version == "2.0" else 1
         assert len(reader.metadata().columns[0].pages) == expected_pages
 

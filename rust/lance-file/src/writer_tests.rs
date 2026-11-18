@@ -83,12 +83,13 @@ mod tests {
     use lance_encoding::constants::{
         PACKED_STRUCT_META_KEY, STRUCTURAL_ENCODING_META_KEY, STRUCTURAL_ENCODING_SPARSE,
     };
-    use lance_encoding::decoder::DecoderPlugins;
+    use lance_encoding::decoder::{DecoderPlugins, FilterExpression};
     use lance_encoding::encoder::{
         BatchEncoder, ColumnIndexSequence, EncodingOptions, FieldEncodingContext, OutOfLineBuffers,
         encode_batch,
     };
     use lance_encoding::repdef::RepDefBuilder;
+    use lance_io::ReadBatchParams;
     use lance_io::object_store::ObjectStore;
     use lance_io::traits::Writer;
     use lance_io::utils::CachedFileSize;
@@ -2267,6 +2268,64 @@ mod tests {
         assert_eq!(total_page_num, 8)
     }
 
+    #[rstest]
+    #[case::v2_1(ConcreteFileVersion::V2_1)]
+    #[case::v2_2(ConcreteFileVersion::V2_2)]
+    #[case::v2_3(ConcreteFileVersion::V2_3)]
+    #[tokio::test]
+    async fn test_max_page_bytes_splits_wide_values(#[case] version: ConcreteFileVersion) {
+        let suffix = "x".repeat(40 * 1024 - 8);
+        let values: Vec<_> = (0..20).map(|row| format!("{row:08}{suffix}")).collect();
+        let batch = arrow_array::record_batch!(("data", LargeUtf8, values)).unwrap();
+        let lance_schema = LanceSchema::try_from(batch.schema().as_ref()).unwrap();
+        let options = FileWriterOptions {
+            max_page_bytes: Some(200 * 1024),
+            ..Default::default()
+        };
+
+        let fs = FsFixture::default();
+        let mut writer = create_writer(
+            fs.object_store.create(&fs.tmp_path).await.unwrap(),
+            lance_schema,
+            version,
+            options,
+        )
+        .unwrap();
+        writer.write_batch(&batch).await.unwrap();
+        writer.finish().await.unwrap();
+
+        let file_scheduler = fs
+            .scheduler
+            .open_file(&fs.tmp_path, &CachedFileSize::unknown())
+            .await
+            .unwrap();
+        let file_reader = FileReader::try_open(
+            file_scheduler,
+            None,
+            Arc::<DecoderPlugins>::default(),
+            &LanceCache::no_cache(),
+            FileReaderOptions::default(),
+        )
+        .await
+        .unwrap();
+        assert_eq!(file_reader.metadata().column_metadatas[0].pages.len(), 4);
+
+        let batches: Vec<RecordBatch> = file_reader
+            .read_stream(
+                ReadBatchParams::RangeFull,
+                20,
+                1,
+                FilterExpression::no_filter(),
+            )
+            .await
+            .unwrap()
+            .try_collect()
+            .await
+            .unwrap();
+        let read = arrow_select::concat::concat_batches(&batch.schema(), &batches).unwrap();
+        assert_eq!(read, batch);
+    }
+
     fn assert_zero_max_page_bytes_error(error: lance_core::Error) {
         assert!(
             matches!(error, lance_core::Error::InvalidInput { .. }),
@@ -2397,7 +2456,6 @@ mod tests {
 
         let path = TempObjFile::default();
         let object_store = ObjectStore::local();
-        // Only the 2.0 encoder splits pages by `max_page_bytes`.
         let mut writer = create_writer(
             object_store.create(&path).await.unwrap(),
             lance_schema.clone(),

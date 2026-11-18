@@ -605,9 +605,9 @@ class LanceFileWriter:
             The table identifier within the namespace.
             Must be provided together with namespace_client.
         max_page_bytes : optional, int
-            The maximum size of a page in bytes, if a single array would create a
-            page larger than this then it will be split into multiple pages. The
-            default value is 32MB.
+            Target page size in bytes, with a default of 32 MiB. In 2.1 and
+            later, this option splits pages on write only for eligible wide
+            variable-width values.
         """
         if _inner_writer is not None:
             self._writer = _inner_writer

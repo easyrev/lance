@@ -43,6 +43,7 @@ mod fullzip_decode;
 mod miniblock_decode;
 mod structural_encoder;
 mod structure;
+mod wide_value_split;
 
 pub(crate) use all_null::LevelCodec;
 pub use all_null::{
