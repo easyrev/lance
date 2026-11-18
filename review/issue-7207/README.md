@@ -7,10 +7,10 @@ Reproduction, evidence, and prior reports for the fix on
 
 | Role | Ref | Commit |
 | --- | --- | --- |
-| Pure PR | `fix/7207-failed-commit-index-cleanup` | `794031b87` (tip) |
+| Pure PR | `fix/7207-failed-commit-index-cleanup` | `98f701cc4` (tip) |
 | Review | `review/7207-failed-commit-index-cleanup` | this branch: pure tip plus `review/issue-7207/` commits |
-| Upstream baseline of the fix | `upstream/main` | `d8293547c` |
-| Upstream baseline of the trial merge | `upstream/main` | `f5dbd55dd` |
+| Upstream baseline of the fix | `upstream/main` | `134c2bf95` |
+| Upstream baseline of the earlier trial merge | `upstream/main` | `f5dbd55dd` |
 | Upstream PR | not opened | — |
 
 Pure branch history, oldest first:
@@ -20,14 +20,17 @@ Pure branch history, oldest first:
 | `ab6f31589` | `fix: reclaim index directories of commits verified as not landed` |
 | `9a49c0174` | `fix: keep caller-named index directories on a failed commit` |
 | `794031b87` | `chore: tighten comments on failed-commit index cleanup` |
+| `d4ee1c879` | merge of `upstream/main` `134c2bf95` |
+| `e5aa680e1` | `fix(commit): reclaim the tagged fragment reuse directory a rebase mints` |
+| `98f701cc4` | `fix(index): reclaim multi-segment FM-Index directories on a failed commit` |
 
-`794031b87` changes comments only; it adds no behavior.
+`794031b87` changes comments only; it adds no behavior. The last two commits each
+add a call site to the reclaiming set plus its test; `d4ee1c879` is an ordinary
+merge, so the pull request squashes to a linear diff.
 
-Pre-rewrite revision of this review branch: `7fa7a7002` — the baseline
-`d8293547c` plus the harness committed inside
-`rust/lance/src/io/commit/repro_7207.rs`. It carried no part of the fix. That
-branch tip was replaced, so old SHAs in earlier notes no longer resolve; the
-harness and its recorded output survive under `repro/` and `results/`.
+Earlier revision of this review branch: the tip was replaced once, so SHAs in
+the earlier reports that pointed at it no longer resolve. The harness and its
+recorded output survive under `repro/` and `results/`.
 
 Sibling approaches for this issue, each its own branch pair:
 
@@ -48,24 +51,29 @@ transaction that a caller replays.
 ## Design and scope
 
 Cleanup is opt-in per call site. `commit_transaction` reclaims on a verified
-`Foreign`/`Absent` outcome; `commit_rewrites` (compaction) and the single-segment
-`CreateIndexBuilder::execute` are the two call sites that opt in. Everything
-else keeps the existing behavior, in particular `CommitBuilder::execute`,
-because a caller may replay the same segments.
+`Foreign`/`Absent` outcome; `commit_rewrites` (compaction), the single-segment
+`CreateIndexBuilder::execute`, and both commits of the multi-segment FM-Index
+build are the call sites that opt in. Everything else keeps the existing
+behavior, in particular `CommitBuilder::execute`, because a caller may replay
+the same segments.
 
-Candidate directories are the IDs the transaction minted, minus the IDs the
-latest manifest still references. `CreateIndexBuilder` skips the whole path when
-the caller named the directory through `index_uuid`, and compaction skips it when
-a remapper cannot promise fresh IDs (`IndexRemapper::creates_fresh_index_ids`).
+Candidate directories are the IDs the transaction minted, plus the tagged
+fragment-reuse entry a rebase assembles for the attempt (it lives outside the
+transaction's `Operation`), minus the IDs the latest manifest still references.
+`CreateIndexBuilder` skips the whole path when the caller named the directory
+through `index_uuid`; compaction skips it when a remapper cannot promise fresh
+IDs (`IndexRemapper::creates_fresh_index_ids`).
 
 - In scope: `Operation::CreateIndex` and `Operation::Rewrite` commits issued by
-  those two call sites.
+  those call sites.
 - Out of scope: the gaps listed below, FTS half-written directories, and any
   change to public API signatures.
 - Earlier reports: `reports/REPORT.md` (first implementation),
   `reports/HANDOFF_SUPPLEMENT.md` (checkpoint that stopped on the remapper
-  hole), `reports/SUPPLEMENT_REPORT.md` (ownership guards and full verification),
-  `reports/CLOSING.md` (this round: comment cleanup, trial merge, branch rebuild).
+  hole), `reports/SUPPLEMENT_REPORT.md` (ownership guards and full
+  verification), `reports/CLOSING.md` (comment cleanup, trial merge, branch
+  rebuild), `reports/ROUND3.md` (upstream merge, tagged rebase directories,
+  multi-segment FM-Index).
 
 ## How to reproduce
 
@@ -94,24 +102,40 @@ also verified on Linux in an earlier round, per `reports/SUPPLEMENT_REPORT.md`.
 ## Results by revision
 
 Each row names the commit it tested. Earlier runs do not validate later commits.
+Only the reproduction was measured on the first three revisions; the full suite
+was first recorded in the last row.
 
-| Date | Tested commit | Relation to fix tip `794031b87` | Orphan dirs | Orphan bytes | Raw data |
+| Date | Tested commit | Relation to fix tip `98f701cc4` | Orphan dirs | Orphan bytes | Raw data |
 | --- | --- | --- | --- | --- | --- |
-| 2026-11-16 | `d8293547c` | baseline, 3 commits before | 20 | 72,760 | `results/7207-results.md` |
-| 2026-11-16 | `ab6f31589` | 2 commits before (the tip then) | 0 | 0 | `results/7207-results.md` |
-| 2026-11-17 | `d8293547c` | baseline, 3 commits before | 20 | 72,760 | `results/repro-d8293547c.log` |
-| 2026-11-17 | `794031b87` | tip, unchanged commit | 0 | 0 | `results/repro-794031b87.log` |
+| 2026-11-16 | `d8293547c` | baseline, 6 commits before | 20 | 72,760 | `results/7207-results.md` |
+| 2026-11-16 | `ab6f31589` | 4 commits before (the tip then) | 0 | 0 | `results/7207-results.md` |
+| 2026-11-17 | `d8293547c` | baseline, 6 commits before | 20 | 72,760 | `results/repro-d8293547c.log` |
+| 2026-11-17 | `794031b87` | 3 commits before (the tip then) | 0 | 0 | `results/repro-794031b87.log` |
+| 2026-11-18 | `98f701cc4` | tip | 0 | 0 | `results/repro-98f701cc4.log` |
 
-The 2026-11-16 pair was measured before `9a49c0174` and `794031b87` existed; the
-2026-11-17 pair re-measures both ends. `9a49c0174` was not re-measured on its
-own: it changes which directories may be reclaimed for caller-named UUIDs, which
-the harness does not name.
+The 2026-11-16 pair was measured before `9a49c0174`, `794031b87`, the upstream
+merge, and the two new commits existed; the 2026-11-17 pair re-measures that
+earlier tip. `9a49c0174` was not re-measured on its own: it changes which
+directories may be reclaimed for caller-named UUIDs, which the harness does not
+name.
+
+Full test suite:
+
+| Date | Tested commit | Command | Result | Raw data |
+| --- | --- | --- | --- | --- |
+| 2026-11-18 | `98f701cc4` | `cargo test -p lance` | 11,380 passed, 0 failed, 31 ignored | `results/full-test-98f701cc4.log` |
+
+Earlier rounds ran `cargo test -p lance` on their own tips but did not record
+the per-binary summary lines, so there is no comparable row for them. The
+command results for this revision are in `results/checks-98f701cc4.log`.
 
 ## Mutation checks
 
-Nine mutations, merged from both reports. Every one was applied to the then-current
+Eleven mutations: the nine from the earlier rounds, re-run against the merged
+code, plus one per new call site. Every one was applied to the then-current
 code, run, and reverted without committing. Labels name the guard the mutation
-removes or inverts, because internal plan numbering is not meaningful outside it.
+removes or inverts, because internal plan numbering is not meaningful outside
+it. Raw output: `results/mutations-98f701cc4.log`.
 
 | # | Guard | Mutation | Test that failed |
 | --- | --- | --- | --- |
@@ -124,59 +148,66 @@ removes or inverts, because internal plan numbering is not meaningful outside it
 | 7 | the same branch | invert it | `test_create_index_after_concurrent_schema_change::case_6_drop_caller_named_uuid`, `::case_1_drop_indexed`, `::case_3_cast_indexed`, `test_concurrent_create_index_same_name_returns_retryable_conflict` |
 | 8 | `IndexRemapper::creates_fresh_index_ids` default of `false` | default to `true` | `test_custom_remapper_index_dir_survives_preemption` (assertion: `a directory behind a caller-supplied remapper's id must survive a failed commit`) |
 | 9 | `DatasetIndexRemapper::creates_fresh_index_ids` override | delete the override | `test_delete_conflict_reclaims_remapped_index_dir` (assertion: `the remapped directory of the rejected rewrite must be reclaimed, and the original index directory must survive`), `test_rewrite_commit_failure_preserves_or_reclaims_index_dirs::case_1_verified_absent` (assertion: `a verified-absent commit must reclaim the directory it minted`) |
+| 10 | collecting the rebase-assembled tagged entry's uuid into the minted set | delete the insert | `test_tagged_rebase_details_dir_reclaimed_after_verified_loss` (assertion: the `_indices/` set must equal the pre-failure set) |
+| 11 | reclaim opt-in on the multi-segment FM-Index commit | revert the trained-segment path to `apply_commit` | `test_concurrent_multi_segment_fmindex_reclaims_segment_dirs` (assertion: `the segment directories of the rejected multi-segment build must be reclaimed`) |
 
 ## Known gaps
 
 Confirmed or suspected leaks left out of the fix. Merged from the known-gaps
 section of `reports/REPORT.md`, the tagged fragment-reuse correction and the
-old-branch comparison in `reports/SUPPLEMENT_REPORT.md`.
+old-branch comparison in `reports/SUPPLEMENT_REPORT.md`, and this round's
+`reports/ROUND3.md`. The last two entries are the follow-up work this round
+deliberately left for later pull requests.
 
 1. Caller-supplied transactions (`CommitBuilder::execute`,
    `commit_existing_index_segments`, `execute_uncommitted`). The caller may
    replay the same segments, so the directories stay. The CreateIndex variant is
    pinned by `test_failed_commit_keeps_caller_owned_index_segment`; the Rewrite
    variant runs through the same default and has no dedicated test.
-2. Successful commits that leave fragment-reuse directories behind. When v0
-   fragment-reuse details exceed the inline limit, every rebase mints a new UUID
-   and writes `details.binpb`; a first attempt that returns `Foreign` followed by
-   a successful one leaks the first directory. The success path was left
-   untouched.
-3. Tagged fragment-reuse rebase directories. A tagged rebase mints a fresh UUID
-   and writes `_indices/{uuid}/details.binpb` once the details pass
-   `FRAG_REUSE_INLINE_DETAILS_LIMIT` (204,800 bytes). That UUID travels through
-   the in-memory rewrite assembly and is absent from the transaction's
-   `Operation`, so neither the failure path nor the success path reclaims it.
-   (An earlier report recorded this as "no leak"; the correction is in
-   `reports/SUPPLEMENT_REPORT.md` section 5.2.)
-4. Multi-segment FM-Index builds and `optimize_indices`. Their other
-   `apply_commit` calls stay opted out, so a failed commit still leaks the
-   directories they wrote.
-5. Detached commits and new-dataset commits. They do not reach the opted-in call
+2. **Follow-up:** successful commits that leave fragment-reuse directories
+   behind. When v0 fragment-reuse details exceed the inline limit, every rebase
+   mints a new UUID and writes `details.binpb`; a first attempt that returns
+   `Foreign` followed by a successful one leaks the first directory. The success
+   path was left untouched.
+3. Multi-segment FM-Index builds are now reclaimed; `optimize_indices` and the
+   other `apply_commit` call sites stay opted out, so a failed commit there
+   still leaks the directories they wrote.
+4. Detached commits and new-dataset commits. They do not reach the opted-in call
    sites.
-6. FTS half-written directories, reported in the issue by another user. Not
+5. FTS half-written directories, reported in the issue by another user. Not
    handled.
-7. A commit that lands after the manifest build drops an index that the remap
+6. A commit that lands after the manifest build drops an index that the remap
    had already written (for example an invalidated overwrite). Only failed paths
    reclaim, so a successful commit can leave an unreferenced remap directory.
    Not measured; recorded as possible.
-8. Indices that carry `base_id` are skipped by the candidate filter, so their
+7. Indices that carry `base_id` are skipped by the candidate filter, so their
    directories are never reclaimed. In practice they are not minted.
-9. No end-to-end test that a fragment-reuse directory minted by the call is
-   reclaimed after a verified loss. The rewrite cases cover remapped index
-   directories only; the kept half of the behavior is pinned at unit level by
-   `test_cleanup_keeps_index_dir_referenced_by_latest_manifest`.
-10. No test for a rebase followed by a terminal failure, for either the v0 or the
-    tagged shape. The tagged variant necessarily fails today, per gap 3.
-11. No test that a v0 fragment-reuse directory spilled by
-    `build_frag_reuse_index_metadata` is reclaimed when the deferred rewrite is
-    verified absent.
-12. No test for cleanup's own failure branches: a delete failure and a
+8. **Follow-up:** a caller-supplied remapper disables reclamation for the whole
+   call (`creates_fresh_index_ids`), including the tagged fragment-reuse
+   directory the compaction itself minted. Those directories stay for GC.
+9. The action-based commit path's fragment-reuse spill
+   (`spill_frag_reuse_history`, `Operation::CompositeOperation`) writes
+   `_indices/{uuid}/details.binpb` with a UUID minted inside the call, but
+   `minted_index_uuids` returns nothing for that variant. No reclaiming call
+   site reaches it today; a future opt-in has to add it to the candidate set.
+10. No end-to-end test that a v0 fragment-reuse directory minted by the call is
+    reclaimed after a verified loss. The tagged shape is pinned by
+    `test_tagged_rebase_details_dir_reclaimed_after_verified_loss`; the v0 shape
+    spills through `build_frag_reuse_index_metadata`, which is already inside
+    the transaction's `Operation`, and only the kept half of the behavior is
+    pinned at unit level by `test_cleanup_keeps_index_dir_referenced_by_latest_manifest`.
+11. No test for a v0 rebase followed by a terminal failure. The tagged shape is
+    covered by this round's test.
+12. No test for the multi-segment FM-Index definition-only path (`train(false)`
+    or no fragments): it writes no segment directory in the fixture, so a
+    directory-set assertion cannot pin it.
+13. No test for cleanup's own failure branches: a delete failure and a
     `resolve_latest_location` failure must both keep the original commit error.
-    The existing injected-resolve-failure case exercises the commit verification
-    instead.
-13. No test for `TooMuchWriteContention` (retry timeout) asserting that
-    directories are reclaimed, and no end-to-end "index kept across a concurrent
-    drop" combination.
+    The existing injected-resolve-failure case exercises the commit
+    verification instead.
+14. No test for `TooMuchWriteContention` (retry timeout) asserting that
+    directories are reclaimed, and no end-to-end "index kept across a
+    concurrent drop" combination.
 
 ## Files
 
@@ -186,10 +217,15 @@ old-branch comparison in `reports/SUPPLEMENT_REPORT.md`.
 | `reports/REPORT.md` | First delivery report: implementation, tests, leak measurement, known gaps. |
 | `reports/HANDOFF_SUPPLEMENT.md` | Checkpoint report that stopped on the caller-supplied remapper hole. |
 | `reports/SUPPLEMENT_REPORT.md` | Ownership guards, full verification, tagged fragment-reuse correction, old-branch comparison. |
-| `reports/HANDOFF_CLOSING.md` | Closing handoff this round executed. |
+| `reports/HANDOFF_CLOSING.md` | Closing handoff the previous round executed. |
 | `reports/CLOSING.md` | Closing report: comment cleanup, trial merge, branch rebuild. |
+| `reports/ROUND3.md` | This round: upstream merge and its two checks, tagged rebase directories, multi-segment FM-Index, eleven mutations. |
 | `repro/repro_7207.rs` | Reproduction harness. |
 | `repro/apply.sh` | Installs the harness into a checkout. |
 | `results/7207-results.md` | 2026-11-16 raw output, labelled with the commits it measured. |
 | `results/repro-d8293547c.log` | Baseline run, 2026-11-17. |
-| `results/repro-794031b87.log` | Fix-tip run, 2026-11-17. |
+| `results/repro-794031b87.log` | Run of the earlier tip, 2026-11-17. |
+| `results/repro-98f701cc4.log` | Run of the current tip, 2026-11-18. |
+| `results/full-test-98f701cc4.log` | `cargo test -p lance` summaries, 2026-11-18. |
+| `results/checks-98f701cc4.log` | Format, lint, doc, and plan-number check output, 2026-11-18. |
+| `results/mutations-98f701cc4.log` | The eleven mutation checks and the tests they killed. |

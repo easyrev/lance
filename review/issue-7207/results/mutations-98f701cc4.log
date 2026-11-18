@@ -1,0 +1,48 @@
+# Mutation checks. Each mutation was applied to a clean tree at fix tip
+# 98f701cc4, run, then reverted without committing. Only the run's RESULT
+# lines are kept; the failing test name follows when the first failure is
+# visible in the captured tail.
+
+M1  delete the cleanup call in commit_transaction
+    test_delete_conflict_reclaims_remapped_index_dir                          FAILED
+    test_rewrite_commit_failure_preserves_or_reclaims_index_dirs::case_1_verified_absent FAILED
+    test_create_index_after_concurrent_schema_change::case_1_drop_indexed    FAILED
+    test_create_index_after_concurrent_schema_change::case_3_cast_indexed    FAILED
+
+M2  reclaim on any returned error (drop !has_unverified_write)
+    test_rewrite_commit_failure_preserves_or_reclaims_index_dirs::case_4_landed_then_index_dropped FAILED
+    test_rewrite_commit_failure_preserves_or_reclaims_index_dirs::case_5_unknown_then_index_dropped FAILED
+
+M3  clean up inside the Foreign|Absent branch instead of after the retry loop
+    test_retry_after_concurrent_append_keeps_index_dirs                       FAILED
+
+M4  make CommitBuilder::execute pass MintedIndexDirs
+    test_failed_commit_keeps_caller_owned_index_segment                       FAILED
+
+M5  drop the new_id != old_id candidate filter
+    test_minted_index_uuids_collects_only_new_ids                             FAILED
+
+M6  always reclaim in CreateIndexBuilder::execute (drop the caller-named branch)
+    test_create_index_after_concurrent_schema_change::case_6_drop_caller_named_uuid FAILED
+
+M7  invert the caller-named branch
+    test_create_index_after_concurrent_schema_change::case_6_drop_caller_named_uuid FAILED
+    test_create_index_after_concurrent_schema_change::case_1_drop_indexed    FAILED
+    test_create_index_after_concurrent_schema_change::case_3_cast_indexed    FAILED
+    test_concurrent_create_index_same_name_returns_retryable_conflict        FAILED
+
+M8  default IndexRemapper::creates_fresh_index_ids to true
+    test_custom_remapper_index_dir_survives_preemption                        FAILED
+
+M9  delete DatasetIndexRemapper::creates_fresh_index_ids
+    test_delete_conflict_reclaims_remapped_index_dir                          FAILED
+    test_rewrite_commit_failure_preserves_or_reclaims_index_dirs::case_1_verified_absent FAILED
+
+M10 drop the assembled tagged entry's uuid from the minted set
+    test_tagged_rebase_details_dir_reclaimed_after_verified_loss              FAILED
+
+M11 revert the trained multi-segment FM-Index commit to apply_commit
+    test_concurrent_multi_segment_fmindex_reclaims_segment_dirs               FAILED
+
+# M1-M9 reproduce the nine mutations recorded in README.md against the merged
+# code. M10 and M11 are the two new ones.

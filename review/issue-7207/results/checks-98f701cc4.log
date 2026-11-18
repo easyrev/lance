@@ -1,0 +1,29 @@
+# Verification commands from the round-3 handoff, run on macOS arm64
+# (10 cores, rustc 1.98.1) at fix tip 98f701cc4, 2026-11-18.
+# The Rust tree of the review-branch merge e8ab5f68a is identical.
+
+$ cargo fmt --all -- --check
+exit=0
+
+$ cargo clippy --all --tests --benches -- -D warnings
+   2 error: unreachable expression
+   1 error: could not compile `lance-encoding` (lib) due to 2 previous errors
+   1 error: could not compile `lance-encoding` (lib test) due to 2 previous errors
+exit=101
+# Both are rust/lance-encoding/src/encodings/physical/byte_stream_split.rs,
+# lines 358 and 393, on the aarch64 path: the pre-existing warnings the
+# handoff names. Nothing else fails.
+
+$ cargo clippy --all --tests --benches -- -D warnings -A unreachable-code
+exit=0
+
+$ RUSTDOCFLAGS="-D warnings" cargo doc -p lance --no-deps
+exit=0
+
+$ git diff upstream/main HEAD | grep '^+' | grep -E "\b([TCP][0-9]+'?)\b"
+exit=1 (no output)
+
+# Note: the last command was run with HEAD on the fix branch. Run with HEAD on
+# the review branch it also matches review/issue-7207/reports/*.md, which quote
+# the historical plan labels when describing earlier rounds; the fix branch is
+# the branch under check.
