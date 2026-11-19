@@ -27,7 +27,7 @@ for variant in "${variants[@]}"; do
         printf 'Profile: release-with-debug\nCargo target: %s\n' "$target"
         export CARGO_TARGET_DIR="$target"
         export MATURIN_PEP517_ARGS='--profile release-with-debug'
-        if (( $# == 5 )); then
+        if [[ $variant == fix ]]; then
             /usr/bin/time -v -o "$raw/build-$variant.time" \
                 uv sync --frozen --python 3.12 --verbose --reinstall-package pylance
         else
