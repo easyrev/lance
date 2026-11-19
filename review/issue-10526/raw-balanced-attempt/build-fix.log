@@ -1,0 +1,48 @@
+343e36aecc953cb8278707b751e5129813a1094f
+Profile: release-with-debug
+Cargo target: /mnt/lance/target/bench-10526
+🍹 Building a mixed python/rust project
+🐍 Found CPython 3.12 at /mnt/lance/checkouts/issue10526/python/.venv/bin/python
+🔗 Found pyo3 bindings with abi3 support
+Checked 24 packages in 12ms
+Resolved 5 packages in 1.25s
+Checked 5 packages in 0.06ms
+   Compiling pyo3-ffi v0.29.3
+warning: lance-linalg@15.0.0-beta.25: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.25: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.25: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.25: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling pyo3 v0.29.3
+   Compiling arrow-pyarrow v59.3.0
+   Compiling pythonize v0.29.0
+   Compiling arrow v59.3.0
+   Compiling datafusion-common v55.2.0
+   Compiling datafusion-proto-common v55.2.0
+   Compiling datafusion-expr-common v55.2.0
+   Compiling datafusion-proto-models v55.2.0
+   Compiling datafusion-physical-expr-common v55.2.0
+   Compiling datafusion-functions-aggregate-common v55.2.0
+   Compiling datafusion-functions-window-common v55.2.0
+   Compiling datafusion-expr v55.2.0
+   Compiling datafusion-physical-expr v55.2.0
+   Compiling datafusion-execution v55.2.0
+   Compiling datafusion-functions v55.2.0
+   Compiling datafusion-functions-aggregate v55.2.0
+   Compiling datafusion-functions-window v55.2.0
+   Compiling datafusion-optimizer v55.2.0
+   Compiling datafusion-physical-plan v55.2.0
+   Compiling datafusion-physical-expr-adapter v55.2.0
+   Compiling datafusion-functions-nested v55.2.0
+   Compiling datafusion-sql v55.2.0
+   Compiling datafusion-session v55.2.0
+   Compiling lance-core v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-core)
+   Compiling datafusion-datasource v55.2.0
+   Compiling lance-namespace v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-namespace)
+   Compiling lance-io v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-io)
+   Compiling datafusion-catalog v55.2.0
+   Compiling datafusion-pruning v55.2.0
+   Compiling datafusion-datasource-json v55.2.0
+   Compiling datafusion-datasource-arrow v55.2.0
+💥 maturin failed
+  Caused by: Failed to build a native library through cargo
+  Caused by: Cargo build finished with "signal: 2 (SIGINT)": `env -u CARGO PYO3_BUILD_EXTENSION_MODULE="1" PYO3_ENVIRONMENT_SIGNATURE="cpython-3.12-64bit" PYO3_PYTHON="/mnt/lance/checkouts/issue10526/python/.venv/bin/python" PYTHON_SYS_EXECUTABLE="/mnt/lance/checkouts/issue10526/python/.venv/bin/python" "cargo" "rustc" "--profile" "release-with-debug" "--message-format" "json-render-diagnostics" "--manifest-path" "/mnt/lance/checkouts/issue10526/python/Cargo.toml" "--lib"`
