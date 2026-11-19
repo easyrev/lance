@@ -4,7 +4,9 @@ A single batch of wide variable-width values can produce an oversized page in th
 
 Dense planning can now split at value boundaries after rep/def serialization. The rep/def budget must permit the split. Each row must map to one string or binary value, and the field must use the default layout or request FullZip. The planner requires at least two values whose total uncompressed value bytes exceed the page limit. It uses proportional boundaries when they fit in the same number of pages as greedy packing.
 
-The planner requires at least one non-null value and requires every non-null value to exceed 32 KiB. It samples evenly across non-null values. For a dictionary limit of `D` bytes, it samples up to `floor(D / 32,769) + 1` values. A dictionary that fits in `D` bytes can hold at most one fewer distinct value, because every value takes at least 32,769 bytes. If the batch has at least that many non-null values, a dictionary-eligible input must repeat a sampled key. If fewer exist, the planner samples every non-null value and detects any repetition among them. The existing plan is also preserved when a single page suffices. An average-width rule would not give the same bound on dictionary cardinality.
+The planner requires at least one valid slot, and every valid slot must exceed 32 KiB. A null slot must be empty or exceed 32 KiB. The planner samples non-empty physical slots, including payloads under nulls, because the dictionary encoder interns them.
+
+For a dictionary limit of `D` bytes, the planner samples up to `floor(D / 32,769) + 1` slots. Each non-empty entry uses at least 32,769 bytes, so a dictionary that fits can hold at most one fewer distinct non-empty entry. A full sample must therefore contain a repeated key if the input fits the dictionary. For a smaller input, the planner samples every non-empty slot and detects any repetitions among them. Average width alone would not establish the same bound.
 
 This change leaves 2.3 sparse pages for mostly-null wide columns, mixed-width batches, lists, and fixed-width values on their existing paths. It preserves the file format.
 
@@ -13,6 +15,10 @@ PR #10531 parallelizes compression within a page and complements parallel work a
 Reader-side chunking remains necessary for existing files and pages that stay unsplit. [#10160](https://github.com/lance-format/lance/pull/10160) · [#10168](https://github.com/lance-format/lance/pull/10168)
 
 ## Measurements
+
+The tables report measurements at `8d39b38`. The follow-up only changes split eligibility for null slots that carry payloads. The benchmark inputs have no nulls.
+
+A separate probe at `8d39b38` used fixed-seed random payloads under nulls. At 16 MiB, both 2.1 and 2.2 wrote three pages totaling 8,364,434 encoded bytes. At `u64::MAX`, each version wrote one page. Version 2.1 wrote 8,359,337 encoded bytes, and 2.2 wrote 8,391,350. Splitting added 5,097 encoded bytes in 2.1 and saved 26,916 in 2.2.
 
 Both builds used `release-with-debug` and reused the same Arrow IPC inputs on a 16-vCPU host. The 32 MiB limit compares uncompressed value bytes. The largest resulting compressed page was about 11 MB on the unique-wide input. The write matrix reports medians of three trials. [Method and raw results](https://github.com/easyrev/lance/blob/review/10526-wide-value-page-split/review/issue-10526/README.md)
 
