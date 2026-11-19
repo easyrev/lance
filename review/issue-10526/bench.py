@@ -2,7 +2,10 @@
 import argparse
 import json
 import os
+import re
 import resource
+import struct
+import subprocess
 import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -106,6 +109,36 @@ def current_rss_kib() -> int:
     raise RuntimeError("Rss is missing from /proc/self/smaps_rollup")
 
 
+def page_row_counts(path: Path) -> list[int]:
+    footer = struct.Struct("<QQQIIHH4s")
+    with path.open("rb") as file:
+        file.seek(-footer.size, os.SEEK_END)
+        _, offsets, _, _, columns, major, minor, magic = footer.unpack(
+            file.read(footer.size)
+        )
+        assert (columns, major, minor, magic) == (1, 2, 2, b"LANC")
+        file.seek(offsets)
+        start, length = struct.unpack("<QQ", file.read(16))
+        file.seek(start)
+        column_metadata = file.read(length)
+
+    proto_dir = Path(__file__).resolve().parents[2] / "protos"
+    decoded = subprocess.run(
+        [
+            "protoc",
+            f"--proto_path={proto_dir}",
+            "--decode=lance.file.v2.ColumnMetadata",
+            "file2.proto",
+        ],
+        input=column_metadata,
+        stdout=subprocess.PIPE,
+        check=True,
+    )
+    return [
+        int(rows) for rows in re.findall(rb"^  length: (\d+)$", decoded.stdout, re.M)
+    ]
+
+
 def measure(
     input_path: Path,
     scratch: Path,
@@ -165,10 +198,16 @@ def measure(
             metadata = LanceFileReader(str(file_path)).metadata()
             assert len(metadata.columns) == 1
             pages = metadata.columns[0].pages
+            page_rows = page_row_counts(file_path)
+            assert len(page_rows) == len(pages)
+            assert sum(page_rows) == batches[0].num_rows
+            value_bytes = 8 if input_path.stem == "narrow" else WIDE_BYTES
             statistics.update(
                 file_bytes=file_path.stat().st_size,
                 pages=len(pages),
-                max_page_bytes=max(
+                page_rows=page_rows,
+                max_uncompressed_value_bytes=max(page_rows) * value_bytes,
+                max_encoded_page_bytes=max(
                     sum(buffer.size for buffer in page.buffers) for page in pages
                 ),
             )
@@ -182,7 +221,10 @@ def check_files(baseline_path: Path, fix_path: Path) -> None:
     assert fix["dataset"] == baseline["dataset"]
     if fix["dataset"] == "wide-unique":
         checks = {
-            "wide_unique_max_page": fix["max_page_bytes"] <= 32 * 1024**2 + WIDE_BYTES,
+            "wide_unique_max_uncompressed_value_bytes": fix[
+                "max_uncompressed_value_bytes"
+            ]
+            <= 32 * 1024**2 + WIDE_BYTES,
             "wide_unique_file_bytes": fix["file_bytes"] * 100
             <= baseline["file_bytes"] * 102,
         }

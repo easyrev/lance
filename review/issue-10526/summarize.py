@@ -63,23 +63,28 @@ def main(raw: Path) -> None:
     print("### Table A. Files")
     print()
     print(
-        "| Input | Baseline file B | Pages | Max page B |"
-        " Fix file B | Pages | Max page B |"
+        "| Input | Build | File B | Pages | Max encoded page B |"
+        " Max uncompressed value B |"
     )
-    print("| --- | ---: | ---: | ---: | ---: | ---: | ---: |")
+    print("| --- | --- | ---: | ---: | ---: | ---: |")
     for dataset in ("wide-unique", "wide-repeated", "narrow"):
         paths = [
             raw / f"file-{dataset}-{variant}.json" for variant in ("baseline", "fix")
         ]
         if not all(path.stat().st_size if path.exists() else 0 for path in paths):
             continue
-        results = [read_json(path) for path in paths]
-        cells = (
-            f"{result[key]:,}"
-            for result in results
-            for key in ("file_bytes", "pages", "max_page_bytes")
-        )
-        print(f"| {dataset} | " + " | ".join(cells) + " |")
+        for variant, path in zip(("baseline", "fix"), paths):
+            result = read_json(path)
+            cells = (
+                f"{result[key]:,}"
+                for key in (
+                    "file_bytes",
+                    "pages",
+                    "max_encoded_page_bytes",
+                    "max_uncompressed_value_bytes",
+                )
+            )
+            print(f"| {dataset} | {variant} | " + " | ".join(cells) + " |")
 
     if not (raw / "measure-end.epoch").exists():
         return
