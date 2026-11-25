@@ -1,0 +1,2061 @@
+cb8c25692e0d35d682be5459644a698f8d49655a
+rustc 1.98.1 (48a229cea 2026-09-01)
+uv 0.13.10 (x86_64-unknown-linux-gnu)
+uv sync --frozen --python 3.12 --verbose
+DEBUG Found workspace root: /root/lance/base/python
+DEBUG Adding root workspace member: /root/lance/base/python
+DEBUG Found workspace configuration at `/root/lance/base/python/pyproject.toml`
+DEBUG Searching for user configuration in: /root/.config/uv/uv.toml
+DEBUG uv 0.13.10 (x86_64-unknown-linux-gnu)
+DEBUG Found project root: /root/lance/base/python
+DEBUG Using Python request `3.12` from explicit request
+DEBUG Checking for Python environment at: .venv
+DEBUG Searching for Python 3.12 in managed installations or search path
+DEBUG Searching for managed installations at `/root/.local/share/uv/python`
+DEBUG Found `cpython-3.13.5-linux-x86_64-gnu` at `/usr/bin/python3` (first executable in the search path)
+DEBUG Skipping interpreter at `/usr/bin/python3` from first executable in the search path: does not satisfy request `3.12`
+DEBUG Using request connect timeout of 10s and read timeout of 30s
+INFO Fetching requested Python...
+DEBUG Downloading `https://releases.astral.sh/github/python-build-standalone/releases/download/20261124/cpython-3.12.16%2B20261124-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz`
+DEBUG Extracting `cpython-3.12.16-20261124-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz` to temporary location `/root/.local/share/uv/python/.temp/.tmpPx5M0q`
+Downloading cpython-3.12.16-linux-x86_64-gnu (download) (33.1MiB)
+ Downloaded cpython-3.12.16-linux-x86_64-gnu (download)
+DEBUG Moving `/root/.local/share/uv/python/.temp/.tmpPx5M0q/python` to `/root/.local/share/uv/python/cpython-3.12.16-linux-x86_64-gnu`
+DEBUG Created link `/root/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu` -> `/root/.local/share/uv/python/cpython-3.12.16-linux-x86_64-gnu`
+Using CPython 3.12.16
+Creating virtual environment at: .venv
+DEBUG Assessing Python executable as base candidate: /root/.local/share/uv/python/cpython-3.12.16-linux-x86_64-gnu/bin/python3.12
+DEBUG Using base executable for virtual environment: /root/.local/share/uv/python/cpython-3.12.16-linux-x86_64-gnu/bin/python3.12
+DEBUG Using symlink directory `/root/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu` instead of base Python path `/root/.local/share/uv/python/cpython-3.12.16-linux-x86_64-gnu/bin/python3.12`
+DEBUG Identified uncached distribution: pylance @ file:///root/lance/base/python
+DEBUG Identified uncached distribution: maturin==1.13.3
+DEBUG Identified uncached distribution: pyright==1.1.406
+DEBUG Identified uncached distribution: ruff==0.11.2
+DEBUG Identified uncached distribution: boto3==1.40.43
+DEBUG Identified uncached distribution: datafusion==55.0.0
+DEBUG Identified uncached distribution: datasets==4.4.0
+DEBUG Identified uncached distribution: duckdb==1.5.6
+DEBUG Identified uncached distribution: ml-dtypes==0.5.3
+DEBUG Identified uncached distribution: numpy==2.5.1
+DEBUG Identified uncached distribution: opentelemetry-sdk==1.30.0
+DEBUG Identified uncached distribution: pandas==2.3.3
+DEBUG Identified uncached distribution: pillow==11.3.0
+DEBUG Identified uncached distribution: polars==1.34.0
+DEBUG Identified uncached distribution: psutil==7.1.0
+DEBUG Identified uncached distribution: pytest==8.4.2
+DEBUG Identified uncached distribution: pytest-xdist==3.8.0
+DEBUG Identified uncached distribution: tqdm==4.67.1
+DEBUG Identified uncached distribution: lance-namespace==0.13.0
+DEBUG Identified uncached distribution: pyarrow==25.0.1
+DEBUG Identified uncached distribution: nodeenv==1.10.0
+DEBUG Identified uncached distribution: typing-extensions==4.16.0
+DEBUG Identified uncached distribution: botocore==1.40.76
+DEBUG Identified uncached distribution: jmespath==1.1.0
+DEBUG Identified uncached distribution: s3transfer==0.14.0
+DEBUG Identified uncached distribution: cloudpickle==3.1.2
+DEBUG Identified uncached distribution: dill==0.4.0
+DEBUG Identified uncached distribution: filelock==3.29.7
+DEBUG Identified uncached distribution: fsspec==2025.10.0
+DEBUG Identified uncached distribution: httpx==0.28.1
+DEBUG Identified uncached distribution: huggingface-hub==1.23.0
+DEBUG Identified uncached distribution: multiprocess==0.70.18
+DEBUG Identified uncached distribution: packaging==26.2
+DEBUG Identified uncached distribution: pyyaml==6.0.3
+DEBUG Identified uncached distribution: requests==2.34.2
+DEBUG Identified uncached distribution: xxhash==3.8.1
+DEBUG Identified uncached distribution: opentelemetry-api==1.30.0
+DEBUG Identified uncached distribution: opentelemetry-semantic-conventions==0.51b0
+DEBUG Identified uncached distribution: python-dateutil==2.9.0.post0
+DEBUG Identified uncached distribution: pytz==2026.2
+DEBUG Identified uncached distribution: tzdata==2026.3
+DEBUG Identified uncached distribution: polars-runtime-32==1.34.0
+DEBUG Identified uncached distribution: iniconfig==2.3.0
+DEBUG Identified uncached distribution: pluggy==1.6.0
+DEBUG Identified uncached distribution: pygments==2.20.0
+DEBUG Identified uncached distribution: execnet==2.1.2
+DEBUG Identified uncached distribution: lance-namespace-urllib3-client==0.13.0
+DEBUG Identified uncached distribution: urllib3==2.8.0
+DEBUG Identified uncached distribution: aiohttp==3.14.4
+DEBUG Identified uncached distribution: anyio==4.14.2
+DEBUG Identified uncached distribution: certifi==2026.10.19
+DEBUG Identified uncached distribution: httpcore==1.0.9
+DEBUG Identified uncached distribution: idna==3.18
+DEBUG Identified uncached distribution: click==8.4.2
+DEBUG Identified uncached distribution: hf-xet==1.5.1
+DEBUG Identified uncached distribution: charset-normalizer==3.4.9
+DEBUG Identified uncached distribution: deprecated==1.3.1
+DEBUG Identified uncached distribution: importlib-metadata==8.5.0
+DEBUG Identified uncached distribution: six==1.17.0
+DEBUG Identified uncached distribution: pydantic==2.13.4
+DEBUG Identified uncached distribution: aiohappyeyeballs==2.7.1
+DEBUG Identified uncached distribution: aiosignal==1.4.0
+DEBUG Identified uncached distribution: attrs==26.1.0
+DEBUG Identified uncached distribution: frozenlist==1.8.0
+DEBUG Identified uncached distribution: multidict==6.9.1
+DEBUG Identified uncached distribution: propcache==0.5.2
+DEBUG Identified uncached distribution: yarl==1.25.1
+DEBUG Identified uncached distribution: h11==0.16.0
+DEBUG Identified uncached distribution: wrapt==2.2.2
+DEBUG Identified uncached distribution: zipp==4.1.0
+DEBUG Identified uncached distribution: annotated-types==0.7.0
+DEBUG Identified uncached distribution: pydantic-core==2.46.4
+DEBUG Identified uncached distribution: typing-inspection==0.4.2
+DEBUG Using request connect timeout of 10s and read timeout of 30s
+DEBUG Computed cache info: Timestamp(SystemTime { tv_sec: 1795630377, tv_nsec: 169538374 }), None, None, {}, {"src": Some(Timestamp(Timestamp(SystemTime { tv_sec: 1795630377, tv_nsec: 189538971 })))}. Most recently modified: pyproject.toml
+   Building pylance @ file:///root/lance/base/python
+DEBUG Building: pylance @ file:///root/lance/base/python
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/60/c9/711ca85d79f1ec98f29a5eae2b051e25b4ecec5de3e3c0e2d5c5dcb15664/pyarrow-25.0.1-cp312-cp312-manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/60/c9/711ca85d79f1ec98f29a5eae2b051e25b4ecec5de3e3c0e2d5c5dcb15664/pyarrow-25.0.1-cp312-cp312-manylinux_2_28_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/60/26/c1758148a1ff148fc4ce211bcf6a302a25aefbf44499c58c9f6d45f520f2/datafusion-55.0.0-cp310-abi3-manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/60/26/c1758148a1ff148fc4ce211bcf6a302a25aefbf44499c58c9f6d45f520f2/datafusion-55.0.0-cp310-abi3-manylinux_2_28_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/4c/99/be75c788a492f8d77b7a1cdc1b19939ae7be0007f2028691ad371a1a33ee/duckdb-1.5.6-cp312-cp312-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/4c/99/be75c788a492f8d77b7a1cdc1b19939ae7be0007f2028691ad371a1a33ee/duckdb-1.5.6-cp312-cp312-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl
+DEBUG Assessing Python executable as base candidate: /root/.local/share/uv/python/cpython-3.12.16-linux-x86_64-gnu/bin/python3.12
+DEBUG Creating build environment for: pylance @ file:///root/lance/base/python
+DEBUG Assessing Python executable as base candidate: /root/.local/share/uv/python/cpython-3.12.16-linux-x86_64-gnu/bin/python3.12
+DEBUG Using base executable for virtual environment: /root/.local/share/uv/python/cpython-3.12.16-linux-x86_64-gnu/bin/python3.12
+DEBUG Resolving build requirements
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/b8/a9/6e73d68500f80773f65f0654ea932019d6694329a0eb0ed0533de38df376/numpy-2.5.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/b8/a9/6e73d68500f80773f65f0654ea932019d6694329a0eb0ed0533de38df376/numpy-2.5.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/7f/6c/522e05388aa6fc66cf8ea46c6b29809a1a6f527ea864998b01ffb368ca36/botocore-1.40.76-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/7f/6c/522e05388aa6fc66cf8ea46c6b29809a1a6f527ea864998b01ffb368ca36/botocore-1.40.76-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/e5/63/cd7d615331b328e287d8233ba9fdf191a9c2d11b6af0c7a59cfcec23de68/pandas-2.3.3-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/e5/63/cd7d615331b328e287d8233ba9fdf191a9c2d11b6af0c7a59cfcec23de68/pandas-2.3.3-cp312-cp312-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/ce/d2/4ceed7147e05852876f3b5f3fdc23f878ce2b7e0b90dd6e698bda3d20787/ruff-0.11.2-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/ce/d2/4ceed7147e05852876f3b5f3fdc23f878ce2b7e0b90dd6e698bda3d20787/ruff-0.11.2-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+DEBUG Solving with installed Python version: 3.12.16
+DEBUG Solving with target Python version: >=3.12.16
+DEBUG Adding direct dependency: maturin>=1.4
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/c7/7d/a1be934690cdcc3c6609769ceaad322ab7501c2ee5bafcac1b14d609e403/maturin-1.13.3-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.musllinux_1_1_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/c7/7d/a1be934690cdcc3c6609769ceaad322ab7501c2ee5bafcac1b14d609e403/maturin-1.13.3-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.musllinux_1_1_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/e4/c9/06dd4a38974e24f932ff5f98ea3c546ce3f8c995d3f0985f8e5ba48bba19/pillow-11.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/e4/c9/06dd4a38974e24f932ff5f98ea3c546ce3f8c995d3f0985f8e5ba48bba19/pillow-11.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/f6/a2/e309afbb459f50507103793aaef85ca4348b66814c86bc73908bdeb66d12/pyright-1.1.406-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/f6/a2/e309afbb459f50507103793aaef85ca4348b66814c86bc73908bdeb66d12/pyright-1.1.406-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/d8/a9/b98b86426c24900b0c754aad006dce2863df7ce0bb2bcc2c02f9cc7e8489/ml_dtypes-0.5.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/d8/a9/b98b86426c24900b0c754aad006dce2863df7ce0bb2bcc2c02f9cc7e8489/ml_dtypes-0.5.3-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/9e/ce/11ca850b7862cb43605e5d86cdf655614376e0a059871cf8305af5406554/polars_runtime_32-1.34.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/9e/ce/11ca850b7862cb43605e5d86cdf655614376e0a059871cf8305af5406554/polars_runtime_32-1.34.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/de/cc/f99f4bc7295023d7bd9ebbfd51f75cc530ca262c1227666268b8208f4b77/hf_xet-1.5.1-cp37-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/de/cc/f99f4bc7295023d7bd9ebbfd51f75cc530ca262c1227666268b8208f4b77/hf_xet-1.5.1-cp37-abi3-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/5f/97/2aab507d3d00ca626e8e57c1eac6a79e4e5fbcc63eb99733ff55d1717f65/pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/5f/97/2aab507d3d00ca626e8e57c1eac6a79e4e5fbcc63eb99733ff55d1717f65/pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/11/6c/a7a42701d9ea319140a3d44a24ec72a00b0b46d1b899b26d8a705e65bdd8/aiohttp-3.14.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/11/6c/a7a42701d9ea319140a3d44a24ec72a00b0b46d1b899b26d8a705e65bdd8/aiohttp-3.14.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/8b/9d/b3589d3877982d4f2329302ef98a8026e7f4443c765c46cfecc8858c6b4b/pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/8b/9d/b3589d3877982d4f2329302ef98a8026e7f4443c765c46cfecc8858c6b4b/pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/f4/7e/a72dd26f3b0f4f2bf1dd8923c85f7ceb43172af56d63c7383eb62b332364/pygments-2.20.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/f4/7e/a72dd26f3b0f4f2bf1dd8923c85f7ceb43172af56d63c7383eb62b332364/pygments-2.20.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/6b/80/1791ac226bb989bef30fe8fde752b2021b6ec5dfd6e880262596aedf4c05/polars-1.34.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/6b/80/1791ac226bb989bef30fe8fde752b2021b6ec5dfd6e880262596aedf4c05/polars-1.34.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/1e/31/d552336985f747b19f0a852d98ca7a2ef4727ba956b38041cfbda08dde0a/datasets-4.4.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/1e/31/d552336985f747b19f0a852d98ca7a2ef4727ba956b38041cfbda08dde0a/datasets-4.4.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/f1/ce/13b2ba57838b8db1e6bd033c1b21ce0b9f6153b87d4e4939f77074e41eb0/huggingface_hub-1.23.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/f1/ce/13b2ba57838b8db1e6bd033c1b21ce0b9f6153b87d4e4939f77074e41eb0/huggingface_hub-1.23.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/ec/dd/96da98f892250475bdf2328112d7468abdd4acc7b902b6af23f4ed958ea0/pytz-2026.2-py2.py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/ec/dd/96da98f892250475bdf2328112d7468abdd4acc7b902b6af23f4ed958ea0/pytz-2026.2-py2.py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/fd/7b/122376b1fd3c62c1ed9dc80c931ace4844b3c55407b6fb2d199377c9736f/pydantic-2.13.4-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/fd/7b/122376b1fd3c62c1ed9dc80c931ace4844b3c55407b6fb2d199377c9736f/pydantic-2.13.4-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/60/4c/7b8f0712a7fe1b8655b711342bc4989696635a79e7027ee56ba3cae23e99/lance_namespace_urllib3_client-0.13.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/60/4c/7b8f0712a7fe1b8655b711342bc4989696635a79e7027ee56ba3cae23e99/lance_namespace_urllib3_client-0.13.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/a8/a4/20da314d277121d6534b3a980b29035dcd51e6744bd79075a6ce8fa4eb8d/pytest-8.4.2-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/a8/a4/20da314d277121d6534b3a980b29035dcd51e6744bd79075a6ce8fa4eb8d/pytest-8.4.2-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/e5/6d/b53b99a9f2766d095985947a5782f1702cabb129a34f7a802d7197af832f/tzdata-2026.3-py2.py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/e5/6d/b53b99a9f2766d095985947a5782f1702cabb129a34f7a802d7197af832f/tzdata-2026.3-py2.py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/ed/5b/db08419c1e1f7c9d60cfd2787b2b517d7ae4ebbda8281b48a33eb5141467/multidict-6.9.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/ed/5b/db08419c1e1f7c9d60cfd2787b2b517d7ae4ebbda8281b48a33eb5141467/multidict-6.9.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/9d/de/04c8c61232f7244aa0a4b9a9fbd63a89d5aeaf94b2fc9d1d16e2faa5cbb0/psutil-7.1.0-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/9d/de/04c8c61232f7244aa0a4b9a9fbd63a89d5aeaf94b2fc9d1d16e2faa5cbb0/psutil-7.1.0-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/6a/bd/d91c5e39f490a49df14320f4e8c80161cfcce09f1e2cde1edd16a551abb3/frozenlist-1.8.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/6a/bd/d91c5e39f490a49df14320f4e8c80161cfcce09f1e2cde1edd16a551abb3/frozenlist-1.8.0-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/18/96/34db781c8f0cf99c544ca1f2bc2e5bf55426e1eb4ca6de8ea5da56a9f352/xxhash-3.8.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/18/96/34db781c8f0cf99c544ca1f2bc2e5bf55426e1eb4ca6de8ea5da56a9f352/xxhash-3.8.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/eb/02/a6b21098b1d5d6249b7c5ab69dde30108a71e4e819d4a9778f1de1d5b70d/fsspec-2025.10.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/eb/02/a6b21098b1d5d6249b7c5ab69dde30108a71e4e819d4a9778f1de1d5b70d/fsspec-2025.10.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/2e/75/d7bdbb6fd8630b4cafb883482b75c4fc276b6426619539d266e32ac53266/opentelemetry_semantic_conventions-0.51b0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/2e/75/d7bdbb6fd8630b4cafb883482b75c4fc276b6426619539d266e32ac53266/opentelemetry_semantic_conventions-0.51b0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/5f/b3/7e6e9fcf4fe7e1b69a49fe6cc5a44e8224bab6283c5233c97e132f14908e/wrapt-2.2.2-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/5f/b3/7e6e9fcf4fe7e1b69a49fe6cc5a44e8224bab6283c5233c97e132f14908e/wrapt-2.2.2-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/bf/b6/5f922792be93b82ec6b5f270bbb1ef031fd0622847070bbcf9da816502cc/multiprocess-0.70.18-py312-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/bf/b6/5f922792be93b82ec6b5f270bbb1ef031fd0622847070bbcf9da816502cc/multiprocess-0.70.18-py312-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/f5/86/377e2b9aeddfdb7468223c7b48e29a1697b86c200c44916ddfb8dae05a68/boto3-1.40.43-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/f5/86/377e2b9aeddfdb7468223c7b48e29a1697b86c200c44916ddfb8dae05a68/boto3-1.40.43-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/c4/51/29046e48f693c54e5b7412216d447a1d8362c9653148d98c02cdf65fa733/certifi-2026.10.19-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/c4/51/29046e48f693c54e5b7412216d447a1d8362c9653148d98c02cdf65fa733/certifi-2026.10.19-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/da/35/f2287558c17e29fafc8ef3daf819bb9834061cfa43bff8014f7df7f63bdc/anyio-4.14.2-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/da/35/f2287558c17e29fafc8ef3daf819bb9834061cfa43bff8014f7df7f63bdc/anyio-4.14.2-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/50/3d/9373ad9c56321fdab5b41197068e1d8c25883b3fea29dd361f9b55116869/dill-0.4.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/50/3d/9373ad9c56321fdab5b41197068e1d8c25883b3fea29dd361f9b55116869/dill-0.4.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/fb/e2/79c688af8b210d232694e31e59da9f6ec747bae31c3f5946e4e9b98860d5/click-8.4.2-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/fb/e2/79c688af8b210d232694e31e59da9f6ec747bae31c3f5946e4e9b98860d5/click-8.4.2-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/97/28/64d781d6adc6bda2260067ce2902bd030cf45aec657e02e28c5b4480b976/opentelemetry_sdk-1.30.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/97/28/64d781d6adc6bda2260067ce2902bd030cf45aec657e02e28c5b4480b976/opentelemetry_sdk-1.30.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/bc/7b/ca212cbe170ac8b96e45317ecbcf9c3c3ecf0cdec98d5b088a9c4088929b/yarl-1.25.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/bc/7b/ca212cbe170ac8b96e45317ecbcf9c3c3ecf0cdec98d5b088a9c4088929b/yarl-1.25.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/df/b2/87e62e8c3e2f4b32e5fe99e0b86d576da1312593b39f47d8ceef365e95ed/packaging-26.2-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/df/b2/87e62e8c3e2f4b32e5fe99e0b86d576da1312593b39f47d8ceef365e95ed/packaging-26.2-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/48/f0/ae7ca09223a81a1d890b2557186ea015f6e0502e9b8cb8e1813f1d8cfa4e/s3transfer-0.14.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/48/f0/ae7ca09223a81a1d890b2557186ea015f6e0502e9b8cb8e1813f1d8cfa4e/s3transfer-0.14.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/7e/f5/f66802a942d491edb555dd61e3a9961140fd64c90bce1eafd741609d334d/httpcore-1.0.9-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/7e/f5/f66802a942d491edb555dd61e3a9961140fd64c90bce1eafd741609d334d/httpcore-1.0.9-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/d0/30/dc54f88dd4a2b5dc8a0279bdd7270e735851848b762aeb1c1184ed1f6b14/tqdm-4.67.1-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/d0/30/dc54f88dd4a2b5dc8a0279bdd7270e735851848b762aeb1c1184ed1f6b14/tqdm-4.67.1-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/a0/f4/c67b0b3f1b9245e8d266f0f112c500d50e5b4e83cb6f3b71b6528104182a/requests-2.34.2-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/a0/f4/c67b0b3f1b9245e8d266f0f112c500d50e5b4e83cb6f3b71b6528104182a/requests-2.34.2-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/64/b4/17d4b0b2a2dc85a6df63d1157e028ed19f90d4cd97c36717afef2bc2f395/attrs-26.1.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/64/b4/17d4b0b2a2dc85a6df63d1157e028ed19f90d4cd97c36717afef2bc2f395/attrs-26.1.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/01/c4/4fa4c8b3097a11f3c5f09a35b72ed6855fb1d332469504962ab7bafcc702/charset_normalizer-3.4.9-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/01/c4/4fa4c8b3097a11f3c5f09a35b72ed6855fb1d332469504962ab7bafcc702/charset_normalizer-3.4.9-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+Downloading pydantic-core (2.0MiB)
+Downloading pandas (11.8MiB)
+Downloading pygments (1.2MiB)
+Downloading hf-xet (4.3MiB)
+Downloading polars-runtime-32 (38.4MiB)
+Downloading botocore (13.5MiB)
+Downloading pyarrow (47.8MiB)
+Downloading duckdb (20.6MiB)
+Downloading aiohttp (1.8MiB)
+Downloading datafusion (41.0MiB)
+Downloading pillow (6.3MiB)
+Downloading pyright (5.7MiB)
+Downloading maturin (10.2MiB)
+Downloading numpy (15.9MiB)
+Downloading ruff (10.8MiB)
+Downloading ml-dtypes (4.7MiB)
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/1e/5e/d4e9f1a599fb8e573b7b87160658329fbf28d19eac2718f51fc3def3aa5a/idna-3.18-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/1e/5e/d4e9f1a599fb8e573b7b87160658329fbf28d19eac2718f51fc3def3aa5a/idna-3.18-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/36/0a/eea862fae6413d8181b23acf8e13489c90a45f17986ee9cf4eab8a0b9ad9/opentelemetry_api-1.30.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/36/0a/eea862fae6413d8181b23acf8e13489c90a45f17986ee9cf4eab8a0b9ad9/opentelemetry_api-1.30.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/14/15/5574111ae50dd6e879456888c0eadd4c5a869959775854e18e18a6b345f3/propcache-0.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/14/15/5574111ae50dd6e879456888c0eadd4c5a869959775854e18e18a6b345f3/propcache-0.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/ca/31/d4e37e9e550c2b92a9cbc2e4d0b7420a27224968580b5a447f420847c975/pytest_xdist-3.8.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/ca/31/d4e37e9e550c2b92a9cbc2e4d0b7420a27224968580b5a447f420847c975/pytest_xdist-3.8.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/60/02/be4a57b60c7149b55b9e3b3c13f609cd8eb5307c751f22bd8fb8d262e75b/filelock-3.29.7-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/60/02/be4a57b60c7149b55b9e3b3c13f609cd8eb5307c751f22bd8fb8d262e75b/filelock-3.29.7-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/ab/84/02fc1827e8cdded4aa65baef11296a9bbe595c474f0d6d758af082d849fd/execnet-2.1.2-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/ab/84/02fc1827e8cdded4aa65baef11296a9bbe595c474f0d6d758af082d849fd/execnet-2.1.2-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/a0/d9/a1e041c5e7caa9a05c925f4bdbdfb7f006d1f74996af53467bc394c97be7/importlib_metadata-8.5.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/a0/d9/a1e041c5e7caa9a05c925f4bdbdfb7f006d1f74996af53467bc394c97be7/importlib_metadata-8.5.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/88/b2/d0896bdcdc8d28a7fc5717c305f1a861c26e18c05047949fb371034d98bd/nodeenv-1.10.0-py2.py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/88/b2/d0896bdcdc8d28a7fc5717c305f1a861c26e18c05047949fb371034d98bd/nodeenv-1.10.0-py2.py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/88/39/799be3f2f0f38cc727ee3b4f1445fe6d5e4133064ec2e4115069418a5bb6/cloudpickle-3.1.2-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/54/20/4d324d65cc6d9205fabedc306948156824eb9f0ee1633355a8f7ec5c66bf/pluggy-1.6.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/14/2f/967ba146e6d58cf6a652da73885f52fc68001525b4197effc174321d70b4/jmespath-1.1.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/14/2f/967ba146e6d58cf6a652da73885f52fc68001525b4197effc174321d70b4/jmespath-1.1.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/71/43/1947f06babed6b3f1d7f38b0c767f52df66bfb2bc10b468c4a7de9eceff2/aiohappyeyeballs-2.7.1-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/71/43/1947f06babed6b3f1d7f38b0c767f52df66bfb2bc10b468c4a7de9eceff2/aiohappyeyeballs-2.7.1-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/dc/9b/47798a6c91d8bdb567fe2698fe81e0c6b7cb7ef4d13da4114b41d239f65d/typing_inspection-0.4.2-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/dc/9b/47798a6c91d8bdb567fe2698fe81e0c6b7cb7ef4d13da4114b41d239f65d/typing_inspection-0.4.2-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/78/b6/6307fbef88d9b5ee7421e68d78a9f162e0da4900bc5f5793f6d3d0e34fb8/annotated_types-0.7.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/78/b6/6307fbef88d9b5ee7421e68d78a9f162e0da4900bc5f5793f6d3d0e34fb8/annotated_types-0.7.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/e7/47/cfa33cca1ba7c749fd2918cfc5c8ded788f378cc6424d23e4fead5a14125/lance_namespace-0.13.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/e7/47/cfa33cca1ba7c749fd2918cfc5c8ded788f378cc6424d23e4fead5a14125/lance_namespace-0.13.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/84/d0/205d54408c08b13550c733c4b85429e7ead111c7f0014309637425520a9a/deprecated-1.3.1-py2.py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/84/d0/205d54408c08b13550c733c4b85429e7ead111c7f0014309637425520a9a/deprecated-1.3.1-py2.py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/3a/13/547360d81e6d88d58492968ffda9f9542854f11310ee556fef14260cc886/zipp-4.1.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/3a/13/547360d81e6d88d58492968ffda9f9542854f11310ee556fef14260cc886/zipp-4.1.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/fb/76/641ae371508676492379f16e2fa48f4e2c11741bd63c48be4b12a6b09cba/aiosignal-1.4.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/fb/76/641ae371508676492379f16e2fa48f4e2c11741bd63c48be4b12a6b09cba/aiosignal-1.4.0-py3-none-any.whl
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/cb/b1/3846dd7f199d53cb17f49cba7e651e9ce294d8497c8c150530ed11865bb8/iniconfig-2.3.0-py3-none-any.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/cb/b1/3846dd7f199d53cb17f49cba7e651e9ce294d8497c8c150530ed11865bb8/iniconfig-2.3.0-py3-none-any.whl
+DEBUG No cache entry for: https://pypi.org/simple/maturin/
+DEBUG Sending fresh GET request for: https://pypi.org/simple/maturin/
+DEBUG Searching for a compatible version of maturin (>=1.4)
+DEBUG Selecting: maturin==1.16.0 [compatible] (maturin-1.16.0-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.musllinux_1_1_x86_64.whl)
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/0a/dc/e77f490557cb5e045a75c3d18a7965425ac576235c970dfff4d903eb2c74/maturin-1.16.0-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.musllinux_1_1_x86_64.whl.metadata
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/0a/dc/e77f490557cb5e045a75c3d18a7965425ac576235c970dfff4d903eb2c74/maturin-1.16.0-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.musllinux_1_1_x86_64.whl.metadata
+DEBUG Tried 1 versions: maturin 1
+DEBUG marker environment resolution took 14.428s
+DEBUG Installing `maturin==1.16.0` in `/root/lance/cache/uv/builds-v0/.tmpcRjhXi`
+DEBUG Identified uncached distribution: maturin==1.16.0
+DEBUG Downloading and building requirement for build: maturin==1.16.0
+DEBUG No cache entry for: https://files.pythonhosted.org/packages/0a/dc/e77f490557cb5e045a75c3d18a7965425ac576235c970dfff4d903eb2c74/maturin-1.16.0-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.musllinux_1_1_x86_64.whl
+DEBUG Sending fresh GET request for: https://files.pythonhosted.org/packages/0a/dc/e77f490557cb5e045a75c3d18a7965425ac576235c970dfff4d903eb2c74/maturin-1.16.0-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.musllinux_1_1_x86_64.whl
+ Downloaded pygments
+ Downloaded aiohttp
+ Downloaded pydantic-core
+ Downloaded hf-xet
+ Downloaded ml-dtypes
+ Downloaded pyright
+ Downloaded pillow
+ Downloaded maturin
+ Downloaded ruff
+DEBUG Installing build requirement: maturin==1.16.0
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/v21rCFRZfojWwUpW/maturin-1.16.0.data/scripts/maturin` to `/root/lance/cache/uv/builds-v0/.tmpcRjhXi/lib/python3.12/site-packages/maturin-1.16.0.data/scripts/maturin`: Operation not supported (os error 95), falling back
+DEBUG Creating PEP 517 build environment
+DEBUG Calling `maturin.get_requires_for_build_editable()`
+DEBUG Calling `maturin.build_editable(__import__("os").fsdecode(b"/root/lance/cache/uv/builds-v0/.tmpL0vBep"), {}, None)`
+DEBUG Running `maturin pep517 build-wheel -i /root/lance/cache/uv/builds-v0/.tmpcRjhXi/bin/python --compatibility off --editable --profile release-with-debug`
+DEBUG     Updating crates.io index
+ Downloaded pandas
+ Downloaded botocore
+ Downloaded numpy
+ Downloaded duckdb
+DEBUG  Downloading crates ...
+DEBUG   Downloaded adler2 v2.0.1
+DEBUG   Downloaded jiff-tzdb v0.1.6
+DEBUG   Downloaded idna_adapter v1.2.2
+DEBUG   Downloaded itoa v1.0.19
+DEBUG   Downloaded konst_proc_macros v0.4.1
+DEBUG   Downloaded httpdate v1.0.3
+DEBUG   Downloaded iana-time-zone-haiku v0.1.2
+DEBUG   Downloaded inout v0.1.4
+DEBUG   Downloaded jiff-static v0.2.46
+DEBUG   Downloaded ident_case v1.0.1
+DEBUG   Downloaded jni-sys-macros v0.4.1
+DEBUG   Downloaded lazy_static v1.5.0
+DEBUG   Downloaded jiff-tzdb-platform v0.1.3
+DEBUG   Downloaded i_float v1.16.0
+DEBUG   Downloaded libredox v0.1.17
+DEBUG   Downloaded humantime v2.4.0
+DEBUG   Downloaded is_terminal_polyfill v1.70.2
+DEBUG   Downloaded jni-sys v0.4.1
+DEBUG   Downloaded lz4 v1.28.1
+DEBUG   Downloaded matchers v0.2.0
+DEBUG   Downloaded mime v0.3.17
+DEBUG   Downloaded more-asserts v0.3.1
+DEBUG   Downloaded multimap v0.10.1
+DEBUG   Downloaded rand v0.8.6
+DEBUG   Downloaded memoffset v0.9.1
+DEBUG   Downloaded munge v0.4.7
+DEBUG   Downloaded jobserver v0.1.34
+DEBUG   Downloaded quinn-udp v0.5.14
+DEBUG   Downloaded hyper-timeout v0.5.2
+DEBUG   Downloaded i_shape v1.18.0
+DEBUG   Downloaded lexical-core v1.0.6
+DEBUG   Downloaded hyper-rustls v0.27.9
+DEBUG   Downloaded android_system_properties v0.1.5
+DEBUG   Downloaded i_key_sort v0.10.3
+DEBUG   Downloaded lru-slab v0.1.2
+DEBUG   Downloaded lock_api v0.4.14
+DEBUG   Downloaded lru v0.16.4
+DEBUG   Downloaded matchit v0.7.3
+DEBUG   Downloaded md-5 v0.11.0
+DEBUG   Downloaded ipnet v2.12.0
+DEBUG   Downloaded lexical-parse-integer v1.0.6
+DEBUG   Downloaded libloading v0.9.0
+DEBUG   Downloaded mime_guess v2.0.5
+DEBUG   Downloaded icu_locale v2.2.0
+DEBUG   Downloaded i_tree v0.18.0
+DEBUG   Downloaded hybrid-array v0.4.12
+DEBUG   Downloaded iana-time-zone v0.1.65
+DEBUG   Downloaded pythonize v0.29.0
+DEBUG   Downloaded lz4_flex v0.13.1
+DEBUG   Downloaded memmap2 v0.9.11
+DEBUG   Downloaded lz4_flex v0.14.0
+DEBUG   Downloaded pyo3-build-config v0.29.3
+DEBUG   Downloaded hyperloglogplus v0.4.1
+DEBUG   Downloaded icu_properties v2.2.0
+DEBUG   Downloaded indexmap v1.9.3
+DEBUG   Downloaded dyn-clone v1.0.20
+DEBUG   Downloaded libyaml-rs v0.3.0
+DEBUG   Downloaded httparse v1.10.1
+DEBUG   Downloaded kanaria v0.2.0
+DEBUG   Downloaded jni-macros v0.22.4
+DEBUG   Downloaded metrics v0.24.6
+DEBUG   Downloaded metrics-util v0.19.1
+DEBUG   Downloaded quote v1.0.47
+DEBUG   Downloaded log v0.4.35
+DEBUG   Downloaded icu_provider v2.2.0
+DEBUG   Downloaded digest v0.11.3
+DEBUG   Downloaded displaydoc v0.2.6
+DEBUG   Downloaded derive_builder v0.20.2
+DEBUG   Downloaded icu_normalizer v2.2.0
+DEBUG   Downloaded lexical-write-integer v1.0.6
+DEBUG   Downloaded encoding_rs_io v0.1.7
+DEBUG   Downloaded icu_locale_core v2.2.0
+DEBUG   Downloaded litemap v0.8.2
+DEBUG   Downloaded loom v0.7.2
+DEBUG   Downloaded matrixmultiply v0.3.10
+DEBUG   Downloaded miniz_oxide v0.8.9
+DEBUG   Downloaded icu_normalizer_data v2.2.0
+DEBUG   Downloaded icu_collections v2.2.0
+DEBUG   Downloaded lindera-dictionary v3.0.7
+DEBUG   Downloaded js-sys v0.3.102
+DEBUG   Downloaded lindera v3.0.7
+DEBUG   Downloaded lexical-write-float v1.0.6
+DEBUG   Downloaded memchr v2.8.2
+DEBUG   Downloaded equivalent v1.0.2
+DEBUG   Downloaded futures-io v0.3.32
+DEBUG   Downloaded futures-macro v0.3.32
+DEBUG   Downloaded icu_locale_data v2.2.0
+DEBUG   Downloaded io-uring v0.7.16
+DEBUG   Downloaded hyper-util v0.1.20
+DEBUG   Downloaded indexmap v2.14.0
+DEBUG   Downloaded lexical-util v1.0.7
+DEBUG   Downloaded event-listener-strategy v0.5.4
+DEBUG   Downloaded konst v0.4.3
+DEBUG   Downloaded mio v1.2.1
+DEBUG   Downloaded anyhow v1.0.104
+DEBUG   Downloaded jiff-core v0.1.8
+DEBUG   Downloaded futures-executor v0.3.32
+DEBUG   Downloaded rancor v0.1.1
+DEBUG   Downloaded fastrand v2.4.1
+DEBUG   Downloaded foyer-common v0.22.6
+DEBUG   Downloaded geoarrow-expr-geo v0.9.0
+DEBUG   Downloaded geoarrow-schema v0.9.0
+DEBUG   Downloaded hermit-abi v0.5.2
+DEBUG   Downloaded ref-cast-impl v1.0.25
+DEBUG   Downloaded geographiclib-rs v0.2.7
+DEBUG   Downloaded http-body v0.4.6
+DEBUG   Downloaded lance-namespace-reqwest-client v0.13.0
+DEBUG   Downloaded idna v1.1.0
+DEBUG   Downloaded itertools v0.14.0
+DEBUG   Downloaded itertools v0.15.0
+DEBUG   Downloaded libm v0.2.16
+DEBUG   Downloaded fast-float2 v0.2.4
+DEBUG   Downloaded rand_xoshiro v0.6.0
+DEBUG   Downloaded futures v0.3.32
+DEBUG   Downloaded hyper v1.12.0
+DEBUG   Downloaded icu_properties_data v2.2.0
+DEBUG   Downloaded jni v0.22.4
+DEBUG   Downloaded rustc_version v0.4.1
+DEBUG   Downloaded geodatafusion v0.6.0
+DEBUG   Downloaded datafusion-substrait v55.2.0
+DEBUG   Downloaded lexical-parse-float v1.0.6
+DEBUG   Downloaded mixtrics v0.2.5
+DEBUG   Downloaded reqwest-middleware v0.5.2
+DEBUG   Downloaded rayon-core v1.13.0
+DEBUG   Downloaded rustls-native-certs v0.8.4
+DEBUG   Downloaded serde_derive_internals v0.29.1
+DEBUG   Downloaded jieba-macros v0.10.2
+DEBUG   Downloaded frostem v1.20260821.8
+DEBUG   Downloaded semver v1.0.28
+DEBUG   Downloaded reqsign-aws-core v3.1.1
+DEBUG   Downloaded strsim v0.11.1
+DEBUG   Downloaded strum v0.28.0
+DEBUG   Downloaded serde_core v1.0.229
+DEBUG   Downloaded serde_derive v1.0.229
+DEBUG   Downloaded sha2 v0.10.9
+DEBUG   Downloaded raw-cpuid v11.6.0
+DEBUG   Downloaded signature v2.2.0
+DEBUG   Downloaded spki v0.7.3
+DEBUG   Downloaded system-configuration-sys v0.6.0
+DEBUG   Downloaded static_assertions v1.1.0
+DEBUG   Downloaded tinyvec_macros v0.1.1
+DEBUG   Downloaded unicode-blocks v0.1.9
+DEBUG   Downloaded sha2 v0.11.0
+DEBUG   Downloaded time-core v0.1.8
+DEBUG   Downloaded smallvec v1.16.5
+DEBUG   Downloaded tower-layer v0.3.3
+DEBUG   Downloaded try-lock v0.2.5
+DEBUG   Downloaded libsais-rs v0.2.2
+DEBUG   Downloaded moka v0.12.16
+DEBUG   Downloaded reqsign-aws-v4 v3.3.0
+DEBUG   Downloaded target-lexicon v0.13.5
+DEBUG   Downloaded schemars v0.9.0
+DEBUG   Downloaded unicase v2.9.0
+DEBUG   Downloaded ahash v0.8.12
+DEBUG   Downloaded tokio_with_wasm v0.8.8
+DEBUG   Downloaded simba v0.9.1
+DEBUG   Downloaded i_overlay v4.5.2
+DEBUG   Downloaded snafu v0.9.2
+DEBUG   Downloaded tinyvec v1.11.0
+DEBUG   Downloaded wasm-bindgen-macro v0.2.125
+DEBUG   Downloaded windows-result v0.4.1
+DEBUG   Downloaded windows-strings v0.5.1
+DEBUG   Downloaded unicode-ident v1.0.24
+DEBUG   Downloaded winapi-util v0.1.11
+DEBUG   Downloaded toml_edit v0.25.12+spec-1.1.0
+DEBUG   Downloaded typewit v1.15.2
+DEBUG   Downloaded walkdir v2.5.0
+DEBUG   Downloaded whoami v2.1.2
+DEBUG   Downloaded stabby-abi v72.1.8
+DEBUG   Downloaded uuid v1.29.2
+DEBUG   Downloaded anstyle-parse v1.0.0
+DEBUG   Downloaded rand v0.10.1
+DEBUG   Downloaded reqwest v0.13.5
+DEBUG   Downloaded zerofrom v0.1.8
+DEBUG   Downloaded zerofrom-derive v0.1.7
+DEBUG   Downloaded munge_macro v0.4.7
+DEBUG   Downloaded reqwest v0.12.28
+DEBUG   Downloaded writeable v0.6.3
+DEBUG   Downloaded nu-ansi-term v0.50.3
+DEBUG   Downloaded rand_chacha v0.3.1
+DEBUG   Downloaded wasm-bindgen-macro-support v0.2.125
+DEBUG   Downloaded radium v0.7.0
+DEBUG   Downloaded tower-http v0.5.2
+DEBUG   Downloaded once_cell_polyfill v1.70.2
+DEBUG   Downloaded pbjson v0.8.0
+DEBUG   Downloaded alloc-no-stdlib v2.0.4
+DEBUG   Downloaded wide v0.7.33
+DEBUG   Downloaded alloc-stdlib v0.2.2
+DEBUG   Downloaded lz4-sys v1.11.1+lz4-1.10.0
+DEBUG   Downloaded num-rational v0.4.2
+DEBUG   Downloaded num_enum_derive v0.7.6
+DEBUG   Downloaded opendal-layer-concurrent-limit v0.59.5
+DEBUG   Downloaded opendal-layer-logging v0.59.5
+DEBUG   Downloaded opendal-http-transport-reqwest v0.59.5
+DEBUG   Downloaded opendal-layer-retry v0.59.5
+DEBUG   Downloaded approx v0.5.1
+DEBUG   Downloaded tower-http v0.6.11
+DEBUG   Downloaded pbjson-build v0.8.0
+DEBUG   Downloaded pem-rfc7468 v0.7.0
+DEBUG   Downloaded opendal-service-oss v0.59.5
+DEBUG   Downloaded parking_lot_core v0.9.12
+DEBUG   Downloaded ptr_meta v0.3.1
+DEBUG   Downloaded bytecheck_derive v0.8.2
+DEBUG   Downloaded phf_codegen v0.13.1
+DEBUG   Downloaded pyo3-macros v0.29.3
+DEBUG   Downloaded anstyle-wincon v3.0.11
+DEBUG   Downloaded opendal-service-s3 v0.59.5
+DEBUG   Downloaded anstyle-query v1.1.5
+DEBUG   Downloaded num-bigint v0.4.6
+DEBUG   Downloaded pkcs8 v0.10.2
+DEBUG   Downloaded jiff v0.2.46
+DEBUG   Downloaded wasip2 v1.0.4+wasi-0.2.12
+DEBUG   Downloaded anstyle v1.0.14
+DEBUG   Downloaded pkcs1 v0.7.5
+DEBUG   Downloaded cfg-if v1.0.4
+DEBUG   Downloaded cfg-if v0.1.10
+DEBUG   Downloaded countio v0.3.0
+DEBUG   Downloaded pkcs5 v0.7.1
+DEBUG   Downloaded prost v0.14.6
+DEBUG   Downloaded r-efi v5.3.0
+DEBUG   Downloaded anstream v1.0.0
+DEBUG   Downloaded datafusion-doc v55.2.0
+DEBUG   Downloaded rand_chacha v0.9.0
+DEBUG   Downloaded pin-project v1.1.13
+DEBUG   Downloaded core-foundation v0.10.1
+DEBUG   Downloaded concurrent-queue v2.5.0
+DEBUG   Downloaded core-foundation v0.9.4
+DEBUG   Downloaded csv-core v0.1.13
+DEBUG   Downloaded crypto-common v0.2.2
+DEBUG   Downloaded core-foundation-sys v0.8.7
+DEBUG   Downloaded const-oid v0.9.6
+DEBUG   Downloaded datafusion-datasource-json v55.2.0
+DEBUG   Downloaded geo-traits v0.3.0
+DEBUG   Downloaded errno v0.3.14
+DEBUG   Downloaded float_next_after v2.0.0
+DEBUG   Downloaded form_urlencoded v1.2.3
+DEBUG   Downloaded foyer-tokio v0.22.6
+DEBUG   Downloaded cedarwood v0.5.0
+DEBUG   Downloaded deranged v0.5.8
+DEBUG   Downloaded quick_cache v0.6.24
+DEBUG   Downloaded datafusion-catalog v55.2.0
+DEBUG   Downloaded r-efi v6.0.0
+DEBUG   Downloaded either v1.19.0
+DEBUG   Downloaded env_logger v0.11.11
+DEBUG   Downloaded git-version-macro v0.3.9
+DEBUG   Downloaded heck v0.5.0
+DEBUG   Downloaded hostname v0.4.2
+DEBUG   Downloaded quinn v0.11.9
+DEBUG   Downloaded allocator-api2 v0.2.21
+DEBUG   Downloaded bytes v1.12.1
+DEBUG   Downloaded getrandom v0.2.17
+DEBUG   Downloaded rand v0.9.5
+DEBUG   Downloaded aes v0.8.4
+DEBUG   Downloaded redox_users v0.5.2
+DEBUG   Downloaded wkt v0.14.0
+DEBUG   Downloaded arc-swap v1.9.5
+DEBUG   Downloaded reqsign-tencent-cos v3.0.3
+DEBUG   Downloaded quinn-proto v0.11.16
+DEBUG   Downloaded datafusion-execution v55.2.0
+DEBUG   Downloaded foyer-intrusive-collections v0.10.0-dev
+DEBUG   Downloaded foyer-memory v0.22.6
+DEBUG   Downloaded radix_trie v0.2.1
+DEBUG   Downloaded aws-smithy-observability v0.2.5
+DEBUG   Downloaded atomic-waker v1.1.2
+DEBUG   Downloaded aws-smithy-query v0.60.14
+DEBUG   Downloaded aws-smithy-runtime-api-macros v1.0.0
+DEBUG   Downloaded block-padding v0.3.3
+DEBUG   Downloaded atoi v2.0.0
+DEBUG   Downloaded block-buffer v0.10.4
+DEBUG   Downloaded async-ffi v0.5.0
+DEBUG   Downloaded better_io v0.2.0
+DEBUG   Downloaded arrayref v0.3.9
+DEBUG   Downloaded base64-simd v0.8.0
+DEBUG   Downloaded half v2.7.1
+DEBUG   Downloaded rust-ini v0.21.3
+DEBUG   Downloaded rustls-platform-verifier-android v0.1.1
+DEBUG   Downloaded aho-corasick v1.1.4
+DEBUG   Downloaded der v0.7.10
+DEBUG   Downloaded block-buffer v0.12.1
+DEBUG   Downloaded base64ct v1.8.3
+DEBUG   Downloaded aws-smithy-async v1.2.14
+DEBUG   Downloaded sync_wrapper v1.0.2
+DEBUG   Downloaded bitflags v1.3.2
+DEBUG   Downloaded autocfg v1.5.1
+DEBUG   Downloaded sqlparser_derive v0.5.0
+DEBUG   Downloaded arrayvec v0.7.6
+DEBUG   Downloaded arrow-pyarrow v59.3.2
+DEBUG   Downloaded async_cell v0.2.3
+DEBUG   Downloaded rustls v0.23.46
+DEBUG   Downloaded async-recursion v1.2.0
+DEBUG   Downloaded aws-smithy-http v0.63.5
+DEBUG   Downloaded schannel v0.1.29
+DEBUG   Downloaded syn v2.0.119
+DEBUG   Downloaded reqsign-azure-storage v3.1.1
+DEBUG   Downloaded async-trait v0.1.92
+DEBUG   Downloaded aws-credential-types v1.2.14
+DEBUG   Downloaded combine v4.6.7
+DEBUG   Downloaded aws-smithy-xml v0.60.14
+DEBUG   Downloaded serde_path_to_error v0.1.20
+DEBUG   Downloaded slab v0.4.12
+DEBUG   Downloaded shlex v2.0.1
+DEBUG   Downloaded tinystr v0.8.3
+DEBUG   Downloaded utf8parse v0.2.2
+DEBUG   Downloaded axum-core v0.4.5
+DEBUG   Downloaded backon v1.6.0
+DEBUG   Downloaded tracing-chrome v0.7.2
+DEBUG   Downloaded datafusion-proto v55.2.0
+DEBUG   Downloaded toml_datetime v1.1.1+spec-1.1.0
+DEBUG   Downloaded arrow-string v59.3.2
+DEBUG   Downloaded async-lock v3.4.2
+DEBUG   Downloaded async-channel v2.5.0
+DEBUG   Downloaded stabby v72.1.8
+DEBUG   Downloaded thread_local v1.1.9
+DEBUG   Downloaded http v0.2.12
+DEBUG   Downloaded regex-lite v0.1.9
+DEBUG   Downloaded windows-future v0.3.2
+DEBUG   Downloaded blake2 v0.10.6
+DEBUG   Downloaded aws-smithy-schema v0.1.0
+DEBUG   Downloaded aws-types v1.3.16
+DEBUG   Downloaded stabby-macros v72.1.8
+DEBUG   Downloaded arrow-csv v59.3.2
+DEBUG   Downloaded num-conv v0.2.2
+DEBUG   Downloaded num_cpus v1.17.0
+DEBUG   Downloaded rustix v1.1.4
+DEBUG   Downloaded wasm-streams v0.5.0
+DEBUG   Downloaded aws-smithy-json v0.62.7
+DEBUG   Downloaded objc2-io-kit v0.3.2
+DEBUG   Downloaded windows-targets v0.52.6
+DEBUG   Downloaded arrow-arith v59.3.3
+DEBUG   Downloaded bitflags v2.13.0
+DEBUG   Downloaded security-framework v3.7.0
+DEBUG   Downloaded tracing-attributes v0.1.31
+DEBUG   Downloaded arrow-row v59.3.3
+DEBUG   Downloaded roaring v0.11.5
+DEBUG   Downloaded typify v0.5.0
+DEBUG   Downloaded arrow-ord v59.3.3
+DEBUG   Downloaded arrow-data v59.3.3
+DEBUG   Downloaded argminmax v0.7.1
+DEBUG   Downloaded aws-sdk-sso v1.95.0
+DEBUG   Downloaded base64 v0.23.1
+DEBUG   Downloaded aws-runtime v1.7.1
+DEBUG   Downloaded aws-smithy-http-client v1.1.11
+DEBUG   Downloaded hashbrown v0.15.5
+DEBUG   Downloaded wasm-bindgen v0.2.125
+DEBUG   Downloaded quick-xml v0.42.0
+DEBUG   Downloaded objc2-encode v4.1.0
+DEBUG   Downloaded aws-smithy-runtime-api v1.12.3
+DEBUG   Downloaded aws-sdk-ssooidc v1.97.0
+DEBUG   Downloaded bytecheck v0.8.2
+DEBUG   Downloaded phf_shared v0.12.1
+DEBUG   Downloaded arrow-schema v59.3.3
+DEBUG   Downloaded aws-smithy-types v1.5.0
+DEBUG   Downloaded base64 v0.22.1
+DEBUG   Downloaded phf_generator v0.13.1
+DEBUG   Downloaded arrow-json v59.3.2
+DEBUG   Downloaded aws-sigv4 v1.4.1
+DEBUG   Downloaded datafusion-datasource-parquet v55.2.0
+DEBUG   Downloaded rand_core v0.9.5
+DEBUG   Downloaded rand_pcg v0.10.2
+DEBUG   Downloaded rawpointer v0.2.1
+DEBUG   Downloaded async-compression v0.4.42
+DEBUG   Downloaded scoped-tls v1.0.1
+DEBUG   Downloaded zstd v0.13.1
+DEBUG   Downloaded arrow v59.3.2
+DEBUG   Downloaded want v0.3.2
+DEBUG   Downloaded hmac v0.13.0
+DEBUG   Downloaded sha1 v0.11.0
+DEBUG   Downloaded arrow-buffer v59.3.3
+DEBUG   Downloaded dlv-list v0.5.2
+DEBUG   Downloaded yoke v0.8.3
+DEBUG   Downloaded windows-numerics v0.3.1
+DEBUG   Downloaded bigdecimal v0.4.10
+DEBUG   Downloaded arrow-select v59.3.3
+DEBUG   Downloaded thiserror-impl v2.0.18
+DEBUG   Downloaded aws-smithy-runtime v1.10.2
+DEBUG   Downloaded thiserror v1.0.69
+DEBUG   Downloaded xmlparser v0.13.6
+DEBUG   Downloaded os_str_bytes v6.6.1
+DEBUG   Downloaded paste v1.0.15
+DEBUG   Downloaded path_abs v0.5.1
+DEBUG   Downloaded arrow-cast v59.3.3
+DEBUG   Downloaded asyncband v0.7.2
+DEBUG   Downloaded safe-transmute v0.11.3
+DEBUG   Downloaded prost-derive v0.14.6
+DEBUG   Downloaded byteorder v1.5.0
+DEBUG   Downloaded arrow-ipc v59.3.3
+DEBUG   Downloaded darling_macro v0.20.11
+DEBUG   Downloaded axum v0.7.9
+DEBUG   Downloaded zstd v0.14.4
+DEBUG   Downloaded cipher v0.4.4
+DEBUG   Downloaded portable-atomic-util v0.2.7
+DEBUG   Downloaded colored v3.1.1
+DEBUG   Downloaded aws-config v1.8.14
+DEBUG   Downloaded aws-sdk-sts v1.99.0
+DEBUG   Downloaded url v2.5.9
+DEBUG   Downloaded crossbeam-epoch v0.9.20
+DEBUG   Downloaded datafusion-datasource-csv v55.2.0
+DEBUG   Downloaded dirs v6.0.0
+DEBUG   Downloaded dirs-sys v0.5.0
+DEBUG   Downloaded futures-sink v0.3.32
+DEBUG   Downloaded git-version v0.3.9
+DEBUG   Downloaded opendal-service-azdls v0.59.5
+DEBUG   Downloaded crunchy v0.2.4
+DEBUG   Downloaded crypto-common v0.1.7
+DEBUG   Downloaded futures-task v0.3.32
+DEBUG   Downloaded digest v0.10.7
+DEBUG   Downloaded opendal-service-goosefs v0.59.5
+DEBUG   Downloaded find-msvc-tools v0.1.15
+DEBUG   Downloaded fnv v1.0.7
+DEBUG   Downloaded foldhash v0.1.5
+DEBUG   Downloaded rand_core v0.6.4
+DEBUG   Downloaded blake3 v1.8.7
+DEBUG   Downloaded cfg_aliases v0.2.2
+DEBUG   Downloaded datafusion-proto-common v55.2.0
+DEBUG   Downloaded redox_syscall v0.5.18
+DEBUG   Downloaded hashbrown v0.17.1
+DEBUG   Downloaded reqsign-file-read-tokio v3.0.7
+DEBUG   Downloaded rustc-hash v2.1.3
+DEBUG   Downloaded scopeguard v1.2.0
+DEBUG   Downloaded tap v1.0.1
+DEBUG   Downloaded aws-lc-rs v1.18.1
+DEBUG   Downloaded bitvec v1.1.1
+DEBUG   Downloaded rustversion v1.0.22
+DEBUG   Downloaded simd-adler32 v0.3.9
+DEBUG   Downloaded signal-hook-registry v1.4.8
+DEBUG   Downloaded tokio-macros v2.7.0
+DEBUG   Downloaded urlencoding v2.1.3
+DEBUG   Downloaded synstructure v0.13.2
+DEBUG   Downloaded unicode-segmentation v1.13.3
+DEBUG   Downloaded windows-targets v0.53.5
+DEBUG   Downloaded version_check v0.9.5
+DEBUG   Downloaded windows-link v0.2.1
+DEBUG   Downloaded serde v1.0.229
+DEBUG   Downloaded opendal-service-hf v0.59.5
+DEBUG   Downloaded geoarrow-array v0.9.0
+DEBUG   Downloaded arrow-array v59.3.3
+DEBUG   Downloaded num-integer v0.1.46
+DEBUG   Downloaded pbkdf2 v0.12.2
+DEBUG   Downloaded tower v0.5.3
+DEBUG   Downloaded zstd-safe v8.3.0
+DEBUG   Downloaded hash32 v0.3.1
+DEBUG   Downloaded heapify v0.2.0
+DEBUG   Downloaded pkg-config v0.3.33
+DEBUG   Downloaded colorchoice v1.0.5
+DEBUG   Downloaded ppv-lite86 v0.2.21
+DEBUG   Downloaded const-random v0.1.18
+DEBUG   Downloaded cpufeatures v0.2.17
+DEBUG   Downloaded serde_json v1.0.154
+DEBUG   Downloaded cpufeatures v0.3.0
+DEBUG   Downloaded datafusion-functions-window v55.2.0
+DEBUG   Downloaded zerocopy v0.8.52
+DEBUG   Downloaded ctutils v0.4.7
+DEBUG   Downloaded dunce v1.0.5
+DEBUG   Downloaded datafusion-catalog-listing v55.2.0
+DEBUG   Downloaded simd_cesu8 v1.1.1
+DEBUG   Downloaded datafusion-functions-table v55.2.0
+DEBUG   Downloaded funty v2.0.0
+DEBUG   Downloaded darling_core v0.20.11
+DEBUG   Downloaded regex-syntax v0.8.11
+DEBUG   Downloaded prettyplease v0.2.37
+DEBUG   Downloaded derive_builder_core v0.20.2
+DEBUG   Downloaded nom v8.0.0
+DEBUG   Downloaded bumpalo v3.20.3
+DEBUG   Downloaded datafusion-sql v55.2.0
+DEBUG   Downloaded scrypt v0.11.0
+DEBUG   Downloaded serde_repr v0.1.20
+DEBUG   Downloaded rapidhash v4.4.2
+DEBUG   Downloaded same-file v1.0.6
+DEBUG   Downloaded rustls-platform-verifier v0.7.0
+DEBUG   Downloaded stable_deref_trait v1.2.1
+DEBUG   Downloaded simdutf8 v0.1.5
+DEBUG   Downloaded thread-tree v0.3.3
+DEBUG   Downloaded tokio_with_wasm_proc v0.8.8
+DEBUG   Downloaded system-configuration v0.7.0
+DEBUG   Downloaded tokio-retry v0.3.2
+DEBUG   Downloaded snap v1.1.1
+DEBUG   Downloaded stfu8 v0.2.7
+DEBUG   Downloaded thiserror-impl v1.0.69
+DEBUG   Downloaded windows-interface v0.59.3
+DEBUG   Downloaded ntapi v0.4.3
+DEBUG   Downloaded serde_yaml_ng v0.10.0
+DEBUG   Downloaded const-oid v0.10.2
+DEBUG   Downloaded const-str v1.1.0
+DEBUG   Downloaded tracing-appender v0.2.5
+DEBUG   Downloaded rustls-webpki v0.103.16
+DEBUG   Downloaded tokio-rustls v0.26.4
+DEBUG   Downloaded hashbrown v0.12.3
+DEBUG   Downloaded unsafe-libyaml v0.2.11
+DEBUG   Downloaded zerovec v0.11.6
+ Downloaded polars-runtime-32
+DEBUG   Downloaded socket2 v0.6.4
+DEBUG   Downloaded hf-xet v1.8.1
+DEBUG   Downloaded objc2-foundation v0.3.2
+DEBUG   Downloaded powerfmt v0.2.0
+DEBUG   Downloaded zeroize v1.9.0
+DEBUG   Downloaded rkyv_derive v0.8.17
+DEBUG   Downloaded object_store v0.13.2
+DEBUG   Downloaded opendal-layer-timeout v0.59.5
+DEBUG   Downloaded regress v0.10.5
+DEBUG   Downloaded potential_utf v0.1.5
+DEBUG   Downloaded pyo3-ffi v0.29.3
+DEBUG   Downloaded goosefs-sdk v0.2.2
+DEBUG   Downloaded hex v0.4.3
+DEBUG   Downloaded pin-utils v0.1.0
+DEBUG   Downloaded datafusion-common-runtime v55.2.0
+DEBUG   Downloaded generic-array v0.14.7
+DEBUG   Downloaded wasite v1.0.2
+DEBUG   Downloaded num-traits v0.2.19
+DEBUG   Downloaded zerotrie v0.2.4
+DEBUG   Downloaded windows-collections v0.3.2
+DEBUG   Downloaded cbc v0.1.2
+DEBUG   Downloaded objc2-system-configuration v0.3.2
+DEBUG   Downloaded opendal-service-azblob v0.59.5
+DEBUG   Downloaded ordered-multimap v0.7.3
+DEBUG   Downloaded regex v1.12.4
+DEBUG   Downloaded yoke-derive v0.8.2
+DEBUG   Downloaded pem v3.0.6
+DEBUG   Downloaded salsa20 v0.10.2
+DEBUG   Downloaded rangemap v1.8.0
+DEBUG   Downloaded spin v0.9.9
+DEBUG   Downloaded serde_urlencoded v0.7.1
+DEBUG   Downloaded sketches-ddsketch v0.3.1
+DEBUG   Downloaded std_prelude v0.2.12
+DEBUG   Downloaded strum_macros v0.28.0
+DEBUG   Downloaded twox-hash v2.1.5
+DEBUG   Downloaded hmac v0.12.1
+DEBUG   Downloaded tonic-prost v0.14.6
+DEBUG   Downloaded num-bigint v0.5.1
+DEBUG   Downloaded tracing-serde v0.2.0
+DEBUG   Downloaded datafusion-physical-expr-adapter v55.2.0
+DEBUG   Downloaded getrandom v0.3.4
+DEBUG   Downloaded typenum v1.20.1
+DEBUG   Downloaded datafusion v55.2.0
+DEBUG   Downloaded datafusion-pruning v55.2.0
+DEBUG   Downloaded wasi v0.11.1+wasi-snapshot-preview1
+DEBUG   Downloaded windows-implement v0.60.2
+DEBUG   Downloaded darling v0.24.1
+DEBUG   Downloaded nibble_vec v0.1.0
+DEBUG   Downloaded zerovec-derive v0.11.3
+DEBUG   Downloaded reqsign-aliyun-oss v3.1.2
+DEBUG   Downloaded tempfile v3.27.0
+DEBUG   Downloaded heapless v0.8.0
+DEBUG   Downloaded pco v1.0.4
+DEBUG   Downloaded tracing-core v0.1.36
+DEBUG   Downloaded ryu v1.0.23
+DEBUG   Downloaded safe_arch v0.7.4
+DEBUG   Downloaded percent-encoding v2.3.2
+DEBUG   Downloaded datafusion-physical-expr-common v55.2.0
+DEBUG   Downloaded serde_with v3.24.0
+DEBUG   Downloaded option-ext v0.2.0
+DEBUG   Downloaded const-random-macro v0.1.16
+DEBUG   Downloaded outref v0.5.2
+DEBUG   Downloaded datafusion-physical-optimizer v55.2.0
+DEBUG   Downloaded permutation v0.4.1
+DEBUG   Downloaded bstr v1.12.1
+DEBUG   Downloaded ordered-float v5.5.1
+DEBUG   Downloaded pin-project-internal v1.1.13
+DEBUG   Downloaded cc v1.11.2
+DEBUG   Downloaded windows_i686_gnullvm v0.52.6
+DEBUG   Downloaded prost-build v0.14.4
+DEBUG   Downloaded crossbeam-queue v0.3.14
+DEBUG   Downloaded env_filter v2.0.0
+DEBUG   Downloaded datafusion-functions-window-common v55.2.0
+DEBUG   Downloaded fs_extra v1.3.0
+DEBUG   Downloaded rand_core v0.10.1
+DEBUG   Downloaded opendal-service-gcs v0.59.5
+DEBUG   Downloaded hashbrown v0.16.1
+DEBUG   Downloaded bytemuck v1.25.2
+DEBUG   Downloaded crossbeam-skiplist v0.1.3
+DEBUG   Downloaded opendal-service-cos v0.59.5
+DEBUG   Downloaded phf v0.13.1
+ Downloaded datafusion
+DEBUG   Downloaded bytes-utils v0.1.4
+DEBUG   Downloaded winnow v1.0.3
+DEBUG   Downloaded datafusion-expr v55.2.0
+DEBUG   Downloaded utf8_iter v1.0.4
+DEBUG   Downloaded quanta v0.12.6
+DEBUG   Downloaded rustls-pki-types v1.16.0
+DEBUG   Downloaded windows-threading v0.2.1
+DEBUG   Downloaded statrs v0.18.0
+DEBUG   Downloaded wit-bindgen v0.57.1
+DEBUG   Downloaded rand_distr v0.5.1
+DEBUG   Downloaded time-macros v0.2.27
+DEBUG   Downloaded portable-atomic v1.13.1
+DEBUG   Downloaded endian-type v0.1.2
+DEBUG   Downloaded rkyv v0.8.17
+DEBUG   Downloaded serde_yaml v0.9.34+deprecated
+DEBUG   Downloaded pin-project-lite v0.2.17
+DEBUG   Downloaded schemars v0.8.22
+DEBUG   Downloaded prost-types v0.14.6
+DEBUG   Downloaded cmov v0.5.4
+DEBUG   Downloaded once_cell v1.21.4
+DEBUG   Downloaded xet-core-structures v1.8.1
+DEBUG   Downloaded gearhash v0.1.3
+DEBUG   Downloaded rend v0.5.3
+DEBUG   Downloaded datafusion-session v55.2.0
+DEBUG   Downloaded bytecount v0.6.9
+DEBUG   Downloaded datafusion-datasource-arrow v55.2.0
+DEBUG   Downloaded reqsign-google v3.1.1
+DEBUG   Downloaded tagptr v0.2.0
+DEBUG   Downloaded untrusted v0.9.0
+DEBUG   Downloaded seq-macro v0.3.6
+DEBUG   Downloaded rand_xoshiro v0.7.0
+DEBUG   Downloaded fixedbitset v0.5.7
+DEBUG   Downloaded http-body-util v0.1.3
+DEBUG   Downloaded valuable v0.1.1
+DEBUG   Downloaded reqsign-core v3.3.2
+DEBUG   Downloaded phf_shared v0.13.1
+DEBUG   Downloaded vsimd v0.8.0
+DEBUG   Downloaded http-body v1.0.1
+DEBUG   Downloaded compression-core v0.4.32
+DEBUG   Downloaded futures-core v0.3.32
+DEBUG   Downloaded toml_parser v1.1.2+spec-1.1.0
+DEBUG   Downloaded phf v0.12.1
+DEBUG   Downloaded windows-registry v0.6.1
+DEBUG   Downloaded opendal v0.59.5
+DEBUG   Downloaded wasm-streams v0.4.2
+DEBUG   Downloaded h2 v0.4.16
+DEBUG   Downloaded ptr_meta_derive v0.3.1
+DEBUG   Downloaded tokio-stream v0.1.19
+DEBUG   Downloaded constant_time_eq v0.4.2
+DEBUG   Downloaded tiny-keccak v2.0.2
+DEBUG   Downloaded unicode-normalization v0.1.26
+DEBUG   Downloaded geo v0.33.1
+DEBUG   Downloaded oneshot v0.1.13
+DEBUG   Downloaded thiserror v2.0.18
+DEBUG   Downloaded generator v0.8.9
+DEBUG   Downloaded tokio-util v0.7.20
+DEBUG   Downloaded getrandom v0.4.3
+DEBUG   Downloaded wasi v0.14.7+wasi-0.2.4
+DEBUG   Downloaded datafusion-functions-aggregate v55.2.0
+DEBUG   Downloaded xet-client v1.8.1
+DEBUG   Downloaded stop-words v0.10.1
+DEBUG   Downloaded tracing-subscriber v0.3.23
+DEBUG   Downloaded wasm-bindgen-shared v0.2.125
+DEBUG   Downloaded crossbeam-channel v0.5.15
+DEBUG   Downloaded num-iter v0.1.45
+DEBUG   Downloaded derive_builder_macro v0.20.2
+DEBUG   Downloaded crossbeam-deque v0.8.6
+DEBUG   Downloaded flate2 v1.1.9
+DEBUG   Downloaded wasm-bindgen-futures v0.4.75
+ Downloaded pyarrow
+DEBUG   Downloaded darling_macro v0.24.1
+DEBUG   Downloaded chacha20 v0.10.2
+DEBUG   Downloaded dashmap v6.2.1
+DEBUG   Downloaded security-framework-sys v2.17.0
+DEBUG   Downloaded zerocopy-derive v0.8.52
+DEBUG   Downloaded objc2-open-directory v0.3.2
+DEBUG   Downloaded datafusion-functions-aggregate-common v55.2.0
+DEBUG   Downloaded tower-service v0.3.3
+DEBUG   Downloaded openssl-probe v0.2.1
+DEBUG   Downloaded pbjson-types v0.8.0
+DEBUG   Downloaded aws-sdk-dynamodb v1.107.0
+DEBUG   Downloaded siphasher v1.0.3
+DEBUG   Downloaded ref-cast v1.0.25
+DEBUG   Downloaded cmake v0.1.58
+DEBUG   Downloaded web-time v1.1.0
+DEBUG   Downloaded datafusion-datasource v55.2.0
+DEBUG   Downloaded subtle v2.6.1
+DEBUG   Downloaded symlink v0.1.0
+DEBUG   Downloaded futures-channel v0.3.32
+DEBUG   Downloaded quick-xml v0.41.0
+DEBUG   Downloaded crc32fast v1.5.0
+DEBUG   Downloaded libc v0.2.191
+DEBUG   Downloaded syn v3.0.10
+DEBUG   Downloaded xxhash-rust v0.8.21
+DEBUG   Downloaded daachorse v2.1.1
+DEBUG   Downloaded webpki-root-certs v1.0.10
+DEBUG   Downloaded glob v0.3.3
+DEBUG   Downloaded serde_tokenstream v0.2.3
+DEBUG   Downloaded bs58 v0.5.1
+DEBUG   Downloaded rstar v0.12.2
+DEBUG   Downloaded crossbeam-utils v0.8.21
+DEBUG   Downloaded robust v1.2.0
+DEBUG   Downloaded http v1.5.0
+DEBUG   Downloaded snafu-derive v0.9.2
+DEBUG   Downloaded tracing-log v0.2.0
+DEBUG   Downloaded zstd-safe v7.2.1
+DEBUG   Downloaded proc-macro-crate v3.5.0
+DEBUG   Downloaded pyo3-macros-backend v0.29.3
+DEBUG   Downloaded datafusion-physical-expr v55.2.0
+DEBUG   Downloaded object_store_opendal v0.60.5
+DEBUG   Downloaded ordered-float v4.6.0
+DEBUG   Downloaded schemars_derive v0.8.22
+DEBUG   Downloaded sharded-slab v0.1.7
+DEBUG   Downloaded rsa v0.9.10
+DEBUG   Downloaded tonic v0.14.6
+DEBUG   Downloaded flatbuffers v25.12.19
+DEBUG   Downloaded opendal-service-tos v0.59.5
+DEBUG   Downloaded const_panic v0.2.15
+DEBUG   Downloaded geo-types v0.7.19
+DEBUG   Downloaded utf8-ranges v1.0.5
+DEBUG   Downloaded wkb v0.9.2
+DEBUG   Downloaded dtype_dispatch v0.2.1
+DEBUG   Downloaded gloo-timers v0.3.0
+DEBUG   Downloaded yaml_serde v0.10.7
+DEBUG   Downloaded hashbrown v0.14.5
+DEBUG   Downloaded brotli-decompressor v5.0.3
+DEBUG   Downloaded wyz v0.5.1
+DEBUG   Downloaded datafusion-expr-common v55.2.0
+DEBUG   Downloaded ndarray v0.16.1
+DEBUG   Downloaded num-complex v0.4.6
+DEBUG   Downloaded darling v0.20.11
+DEBUG   Downloaded sif-itree v0.4.1
+DEBUG   Downloaded num-bigint-dig v0.8.6
+DEBUG   Downloaded proc-macro2 v1.0.107
+DEBUG   Downloaded datafusion-proto-models v55.2.0
+DEBUG   Downloaded substrait v0.63.0
+DEBUG   Downloaded datafusion-ffi v55.2.0
+DEBUG   Downloaded shellexpand v3.1.2
+DEBUG   Downloaded compression-codecs v0.4.38
+DEBUG   Downloaded windows_aarch64_gnullvm v0.52.6
+DEBUG   Downloaded regex-automata v0.4.14
+DEBUG   Downloaded time v0.3.47
+DEBUG   Downloaded redb v3.1.3
+DEBUG   Downloaded windows_aarch64_msvc v0.52.6
+DEBUG   Downloaded serde_with_macros v3.24.0
+DEBUG   Downloaded parking v2.2.1
+DEBUG   Downloaded reqsign-volcengine-tos v3.1.2
+DEBUG   Downloaded opendal-service-azure-common v0.59.5
+DEBUG   Downloaded num_enum v0.7.6
+DEBUG   Downloaded datafusion-macros v55.2.0
+DEBUG   Downloaded objc2-core-foundation v0.3.2
+DEBUG   Downloaded dispatch2 v0.3.1
+DEBUG   Downloaded datasketches v0.3.0
+DEBUG   Downloaded rayon v1.12.0
+DEBUG   Downloaded windows-core v0.62.2
+DEBUG   Downloaded bytemuck_derive v1.10.2
+DEBUG   Downloaded spin v0.10.1
+DEBUG   Downloaded parking_lot v0.12.5
+DEBUG   Downloaded event-listener v5.4.2
+DEBUG   Downloaded object_store v0.14.2
+DEBUG   Downloaded zmij v1.0.23
+DEBUG   Downloaded typify-macro v0.5.0
+DEBUG   Downloaded xet-runtime v1.8.1
+DEBUG   Downloaded ethnum v1.5.3
+DEBUG   Downloaded foldhash v0.2.0
+DEBUG   Downloaded datafusion-functions-nested v55.2.0
+DEBUG   Downloaded datafusion-optimizer v55.2.0
+DEBUG   Downloaded windows_x86_64_gnullvm v0.52.6
+DEBUG   Downloaded schemars v1.2.1
+DEBUG   Downloaded nalgebra v0.33.3
+DEBUG   Downloaded sqlparser v0.62.0
+DEBUG   Downloaded comfy-table v7.2.2
+DEBUG   Downloaded crc-fast v1.10.0
+DEBUG   Downloaded typify-impl v0.5.0
+DEBUG   Downloaded chrono v0.4.45
+DEBUG   Downloaded datafusion-common v55.2.0
+DEBUG   Downloaded windows_x86_64_msvc v0.53.1
+DEBUG   Downloaded geohash v0.13.2
+DEBUG   Downloaded windows_i686_gnullvm v0.53.1
+DEBUG   Downloaded darling_core v0.24.1
+DEBUG   Downloaded spade v2.15.1
+DEBUG   Downloaded objc2 v0.6.5
+DEBUG   Downloaded zlib-rs v0.6.3
+DEBUG   Downloaded windows_i686_msvc v0.52.6
+DEBUG   Downloaded futures-util v0.3.32
+DEBUG   Downloaded windows_aarch64_gnullvm v0.53.1
+DEBUG   Downloaded sysinfo v0.39.6
+DEBUG   Downloaded xet-data v1.8.1
+DEBUG   Downloaded windows_aarch64_msvc v0.53.1
+DEBUG   Downloaded datafusion-functions v55.2.0
+DEBUG   Downloaded windows_x86_64_gnullvm v0.53.1
+DEBUG   Downloaded zstd-sys v2.1.3+zstd.1.5.7
+DEBUG   Downloaded windows_x86_64_gnu v0.53.1
+DEBUG   Downloaded petgraph v0.8.3
+DEBUG   Downloaded windows_x86_64_msvc v0.52.6
+DEBUG   Downloaded chrono-tz v0.10.4
+DEBUG   Downloaded unicode-width v0.2.2
+DEBUG   Downloaded nix v0.31.4
+DEBUG   Downloaded pyo3 v0.29.3
+DEBUG   Downloaded fst v0.4.7
+DEBUG   Downloaded windows_i686_gnu v0.53.1
+DEBUG   Downloaded encoding_rs v0.8.35
+DEBUG   Downloaded opendal-core v0.59.5
+DEBUG   Downloaded tracing v0.1.44
+DEBUG   Downloaded csv v1.4.0
+DEBUG   Downloaded brotli v8.0.4
+DEBUG   Downloaded datafusion-physical-plan v55.2.0
+DEBUG   Downloaded web-sys v0.3.102
+DEBUG   Downloaded windows-sys v0.60.2
+DEBUG   Downloaded winapi v0.3.9
+DEBUG   Downloaded windows_i686_gnu v0.52.6
+DEBUG   Downloaded windows_x86_64_gnu v0.52.6
+DEBUG   Downloaded windows-sys v0.52.0
+DEBUG   Downloaded tokio v1.54.1
+DEBUG   Downloaded windows_i686_msvc v0.53.1
+DEBUG   Downloaded parquet v59.3.3
+DEBUG   Downloaded ring v0.17.14
+DEBUG   Downloaded icu_segmenter v2.2.0
+DEBUG   Downloaded earcut v0.4.5
+DEBUG   Downloaded aws-lc-sys v0.45.0
+DEBUG   Downloaded linux-raw-sys v0.12.1
+DEBUG   Downloaded windows-sys v0.61.2
+DEBUG   Downloaded winapi-i686-pc-windows-gnu v0.4.0
+DEBUG   Downloaded icu_segmenter_data v2.2.0
+DEBUG   Downloaded winapi-x86_64-pc-windows-gnu v0.4.0
+DEBUG   Downloaded jieba-rs v0.10.3
+DEBUG   Downloaded sha2-const-stable v0.1.0
+DEBUG   Downloaded windows v0.62.2
+DEBUG 🍹 Building a mixed python/rust project
+DEBUG 🐍 Found CPython 3.12 at /root/lance/cache/uv/builds-v0/.tmpcRjhXi/bin/python
+DEBUG 🔗 Found pyo3 bindings with abi3-py3.10 support
+DEBUG    Compiling proc-macro2 v1.0.107
+DEBUG    Compiling unicode-ident v1.0.24
+DEBUG    Compiling quote v1.0.47
+DEBUG    Compiling libc v0.2.191
+DEBUG    Compiling cfg-if v1.0.4
+DEBUG    Compiling autocfg v1.5.1
+DEBUG    Compiling memchr v2.8.2
+DEBUG    Compiling libm v0.2.16
+DEBUG    Compiling serde_core v1.0.229
+DEBUG    Compiling bytes v1.12.1
+DEBUG    Compiling itoa v1.0.19
+DEBUG    Compiling equivalent v1.0.2
+DEBUG    Compiling foldhash v0.2.0
+DEBUG    Compiling allocator-api2 v0.2.21
+DEBUG    Compiling smallvec v1.16.5
+DEBUG    Compiling pin-project-lite v0.2.17
+DEBUG    Compiling once_cell v1.21.4
+DEBUG    Compiling log v0.4.35
+DEBUG    Compiling serde v1.0.229
+DEBUG    Compiling version_check v0.9.5
+DEBUG    Compiling zmij v1.0.23
+DEBUG    Compiling futures-core v0.3.32
+DEBUG    Compiling futures-sink v0.3.32
+DEBUG    Compiling serde_json v1.0.154
+DEBUG    Compiling slab v0.4.12
+DEBUG    Compiling futures-io v0.3.32
+DEBUG    Compiling futures-task v0.3.32
+DEBUG    Compiling percent-encoding v2.3.2
+DEBUG    Compiling num-traits v0.2.19
+DEBUG    Compiling zerocopy v0.8.52
+DEBUG    Compiling futures-channel v0.3.32
+DEBUG    Compiling stable_deref_trait v1.2.1
+DEBUG    Compiling find-msvc-tools v0.1.15
+DEBUG    Compiling shlex v2.0.1
+DEBUG    Compiling typenum v1.20.1
+DEBUG    Compiling tracing-core v0.1.36
+DEBUG    Compiling anyhow v1.0.104
+DEBUG    Compiling cpufeatures v0.3.0
+DEBUG    Compiling rand_core v0.10.1
+DEBUG    Compiling ryu v1.0.23
+DEBUG    Compiling either v1.19.0
+DEBUG    Compiling getrandom v0.4.3
+DEBUG    Compiling subtle v2.6.1
+DEBUG    Compiling hashbrown v0.17.1
+DEBUG    Compiling form_urlencoded v1.2.3
+DEBUG    Compiling generic-array v0.14.7
+DEBUG    Compiling bitflags v2.13.0
+DEBUG    Compiling pkg-config v0.3.33
+DEBUG    Compiling writeable v0.6.3
+DEBUG    Compiling litemap v0.8.2
+DEBUG    Compiling utf8_iter v1.0.4
+DEBUG    Compiling base64 v0.23.1
+DEBUG    Compiling icu_normalizer_data v2.2.0
+DEBUG    Compiling icu_properties_data v2.2.0
+DEBUG    Compiling const-oid v0.9.6
+DEBUG    Compiling zeroize v1.9.0
+DEBUG    Compiling http v1.5.0
+DEBUG    Compiling iana-time-zone v0.1.65
+DEBUG    Compiling crossbeam-utils v0.8.21
+DEBUG    Compiling getrandom v0.3.4
+DEBUG    Compiling thiserror v2.0.18
+DEBUG    Compiling aho-corasick v1.1.4
+DEBUG    Compiling regex-syntax v0.8.11
+DEBUG    Compiling chacha20 v0.10.2
+DEBUG    Compiling heck v0.5.0
+DEBUG    Compiling siphasher v1.0.3
+DEBUG    Compiling cmov v0.5.4
+DEBUG    Compiling const-oid v0.10.2
+DEBUG    Compiling hex v0.4.3
+DEBUG    Compiling crc32fast v1.5.0
+DEBUG    Compiling syn v2.0.119
+DEBUG    Compiling syn v3.0.10
+DEBUG    Compiling ahash v0.8.12
+DEBUG    Compiling adler2 v2.0.1
+DEBUG    Compiling simd-adler32 v0.3.9
+DEBUG    Compiling phf_shared v0.12.1
+DEBUG    Compiling ctutils v0.4.7
+DEBUG    Compiling chrono-tz v0.10.4
+DEBUG    Compiling zlib-rs v0.6.3
+DEBUG    Compiling miniz_oxide v0.8.9
+DEBUG    Compiling parking_lot_core v0.9.12
+DEBUG    Compiling phf v0.12.1
+DEBUG    Compiling scopeguard v1.2.0
+DEBUG    Compiling hybrid-array v0.4.12
+DEBUG    Compiling lock_api v0.4.14
+DEBUG    Compiling itertools v0.15.0
+DEBUG    Compiling target-lexicon v0.13.5
+DEBUG    Compiling humantime v2.4.0
+DEBUG    Compiling lexical-util v1.0.7
+DEBUG    Compiling fnv v1.0.7
+DEBUG    Compiling itertools v0.14.0
+DEBUG    Compiling simdutf8 v0.1.5
+DEBUG    Compiling http-body v1.0.1
+DEBUG    Compiling jobserver v0.1.34
+DEBUG    Compiling unicode-segmentation v1.13.3
+DEBUG    Compiling rustix v1.1.4
+DEBUG    Compiling zstd-safe v7.2.1
+DEBUG    Compiling fastrand v2.4.1
+DEBUG    Compiling http-body-util v0.1.3
+DEBUG    Compiling crypto-common v0.2.2
+DEBUG    Compiling block-buffer v0.12.1
+DEBUG    Compiling num-integer v0.1.46
+DEBUG    Compiling cc v1.11.2
+DEBUG    Compiling crypto-common v0.1.7
+DEBUG    Compiling block-buffer v0.10.4
+DEBUG    Compiling num-complex v0.4.6
+DEBUG    Compiling errno v0.3.14
+DEBUG    Compiling mio v1.2.1
+DEBUG    Compiling socket2 v0.6.4
+DEBUG    Compiling digest v0.10.7
+DEBUG    Compiling getrandom v0.2.17
+DEBUG    Compiling signal-hook-registry v1.4.8
+DEBUG    Compiling num-bigint v0.5.1
+DEBUG    Compiling rand v0.10.1
+DEBUG    Compiling pyo3-build-config v0.29.3
+DEBUG    Compiling lexical-parse-integer v1.0.6
+DEBUG    Compiling lexical-write-integer v1.0.6
+DEBUG    Compiling csv-core v0.1.13
+DEBUG    Compiling unicode-width v0.2.2
+DEBUG    Compiling atoi v2.0.0
+DEBUG    Compiling indexmap v2.14.0
+DEBUG    Compiling uuid v1.29.2
+DEBUG    Compiling digest v0.11.3
+DEBUG    Compiling parking_lot v0.12.5
+DEBUG    Compiling lexical-write-float v1.0.6
+DEBUG    Compiling lexical-parse-float v1.0.6
+DEBUG    Compiling comfy-table v7.2.2
+DEBUG    Compiling regex-automata v0.4.14
+DEBUG    Compiling sha2 v0.11.0
+DEBUG    Compiling md-5 v0.11.0
+DEBUG    Compiling semver v1.0.28
+DEBUG    Compiling twox-hash v2.1.5
+DEBUG    Compiling csv v1.4.0
+DEBUG    Compiling pyo3-ffi v0.29.3
+DEBUG    Compiling pyo3 v0.29.3
+DEBUG    Compiling same-file v1.0.6
+DEBUG    Compiling lexical-core v1.0.6
+DEBUG    Compiling alloc-no-stdlib v2.0.4
+DEBUG    Compiling base64 v0.22.1
+DEBUG    Compiling hashbrown v0.14.5
+DEBUG    Compiling walkdir v2.5.0
+DEBUG    Compiling rustc_version v0.4.1
+DEBUG    Compiling zstd-sys v2.1.3+zstd.1.5.7
+DEBUG    Compiling alloc-stdlib v0.2.2
+DEBUG    Compiling snap v1.1.1
+DEBUG    Compiling cpufeatures v0.2.17
+DEBUG    Compiling seq-macro v0.3.6
+DEBUG    Compiling hmac v0.12.1
+DEBUG    Compiling brotli-decompressor v5.0.3
+DEBUG    Compiling flatbuffers v25.12.19
+DEBUG    Compiling lz4_flex v0.14.0
+DEBUG    Compiling sha2 v0.10.9
+DEBUG    Compiling rand_core v0.9.5
+DEBUG    Compiling tower-service v0.3.3
+DEBUG    Compiling spin v0.9.9
+DEBUG    Compiling cmake v0.1.58
+DEBUG    Compiling httparse v1.10.1
+DEBUG    Compiling lazy_static v1.5.0
+DEBUG    Compiling fs_extra v1.3.0
+DEBUG    Compiling dunce v1.0.5
+DEBUG    Compiling rand_core v0.6.4
+DEBUG    Compiling block-padding v0.3.3
+DEBUG    Compiling atomic-waker v1.1.2
+DEBUG    Compiling flate2 v1.1.9
+DEBUG    Compiling try-lock v0.2.5
+DEBUG    Compiling inout v0.1.4
+DEBUG    Compiling httpdate v1.0.3
+DEBUG    Compiling tower-layer v0.3.3
+DEBUG    Compiling want v0.3.2
+DEBUG    Compiling jiff-core v0.1.8
+DEBUG    Compiling aws-lc-sys v0.45.0
+DEBUG    Compiling linux-raw-sys v0.12.1
+DEBUG    Compiling blake3 v1.8.7
+DEBUG    Compiling ring v0.17.14
+DEBUG    Compiling cipher v0.4.4
+DEBUG    Compiling sync_wrapper v1.0.2
+DEBUG    Compiling ipnet v2.12.0
+DEBUG    Compiling aws-lc-rs v1.18.1
+DEBUG    Compiling arrayvec v0.7.6
+DEBUG    Compiling base64ct v1.8.3
+DEBUG    Compiling constant_time_eq v0.4.2
+DEBUG    Compiling rustls-pki-types v1.16.0
+DEBUG    Compiling brotli v8.0.4
+DEBUG    Compiling untrusted v0.9.0
+DEBUG    Compiling salsa20 v0.10.2
+DEBUG    Compiling dashmap v6.2.1
+DEBUG    Compiling pbkdf2 v0.12.2
+DEBUG    Compiling rustls v0.23.46
+DEBUG    Compiling datafusion-doc v55.2.0
+DEBUG    Compiling serde_derive v1.0.229
+DEBUG    Compiling async-trait v0.1.92
+DEBUG    Compiling synstructure v0.13.2
+DEBUG    Compiling arrow-schema v59.3.3
+DEBUG    Compiling pyo3-macros-backend v0.29.3
+DEBUG    Compiling pem-rfc7468 v0.7.0
+DEBUG    Compiling foldhash v0.1.5
+DEBUG    Compiling scrypt v0.11.0
+DEBUG    Compiling aes v0.8.4
+DEBUG    Compiling cbc v0.1.2
+DEBUG    Compiling hashbrown v0.15.5
+DEBUG    Compiling der v0.7.10
+DEBUG    Compiling fixedbitset v0.5.7
+DEBUG    Compiling num-bigint-dig v0.8.6
+DEBUG    Compiling openssl-probe v0.2.1
+DEBUG    Compiling num-iter v0.1.45
+DEBUG    Compiling asyncband v0.7.2
+DEBUG    Compiling powerfmt v0.2.0
+DEBUG    Compiling tokio-macros v2.7.0
+DEBUG    Compiling futures-macro v0.3.32
+DEBUG    Compiling zerocopy-derive v0.8.52
+DEBUG    Compiling tracing-attributes v0.1.31
+DEBUG    Compiling zerofrom-derive v0.1.7
+DEBUG    Compiling yoke-derive v0.8.2
+DEBUG    Compiling zerovec-derive v0.11.3
+DEBUG    Compiling tokio v1.54.1
+DEBUG    Compiling displaydoc v0.2.6
+DEBUG    Compiling bytemuck_derive v1.10.2
+DEBUG    Compiling futures-util v0.3.32
+DEBUG    Compiling thiserror-impl v2.0.18
+DEBUG    Compiling prost-derive v0.14.6
+DEBUG    Compiling pin-project-internal v1.1.13
+DEBUG    Compiling sqlparser_derive v0.5.0
+DEBUG    Compiling zerofrom v0.1.8
+DEBUG    Compiling jiff v0.2.46
+DEBUG    Compiling tracing v0.1.44
+DEBUG    Compiling yoke v0.8.3
+DEBUG    Compiling petgraph v0.8.3
+DEBUG    Compiling sqlparser v0.62.0
+DEBUG    Compiling zerovec v0.11.6
+DEBUG    Compiling zerotrie v0.2.4
+DEBUG    Compiling bytemuck v1.25.2
+DEBUG    Compiling pin-project v1.1.13
+DEBUG    Compiling spki v0.7.3
+DEBUG    Compiling regex v1.12.4
+DEBUG    Compiling tempfile v3.27.0
+DEBUG    Compiling rustls-native-certs v0.8.4
+DEBUG    Compiling prost v0.14.6
+DEBUG    Compiling pkcs5 v0.7.1
+DEBUG    Compiling datafusion-macros v55.2.0
+DEBUG    Compiling deranged v0.5.8
+DEBUG    Compiling signature v2.2.0
+DEBUG    Compiling time-core v0.1.8
+DEBUG    Compiling num-conv v0.2.2
+DEBUG    Compiling sha1 v0.11.0
+DEBUG    Compiling hmac v0.13.0
+DEBUG    Compiling chrono v0.4.45
+DEBUG    Compiling pkcs8 v0.10.2
+DEBUG    Compiling blake2 v0.10.6
+DEBUG    Compiling crossbeam-epoch v0.9.20
+DEBUG    Compiling tinystr v0.8.3
+DEBUG    Compiling potential_utf v0.1.5
+DEBUG    Compiling serde_urlencoded v0.7.1
+DEBUG    Compiling hashbrown v0.16.1
+DEBUG    Compiling rustversion v1.0.22
+DEBUG    Compiling byteorder v1.5.0
+DEBUG    Compiling encoding_rs v0.8.35
+DEBUG    Compiling icu_locale_core v2.2.0
+DEBUG    Compiling icu_collections v2.2.0
+DEBUG    Compiling pkcs1 v0.7.5
+DEBUG    Compiling strsim v0.11.1
+DEBUG    Compiling compression-core v0.4.32
+DEBUG    Compiling ident_case v1.0.1
+DEBUG    Compiling mime v0.3.17
+DEBUG    Compiling compression-codecs v0.4.38
+DEBUG    Compiling crunchy v0.2.4
+DEBUG    Compiling approx v0.5.1
+DEBUG    Compiling pyo3-macros v0.29.3
+DEBUG    Compiling time v0.3.47
+DEBUG    Compiling http v0.2.12
+DEBUG    Compiling crossbeam-channel v0.5.15
+DEBUG    Compiling outref v0.5.2
+DEBUG    Compiling vsimd v0.8.0
+DEBUG    Compiling quick-xml v0.42.0
+DEBUG    Compiling bytes-utils v0.1.4
+DEBUG    Compiling pin-utils v0.1.0
+DEBUG    Compiling aws-smithy-runtime-api-macros v1.0.0
+DEBUG    Compiling tiny-keccak v2.0.2
+DEBUG    Compiling spin v0.10.1
+DEBUG    Compiling futures-executor v0.3.32
+DEBUG    Compiling base64-simd v0.8.0
+DEBUG    Compiling crc-fast v1.10.0
+DEBUG    Compiling icu_provider v2.2.0
+DEBUG    Compiling const-random-macro v0.1.16
+DEBUG    Compiling quick-xml v0.41.0
+DEBUG    Compiling futures v0.3.32
+DEBUG    Compiling http-body v0.4.6
+DEBUG    Compiling rayon-core v1.13.0
+DEBUG    Compiling const-random v0.1.18
+DEBUG    Compiling darling_core v0.24.1
+DEBUG    Compiling crossbeam-deque v0.8.6
+DEBUG    Compiling glob v0.3.3
+DEBUG    Compiling icu_normalizer v2.2.0
+DEBUG    Compiling icu_properties v2.2.0
+DEBUG    Compiling dlv-list v0.5.2
+DEBUG    Compiling tracing-serde v0.2.0
+DEBUG    Compiling matchers v0.2.0
+DEBUG    Compiling sharded-slab v0.1.7
+DEBUG    Compiling num_cpus v1.17.0
+DEBUG    Compiling tracing-log v0.2.0
+DEBUG    Compiling bigdecimal v0.4.10
+DEBUG    Compiling thread_local v1.1.9
+DEBUG    Compiling nu-ansi-term v0.50.3
+DEBUG    Compiling option-ext v0.2.0
+DEBUG    Compiling paste v1.0.15
+DEBUG    Compiling dirs-sys v0.5.0
+DEBUG    Compiling rayon v1.12.0
+DEBUG    Compiling tracing-subscriber v0.3.23
+DEBUG    Compiling ordered-multimap v0.7.3
+DEBUG    Compiling num-bigint v0.4.6
+DEBUG    Compiling parking v2.2.1
+DEBUG    Compiling typewit v1.15.2
+DEBUG    Compiling ppv-lite86 v0.2.21
+DEBUG    Compiling half v2.7.1
+DEBUG    Compiling cfg_aliases v0.2.2
+DEBUG    Compiling nix v0.31.4
+DEBUG    Compiling idna_adapter v1.2.2
+DEBUG    Compiling rust-ini v0.21.3
+DEBUG    Compiling const_panic v0.2.15
+DEBUG    Compiling idna v1.1.0
+DEBUG    Compiling event-listener v5.4.2
+DEBUG    Compiling dirs v6.0.0
+DEBUG    Compiling bstr v1.12.1
+DEBUG    Compiling rand_chacha v0.9.0
+DEBUG    Compiling rand_chacha v0.3.1
+DEBUG    Compiling git-version-macro v0.3.9
+DEBUG    Compiling tokio-util v0.7.20
+DEBUG    Compiling arrow-buffer v59.3.3
+DEBUG    Compiling rand v0.9.5
+DEBUG    Compiling url v2.5.9
+DEBUG    Compiling rand v0.8.6
+DEBUG    Compiling async-compression v0.4.42
+DEBUG    Compiling aws-smithy-async v1.2.14
+DEBUG    Compiling datafusion-common-runtime v55.2.0
+DEBUG    Compiling os_str_bytes v6.6.1
+DEBUG    Compiling darling_macro v0.24.1
+DEBUG    Compiling symlink v0.1.0
+DEBUG    Compiling urlencoding v2.1.3
+DEBUG    Compiling konst_proc_macros v0.4.1
+DEBUG    Compiling git-version v0.3.9
+DEBUG    Compiling darling v0.24.1
+DEBUG    Compiling shellexpand v3.1.2
+DEBUG    Compiling event-listener-strategy v0.5.4
+DEBUG    Compiling serde_repr v0.1.20
+DEBUG    Compiling aws-types v1.3.16
+DEBUG    Compiling h2 v0.4.16
+DEBUG    Compiling tower v0.5.3
+DEBUG    Compiling aws-smithy-types v1.5.0
+DEBUG    Compiling tokio-stream v0.1.19
+DEBUG    Compiling object_store v0.13.2
+DEBUG    Compiling serde_with_macros v3.24.0
+DEBUG    Compiling konst v0.4.3
+DEBUG    Compiling arrow-data v59.3.3
+DEBUG    Compiling tracing-appender v0.2.5
+DEBUG    Compiling whoami v2.1.2
+DEBUG    Compiling sysinfo v0.39.6
+DEBUG    Compiling serde_with v3.24.0
+DEBUG    Compiling memoffset v0.9.1
+DEBUG    Compiling aws-smithy-runtime-api v1.12.3
+DEBUG    Compiling const-str v1.1.0
+DEBUG    Compiling rsa v0.9.10
+DEBUG    Compiling tower-http v0.6.11
+DEBUG    Compiling portable-atomic v1.13.1
+DEBUG    Compiling oneshot v0.1.13
+DEBUG    Compiling more-asserts v0.3.1
+DEBUG    Compiling redb v3.1.3
+DEBUG    Compiling colored v3.1.1
+DEBUG    Compiling arrow-array v59.3.3
+DEBUG    Compiling rapidhash v4.4.2
+DEBUG    Compiling lz4_flex v0.13.1
+DEBUG    Compiling ordered-float v5.5.1
+DEBUG    Compiling nom v8.0.0
+DEBUG    Compiling reqsign-core v3.3.2
+DEBUG    Compiling countio v0.3.0
+DEBUG    Compiling heapless v0.8.0
+DEBUG    Compiling fast-float2 v0.2.4
+DEBUG    Compiling heapify v0.2.0
+DEBUG    Compiling safe-transmute v0.11.3
+DEBUG    Compiling static_assertions v1.1.0
+DEBUG    Compiling winnow v1.0.3
+DEBUG    Compiling ethnum v1.5.3
+DEBUG    Compiling metrics v0.24.6
+DEBUG    Compiling aws-credential-types v1.2.14
+DEBUG    Compiling aws-smithy-schema v0.1.0
+DEBUG    Compiling aws-smithy-http v0.63.5
+DEBUG    Compiling aws-smithy-observability v0.2.5
+DEBUG    Compiling opendal-core v0.59.5
+DEBUG    Compiling reqsign-file-read-tokio v3.0.7
+DEBUG    Compiling aws-sigv4 v1.4.1
+DEBUG    Compiling reqsign-aws-core v3.1.1
+DEBUG    Compiling async-lock v3.4.2
+DEBUG    Compiling tokio-retry v0.3.2
+DEBUG    Compiling foyer-tokio v0.22.6
+DEBUG    Compiling statrs v0.18.0
+DEBUG    Compiling hash32 v0.3.1
+DEBUG    Compiling snafu-derive v0.9.2
+DEBUG    Compiling mixtrics v0.2.5
+DEBUG    Compiling unicase v2.9.0
+DEBUG    Compiling tagptr v0.2.0
+DEBUG    Compiling toml_datetime v1.1.1+spec-1.1.0
+DEBUG    Compiling cfg-if v0.1.10
+DEBUG    Compiling io-uring v0.7.16
+DEBUG    Compiling gearhash v0.1.3
+DEBUG    Compiling foyer-common v0.22.6
+DEBUG    Compiling aws-smithy-json v0.62.7
+DEBUG    Compiling mime_guess v2.0.5
+DEBUG    Compiling moka v0.12.16
+DEBUG    Compiling foyer-intrusive-collections v0.10.0-dev
+DEBUG    Compiling quick_cache v0.6.24
+DEBUG    Compiling toml_parser v1.1.2+spec-1.1.0
+DEBUG    Compiling roaring v0.11.5
+DEBUG    Compiling lance-derive v15.0.0-beta.35 (/root/lance/base/rust/lance-derive)
+DEBUG    Compiling pem v3.0.6
+DEBUG    Compiling xxhash-rust v0.8.21
+DEBUG    Compiling goosefs-sdk v0.2.2
+DEBUG    Compiling regex-lite v0.1.9
+DEBUG    Compiling toml_edit v0.25.12+spec-1.1.0
+DEBUG    Compiling robust v1.2.0
+DEBUG    Compiling datasketches v0.3.0
+DEBUG    Compiling rstar v0.12.2
+DEBUG    Compiling reqsign-azure-storage v3.1.1
+DEBUG    Compiling lru v0.16.4
+DEBUG    Compiling snafu v0.9.2
+DEBUG    Compiling reqsign-aws-v4 v3.3.0
+DEBUG    Compiling spade v2.15.1
+DEBUG    Compiling foyer-memory v0.22.6
+DEBUG    Compiling arc-swap v1.9.5
+DEBUG    Compiling hostname v0.4.2
+DEBUG    Compiling proc-macro-crate v3.5.0
+DEBUG    Compiling hyper v1.12.0
+DEBUG    Compiling prettyplease v0.2.37
+DEBUG    Compiling lance-jsonb v15.0.0-beta.35 (/root/lance/base/rust/lance-jsonb)
+DEBUG    Compiling reqsign-google v3.1.1
+DEBUG    Compiling prost-types v0.14.6
+DEBUG    Compiling arrow-select v59.3.3
+DEBUG    Compiling arrow-row v59.3.3
+DEBUG    Compiling arrow-pyarrow v59.3.2
+DEBUG    Compiling arrow-arith v59.3.3
+DEBUG    Compiling reqsign-volcengine-tos v3.1.2
+DEBUG    Compiling reqsign-tencent-cos v3.0.3
+DEBUG    Compiling reqsign-aliyun-oss v3.1.2
+DEBUG    Compiling backon v1.6.0
+DEBUG    Compiling serde_derive_internals v0.29.1
+DEBUG    Compiling geo-types v0.7.19
+DEBUG    Compiling xmlparser v0.13.6
+DEBUG    Compiling schemars v0.8.22
+DEBUG    Compiling schemars_derive v0.8.22
+DEBUG    Compiling aws-smithy-xml v0.60.14
+DEBUG    Compiling aws-smithy-query v0.60.14
+DEBUG    Compiling hyper-util v0.1.20
+DEBUG    Compiling multimap v0.10.1
+DEBUG    Compiling thiserror v1.0.69
+DEBUG    Compiling dyn-clone v1.0.20
+DEBUG    Compiling darling_core v0.20.11
+DEBUG    Compiling ptr_meta_derive v0.3.1
+DEBUG    Compiling thiserror-impl v1.0.69
+DEBUG    Compiling opendal-service-azure-common v0.59.5
+DEBUG    Compiling opendal-layer-timeout v0.59.5
+DEBUG    Compiling opendal-service-oss v0.59.5
+DEBUG    Compiling opendal-layer-logging v0.59.5
+DEBUG    Compiling opendal-service-azblob v0.59.5
+DEBUG    Compiling opendal-service-azdls v0.59.5
+DEBUG    Compiling opendal-service-s3 v0.59.5
+DEBUG    Compiling opendal-service-cos v0.59.5
+DEBUG    Compiling opendal-layer-concurrent-limit v0.59.5
+DEBUG    Compiling opendal-service-tos v0.59.5
+DEBUG    Compiling opendal-service-gcs v0.59.5
+DEBUG    Compiling opendal-layer-retry v0.59.5
+DEBUG    Compiling pbjson-build v0.8.0
+DEBUG    Compiling regress v0.10.5
+DEBUG    Compiling stfu8 v0.2.7
+DEBUG    Compiling arrow-ord v59.3.3
+DEBUG    Compiling arrow-string v59.3.2
+DEBUG    Compiling prost-build v0.14.4
+DEBUG    Compiling std_prelude v0.2.12
+DEBUG    Compiling path_abs v0.5.1
+DEBUG    Compiling hyper-timeout v0.5.2
+DEBUG    Compiling darling_macro v0.20.11
+DEBUG    Compiling tonic v0.14.6
+DEBUG    Compiling ptr_meta v0.3.1
+DEBUG    Compiling geo-traits v0.3.0
+DEBUG    Compiling serde_tokenstream v0.2.3
+DEBUG    Compiling lz4-sys v1.11.1+lz4-1.10.0
+DEBUG    Compiling zstd-safe v8.3.0
+DEBUG    Compiling rancor v0.1.1
+DEBUG    Compiling darling v0.20.11
+DEBUG    Compiling num_enum_derive v0.7.6
+DEBUG    Compiling bytecheck_derive v0.8.2
+DEBUG    Compiling i_float v1.16.0
+DEBUG    Compiling typify-impl v0.5.0
+DEBUG    Compiling pco v1.0.4
+DEBUG    Compiling unsafe-libyaml v0.2.11
+DEBUG    Compiling bytecheck v0.8.2
+DEBUG    Compiling num_enum v0.7.6
+DEBUG    Compiling arrow-cast v59.3.3
+DEBUG    Compiling i_shape v1.18.0
+DEBUG    Compiling phf_shared v0.13.1
+DEBUG    Compiling derive_builder_core v0.20.2
+DEBUG    Compiling pbjson-types v0.8.0
+DEBUG    Compiling i_key_sort v0.10.3
+DEBUG    Compiling munge_macro v0.4.7
+DEBUG    Compiling async-recursion v1.2.0
+DEBUG    Compiling rand_xoshiro v0.6.0
+DEBUG    Compiling better_io v0.2.0
+DEBUG    Compiling tonic-prost v0.14.6
+DEBUG    Compiling serde_yaml v0.9.34+deprecated
+DEBUG    Compiling dtype_dispatch v0.2.1
+DEBUG    Compiling i_tree v0.18.0
+DEBUG    Compiling arrayref v0.3.9
+DEBUG    Compiling icu_locale_data v2.2.0
+DEBUG    Compiling munge v0.4.7
+DEBUG    Compiling phf_generator v0.13.1
+DEBUG    Compiling lance-bitpacking v15.0.0-beta.35 (/root/lance/base/rust/compression/bitpacking)
+DEBUG    Compiling derive_builder_macro v0.20.2
+DEBUG    Compiling rend v0.5.3
+DEBUG    Compiling wkb v0.9.2
+DEBUG    Compiling geoarrow-schema v0.9.0
+DEBUG    Compiling wkt v0.14.0
+DEBUG    Compiling i_overlay v4.5.2
+DEBUG    Compiling fsst v15.0.0-beta.35 (/root/lance/base/rust/compression/fsst)
+DEBUG    Compiling pbjson v0.8.0
+DEBUG    Compiling hyperloglogplus v0.4.1
+DEBUG    Compiling rkyv_derive v0.8.17
+DEBUG    Compiling strum_macros v0.28.0
+DEBUG    Compiling earcut v0.4.5
+DEBUG    Compiling geographiclib-rs v0.2.7
+DEBUG    Compiling rand_pcg v0.10.2
+DEBUG    Compiling matrixmultiply v0.3.10
+DEBUG    Compiling float_next_after v2.0.0
+DEBUG    Compiling tinyvec_macros v0.1.1
+DEBUG    Compiling icu_segmenter_data v2.2.0
+DEBUG    Compiling sif-itree v0.4.1
+DEBUG    Compiling geoarrow-array v0.9.0
+DEBUG    Compiling tinyvec v1.11.0
+DEBUG    Compiling derive_builder v0.20.2
+DEBUG    Compiling phf_codegen v0.13.1
+DEBUG    Compiling stop-words v0.10.1
+DEBUG    Compiling encoding_rs_io v0.1.7
+DEBUG    Compiling thread-tree v0.3.3
+DEBUG    Compiling safe_arch v0.7.4
+DEBUG    Compiling typify-macro v0.5.0
+DEBUG    Compiling memmap2 v0.9.11
+DEBUG    Compiling geo v0.33.1
+DEBUG    Compiling daachorse v2.1.1
+DEBUG    Compiling strum v0.28.0
+DEBUG    Compiling arrow-csv v59.3.2
+DEBUG    Compiling arrow-json v59.3.2
+DEBUG    Compiling typify v0.5.0
+DEBUG    Compiling substrait v0.63.0
+DEBUG    Compiling bitflags v1.3.2
+DEBUG    Compiling rawpointer v0.2.1
+DEBUG    Compiling radium v0.7.0
+DEBUG    Compiling serde_yaml_ng v0.10.0
+DEBUG    Compiling kanaria v0.2.0
+DEBUG    Compiling wide v0.7.33
+DEBUG    Compiling phf v0.13.1
+DEBUG    Compiling unicode-normalization v0.1.26
+DEBUG    Compiling jieba-macros v0.10.2
+DEBUG    Compiling rkyv v0.8.17
+DEBUG    Compiling icu_locale v2.2.0
+DEBUG    Compiling geohash v0.13.2
+DEBUG    Compiling lance-linalg v15.0.0-beta.35 (/root/lance/base/rust/lance-linalg)
+DEBUG    Compiling cedarwood v0.5.0
+DEBUG    Compiling rustc-hash v2.1.3
+DEBUG    Compiling unicode-blocks v0.1.9
+DEBUG    Compiling bytecount v0.6.9
+DEBUG    Compiling rangemap v1.8.0
+DEBUG    Compiling fst v0.4.7
+DEBUG    Compiling tap v1.0.1
+DEBUG    Compiling libsais-rs v0.2.2
+DEBUG    Compiling jieba-rs v0.10.3
+DEBUG    Compiling simba v0.9.1
+DEBUG    Compiling icu_segmenter v2.2.0
+DEBUG    Compiling wyz v0.5.1
+DEBUG    Compiling num-rational v0.4.2
+DEBUG    Compiling lz4 v1.28.1
+DEBUG    Compiling argminmax v0.7.1
+DEBUG    Compiling concurrent-queue v2.5.0
+DEBUG    Compiling utf8-ranges v1.0.5
+DEBUG    Compiling frostem v1.20260821.8
+DEBUG    Compiling funty v2.0.0
+DEBUG    Compiling stabby-macros v72.1.8
+DEBUG    Compiling async-channel v2.5.0
+DEBUG    Compiling ndarray v0.16.1
+DEBUG    Compiling bitvec v1.1.1
+DEBUG    Compiling rand_distr v0.5.1
+DEBUG    Compiling stabby-abi v72.1.8
+DEBUG    Compiling crossbeam-queue v0.3.14
+DEBUG    Compiling sha2-const-stable v0.1.0
+DEBUG    Compiling utf8parse v0.2.2
+DEBUG    Compiling geoarrow-expr-geo v0.9.0
+DEBUG    Compiling stabby v72.1.8
+DEBUG    Compiling anstyle-parse v1.0.0
+DEBUG    Compiling lindera-dictionary v3.0.7
+DEBUG    Compiling axum-core v0.4.5
+DEBUG    Compiling crossbeam-skiplist v0.1.3
+DEBUG    Compiling serde_path_to_error v0.1.20
+DEBUG    Compiling raw-cpuid v11.6.0
+DEBUG    Compiling nibble_vec v0.1.0
+DEBUG warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of fp16 kernels
+DEBUG warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of bf16 kernels
+DEBUG warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of fp16 kernels
+DEBUG warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of bf16 kernels
+DEBUG    Compiling colorchoice v1.0.5
+DEBUG    Compiling permutation v0.4.1
+DEBUG    Compiling anstyle v1.0.14
+DEBUG    Compiling matchit v0.7.3
+DEBUG    Compiling is_terminal_polyfill v1.70.2
+DEBUG    Compiling endian-type v0.1.2
+DEBUG    Compiling async_cell v0.2.3
+DEBUG    Compiling anstyle-query v1.1.5
+DEBUG    Compiling radix_trie v0.2.1
+DEBUG    Compiling anstream v1.0.0
+DEBUG    Compiling env_filter v2.0.0
+DEBUG    Compiling tower-http v0.5.2
+DEBUG    Compiling rand_xoshiro v0.7.0
+DEBUG    Compiling ordered-float v4.6.0
+DEBUG    Compiling libloading v0.9.0
+DEBUG    Compiling sketches-ddsketch v0.3.1
+DEBUG    Compiling async-ffi v0.5.0
+DEBUG    Compiling libyaml-rs v0.3.0
+DEBUG    Compiling env_logger v0.11.11
+DEBUG    Compiling lindera v3.0.7
+DEBUG    Compiling nalgebra v0.33.3
+DEBUG    Compiling axum v0.7.9
+DEBUG    Compiling quanta v0.12.6
+DEBUG    Compiling pythonize v0.29.0
+DEBUG    Compiling tracing-chrome v0.7.2
+DEBUG    Compiling metrics-util v0.19.1
+DEBUG    Compiling yaml_serde v0.10.7
+DEBUG    Compiling lance-tokenizer v15.0.0-beta.35 (/root/lance/base/rust/lance-tokenizer)
+DEBUG    Compiling opendal-service-goosefs v0.59.5
+DEBUG    Compiling zstd v0.13.1
+DEBUG    Compiling arrow-ipc v59.3.3
+DEBUG    Compiling zstd v0.14.4
+DEBUG    Compiling parquet v59.3.3
+DEBUG    Compiling arrow v59.3.2
+DEBUG    Compiling lance-arrow v15.0.0-beta.35 (/root/lance/base/rust/lance-arrow)
+DEBUG    Compiling datafusion-common v55.2.0
+DEBUG    Compiling datafusion-proto-common v55.2.0
+DEBUG    Compiling datafusion-expr-common v55.2.0
+DEBUG    Compiling datafusion-proto-models v55.2.0
+DEBUG    Compiling datafusion-physical-expr-common v55.2.0
+DEBUG    Compiling datafusion-functions-aggregate-common v55.2.0
+DEBUG    Compiling datafusion-functions-window-common v55.2.0
+DEBUG    Compiling datafusion-expr v55.2.0
+DEBUG    Compiling rustls-webpki v0.103.16
+DEBUG    Compiling datafusion-physical-expr v55.2.0
+DEBUG    Compiling datafusion-execution v55.2.0
+DEBUG    Compiling tokio-rustls v0.26.4
+DEBUG    Compiling rustls-platform-verifier v0.7.0
+DEBUG    Compiling datafusion-functions v55.2.0
+DEBUG    Compiling hyper-rustls v0.27.9
+DEBUG    Compiling reqwest v0.13.5
+DEBUG    Compiling aws-smithy-http-client v1.1.11
+DEBUG    Compiling reqwest v0.12.28
+DEBUG    Compiling aws-smithy-runtime v1.10.2
+DEBUG    Compiling lance-namespace-reqwest-client v0.13.0
+DEBUG    Compiling xet-runtime v1.8.1
+DEBUG    Compiling object_store v0.14.2
+DEBUG    Compiling reqwest-middleware v0.5.2
+DEBUG    Compiling opendal-http-transport-reqwest v0.59.5
+DEBUG    Compiling aws-runtime v1.7.1
+DEBUG    Compiling datafusion-functions-aggregate v55.2.0
+DEBUG    Compiling datafusion-functions-window v55.2.0
+DEBUG    Compiling datafusion-optimizer v55.2.0
+DEBUG    Compiling xet-core-structures v1.8.1
+DEBUG    Compiling aws-sdk-sso v1.95.0
+DEBUG    Compiling aws-sdk-sts v1.99.0
+DEBUG    Compiling aws-sdk-ssooidc v1.97.0
+DEBUG    Compiling aws-sdk-dynamodb v1.107.0
+DEBUG    Compiling datafusion-physical-plan v55.2.0
+DEBUG    Compiling datafusion-physical-expr-adapter v55.2.0
+DEBUG    Compiling xet-client v1.8.1
+DEBUG    Compiling aws-config v1.8.14
+DEBUG    Compiling datafusion-functions-nested v55.2.0
+DEBUG    Compiling xet-data v1.8.1
+DEBUG    Compiling datafusion-sql v55.2.0
+DEBUG    Compiling hf-xet v1.8.1
+DEBUG    Compiling datafusion-session v55.2.0
+DEBUG    Compiling lance-core v15.0.0-beta.35 (/root/lance/base/rust/lance-core)
+DEBUG    Compiling opendal-service-hf v0.59.5
+DEBUG    Compiling opendal v0.59.5
+DEBUG    Compiling object_store_opendal v0.60.5
+DEBUG    Compiling lance-namespace v15.0.0-beta.35 (/root/lance/base/rust/lance-namespace)
+DEBUG    Compiling lance-select v15.0.0-beta.35 (/root/lance/base/rust/lance-select)
+DEBUG    Compiling lance-io v15.0.0-beta.35 (/root/lance/base/rust/lance-io)
+DEBUG    Compiling datafusion-datasource v55.2.0
+DEBUG    Compiling lance-encoding v15.0.0-beta.35 (/root/lance/base/rust/lance-encoding)
+DEBUG    Compiling datafusion-catalog v55.2.0
+DEBUG    Compiling datafusion-pruning v55.2.0
+DEBUG    Compiling datafusion-datasource-csv v55.2.0
+DEBUG    Compiling datafusion-datasource-json v55.2.0
+DEBUG    Compiling datafusion-datasource-arrow v55.2.0
+DEBUG    Compiling datafusion-physical-optimizer v55.2.0
+DEBUG    Compiling datafusion-datasource-parquet v55.2.0
+DEBUG    Compiling lance-datafusion-exec v15.0.0-beta.35 (/root/lance/base/rust/lance-datafusion-exec)
+DEBUG    Compiling lance-index-core v15.0.0-beta.35 (/root/lance/base/rust/lance-index-core)
+DEBUG    Compiling lance-file v15.0.0-beta.35 (/root/lance/base/rust/lance-file)
+DEBUG    Compiling lance-table v15.0.0-beta.35 (/root/lance/base/rust/lance-table)
+DEBUG    Compiling lance-table-runtime v15.0.0-beta.35 (/root/lance/base/rust/lance-table-runtime)
+DEBUG    Compiling datafusion-functions-table v55.2.0
+DEBUG    Compiling datafusion-catalog-listing v55.2.0
+DEBUG    Compiling datafusion v55.2.0
+DEBUG    Compiling datafusion-proto v55.2.0
+DEBUG    Compiling datafusion-ffi v55.2.0
+DEBUG    Compiling geodatafusion v0.6.0
+DEBUG    Compiling datafusion-substrait v55.2.0
+DEBUG    Compiling lance-datafusion v15.0.0-beta.35 (/root/lance/base/rust/lance-datafusion)
+DEBUG    Compiling lance-index v15.0.0-beta.35 (/root/lance/base/rust/lance-index)
+DEBUG    Compiling lance-geo v15.0.0-beta.35 (/root/lance/base/rust/lance-geo)
+DEBUG    Compiling lance v15.0.0-beta.35 (/root/lance/base/rust/lance)
+DEBUG    Compiling lance-namespace-impls v15.0.0-beta.35 (/root/lance/base/rust/lance-namespace-impls)
+DEBUG    Compiling pylance v15.0.0-beta.35 (/root/lance/base/python)
+DEBUG     Finished `release-with-debug` profile [optimized + debuginfo] target(s) in 10m 53s
+DEBUG 📦 Built wheel for abi3 Python ≥ 3.10 to /root/lance/targets/base/wheels/pylance-15.0.0b35-cp310-abi3-linux_x86_64.whl
+DEBUG /root/lance/targets/base/wheels/pylance-15.0.0b35-cp310-abi3-linux_x86_64.whl
+DEBUG Built `pylance @ file:///root/lance/base/python` into `pylance-15.0.0b35-cp310-abi3-linux_x86_64.whl`
+      Built pylance @ file:///root/lance/base/python
+Prepared 73 packages in 19m 23s
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/EgJp_isIX18-ivSL/pluggy/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/pluggy/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/cy7_peept6X-cb7G/opentelemetry_api-1.30.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/opentelemetry_api-1.30.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/ehY67j2HNulpIqsi/httpcore-1.0.9.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/httpcore-1.0.9.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/6DfzQLjMsmPx6Rbz/packaging-26.2.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/packaging-26.2.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/_xlnhczcyGUUnPMW/requests/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/requests/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/lifHyoE8MIsBW7px/certifi-2026.10.19.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/certifi-2026.10.19.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/7AGmDkjkg2ka8q46/multidict/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/multidict/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/giCUuzdDpkt1Alb-/pydantic_core-2.46.4.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/pydantic_core-2.46.4.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/rFfXWn1nZrjIArAv/execnet/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/execnet/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/tg1sX2KYLTrq_JjQ/aiosignal-1.4.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/aiosignal-1.4.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/Klf7ymEohkCA9XBc/_yaml/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/_yaml/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/-EUAPq_lTv6HddT1/pytz/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/pytz/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/Rzkl7uHMi3HcOnmi/xxhash/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/xxhash/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/WJIXKSQUTQwjen_S/multiprocess-0.70.18.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/multiprocess-0.70.18.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/FGrjrx_Fe-rS8rqf/pandas/core/indexing.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/pandas/core/indexing.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/c_UrO8Xitav53hKk/iniconfig-2.3.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/iniconfig-2.3.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/GHEUv7UBWE4VgIQK/polars/_plr.pyi` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/polars/_plr.pyi`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/_kXFgb6rLZKi6pKe/hf_xet-1.5.1.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/hf_xet-1.5.1.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/S7oE8cWMs7xsiIBR/click/types.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/click/types.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/jayTGrGxCpv1UnL5/jmespath-1.1.0.data/scripts/jp.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/jmespath-1.1.0.data/scripts/jp.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/ebJuLsalnsXA9FkS/pyright/types.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/pyright/types.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/V6I_EyH9Oon9YGtM/ml_dtypes-0.5.3.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/ml_dtypes-0.5.3.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/P6bCVpe7XEKKwjlJ/annotated_types-0.7.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/annotated_types-0.7.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/VLftzV93cCdrEMRR/PIL/ImageMath.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/PIL/ImageMath.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/vWG0OdrnAuP7CTeD/datafusion-55.0.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/datafusion-55.0.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/qEn-pK6779dirLcn/huggingface_hub/dataclasses.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/huggingface_hub/dataclasses.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/QGw_OOdyUao08EVG/idna/uts46data.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/idna/uts46data.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/LAR4mQlWJYfvvk0N/deprecated/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/deprecated/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/dtF9ybzoUNZ065Zw/opentelemetry_semantic_conventions-0.51b0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/opentelemetry_semantic_conventions-0.51b0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/Ui1OyKJg_DCILNDN/anyio-4.14.2.dist-info/scm_file_list.json` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/anyio-4.14.2.dist-info/scm_file_list.json`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/Q8bJ4noKSYoAW8z9/aiohttp-3.14.4.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/aiohttp-3.14.4.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/2CvNGLAdR7attov-/lance_namespace_urllib3_client/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/lance_namespace_urllib3_client/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/OfFYYjufj3QB0k7Y/datasets/data_files.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/datasets/data_files.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/Cxjrzww_p1_iLYJK/charset_normalizer/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/charset_normalizer/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/oNBrLzkLUMNSKEK2/six.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/six.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/lPjQof9eTz7ctbGd/wrapt-stubs/__init__.pyi` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/wrapt-stubs/__init__.pyi`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/ZHbwdtR2dzYwoUJK/python_dateutil-2.9.0.post0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/python_dateutil-2.9.0.post0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/3FdthtLRgrDp9Wcz/_duckdb.cpython-312-x86_64-linux-gnu.so` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/_duckdb.cpython-312-x86_64-linux-gnu.so`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/JusASe-Zps_cu41n/propcache/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/propcache/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/KPokAmj12Ryn-ge6/polars_runtime_32-1.34.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/polars_runtime_32-1.34.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/_93uhmLLSxMJwspS/cloudpickle-3.1.2.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/cloudpickle-3.1.2.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/dNQZ0Yv4Ze576xy8/h11-0.16.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/h11-0.16.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/7Z6XkOxtfwMjwQNZ/botocore-1.40.76.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/botocore-1.40.76.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/WnyUKbMdK1_4QPvW/typing_inspection-0.4.2.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/typing_inspection-0.4.2.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/qet5nFinJsfGUkQR/pylance.pth` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/pylance.pth`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/q2dPps4fzOAgtuBt/aiohappyeyeballs-2.7.1.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/aiohappyeyeballs-2.7.1.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/RtGtqR5Ic6aEZuuX/numpy/_globals.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/numpy/_globals.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/B1NBFJddmUUt_285/maturin-1.13.3.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/maturin-1.13.3.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/MKIeIKDdd2I3xzSx/httpx-0.28.1.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/httpx-0.28.1.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/lxvolnltQF8sR93m/psutil-7.1.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/psutil-7.1.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/2oqeeIAWaeLlKAvL/boto3-1.40.43.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/boto3-1.40.43.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/hcD3CqoWuCU8CH59/tqdm-4.67.1.dist-info/LICENCE` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/tqdm-4.67.1.dist-info/LICENCE`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/K458wI1XfPwSS_Ls/py.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/py.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/1MdPlWwFOnw1Hkk6/zipp/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/zipp/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/Wm1ObqjBvOWDZR_-/dill-0.4.0.data/scripts/get_objgraph` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/dill-0.4.0.data/scripts/get_objgraph`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/ZDMd9BXQfookuFV_/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/p3Q5C8NUEXBem_ab/importlib_metadata-8.5.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/importlib_metadata-8.5.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/SyjE06wxJmw1-y0R/filelock/_windows.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/filelock/_windows.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/9Gy3jfL0rNgyPxCH/urllib3-2.8.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/urllib3-2.8.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/vhKIa-Mu0Tft7eDe/yarl-1.25.1.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/yarl-1.25.1.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/4Qyfu8vKdOO4D7qA/s3transfer/upload.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/s3transfer/upload.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/N1pdbfxVePrvs81d/opentelemetry_sdk-1.30.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/opentelemetry_sdk-1.30.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/f2lShKi1lOF_5qXY/attrs-26.1.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/attrs-26.1.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/No75GLiHgsdAHHkj/nodeenv-1.10.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/nodeenv-1.10.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/QBG2K0j3jwtunjm3/lance_namespace/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/lance_namespace/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/USMGfp0CE46tCDQW/pygments-2.20.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/pygments-2.20.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/ZFLc3FuDn_04YuLA/tzdata/__init__.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/tzdata/__init__.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/FMMgTl6rlyi9zGys/pydantic/types.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/pydantic/types.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/83Wf7IMJbII3RTd2/xdist/looponfail.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/xdist/looponfail.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/fNOeIv_GFRyh7_Zs/fsspec-2025.10.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/fsspec-2025.10.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/uVCD7gtN-AtO7t-D/pyarrow/types.py` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/pyarrow/types.py`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/anOqAoFgscbYV8lZ/ruff-0.11.2.data/scripts/ruff` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/ruff-0.11.2.data/scripts/ruff`: Operation not supported (os error 95), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/RaaXs8KINWnlDZRZ/typing_extensions-4.16.0.dist-info/METADATA` to `/root/lance/base/python/.venv/lib/python3.12/site-packages/typing_extensions-4.16.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+Installed 73 packages in 73ms
+ + aiohappyeyeballs==2.7.1
+ + aiohttp==3.14.4
+ + aiosignal==1.4.0
+ + annotated-types==0.7.0
+ + anyio==4.14.2
+ + attrs==26.1.0
+ + boto3==1.40.43
+ + botocore==1.40.76
+ + certifi==2026.10.19
+ + charset-normalizer==3.4.9
+ + click==8.4.2
+ + cloudpickle==3.1.2
+ + datafusion==55.0.0
+ + datasets==4.4.0
+ + deprecated==1.3.1
+ + dill==0.4.0
+ + duckdb==1.5.6
+ + execnet==2.1.2
+ + filelock==3.29.7
+ + frozenlist==1.8.0
+ + fsspec==2025.10.0
+ + h11==0.16.0
+ + hf-xet==1.5.1
+ + httpcore==1.0.9
+ + httpx==0.28.1
+ + huggingface-hub==1.23.0
+ + idna==3.18
+ + importlib-metadata==8.5.0
+ + iniconfig==2.3.0
+ + jmespath==1.1.0
+ + lance-namespace==0.13.0
+ + lance-namespace-urllib3-client==0.13.0
+ + maturin==1.13.3
+ + ml-dtypes==0.5.3
+ + multidict==6.9.1
+ + multiprocess==0.70.18
+ + nodeenv==1.10.0
+ + numpy==2.5.1
+ + opentelemetry-api==1.30.0
+ + opentelemetry-sdk==1.30.0
+ + opentelemetry-semantic-conventions==0.51b0
+ + packaging==26.2
+ + pandas==2.3.3
+ + pillow==11.3.0
+ + pluggy==1.6.0
+ + polars==1.34.0
+ + polars-runtime-32==1.34.0
+ + propcache==0.5.2
+ + psutil==7.1.0
+ + pyarrow==25.0.1
+ + pydantic==2.13.4
+ + pydantic-core==2.46.4
+ + pygments==2.20.0
+ + pylance==15.0.0b35 (from file:///root/lance/base/python)
+ + pyright==1.1.406
+ + pytest==8.4.2
+ + pytest-xdist==3.8.0
+ + python-dateutil==2.9.0.post0
+ + pytz==2026.2
+ + pyyaml==6.0.3
+ + requests==2.34.2
+ + ruff==0.11.2
+ + s3transfer==0.14.0
+ + six==1.17.0
+ + tqdm==4.67.1
+ + typing-extensions==4.16.0
+ + typing-inspection==0.4.2
+ + tzdata==2026.3
+ + urllib3==2.8.0
+ + wrapt==2.2.2
+ + xxhash==3.8.1
+ + yarl==1.25.1
+ + zipp==4.1.0
+uv tool run pre-commit install
+Downloading virtualenv (5.5MiB)
+ Downloaded virtualenv
+Installed 11 packages in 15ms
+pre-commit installed at /root/lance/repo/.git/hooks/pre-commit
+
+real	20m2.768s
+user	82m40.056s
+sys	2m51.323s
+uv run --frozen --no-sync maturin develop --uv
+🍹 Building a mixed python/rust project
+🐍 Found CPython 3.12 at /root/lance/base/python/.venv/bin/python
+🔗 Found pyo3 bindings with abi3 support
+Checked 24 packages in 1ms
+Resolved 5 packages in 1.21s
+Checked 5 packages in 0.09ms
+   Compiling pyo3-ffi v0.29.3
+warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling pyo3 v0.29.3
+   Compiling arrow-pyarrow v59.3.2
+   Compiling pythonize v0.29.0
+   Compiling arrow v59.3.2
+   Compiling datafusion-common v55.2.0
+   Compiling datafusion-proto-common v55.2.0
+   Compiling datafusion-expr-common v55.2.0
+   Compiling datafusion-proto-models v55.2.0
+   Compiling datafusion-physical-expr-common v55.2.0
+   Compiling datafusion-functions-aggregate-common v55.2.0
+   Compiling datafusion-functions-window-common v55.2.0
+   Compiling datafusion-expr v55.2.0
+   Compiling datafusion-physical-expr v55.2.0
+   Compiling datafusion-execution v55.2.0
+   Compiling datafusion-functions v55.2.0
+   Compiling datafusion-functions-aggregate v55.2.0
+   Compiling datafusion-functions-window v55.2.0
+   Compiling datafusion-optimizer v55.2.0
+   Compiling datafusion-physical-plan v55.2.0
+   Compiling datafusion-physical-expr-adapter v55.2.0
+   Compiling datafusion-functions-nested v55.2.0
+   Compiling datafusion-sql v55.2.0
+   Compiling lance-core v15.0.0-beta.35 (/root/lance/base/rust/lance-core)
+   Compiling datafusion-session v55.2.0
+   Compiling datafusion-datasource v55.2.0
+   Compiling lance-namespace v15.0.0-beta.35 (/root/lance/base/rust/lance-namespace)
+   Compiling lance-encoding v15.0.0-beta.35 (/root/lance/base/rust/lance-encoding)
+   Compiling lance-select v15.0.0-beta.35 (/root/lance/base/rust/lance-select)
+   Compiling lance-linalg v15.0.0-beta.35 (/root/lance/base/rust/lance-linalg)
+   Compiling lance-io v15.0.0-beta.35 (/root/lance/base/rust/lance-io)
+   Compiling datafusion-catalog v55.2.0
+   Compiling datafusion-pruning v55.2.0
+   Compiling datafusion-datasource-csv v55.2.0
+   Compiling datafusion-datasource-json v55.2.0
+   Compiling datafusion-datasource-arrow v55.2.0
+   Compiling datafusion-physical-optimizer v55.2.0
+   Compiling datafusion-datasource-parquet v55.2.0
+   Compiling datafusion-functions-table v55.2.0
+   Compiling datafusion-catalog-listing v55.2.0
+   Compiling lance-file v15.0.0-beta.35 (/root/lance/base/rust/lance-file)
+   Compiling lance-datafusion-exec v15.0.0-beta.35 (/root/lance/base/rust/lance-datafusion-exec)
+   Compiling lance-index-core v15.0.0-beta.35 (/root/lance/base/rust/lance-index-core)
+   Compiling datafusion v55.2.0
+   Compiling datafusion-proto v55.2.0
+   Compiling lance-table v15.0.0-beta.35 (/root/lance/base/rust/lance-table)
+   Compiling datafusion-ffi v55.2.0
+   Compiling datafusion-substrait v55.2.0
+   Compiling geodatafusion v0.6.0
+   Compiling lance-datafusion v15.0.0-beta.35 (/root/lance/base/rust/lance-datafusion)
+   Compiling lance-table-runtime v15.0.0-beta.35 (/root/lance/base/rust/lance-table-runtime)
+   Compiling lance-index v15.0.0-beta.35 (/root/lance/base/rust/lance-index)
+   Compiling lance-geo v15.0.0-beta.35 (/root/lance/base/rust/lance-geo)
+   Compiling lance v15.0.0-beta.35 (/root/lance/base/rust/lance)
+   Compiling lance-namespace-impls v15.0.0-beta.35 (/root/lance/base/rust/lance-namespace-impls)
+   Compiling pylance v15.0.0-beta.35 (/root/lance/base/python)
+    Finished `release-with-debug` profile [optimized + debuginfo] target(s) in 4m 30s
+📦 Built wheel for abi3 Python ≥ 3.10 to /tmp/.tmpe1aH9c/pylance-15.0.0b35-cp310-abi3-linux_x86_64.whl
+✏️ Setting installed package as editable
+🛠 Installed pylance-15.0.0b35
+
+real	4m36.596s
+user	81m54.811s
+sys	2m29.390s

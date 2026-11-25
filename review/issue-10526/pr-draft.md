@@ -15,11 +15,13 @@ The split requires evidence of two different logical values. Empty valid values 
 
 ## Evidence
 
-The regression cases cover a valid empty value alongside dirty null payloads, dictionary budget boundaries, configured entry limits, and contiguous repeats with round-trip decoding. On an Apple Silicon Mac, one format 2.2 writer call with 25,000 distinct 180,000-byte LargeBinary values went from one 4.5 GB raw FullZip page to 135 pages with a maximum raw payload of 33.48 MB. The file grew 0.019%, and all full scans and seeded random takes matched the original input.
+On Debian 13.7 with an AMD EPYC 9T24, 64 vCPUs (32 cores with two threads each) and 247 GiB of OS-visible RAM, we compared upstream `cb8c25692` with `d0020f429` using independent `release-with-debug` builds. The format 2.2 inputs reuse the November 18 generator. Each wide LargeUtf8 value is 180,000 bytes and combines a row ID with draws from 4,096 randomly generated words. The suite varies cardinality, repetition, and the presence of short, empty, and null values, and includes an int64 control. Both builds exactly reproduced the input rows for every dataset.
 
-Across three interleaved measured trials, median write wall time went from 203 ms to 177 ms and process CPU time from 759 ms to 1,056 ms. Warm local scan and take medians were 630 to 502 ms and 6.33 to 5.32 ms. These timings use one compressible input on one machine. [Measurement details](benchmark-results.md)
+The 25,000-distinct case went from 1 to 135 pages. Maximum logical page payload went from 4.50 GB to 33.48 MB, and file size changed by +0.001%. With contiguous repeats, the clustered file shrank from 1.534 GB to 29.51 MB across 90 constant pages and 45 dictionary-encoded pages. The 10-value, constant and int64 controls retained their exact file sizes and page counts.
 
-The complete lance-encoding and lance-file suites, Python file tests, Rust formatting, and Python lint passed. The strict workspace Rust Clippy command reports two pre-existing unreachable expressions in the Arm64 byte-stream-split code on this Mac. [Verification details](verification-results.md)
+For 8 writers at 8 Lance CPU threads, the median across three measured runs was 9.067 s → 6.284 s wall time, 50.078 s → 50.306 s process CPU, and 7,059 → 10,184 rows/s. All file-size, write-wall, and write-RSS comparisons met their limits. Five read RSS comparisons exceeded the 10% limit (wide-unique-8k scan, wide-repeated scan, wide-repeated take, wide-clustered scan, wide-clustered take). The summary includes the full write matrix, scan and take results, and raw observations. [Linux results](linux-64cpu/summary.md)
+
+On the earlier Mac validation, the complete lance-encoding and lance-file suites, Python file tests, Rust formatting, and Python lint passed. The strict workspace Rust Clippy command reports two pre-existing unreachable expressions in the Arm64 byte-stream-split code on that host. [Verification details](issue-scale/verification-results.md)
 
 ## Merge Danger
 
