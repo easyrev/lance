@@ -1,0 +1,53 @@
+    Blocking waiting for file lock on build directory
+   Compiling lance-encoding v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-encoding)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 22.74s
+     Running unittests src/lib.rs (target/debug/deps/lance_encoding-1ab68d933f55d85f)
+
+running 5 tests
+test encodings::logical::primitive::wide_value_split::tests::test_dictionary_eligible_wide_values_stay_unsplit::case_2_custom_limit ... ok
+test encodings::logical::primitive::wide_value_split::tests::test_dictionary_eligible_wide_values_stay_unsplit::case_1_default_limit ... FAILED
+test encodings::logical::primitive::structural_encoder::tests::test_dictionary_eligible_wide_values_encoded_size::version_1_TestEncoding__StructuralU16 ... FAILED
+test encodings::logical::primitive::structural_encoder::tests::test_dictionary_eligible_wide_values_encoded_size::version_3_TestEncoding__StructuralSparse ... FAILED
+test encodings::logical::primitive::structural_encoder::tests::test_dictionary_eligible_wide_values_encoded_size::version_2_TestEncoding__StructuralU32 ... FAILED
+
+failures:
+
+---- encodings::logical::primitive::wide_value_split::tests::test_dictionary_eligible_wide_values_stay_unsplit::case_1_default_limit stdout ----
+
+thread 'encodings::logical::primitive::wide_value_split::tests::test_dictionary_eligible_wide_values_stay_unsplit::case_1_default_limit' (28860) panicked at rust/lance-encoding/src/encodings/logical/primitive/wide_value_split.rs:234:9:
+assertion `left == right` failed
+  left: Some([341, 341, 342])
+ right: None
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- encodings::logical::primitive::structural_encoder::tests::test_dictionary_eligible_wide_values_encoded_size::version_1_TestEncoding__StructuralU16 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_dictionary_eligible_wide_values_encoded_size::version_1_TestEncoding__StructuralU16' (28857) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1558:5:
+assertion `left == right` failed
+  left: 38201
+ right: 8359345
+
+---- encodings::logical::primitive::structural_encoder::tests::test_dictionary_eligible_wide_values_encoded_size::version_3_TestEncoding__StructuralSparse stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_dictionary_eligible_wide_values_encoded_size::version_3_TestEncoding__StructuralSparse' (28859) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1558:5:
+assertion `left == right` failed
+  left: 38201
+ right: 36405
+
+---- encodings::logical::primitive::structural_encoder::tests::test_dictionary_eligible_wide_values_encoded_size::version_2_TestEncoding__StructuralU32 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_dictionary_eligible_wide_values_encoded_size::version_2_TestEncoding__StructuralU32' (28858) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1558:5:
+assertion `left == right` failed
+  left: 38201
+ right: 36413
+
+
+failures:
+    encodings::logical::primitive::structural_encoder::tests::test_dictionary_eligible_wide_values_encoded_size::version_1_TestEncoding__StructuralU16
+    encodings::logical::primitive::structural_encoder::tests::test_dictionary_eligible_wide_values_encoded_size::version_2_TestEncoding__StructuralU32
+    encodings::logical::primitive::structural_encoder::tests::test_dictionary_eligible_wide_values_encoded_size::version_3_TestEncoding__StructuralSparse
+    encodings::logical::primitive::wide_value_split::tests::test_dictionary_eligible_wide_values_stay_unsplit::case_1_default_limit
+
+test result: FAILED. 1 passed; 4 failed; 0 ignored; 0 measured; 2507 filtered out; finished in 0.29s
+
+error: test failed, to rerun pass `-p lance-encoding --lib`

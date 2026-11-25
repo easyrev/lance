@@ -1,0 +1,30 @@
+| Workload | Variant | n | File B | Pages | Max raw B | Max encoded B | Layouts | Write ms | Read ms | Read vs fix |
+|---|---|---:|---:|---:|---:|---:|---|---:|---:|---:|
+| unique | baseline | 5 | 10277690 | 1 | 72000000 | 10277363 | FullZipLayout | 20.47 | 20.67 | -5.0% |
+| unique | fix | 5 | 10278014 | 3 | 24120000 | 3443538 | FullZipLayout | 21.32 | 21.77 | +0.0% |
+| unique | p1 | 5 | 10278014 | 3 | 24120000 | 3443538 | FullZipLayout | 19.73 | 21.47 | -1.4% |
+| unique | p2 | 5 | 10278014 | 3 | 24120000 | 3443538 | FullZipLayout | 19.78 | 21.39 | -1.8% |
+| consecutive | baseline | 5 | 102754490 | 1 | 720000000 | 102754164 | FullZipLayout | 245.50 | 155.69 | +1.9% |
+| consecutive | fix | 5 | 102754490 | 1 | 720000000 | 102754164 | FullZipLayout | 230.34 | 152.77 | +0.0% |
+| consecutive | p1 | 5 | 5113907 | 22 | 32760000 | 292293 | MiniBlockLayout | 16.17 | 45.37 | -70.3% |
+| consecutive | p2 | 5 | 5113907 | 22 | 32760000 | 292293 | MiniBlockLayout | 16.24 | 45.82 | -70.0% |
+| template | baseline | 5 | 10277498 | 1 | 72000000 | 10277143 | FullZipLayout | 22.18 | 21.43 | +3.8% |
+| template | fix | 5 | 10277498 | 1 | 72000000 | 10277143 | FullZipLayout | 20.36 | 20.64 | +0.0% |
+| template | p1 | 5 | 10277822 | 3 | 24120000 | 3443146 | FullZipLayout | 21.55 | 22.11 | +7.1% |
+| template | p2 | 5 | 10277822 | 3 | 24120000 | 3443146 | FullZipLayout | 21.34 | 22.30 | +8.1% |
+| constant | baseline | 5 | 180247 | 1 | 72000000 | 180028 | ConstantLayout | 2.82 | 3.95 | -1.7% |
+| constant | fix | 5 | 180247 | 1 | 72000000 | 180028 | ConstantLayout | 2.85 | 4.02 | +0.0% |
+| constant | p1 | 5 | 180247 | 1 | 72000000 | 180028 | ConstantLayout | 5.61 | 3.94 | -1.9% |
+| constant | p2 | 5 | 180247 | 1 | 72000000 | 180028 | ConstantLayout | 5.61 | 4.01 | -0.4% |
+| dirty-null | baseline | 5 | 181090 | 1 | 72000000 | 180828 | ConstantLayout | 4.55 | 2.77 | +3.2% |
+| dirty-null | fix | 5 | 181090 | 1 | 72000000 | 180828 | ConstantLayout | 4.40 | 2.69 | +0.0% |
+| dirty-null | p1 | 5 | 181090 | 1 | 72000000 | 180828 | ConstantLayout | 6.24 | 2.80 | +4.3% |
+| dirty-null | p2 | 5 | 181090 | 1 | 72000000 | 180828 | ConstantLayout | 6.19 | 2.72 | +1.2% |
+| mostly-wide | baseline | 5 | 9765818 | 1 | 68402560 | 9765496 | FullZipLayout | 20.71 | 18.71 | -0.7% |
+| mostly-wide | fix | 5 | 9765818 | 1 | 68402560 | 9765496 | FullZipLayout | 18.70 | 18.84 | +0.0% |
+| mostly-wide | p1 | 5 | 9765818 | 1 | 68402560 | 9765496 | FullZipLayout | 19.99 | 18.90 | +0.3% |
+| mostly-wide | p2 | 5 | 9766142 | 3 | 22860896 | 3264134 | FullZipLayout | 17.82 | 20.42 | +8.4% |
+| mostly-short | baseline | 5 | 12349370 | 1 | 84590000 | 12349046 | FullZipLayout | 28.95 | 25.18 | +2.7% |
+| mostly-short | fix | 5 | 12349370 | 1 | 84590000 | 12349046 | FullZipLayout | 30.35 | 24.53 | +0.0% |
+| mostly-short | p1 | 5 | 12349370 | 1 | 84590000 | 12349046 | FullZipLayout | 32.13 | 25.44 | +3.7% |
+| mostly-short | p2 | 5 | 12349694 | 3 | 28211000 | 4118543 | FullZipLayout | 27.36 | 23.71 | -3.3% |

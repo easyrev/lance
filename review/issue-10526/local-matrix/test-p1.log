@@ -1,0 +1,265 @@
+warning: function `mark_huggingface_rate_limited` is never used
+  --> rust/lance-io/src/object_store/hf_throttle.rs:34:8
+   |
+34 | pub fn mark_huggingface_rate_limited(error: object_store::Error) -> object_store::Error {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: unreachable expression
+   --> rust/lance-encoding/src/encodings/physical/byte_stream_split.rs:358:5
+    |
+352 | /         match bytes_per_value {
+353 | |             4 => return aarch64_neon::split_w4(src, dst, num_values),
+354 | |             8 => return aarch64_neon::split_w8(src, dst, num_values),
+355 | |             _ => unreachable!("ByteStreamSplit only supports 4 or 8 byte values"),
+356 | |         }
+    | |_________- any code following this `match` expression is unreachable, as all arms diverge
+357 |       }
+358 | /     match bytes_per_value {
+359 | |         4 => split_scalar_range::<4>(src, dst, num_values, 0),
+360 | |         8 => split_scalar_range::<8>(src, dst, num_values, 0),
+361 | |         _ => unreachable!("ByteStreamSplit only supports 4 or 8 byte values"),
+362 | |     }
+    | |_____^ unreachable expression
+    |
+    = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: unreachable expression
+   --> rust/lance-encoding/src/encodings/physical/byte_stream_split.rs:393:5
+    |
+387 | /         match bytes_per_value {
+388 | |             4 => return aarch64_neon::unsplit_w4(src, dst, num_values),
+389 | |             8 => return aarch64_neon::unsplit_w8(src, dst, num_values),
+390 | |             _ => unreachable!("ByteStreamSplit only supports 4 or 8 byte values"),
+391 | |         }
+    | |_________- any code following this `match` expression is unreachable, as all arms diverge
+392 |       }
+393 | /     match bytes_per_value {
+394 | |         4 => unsplit_scalar_range::<4>(src, dst, num_values, 0),
+395 | |         8 => unsplit_scalar_range::<8>(src, dst, num_values, 0),
+396 | |         _ => unreachable!("ByteStreamSplit only supports 4 or 8 byte values"),
+397 | |     }
+    | |_____^ unreachable expression
+
+
+running 133 tests
+i........................................................ 57/133
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_one_oversized_per_page::version_2_TestEncoding__StructuralU32 --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_one_oversized_per_page::version_1_TestEncoding__StructuralU16 --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_one_oversized_per_page::version_3_TestEncoding__StructuralSparse --- FAILED
+. 61/133
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_1_single_array::version_1_TestEncoding__StructuralU16 --- FAILED
+. 63/133
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_1_single_array::version_2_TestEncoding__StructuralU32 --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_1_single_array::version_3_TestEncoding__StructuralSparse --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_2_multiple_arrays::version_1_TestEncoding__StructuralU16 --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_2_multiple_arrays::version_2_TestEncoding__StructuralU32 --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_2_multiple_arrays::version_3_TestEncoding__StructuralSparse --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_pages_with_nulls::version_2_TestEncoding__StructuralU32 --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_pages_with_nulls::version_1_TestEncoding__StructuralU16 --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_pages_with_nulls::version_3_TestEncoding__StructuralSparse --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_encoded_size::version_3_TestEncoding__StructuralSparse --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_encoded_size::version_2_TestEncoding__StructuralU32 --- FAILED
+. 74/133
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_encoded_size::version_1_TestEncoding__StructuralU16 --- FAILED
+..................... 96/133
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_1_nullable_large_binary::version_1_TestEncoding__StructuralU16 --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_1_nullable_large_binary::version_3_TestEncoding__StructuralSparse --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_1_nullable_large_binary::version_2_TestEncoding__StructuralU32 --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_2_utf8::version_1_TestEncoding__StructuralU16 --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_2_utf8::version_3_TestEncoding__StructuralSparse --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_2_utf8::version_2_TestEncoding__StructuralU32 --- FAILED
+...... 108/133
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_3_nullable_struct::version_3_TestEncoding__StructuralSparse --- FAILED
+.. 111/133
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_3_nullable_struct::version_2_TestEncoding__StructuralU32 --- FAILED
+encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_3_nullable_struct::version_1_TestEncoding__StructuralU16 --- FAILED
+........... 124/133
+encodings::logical::primitive::wide_value_split::tests::test_wide_values_with_shared_prefix_split --- FAILED
+........
+failures:
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_one_oversized_per_page::version_2_TestEncoding__StructuralU32 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_one_oversized_per_page::version_2_TestEncoding__StructuralU32' (966183) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1446:5:
+assertion `left == right` failed
+  left: 1
+ right: 3
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_one_oversized_per_page::version_1_TestEncoding__StructuralU16 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_one_oversized_per_page::version_1_TestEncoding__StructuralU16' (966182) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1446:5:
+assertion `left == right` failed
+  left: 1
+ right: 3
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_one_oversized_per_page::version_3_TestEncoding__StructuralSparse stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_one_oversized_per_page::version_3_TestEncoding__StructuralSparse' (966184) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1446:5:
+assertion `left == right` failed
+  left: 1
+ right: 3
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_1_single_array::version_1_TestEncoding__StructuralU16 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_1_single_array::version_1_TestEncoding__StructuralU16' (966185) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1412:5:
+assertion `left == right` failed
+  left: [(0, 20)]
+ right: [(0, 5), (5, 5), (10, 5), (15, 5)]
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_1_single_array::version_2_TestEncoding__StructuralU32 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_1_single_array::version_2_TestEncoding__StructuralU32' (966186) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1412:5:
+assertion `left == right` failed
+  left: [(0, 20)]
+ right: [(0, 5), (5, 5), (10, 5), (15, 5)]
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_1_single_array::version_3_TestEncoding__StructuralSparse stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_1_single_array::version_3_TestEncoding__StructuralSparse' (966187) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1412:5:
+assertion `left == right` failed
+  left: [(0, 20)]
+ right: [(0, 5), (5, 5), (10, 5), (15, 5)]
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_2_multiple_arrays::version_1_TestEncoding__StructuralU16 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_2_multiple_arrays::version_1_TestEncoding__StructuralU16' (966188) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1412:5:
+assertion `left == right` failed
+  left: [(0, 20)]
+ right: [(0, 5), (5, 5), (10, 5), (15, 5)]
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_2_multiple_arrays::version_2_TestEncoding__StructuralU32 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_2_multiple_arrays::version_2_TestEncoding__StructuralU32' (966189) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1412:5:
+assertion `left == right` failed
+  left: [(0, 20)]
+ right: [(0, 5), (5, 5), (10, 5), (15, 5)]
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_2_multiple_arrays::version_3_TestEncoding__StructuralSparse stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_2_multiple_arrays::version_3_TestEncoding__StructuralSparse' (966190) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1412:5:
+assertion `left == right` failed
+  left: [(0, 20)]
+ right: [(0, 5), (5, 5), (10, 5), (15, 5)]
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_pages_with_nulls::version_2_TestEncoding__StructuralU32 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_pages_with_nulls::version_2_TestEncoding__StructuralU32' (966192) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1428:5:
+assertion failed: pages.len() > 1
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_pages_with_nulls::version_1_TestEncoding__StructuralU16 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_pages_with_nulls::version_1_TestEncoding__StructuralU16' (966191) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1428:5:
+assertion failed: pages.len() > 1
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_pages_with_nulls::version_3_TestEncoding__StructuralSparse stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_pages_with_nulls::version_3_TestEncoding__StructuralSparse' (966193) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1428:5:
+assertion failed: pages.len() > 1
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_encoded_size::version_3_TestEncoding__StructuralSparse stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_encoded_size::version_3_TestEncoding__StructuralSparse' (966196) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1522:5:
+assertion `left == right` failed
+  left: 1
+ right: 4
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_encoded_size::version_2_TestEncoding__StructuralU32 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_encoded_size::version_2_TestEncoding__StructuralU32' (966195) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1522:5:
+assertion `left == right` failed
+  left: 1
+ right: 4
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_encoded_size::version_1_TestEncoding__StructuralU16 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_encoded_size::version_1_TestEncoding__StructuralU16' (966194) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1522:5:
+assertion `left == right` failed
+  left: 1
+ right: 4
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_1_nullable_large_binary::version_1_TestEncoding__StructuralU16 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_1_nullable_large_binary::version_1_TestEncoding__StructuralU16' (966218) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1603:5:
+assertion failed: pages.len() > 1
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_1_nullable_large_binary::version_3_TestEncoding__StructuralSparse stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_1_nullable_large_binary::version_3_TestEncoding__StructuralSparse' (966220) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1603:5:
+assertion failed: pages.len() > 1
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_1_nullable_large_binary::version_2_TestEncoding__StructuralU32 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_1_nullable_large_binary::version_2_TestEncoding__StructuralU32' (966219) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1603:5:
+assertion failed: pages.len() > 1
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_2_utf8::version_1_TestEncoding__StructuralU16 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_2_utf8::version_1_TestEncoding__StructuralU16' (966221) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1603:5:
+assertion failed: pages.len() > 1
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_2_utf8::version_3_TestEncoding__StructuralSparse stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_2_utf8::version_3_TestEncoding__StructuralSparse' (966223) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1603:5:
+assertion failed: pages.len() > 1
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_2_utf8::version_2_TestEncoding__StructuralU32 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_2_utf8::version_2_TestEncoding__StructuralU32' (966222) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1603:5:
+assertion failed: pages.len() > 1
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_3_nullable_struct::version_3_TestEncoding__StructuralSparse stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_3_nullable_struct::version_3_TestEncoding__StructuralSparse' (966226) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1603:5:
+assertion failed: pages.len() > 1
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_3_nullable_struct::version_2_TestEncoding__StructuralU32 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_3_nullable_struct::version_2_TestEncoding__StructuralU32' (966225) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1603:5:
+assertion failed: pages.len() > 1
+
+---- encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_3_nullable_struct::version_1_TestEncoding__StructuralU16 stdout ----
+
+thread 'encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_3_nullable_struct::version_1_TestEncoding__StructuralU16' (966224) panicked at rust/lance-encoding/src/encodings/logical/primitive/structural_encoder/tests.rs:1603:5:
+assertion failed: pages.len() > 1
+
+---- encodings::logical::primitive::wide_value_split::tests::test_wide_values_with_shared_prefix_split stdout ----
+
+thread 'encodings::logical::primitive::wide_value_split::tests::test_wide_values_with_shared_prefix_split' (966246) panicked at rust/lance-encoding/src/encodings/logical/primitive/wide_value_split.rs:308:9:
+assertion `left == right` failed
+  left: None
+ right: Some([2, 2, 2, 2, 2, 2, 2, 2, 2, 2])
+
+
+failures:
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_one_oversized_per_page::version_1_TestEncoding__StructuralU16
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_one_oversized_per_page::version_2_TestEncoding__StructuralU32
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_one_oversized_per_page::version_3_TestEncoding__StructuralSparse
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_1_single_array::version_1_TestEncoding__StructuralU16
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_1_single_array::version_2_TestEncoding__StructuralU32
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_1_single_array::version_3_TestEncoding__StructuralSparse
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_2_multiple_arrays::version_1_TestEncoding__StructuralU16
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_2_multiple_arrays::version_2_TestEncoding__StructuralU32
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_page_boundaries::case_2_multiple_arrays::version_3_TestEncoding__StructuralSparse
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_pages_with_nulls::version_1_TestEncoding__StructuralU16
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_pages_with_nulls::version_2_TestEncoding__StructuralU32
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_pages_with_nulls::version_3_TestEncoding__StructuralSparse
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_encoded_size::version_1_TestEncoding__StructuralU16
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_encoded_size::version_2_TestEncoding__StructuralU32
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_encoded_size::version_3_TestEncoding__StructuralSparse
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_1_nullable_large_binary::version_1_TestEncoding__StructuralU16
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_1_nullable_large_binary::version_2_TestEncoding__StructuralU32
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_1_nullable_large_binary::version_3_TestEncoding__StructuralSparse
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_2_utf8::version_1_TestEncoding__StructuralU16
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_2_utf8::version_2_TestEncoding__StructuralU32
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_2_utf8::version_3_TestEncoding__StructuralSparse
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_3_nullable_struct::version_1_TestEncoding__StructuralU16
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_3_nullable_struct::version_2_TestEncoding__StructuralU32
+    encodings::logical::primitive::structural_encoder::tests::test_wide_value_split_round_trip::case_3_nullable_struct::version_3_TestEncoding__StructuralSparse
+    encodings::logical::primitive::wide_value_split::tests::test_wide_values_with_shared_prefix_split
+
+test result: FAILED. 107 passed; 25 failed; 1 ignored; 0 measured; 2501 filtered out; finished in 0.06s
+
+error: test failed, to rerun pass `-p lance-encoding --lib`

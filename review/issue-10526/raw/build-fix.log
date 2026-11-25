@@ -1,0 +1,383 @@
+93acbc4d37c3d6ba4cc41bde4c3c760a4d5c344d
+Profile: release-with-debug
+Cargo target: /mnt/lance/target/bench-10526
+uv sync --frozen --python 3.12 --verbose
+DEBUG Found workspace root: /mnt/lance/checkouts/issue10526/python
+DEBUG Adding root workspace member: /mnt/lance/checkouts/issue10526/python
+DEBUG Found workspace configuration at `/mnt/lance/checkouts/issue10526/python/pyproject.toml`
+DEBUG Searching for user configuration in: /root/.config/uv/uv.toml
+DEBUG uv 0.13.5 (x86_64-unknown-linux-gnu)
+DEBUG Found project root: /mnt/lance/checkouts/issue10526/python
+DEBUG Using Python request `3.12` from explicit request
+DEBUG Checking for Python environment at: .venv
+DEBUG Searching for Python 3.12 in managed installations or search path
+DEBUG Searching for managed installations at `/root/.local/share/uv/python`
+DEBUG Found `cpython-3.12.3-linux-x86_64-gnu` at `/usr/bin/python3.12` (first executable in the search path)
+Using CPython 3.12.3 interpreter at: /usr/bin/python3.12
+Creating virtual environment at: .venv
+DEBUG Using base executable for virtual environment: /usr/bin/python3.12
+DEBUG Identified uncached distribution: pylance @ file:///mnt/lance/checkouts/issue10526/python
+DEBUG Registry requirement already cached: maturin==1.13.3
+DEBUG Registry requirement already cached: pyright==1.1.406
+DEBUG Registry requirement already cached: ruff==0.11.2
+DEBUG Registry requirement already cached: boto3==1.40.43
+DEBUG Registry requirement already cached: datafusion==55.0.0
+DEBUG Registry requirement already cached: datasets==4.4.0
+DEBUG Registry requirement already cached: duckdb==1.5.6
+DEBUG Registry requirement already cached: ml-dtypes==0.5.3
+DEBUG Registry requirement already cached: numpy==2.5.1
+DEBUG Registry requirement already cached: opentelemetry-sdk==1.30.0
+DEBUG Registry requirement already cached: pandas==2.3.3
+DEBUG Registry requirement already cached: pillow==11.3.0
+DEBUG Registry requirement already cached: polars==1.34.0
+DEBUG Registry requirement already cached: psutil==7.1.0
+DEBUG Registry requirement already cached: pytest==8.4.2
+DEBUG Registry requirement already cached: pytest-xdist==3.8.0
+DEBUG Registry requirement already cached: tqdm==4.67.1
+DEBUG Registry requirement already cached: lance-namespace==0.13.0
+DEBUG Registry requirement already cached: pyarrow==25.0.1
+DEBUG Registry requirement already cached: nodeenv==1.10.0
+DEBUG Registry requirement already cached: typing-extensions==4.16.0
+DEBUG Registry requirement already cached: botocore==1.40.76
+DEBUG Registry requirement already cached: jmespath==1.1.0
+DEBUG Registry requirement already cached: s3transfer==0.14.0
+DEBUG Registry requirement already cached: cloudpickle==3.1.2
+DEBUG Registry requirement already cached: dill==0.4.0
+DEBUG Registry requirement already cached: filelock==3.29.7
+DEBUG Registry requirement already cached: fsspec==2025.10.0
+DEBUG Registry requirement already cached: httpx==0.28.1
+DEBUG Registry requirement already cached: huggingface-hub==1.23.0
+DEBUG Registry requirement already cached: multiprocess==0.70.18
+DEBUG Registry requirement already cached: packaging==26.2
+DEBUG Registry requirement already cached: pyyaml==6.0.3
+DEBUG Registry requirement already cached: requests==2.34.2
+DEBUG Registry requirement already cached: xxhash==3.8.1
+DEBUG Registry requirement already cached: opentelemetry-api==1.30.0
+DEBUG Registry requirement already cached: opentelemetry-semantic-conventions==0.51b0
+DEBUG Registry requirement already cached: python-dateutil==2.9.0.post0
+DEBUG Registry requirement already cached: pytz==2026.2
+DEBUG Registry requirement already cached: tzdata==2026.3
+DEBUG Registry requirement already cached: polars-runtime-32==1.34.0
+DEBUG Registry requirement already cached: iniconfig==2.3.0
+DEBUG Registry requirement already cached: pluggy==1.6.0
+DEBUG Registry requirement already cached: pygments==2.20.0
+DEBUG Registry requirement already cached: execnet==2.1.2
+DEBUG Registry requirement already cached: lance-namespace-urllib3-client==0.13.0
+DEBUG Registry requirement already cached: urllib3==2.8.0
+DEBUG Registry requirement already cached: aiohttp==3.14.4
+DEBUG Registry requirement already cached: anyio==4.14.2
+DEBUG Registry requirement already cached: certifi==2026.10.19
+DEBUG Registry requirement already cached: httpcore==1.0.9
+DEBUG Registry requirement already cached: idna==3.18
+DEBUG Registry requirement already cached: click==8.4.2
+DEBUG Registry requirement already cached: hf-xet==1.5.1
+DEBUG Registry requirement already cached: charset-normalizer==3.4.9
+DEBUG Registry requirement already cached: deprecated==1.3.1
+DEBUG Registry requirement already cached: importlib-metadata==8.5.0
+DEBUG Registry requirement already cached: six==1.17.0
+DEBUG Registry requirement already cached: pydantic==2.13.4
+DEBUG Registry requirement already cached: aiohappyeyeballs==2.7.1
+DEBUG Registry requirement already cached: aiosignal==1.4.0
+DEBUG Registry requirement already cached: attrs==26.1.0
+DEBUG Registry requirement already cached: frozenlist==1.8.0
+DEBUG Registry requirement already cached: multidict==6.9.1
+DEBUG Registry requirement already cached: propcache==0.5.2
+DEBUG Registry requirement already cached: yarl==1.25.1
+DEBUG Registry requirement already cached: h11==0.16.0
+DEBUG Registry requirement already cached: wrapt==2.2.2
+DEBUG Registry requirement already cached: zipp==4.1.0
+DEBUG Registry requirement already cached: annotated-types==0.7.0
+DEBUG Registry requirement already cached: pydantic-core==2.46.4
+DEBUG Registry requirement already cached: typing-inspection==0.4.2
+DEBUG Using request connect timeout of 10s and read timeout of 30s
+DEBUG Computed cache info: Timestamp(SystemTime { tv_sec: 1795021375, tv_nsec: 128357062 }), None, None, {}, {"src": Some(Timestamp(Timestamp(SystemTime { tv_sec: 1795021375, tv_nsec: 139357484 })))}. Most recently modified: pyproject.toml
+   Building pylance @ file:///mnt/lance/checkouts/issue10526/python
+DEBUG Building: pylance @ file:///mnt/lance/checkouts/issue10526/python
+DEBUG Assessing Python executable as base candidate: /usr/bin/python3.12
+DEBUG Creating build environment for: pylance @ file:///mnt/lance/checkouts/issue10526/python
+DEBUG Using base executable for virtual environment: /usr/bin/python3.12
+DEBUG Resolving build requirements
+DEBUG Solving with installed Python version: 3.12.3
+DEBUG Solving with target Python version: >=3.12.3
+DEBUG Adding direct dependency: maturin>=1.4
+DEBUG Found stale response for: https://pypi.org/simple/maturin/
+DEBUG Sending revalidation request for: https://pypi.org/simple/maturin/
+DEBUG Found not-modified response for: https://pypi.org/simple/maturin/
+DEBUG Searching for a compatible version of maturin (>=1.4)
+DEBUG Selecting: maturin==1.16.0 [compatible] (maturin-1.16.0-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.musllinux_1_1_x86_64.whl)
+DEBUG Found fresh response for: https://files.pythonhosted.org/packages/0a/dc/e77f490557cb5e045a75c3d18a7965425ac576235c970dfff4d903eb2c74/maturin-1.16.0-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.musllinux_1_1_x86_64.whl.metadata
+DEBUG Tried 1 versions: maturin 1
+DEBUG marker environment resolution took 0.539s
+DEBUG Installing `maturin==1.16.0` in `/root/.cache/uv/builds-v0/.tmpNzRS0c`
+DEBUG Registry requirement already cached: maturin==1.16.0
+DEBUG Installing build requirement: maturin==1.16.0
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/xZ30J8a61fgsj-s8/maturin-1.16.0.dist-info/METADATA` to `/root/.cache/uv/builds-v0/.tmpNzRS0c/lib/python3.12/site-packages/maturin-1.16.0.dist-info/METADATA`: Operation not supported (os error 95), falling back
+DEBUG Creating PEP 517 build environment
+DEBUG Calling `maturin.get_requires_for_build_editable()`
+DEBUG Calling `maturin.build_editable(__import__("os").fsdecode(b"/root/.cache/uv/builds-v0/.tmppeUjYm"), {}, None)`
+DEBUG Running `maturin pep517 build-wheel -i /root/.cache/uv/builds-v0/.tmpNzRS0c/bin/python --compatibility off --editable --profile release-with-debug`
+DEBUG 🍹 Building a mixed python/rust project
+DEBUG 🐍 Found CPython 3.12 at /root/.cache/uv/builds-v0/.tmpNzRS0c/bin/python
+DEBUG 🔗 Found pyo3 bindings with abi3-py3.10 support
+DEBUG    Compiling lance-jsonb v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-jsonb)
+DEBUG    Compiling lance-derive v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-derive)
+DEBUG    Compiling lance-bitpacking v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/compression/bitpacking)
+DEBUG    Compiling fsst v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/compression/fsst)
+DEBUG    Compiling lance-linalg v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-linalg)
+DEBUG    Compiling lance-arrow-scalar v59.0.0 (/mnt/lance/checkouts/issue10526/rust/arrow-scalar)
+DEBUG    Compiling lance-tokenizer v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-tokenizer)
+DEBUG    Compiling lance-arrow-stats v59.0.0 (/mnt/lance/checkouts/issue10526/rust/arrow-stats)
+DEBUG    Compiling lance-arrow v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-arrow)
+DEBUG warning: lance-linalg@15.0.0-beta.25: fp16kernels feature is not enabled, skipping build of fp16 kernels
+DEBUG warning: lance-linalg@15.0.0-beta.25: fp16kernels feature is not enabled, skipping build of bf16 kernels
+DEBUG warning: lance-linalg@15.0.0-beta.25: fp16kernels feature is not enabled, skipping build of fp16 kernels
+DEBUG warning: lance-linalg@15.0.0-beta.25: fp16kernels feature is not enabled, skipping build of bf16 kernels
+DEBUG    Compiling lance-core v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-core)
+DEBUG    Compiling lance-namespace v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-namespace)
+DEBUG    Compiling lance-select v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-select)
+DEBUG    Compiling lance-datafusion-exec v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-datafusion-exec)
+DEBUG    Compiling lance-io v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-io)
+DEBUG    Compiling lance-datafusion v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-datafusion)
+DEBUG    Compiling lance-index-core v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-index-core)
+DEBUG    Compiling lance-encoding v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-encoding)
+DEBUG    Compiling lance-file v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-file)
+DEBUG    Compiling lance-table v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-table)
+DEBUG    Compiling lance-index v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-index)
+DEBUG    Compiling lance-geo v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-geo)
+DEBUG    Compiling lance v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance)
+DEBUG    Compiling lance-namespace-impls v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/rust/lance-namespace-impls)
+DEBUG    Compiling pylance v15.0.0-beta.25 (/mnt/lance/checkouts/issue10526/python)
+DEBUG     Finished `release-with-debug` profile [optimized + debuginfo] target(s) in 14m 43s
+DEBUG 📦 Built wheel for abi3 Python ≥ 3.10 to /mnt/lance/target/bench-10526/wheels/pylance-15.0.0b25-cp310-abi3-linux_x86_64.whl
+DEBUG /mnt/lance/target/bench-10526/wheels/pylance-15.0.0b25-cp310-abi3-linux_x86_64.whl
+DEBUG Built `pylance @ file:///mnt/lance/checkouts/issue10526/python` into `pylance-15.0.0b25-cp310-abi3-linux_x86_64.whl`
+      Built pylance @ file:///mnt/lance/checkouts/issue10526/python
+Prepared 1 package in 14m 46s
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/JWxGx2Kg2zGwkzQG/pylance.pth` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pylance.pth`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/JWxGx2Kg2zGwkzQG/pylance.pth` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pylance.pth`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pylance.pth to /root/.cache/uv/archive-v0/JWxGx2Kg2zGwkzQG/pylance.pth: Invalid cross-device link (os error 18); falling back to copy
+warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+         If the cache and target directories are on different filesystems, hardlinking may not be supported.
+         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/ZkRVt0hxWlUvDaJ-/hf_xet/hf_xet.abi3.so` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/hf_xet/hf_xet.abi3.so`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/ZkRVt0hxWlUvDaJ-/hf_xet/hf_xet.abi3.so` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/hf_xet/hf_xet.abi3.so`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/hf_xet/hf_xet.abi3.so to /root/.cache/uv/archive-v0/ZkRVt0hxWlUvDaJ-/hf_xet/hf_xet.abi3.so: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/vWNwbMut5UDDWMFi/boto3-1.40.43.dist-info/NOTICE` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/boto3-1.40.43.dist-info/NOTICE`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/vWNwbMut5UDDWMFi/boto3-1.40.43.dist-info/NOTICE` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/boto3-1.40.43.dist-info/NOTICE`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/boto3-1.40.43.dist-info/NOTICE to /root/.cache/uv/archive-v0/vWNwbMut5UDDWMFi/boto3-1.40.43.dist-info/NOTICE: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/gOeaVT1k4KCMJsbw/opentelemetry/metrics/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/opentelemetry/metrics/py.typed`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/gOeaVT1k4KCMJsbw/opentelemetry/metrics/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/opentelemetry/metrics/py.typed`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/opentelemetry/metrics/py.typed to /root/.cache/uv/archive-v0/gOeaVT1k4KCMJsbw/opentelemetry/metrics/py.typed: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/IsI3d_QbV9ETNAVD/maturin-1.13.3.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/maturin-1.13.3.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/IsI3d_QbV9ETNAVD/maturin-1.13.3.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/maturin-1.13.3.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/maturin-1.13.3.dist-info/METADATA to /root/.cache/uv/archive-v0/IsI3d_QbV9ETNAVD/maturin-1.13.3.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/zolhhfaSAEvgmcA4/numpy.libs/libscipy_openblas64_-017048f4.so` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/numpy.libs/libscipy_openblas64_-017048f4.so`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/zolhhfaSAEvgmcA4/numpy.libs/libscipy_openblas64_-017048f4.so` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/numpy.libs/libscipy_openblas64_-017048f4.so`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/numpy.libs/libscipy_openblas64_-017048f4.so to /root/.cache/uv/archive-v0/zolhhfaSAEvgmcA4/numpy.libs/libscipy_openblas64_-017048f4.so: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/rM_yX0qGBhklQNjW/deprecated/sphinx.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/deprecated/sphinx.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/rM_yX0qGBhklQNjW/deprecated/sphinx.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/deprecated/sphinx.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/deprecated/sphinx.py to /root/.cache/uv/archive-v0/rM_yX0qGBhklQNjW/deprecated/sphinx.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/Tw2LJQXVXFBiux7G/anyio-4.14.2.dist-info/scm_file_list.json` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/anyio-4.14.2.dist-info/scm_file_list.json`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/Tw2LJQXVXFBiux7G/anyio-4.14.2.dist-info/scm_file_list.json` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/anyio-4.14.2.dist-info/scm_file_list.json`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/anyio-4.14.2.dist-info/scm_file_list.json to /root/.cache/uv/archive-v0/Tw2LJQXVXFBiux7G/anyio-4.14.2.dist-info/scm_file_list.json: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/HJoPy_oCsNrg6A4e/execnet/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/execnet/py.typed`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/UK62WDkESr98ebrL/polars/api.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/polars/api.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/HJoPy_oCsNrg6A4e/execnet/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/execnet/py.typed`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/execnet/py.typed to /root/.cache/uv/archive-v0/HJoPy_oCsNrg6A4e/execnet/py.typed: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/UK62WDkESr98ebrL/polars/api.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/polars/api.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/polars/api.py to /root/.cache/uv/archive-v0/UK62WDkESr98ebrL/polars/api.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/BsXspx9bMu4Ppz9F/six.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/six.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/BsXspx9bMu4Ppz9F/six.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/six.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/six.py to /root/.cache/uv/archive-v0/BsXspx9bMu4Ppz9F/six.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/TiuFUWQe1VObXu9m/pyright/_mureq.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pyright/_mureq.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/TiuFUWQe1VObXu9m/pyright/_mureq.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pyright/_mureq.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pyright/_mureq.py to /root/.cache/uv/archive-v0/TiuFUWQe1VObXu9m/pyright/_mureq.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/AtQ-htIhdAXXcUyy/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/-Dhi8L_uwajU3RHx/ruff-0.11.2.data/scripts/ruff` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/ruff-0.11.2.data/scripts/ruff`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/AtQ-htIhdAXXcUyy/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so to /root/.cache/uv/archive-v0/AtQ-htIhdAXXcUyy/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/-Dhi8L_uwajU3RHx/ruff-0.11.2.data/scripts/ruff` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/ruff-0.11.2.data/scripts/ruff`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/ruff-0.11.2.data/scripts/ruff to /root/.cache/uv/archive-v0/-Dhi8L_uwajU3RHx/ruff-0.11.2.data/scripts/ruff: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/EzcPLzh8q2-OP6qR/pandas-2.3.3.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pandas-2.3.3.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/mbirQLqdY7AWhnXE/lance_namespace/errors.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/lance_namespace/errors.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/EzcPLzh8q2-OP6qR/pandas-2.3.3.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pandas-2.3.3.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pandas-2.3.3.dist-info/METADATA to /root/.cache/uv/archive-v0/EzcPLzh8q2-OP6qR/pandas-2.3.3.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/mbirQLqdY7AWhnXE/lance_namespace/errors.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/lance_namespace/errors.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/lance_namespace/errors.py to /root/.cache/uv/archive-v0/mbirQLqdY7AWhnXE/lance_namespace/errors.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/iVyKgJIFm_7lJyoX/pyarrow-25.0.1.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pyarrow-25.0.1.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/iVyKgJIFm_7lJyoX/pyarrow-25.0.1.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pyarrow-25.0.1.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pyarrow-25.0.1.dist-info/METADATA to /root/.cache/uv/archive-v0/iVyKgJIFm_7lJyoX/pyarrow-25.0.1.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/NSeT1LLQxPxUglp4/pydantic/mypy.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pydantic/mypy.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/NSeT1LLQxPxUglp4/pydantic/mypy.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pydantic/mypy.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pydantic/mypy.py to /root/.cache/uv/archive-v0/NSeT1LLQxPxUglp4/pydantic/mypy.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/E4WaXzoy3GriLzhP/importlib_metadata/_meta.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/importlib_metadata/_meta.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/E4WaXzoy3GriLzhP/importlib_metadata/_meta.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/importlib_metadata/_meta.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/importlib_metadata/_meta.py to /root/.cache/uv/archive-v0/E4WaXzoy3GriLzhP/importlib_metadata/_meta.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/EvuMh8If-pvMyOWn/multidict/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/multidict/py.typed`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/EvuMh8If-pvMyOWn/multidict/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/multidict/py.typed`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/multidict/py.typed to /root/.cache/uv/archive-v0/EvuMh8If-pvMyOWn/multidict/py.typed: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/wUWKmAtpZN70r0X2/wrapt/caching.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/wrapt/caching.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/wUWKmAtpZN70r0X2/wrapt/caching.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/wrapt/caching.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/wrapt/caching.py to /root/.cache/uv/archive-v0/wUWKmAtpZN70r0X2/wrapt/caching.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/0t5BXzOEaGPGsFvc/lance_namespace_urllib3_client-0.13.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/lance_namespace_urllib3_client-0.13.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/0t5BXzOEaGPGsFvc/lance_namespace_urllib3_client-0.13.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/lance_namespace_urllib3_client-0.13.0.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/lance_namespace_urllib3_client-0.13.0.dist-info/METADATA to /root/.cache/uv/archive-v0/0t5BXzOEaGPGsFvc/lance_namespace_urllib3_client-0.13.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/Az8-INGXVFOIa7C0/charset_normalizer/api.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/charset_normalizer/api.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/Az8-INGXVFOIa7C0/charset_normalizer/api.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/charset_normalizer/api.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/charset_normalizer/api.py to /root/.cache/uv/archive-v0/Az8-INGXVFOIa7C0/charset_normalizer/api.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/hv6lezwENydDISgY/httpcore/_sync/interfaces.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/httpcore/_sync/interfaces.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/hv6lezwENydDISgY/httpcore/_sync/interfaces.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/httpcore/_sync/interfaces.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/httpcore/_sync/interfaces.py to /root/.cache/uv/archive-v0/hv6lezwENydDISgY/httpcore/_sync/interfaces.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/is3KhTJQzoI7UcZ8/datasets/combine.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/datasets/combine.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/is3KhTJQzoI7UcZ8/datasets/combine.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/datasets/combine.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/datasets/combine.py to /root/.cache/uv/archive-v0/is3KhTJQzoI7UcZ8/datasets/combine.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/kztTOZf4W6awL-cq/propcache-0.5.2.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/propcache-0.5.2.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/kztTOZf4W6awL-cq/propcache-0.5.2.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/propcache-0.5.2.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/propcache-0.5.2.dist-info/METADATA to /root/.cache/uv/archive-v0/kztTOZf4W6awL-cq/propcache-0.5.2.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/uUaMoVm4_Tu3VYW-/opentelemetry/semconv/metrics/http_metrics.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/opentelemetry/semconv/metrics/http_metrics.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/uUaMoVm4_Tu3VYW-/opentelemetry/semconv/metrics/http_metrics.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/opentelemetry/semconv/metrics/http_metrics.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/opentelemetry/semconv/metrics/http_metrics.py to /root/.cache/uv/archive-v0/uUaMoVm4_Tu3VYW-/opentelemetry/semconv/metrics/http_metrics.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/iebYftXA3Diztj_D/zipp-4.1.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/zipp-4.1.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/iebYftXA3Diztj_D/zipp-4.1.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/zipp-4.1.0.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/zipp-4.1.0.dist-info/METADATA to /root/.cache/uv/archive-v0/iebYftXA3Diztj_D/zipp-4.1.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/ClHerweFiWzyC2Wz/yarl-1.25.1.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/yarl-1.25.1.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/ClHerweFiWzyC2Wz/yarl-1.25.1.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/yarl-1.25.1.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/yarl-1.25.1.dist-info/METADATA to /root/.cache/uv/archive-v0/ClHerweFiWzyC2Wz/yarl-1.25.1.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/MWHS1qNtr3hHpaKv/aiohappyeyeballs/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/aiohappyeyeballs/py.typed`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/MWHS1qNtr3hHpaKv/aiohappyeyeballs/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/aiohappyeyeballs/py.typed`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/aiohappyeyeballs/py.typed to /root/.cache/uv/archive-v0/MWHS1qNtr3hHpaKv/aiohappyeyeballs/py.typed: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/frK_xHQeMnVnkRbT/certifi/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/certifi/py.typed`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/frK_xHQeMnVnkRbT/certifi/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/certifi/py.typed`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/certifi/py.typed to /root/.cache/uv/archive-v0/frK_xHQeMnVnkRbT/certifi/py.typed: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/w2z88Ezv_ihcDR18/annotated_types/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/annotated_types/py.typed`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/w2z88Ezv_ihcDR18/annotated_types/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/annotated_types/py.typed`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/annotated_types/py.typed to /root/.cache/uv/archive-v0/w2z88Ezv_ihcDR18/annotated_types/py.typed: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/hzK-xtZwyvsSjI6q/pydantic_core-2.46.4.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pydantic_core-2.46.4.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/hzK-xtZwyvsSjI6q/pydantic_core-2.46.4.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pydantic_core-2.46.4.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pydantic_core-2.46.4.dist-info/METADATA to /root/.cache/uv/archive-v0/hzK-xtZwyvsSjI6q/pydantic_core-2.46.4.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/p9L0ZNWwOikrnzEh/aiosignal-1.4.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/aiosignal-1.4.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/p9L0ZNWwOikrnzEh/aiosignal-1.4.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/aiosignal-1.4.0.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/aiosignal-1.4.0.dist-info/METADATA to /root/.cache/uv/archive-v0/p9L0ZNWwOikrnzEh/aiosignal-1.4.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/a39evItUNqD9JaUo/pytest/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pytest/py.typed`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/a39evItUNqD9JaUo/pytest/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pytest/py.typed`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pytest/py.typed to /root/.cache/uv/archive-v0/a39evItUNqD9JaUo/pytest/py.typed: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/a6rJf2-KoS2_abDW/idna-3.18.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/idna-3.18.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/a6rJf2-KoS2_abDW/idna-3.18.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/idna-3.18.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/idna-3.18.dist-info/METADATA to /root/.cache/uv/archive-v0/a6rJf2-KoS2_abDW/idna-3.18.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/PkYIthewLeguxd-2/h11-0.16.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/h11-0.16.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/PkYIthewLeguxd-2/h11-0.16.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/h11-0.16.0.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/h11-0.16.0.dist-info/METADATA to /root/.cache/uv/archive-v0/PkYIthewLeguxd-2/h11-0.16.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/nn8T32CCPmd2nrht/datafusion/dataframe.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/datafusion/dataframe.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/nn8T32CCPmd2nrht/datafusion/dataframe.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/datafusion/dataframe.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/datafusion/dataframe.py to /root/.cache/uv/archive-v0/nn8T32CCPmd2nrht/datafusion/dataframe.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/WjWrzOf6TRnhnp1G/attr/filters.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/attr/filters.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/WjWrzOf6TRnhnp1G/attr/filters.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/attr/filters.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/attr/filters.py to /root/.cache/uv/archive-v0/WjWrzOf6TRnhnp1G/attr/filters.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/Wd8S40VLc3kwWO6E/click-8.4.2.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/click-8.4.2.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/Wd8S40VLc3kwWO6E/click-8.4.2.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/click-8.4.2.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/click-8.4.2.dist-info/METADATA to /root/.cache/uv/archive-v0/Wd8S40VLc3kwWO6E/click-8.4.2.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/9D2RoGAO4L7AlS2x/typing_inspection-0.4.2.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/typing_inspection-0.4.2.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/9D2RoGAO4L7AlS2x/typing_inspection-0.4.2.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/typing_inspection-0.4.2.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/typing_inspection-0.4.2.dist-info/METADATA to /root/.cache/uv/archive-v0/9D2RoGAO4L7AlS2x/typing_inspection-0.4.2.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/ZnSJ1IBNcUBGo8ZJ/filelock/_windows.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/filelock/_windows.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/ZnSJ1IBNcUBGo8ZJ/filelock/_windows.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/filelock/_windows.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/filelock/_windows.py to /root/.cache/uv/archive-v0/ZnSJ1IBNcUBGo8ZJ/filelock/_windows.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/91EqUnzfkZHTbxbn/botocore/translate.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/botocore/translate.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/91EqUnzfkZHTbxbn/botocore/translate.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/botocore/translate.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/botocore/translate.py to /root/.cache/uv/archive-v0/91EqUnzfkZHTbxbn/botocore/translate.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/CZqLFqKH2jR15olg/urllib3-2.8.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/urllib3-2.8.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/CZqLFqKH2jR15olg/urllib3-2.8.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/urllib3-2.8.0.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/urllib3-2.8.0.dist-info/METADATA to /root/.cache/uv/archive-v0/CZqLFqKH2jR15olg/urllib3-2.8.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/xDkTnO8bfvgWozLm/psutil/_pswindows.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/psutil/_pswindows.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/xDkTnO8bfvgWozLm/psutil/_pswindows.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/psutil/_pswindows.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/psutil/_pswindows.py to /root/.cache/uv/archive-v0/xDkTnO8bfvgWozLm/psutil/_pswindows.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/5VrKgiMxwPpZZiqc/opentelemetry/sdk/resources/__init__.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/opentelemetry/sdk/resources/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/5VrKgiMxwPpZZiqc/opentelemetry/sdk/resources/__init__.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/opentelemetry/sdk/resources/__init__.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/opentelemetry/sdk/resources/__init__.py to /root/.cache/uv/archive-v0/5VrKgiMxwPpZZiqc/opentelemetry/sdk/resources/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/_Aru7UxyhM9PioXf/fsspec/caching.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/fsspec/caching.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/_Aru7UxyhM9PioXf/fsspec/caching.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/fsspec/caching.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/fsspec/caching.py to /root/.cache/uv/archive-v0/_Aru7UxyhM9PioXf/fsspec/caching.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/3KXu_R3TpWw0Dzpv/_multiprocess/__init__.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/_multiprocess/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/3KXu_R3TpWw0Dzpv/_multiprocess/__init__.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/_multiprocess/__init__.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/_multiprocess/__init__.py to /root/.cache/uv/archive-v0/3KXu_R3TpWw0Dzpv/_multiprocess/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/J2SOHVExZKzxcgTV/aiohttp-3.14.4.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/aiohttp-3.14.4.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/J2SOHVExZKzxcgTV/aiohttp-3.14.4.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/aiohttp-3.14.4.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/aiohttp-3.14.4.dist-info/METADATA to /root/.cache/uv/archive-v0/J2SOHVExZKzxcgTV/aiohttp-3.14.4.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/PI-Ybe3VgTV5hS3z/nodeenv.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/nodeenv.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/PI-Ybe3VgTV5hS3z/nodeenv.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/nodeenv.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/nodeenv.py to /root/.cache/uv/archive-v0/PI-Ybe3VgTV5hS3z/nodeenv.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/gAORLYS8oJI3J26_/python_dateutil-2.9.0.post0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/python_dateutil-2.9.0.post0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/gAORLYS8oJI3J26_/python_dateutil-2.9.0.post0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/python_dateutil-2.9.0.post0.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/python_dateutil-2.9.0.post0.dist-info/METADATA to /root/.cache/uv/archive-v0/gAORLYS8oJI3J26_/python_dateutil-2.9.0.post0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/RxeiF8VdqXnAwQhv/xdist/newhooks.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/xdist/newhooks.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/RxeiF8VdqXnAwQhv/xdist/newhooks.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/xdist/newhooks.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/xdist/newhooks.py to /root/.cache/uv/archive-v0/RxeiF8VdqXnAwQhv/xdist/newhooks.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/vzMt6FeOkgtKGIh-/duckdb/filesystem.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/duckdb/filesystem.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/vzMt6FeOkgtKGIh-/duckdb/filesystem.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/duckdb/filesystem.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/duckdb/filesystem.py to /root/.cache/uv/archive-v0/vzMt6FeOkgtKGIh-/duckdb/filesystem.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/1dEKI_oTd70JUsM9/typing_extensions.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/typing_extensions.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/1dEKI_oTd70JUsM9/typing_extensions.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/typing_extensions.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/typing_extensions.py to /root/.cache/uv/archive-v0/1dEKI_oTd70JUsM9/typing_extensions.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/bMFDOlvL00b1DsUo/yaml/loader.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/yaml/loader.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/bMFDOlvL00b1DsUo/yaml/loader.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/yaml/loader.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/yaml/loader.py to /root/.cache/uv/archive-v0/bMFDOlvL00b1DsUo/yaml/loader.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/wqQWZ3veG0IwoxKL/packaging/_tokenizer.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/packaging/_tokenizer.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/wqQWZ3veG0IwoxKL/packaging/_tokenizer.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/packaging/_tokenizer.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/packaging/_tokenizer.py to /root/.cache/uv/archive-v0/wqQWZ3veG0IwoxKL/packaging/_tokenizer.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/425R_kXj73as_rSk/httpx/_urls.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/httpx/_urls.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/425R_kXj73as_rSk/httpx/_urls.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/httpx/_urls.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/httpx/_urls.py to /root/.cache/uv/archive-v0/425R_kXj73as_rSk/httpx/_urls.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/UhdiSWg4e_ywhHrD/pytz/reference.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pytz/reference.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/UhdiSWg4e_ywhHrD/pytz/reference.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pytz/reference.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pytz/reference.py to /root/.cache/uv/archive-v0/UhdiSWg4e_ywhHrD/pytz/reference.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/is_i0_mrewoTODYG/tqdm-4.67.1.dist-info/LICENCE` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/tqdm-4.67.1.dist-info/LICENCE`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/is_i0_mrewoTODYG/tqdm-4.67.1.dist-info/LICENCE` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/tqdm-4.67.1.dist-info/LICENCE`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/tqdm-4.67.1.dist-info/LICENCE to /root/.cache/uv/archive-v0/is_i0_mrewoTODYG/tqdm-4.67.1.dist-info/LICENCE: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/5HDse6aN6Aa0HJPi/huggingface_hub-1.23.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/huggingface_hub-1.23.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/5HDse6aN6Aa0HJPi/huggingface_hub-1.23.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/huggingface_hub-1.23.0.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/huggingface_hub-1.23.0.dist-info/METADATA to /root/.cache/uv/archive-v0/5HDse6aN6Aa0HJPi/huggingface_hub-1.23.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/gvpR89h6sHPTCyhv/ml_dtypes-0.5.3.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/ml_dtypes-0.5.3.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/gvpR89h6sHPTCyhv/ml_dtypes-0.5.3.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/ml_dtypes-0.5.3.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/ml_dtypes-0.5.3.dist-info/METADATA to /root/.cache/uv/archive-v0/gvpR89h6sHPTCyhv/ml_dtypes-0.5.3.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/K4MZcCNOmhwCTAT5/requests-2.34.2.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/requests-2.34.2.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/K4MZcCNOmhwCTAT5/requests-2.34.2.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/requests-2.34.2.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/requests-2.34.2.dist-info/METADATA to /root/.cache/uv/archive-v0/K4MZcCNOmhwCTAT5/requests-2.34.2.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/_Q_Y-95NWiusMY8v/xxhash/version.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/xxhash/version.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/_Q_Y-95NWiusMY8v/xxhash/version.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/xxhash/version.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/xxhash/version.py to /root/.cache/uv/archive-v0/_Q_Y-95NWiusMY8v/xxhash/version.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/dWclc4hocMJ3Fo06/pillow.libs/libwebpmux-6f2b1ad9.so.3.1.1` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pillow.libs/libwebpmux-6f2b1ad9.so.3.1.1`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/dWclc4hocMJ3Fo06/pillow.libs/libwebpmux-6f2b1ad9.so.3.1.1` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pillow.libs/libwebpmux-6f2b1ad9.so.3.1.1`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pillow.libs/libwebpmux-6f2b1ad9.so.3.1.1 to /root/.cache/uv/archive-v0/dWclc4hocMJ3Fo06/pillow.libs/libwebpmux-6f2b1ad9.so.3.1.1: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/-LccSreqMmdRoHO9/s3transfer-0.14.0.dist-info/NOTICE.txt` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/s3transfer-0.14.0.dist-info/NOTICE.txt`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/-LccSreqMmdRoHO9/s3transfer-0.14.0.dist-info/NOTICE.txt` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/s3transfer-0.14.0.dist-info/NOTICE.txt`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/s3transfer-0.14.0.dist-info/NOTICE.txt to /root/.cache/uv/archive-v0/-LccSreqMmdRoHO9/s3transfer-0.14.0.dist-info/NOTICE.txt: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/Z-u2VlIAwey1GDZb/tzdata/zones` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/tzdata/zones`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/Z-u2VlIAwey1GDZb/tzdata/zones` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/tzdata/zones`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/tzdata/zones to /root/.cache/uv/archive-v0/Z-u2VlIAwey1GDZb/tzdata/zones: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/AfoQ_4gx23wsleRQ/jmespath/parser.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/jmespath/parser.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/AfoQ_4gx23wsleRQ/jmespath/parser.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/jmespath/parser.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/jmespath/parser.py to /root/.cache/uv/archive-v0/AfoQ_4gx23wsleRQ/jmespath/parser.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/zFIytev_bTD32VOl/iniconfig-2.3.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/iniconfig-2.3.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/zFIytev_bTD32VOl/iniconfig-2.3.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/iniconfig-2.3.0.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/iniconfig-2.3.0.dist-info/METADATA to /root/.cache/uv/archive-v0/zFIytev_bTD32VOl/iniconfig-2.3.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/-sM31LEbB8E_Ag3p/pluggy/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pluggy/py.typed`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/-sM31LEbB8E_Ag3p/pluggy/py.typed` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pluggy/py.typed`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pluggy/py.typed to /root/.cache/uv/archive-v0/-sM31LEbB8E_Ag3p/pluggy/py.typed: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/DEF_kIsS8nRlbxql/pygments/lexers/arturo.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pygments/lexers/arturo.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/DEF_kIsS8nRlbxql/pygments/lexers/arturo.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pygments/lexers/arturo.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/pygments/lexers/arturo.py to /root/.cache/uv/archive-v0/DEF_kIsS8nRlbxql/pygments/lexers/arturo.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/6vzv18wv53hFXxUR/cloudpickle/cloudpickle_fast.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/cloudpickle/cloudpickle_fast.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/6vzv18wv53hFXxUR/cloudpickle/cloudpickle_fast.py` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/cloudpickle/cloudpickle_fast.py`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/cloudpickle/cloudpickle_fast.py to /root/.cache/uv/archive-v0/6vzv18wv53hFXxUR/cloudpickle/cloudpickle_fast.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/Utl5eh0KlWChD1hl/dill-0.4.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/dill-0.4.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/Utl5eh0KlWChD1hl/dill-0.4.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/dill-0.4.0.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/dill-0.4.0.dist-info/METADATA to /root/.cache/uv/archive-v0/Utl5eh0KlWChD1hl/dill-0.4.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/.cache/uv/archive-v0/bxTHgrZXiph0lqgv/polars_runtime_32-1.34.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/polars_runtime_32-1.34.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/.cache/uv/archive-v0/bxTHgrZXiph0lqgv/polars_runtime_32-1.34.0.dist-info/METADATA` to `/mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/polars_runtime_32-1.34.0.dist-info/METADATA`: failed to hardlink file from /mnt/lance/checkouts/issue10526/python/.venv/lib/python3.12/site-packages/polars_runtime_32-1.34.0.dist-info/METADATA to /root/.cache/uv/archive-v0/bxTHgrZXiph0lqgv/polars_runtime_32-1.34.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+Installed 73 packages in 24.69s
+ + aiohappyeyeballs==2.7.1
+ + aiohttp==3.14.4
+ + aiosignal==1.4.0
+ + annotated-types==0.7.0
+ + anyio==4.14.2
+ + attrs==26.1.0
+ + boto3==1.40.43
+ + botocore==1.40.76
+ + certifi==2026.10.19
+ + charset-normalizer==3.4.9
+ + click==8.4.2
+ + cloudpickle==3.1.2
+ + datafusion==55.0.0
+ + datasets==4.4.0
+ + deprecated==1.3.1
+ + dill==0.4.0
+ + duckdb==1.5.6
+ + execnet==2.1.2
+ + filelock==3.29.7
+ + frozenlist==1.8.0
+ + fsspec==2025.10.0
+ + h11==0.16.0
+ + hf-xet==1.5.1
+ + httpcore==1.0.9
+ + httpx==0.28.1
+ + huggingface-hub==1.23.0
+ + idna==3.18
+ + importlib-metadata==8.5.0
+ + iniconfig==2.3.0
+ + jmespath==1.1.0
+ + lance-namespace==0.13.0
+ + lance-namespace-urllib3-client==0.13.0
+ + maturin==1.13.3
+ + ml-dtypes==0.5.3
+ + multidict==6.9.1
+ + multiprocess==0.70.18
+ + nodeenv==1.10.0
+ + numpy==2.5.1
+ + opentelemetry-api==1.30.0
+ + opentelemetry-sdk==1.30.0
+ + opentelemetry-semantic-conventions==0.51b0
+ + packaging==26.2
+ + pandas==2.3.3
+ + pillow==11.3.0
+ + pluggy==1.6.0
+ + polars==1.34.0
+ + polars-runtime-32==1.34.0
+ + propcache==0.5.2
+ + psutil==7.1.0
+ + pyarrow==25.0.1
+ + pydantic==2.13.4
+ + pydantic-core==2.46.4
+ + pygments==2.20.0
+ + pylance==15.0.0b25 (from file:///mnt/lance/checkouts/issue10526/python)
+ + pyright==1.1.406
+ + pytest==8.4.2
+ + pytest-xdist==3.8.0
+ + python-dateutil==2.9.0.post0
+ + pytz==2026.2
+ + pyyaml==6.0.3
+ + requests==2.34.2
+ + ruff==0.11.2
+ + s3transfer==0.14.0
+ + six==1.17.0
+ + tqdm==4.67.1
+ + typing-extensions==4.16.0
+ + typing-inspection==0.4.2
+ + tzdata==2026.3
+ + urllib3==2.8.0
+ + wrapt==2.2.2
+ + xxhash==3.8.1
+ + yarl==1.25.1
+ + zipp==4.1.0
+uv tool run pre-commit install
+Downloading virtualenv (5.5MiB)
+ Downloaded virtualenv
+Installed 11 packages in 3ms
+pre-commit installed at /root/worksapce/Lance/.git/hooks/pre-commit
