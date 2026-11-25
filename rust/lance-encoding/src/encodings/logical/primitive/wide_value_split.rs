@@ -148,13 +148,19 @@ pub(super) fn wide_value_page_counts(
     }
 
     let mut non_empty_count = 0;
+    let mut max_width = 0;
+    let mut has_short_values = false;
     for array in arrays {
-        if with_byte_array!(array, |bytes| value_lengths!(bytes).any(|len| {
-            non_empty_count += usize::from(len != 0);
-            len != 0 && len <= PER_VALUE_COMPRESSION_MIN_VALUE_BYTES
-        })) {
-            return Ok(None);
-        }
+        with_byte_array!(array, |bytes| {
+            for len in value_lengths!(bytes) {
+                non_empty_count += usize::from(len != 0);
+                max_width = max_width.max(len);
+                has_short_values |= len != 0 && len <= PER_VALUE_COMPRESSION_MIN_VALUE_BYTES;
+            }
+        });
+    }
+    if max_width <= PER_VALUE_COMPRESSION_MIN_VALUE_BYTES {
+        return Ok(None);
     }
 
     let validity = PrimitiveStructuralEncoder::leaf_validity(repdef, num_values)?;
@@ -279,7 +285,7 @@ pub(super) fn wide_value_page_counts(
     // A caller can request smaller pages than the dictionary budget. Retain
     // splitting for an entirely distinct sample in that case.
     let has_distinct_sample_with_small_page_limit =
-        ctx.max_page_bytes < max_dict_bytes as u64 && !has_duplicate;
+        !has_short_values && ctx.max_page_bytes < max_dict_bytes as u64 && !has_duplicate;
     if !has_distinct_valid_values
         || (distinct_bytes <= max_dict_bytes && !has_distinct_sample_with_small_page_limit)
     {
@@ -425,6 +431,35 @@ pub(super) mod tests {
             plan_wide_binary_with_budget(array, (2 * value_bytes) as u64, Some(budget)).is_some(),
             should_split
         );
+    }
+
+    #[rstest]
+    #[case::mostly_wide(65_538, 128, true)]
+    #[case::mostly_short(31_000, 65_538, true)]
+    #[case::threshold_width(31_000, 32_768, false)]
+    fn test_mixed_width_values_split_over_dictionary_budget(
+        #[case] typical_width: usize,
+        #[case] rare_width: usize,
+        #[case] should_split: bool,
+    ) {
+        let lengths = (0..8).map(|row| if row == 4 { rare_width } else { typical_width });
+        let values: Vec<_> = lengths
+            .clone()
+            .enumerate()
+            .flat_map(|(row, width)| std::iter::repeat_n(row as u8, width))
+            .collect();
+        let array = LargeBinaryArray::new(
+            OffsetBuffer::from_lengths(lengths),
+            Buffer::from(values),
+            None,
+        );
+        let page_limit = 150_000;
+        let counts = plan_wide_binary_with_budget(array, page_limit, Some(1));
+        assert_eq!(counts.is_some(), should_split);
+        if let Some(counts) = counts {
+            assert!(counts.len() > 1);
+            assert_eq!(counts.iter().sum::<usize>(), 8);
+        }
     }
 
     fn plan_wide_binary_with_budget(
