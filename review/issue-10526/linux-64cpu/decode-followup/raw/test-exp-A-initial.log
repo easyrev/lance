@@ -1,0 +1,29 @@
+error[E0034]: multiple applicable items in scope
+    --> rust/lance-encoding/src/encodings/physical/block.rs:1831:36
+     |
+1831 |             let error = compressor.decompress(compressed).unwrap_err();
+     |                                    ^^^^^^^^^^ multiple `decompress` found
+     |
+note: candidate #1 is defined in an impl of the trait `compression::BlockDecompressor` for the type `encodings::physical::block::CompressedBufferEncoder`
+    --> rust/lance-encoding/src/encodings/physical/block.rs:1251:5
+     |
+1251 |     fn decompress(&self, data: Option<LanceBuffer>, num_values: u64) -> Result<DataBlock> {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: candidate #2 is defined in an impl of the trait `compression::VariablePerValueDecompressor` for the type `encodings::physical::block::CompressedBufferEncoder`
+    --> rust/lance-encoding/src/encodings/physical/block.rs:1116:5
+     |
+1116 |     fn decompress(&self, data: VariableWidthBlock) -> Result<DataBlock> {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: disambiguate the method for candidate #1
+     |
+1831 -             let error = compressor.decompress(compressed).unwrap_err();
+1831 +             let error = compression::BlockDecompressor::decompress(&compressor, compressed).unwrap_err();
+     |
+help: disambiguate the method for candidate #2
+     |
+1831 -             let error = compressor.decompress(compressed).unwrap_err();
+1831 +             let error = compression::VariablePerValueDecompressor::decompress(&compressor, compressed).unwrap_err();
+     |
+
+For more information about this error, try `rustc --explain E0034`.
+error: could not compile `lance-encoding` (lib test) due to 1 previous error

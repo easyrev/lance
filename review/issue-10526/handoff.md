@@ -1,103 +1,78 @@
-环境说明：
-- 机器：64 vCPU / 256 GiB，AMD EPYC 9T24，Debian 13。base 和 final 两个 worktree 已在 /root/lance 下建好。
-- 系统盘只有约 90 GB 可用。编译产物放系统盘，两个版本用各自独立的 target 目录。
-  输入数据和所有输出都放 /dev/shm；每次开始前检查 df -h / 和 /dev/shm，任一可用空间低于 10 GB 就停下来告诉我。
+# #10526 读端冷热对比与 Follow-up 解码优化验证交接单
 
-任务：
-# #10526 benchmark 方案（最终版 vs 上游，单台 64 核实例）
+## 环境与硬性约束
 
-## 目的
+- 机器与目录：沿用 `/root/lance/{base,final}` 两个现有 worktree（`base = cb8c25692`，`final = d0020f429`），编译统一使用 `release-with-debug` profile，独立 target 目录与虚拟环境。
+- 磁盘守卫：每阶段开跑前检查 `df -h /` 与 `df -h /dev/shm`，任一可用空间低于 10 GiB 立即停止并汇报。所有数据与临时输出放 `/dev/shm/lance-10526/decode-followup/`，用完及时清理无用数据文件。
+- **严禁改动 `perf/10526-wide-value-page-split`（`d0020f429`）**：纯分支 SHA 必须保持不变，不要往上面提交任何读取端实验代码。
+- **不要开 PR**；完成后按 `$issue-branches` 规范发布分支与评审数据。
 
-给 PR 提供 Linux 上、接近真实数据的性能证据，并兑现 issue 评论里的承诺：三类数据的文件大小、峰值 RSS，以及 1 / 8 个 writer 在 8 / 64 线程下的吞吐（"as in #10531"）。
+---
 
-对比的两个版本：
+## 阶段一：补全 `#10526` 的上游 vs 最终版冷/热连续取行测量（不改代码）
 
-- 上游：`cb8c25692`
-- 最终版：`d0020f429`（`fix/10526-wide-value-page-split`）
+目的：直接对比 `base (cb8c25692, 1 page)` 与 `final (d0020f429, 135 pages)` 在同一进程内连续 `take` 的冷启动与稳态耗时，并验证 `1,024 行`（184.32 MiB > glibc 32 MiB `M_MMAP_THRESHOLD` 上限）在热态下是否也会收敛。
 
-如果开跑前上游有新提交，不要 rebase，就用这两个 commit。
+1. 复用 `/dev/shm/lance-10526/take-investigation/data/{base-default,final-default}`（若已清理则按原脚本用 `wide-unique.arrow` 重建，确认 `base = 1 page`、`final = 135 pages`）。
+2. 对 `base` 和 `final`，分别在 `count = 128` 和 `count = 1024` 下，执行**同一进程、单个 `lance.dataset()` 句柄连续 `take` 20 次**（使用 `take.py --take-only --repeat 20`，seed 10526，两个版本行号完全一致，`LANCE_CPU_THREADS=64`）。
+3. 每个 `(version, count)` 组合跑 **3 个独立进程**（交替跑 `base` 和 `final`），保存每次迭代的原始 JSONL。
+4. 汇总记录：
+   - 第 1 次（冷）的中位数与 min–max；
+   - 第 2 次的中位数；
+   - 第 6–20 次（热稳态）的中位数与 min–max；
+   - 对比 `base → final` 的绝对差值（ms）与百分比变化。
 
-## 机器
+---
 
-一台 64 vCPU / 256 GiB 的抢占式实例，编译和测试都在上面做。开始时记录 `lscpu`、内存、系统版本、`df -h /dev/shm`。
+## 阶段二：独立试验分支验证两个读端小改动（不动 `#10526` 主分支）
 
-## 沿用的东西
+基于 `d0020f429` 新建独立 worktree 与分支（例如 `/root/lance/exp-decode`，分支名按 `$issue-branches` 规范命名，如 `exp/10526-decode-page-bridging`），**读取阶段一和原 benchmark 生成的同一份 `final` 多页文件**（因为下面两步都是纯读端改动，盘上文件字节完全不变）。
 
-沿用 `review/10526-wide-value-page-split` 里 11 月 18 日那套脚本：`bench.py`、`build.sh`、`measure.sh`、`summarize.py`。它们已经做到了：
+### 实验 A：解压精确预分配（~10–15 行）
 
-- 每个测试组合起一个新进程，进程内用线程池并发跑多个 writer，并用 barrier 同时开跑
-- 记录进程峰值 RSS
-- 数据用 4,096 个随机词拼接，压缩率约 3 倍
+- 位置：`rust/lance-encoding/src/encodings/physical/block.rs`
+- 改动：在 `impl VariablePerValueDecompressor for CompressedBufferEncoder::decompress` 中，把 `Vec::with_capacity(data_bytes.len() * 2)` 改为先调用同实现内已有的 `self.decompressed_size(data_bytes, &data.offsets, data.bits_per_offset)` 获取精确解压字节数，用 `Vec::new()` + `try_reserve_exact(exact_bytes)`（失败返回 `Error::invalid_input`，避免损坏文件的超长前缀导致 panic/abort；若 `decompressed_size` 返回 `None` 则回退原 `data_bytes.len().saturating_mul(2)`）。
+- 校验：运行 `cargo test -p lance-encoding`，编译 `release-with-debug` Python 扩展（记录 sha256），确认精确 round-trip（`wide-unique`、`wide-unique-8k`、`wide-mixed`）。
+- 测量（读取 `final` 写出的多页文件，每项 3 次独立进程取中位数，并保留全部原始 trial）：
+  1. `wide-unique`（135 页）：`take(128)` 与 `take(1024)` 的连续 20 次（冷第 1 次 + 热稳态 + 峰值 RSS）；
+  2. `wide-unique-8k`（44 页）：`scan`（`batch_size=1024`，耗时 + 峰值 RSS）与 `take(128)`（耗时 + 峰值 RSS）；
+  3. `wide-unique`（135 页）：`scan`（`batch_size=1024`，耗时 + 峰值 RSS）。
 
-数据生成方式不要换。只改版本、路径，以及下面新增的内容。
+### 实验 B：Opt-in 跨页直写解码（Page Bridging，~100 行，仅动 `VariableFullZipDecodeTask`）
 
-## 1. 编译
+在实验 A 的提交之上新增第二个提交（保留 A、B 两个清晰提交以便单独复现）：
 
-- 两个版本各自建 worktree，用和 11 月 18 日相同的 `release-with-debug` profile 编译 Python 扩展，装进两个独立的虚拟环境。
-- 不要用 `--release`：它在这个仓库里是 fat LTO、`codegen-units = 1`，编译慢很多，也和上一轮不一致。两个版本用同一个 profile 就够公平。
-- 记录两个扩展文件的 sha256，必须不同。
+- **不要改字典、常量、MiniBlock 或 FixedWidth 解码器**，采用与 `StructuralPageDecoder::decoded_bytes` 一致的 opt-in 默认方法模式：
+  1. `rust/lance-encoding/src/decoder.rs`：在 `pub trait DecodePageTask` 增加默认方法（默认返回 `None` / `not_supported`），用于查询单个页任务是否支持精确可变长直写（返回 `num_values`、`decompressed_bytes`、`bits_per_offset`）以及把解码结果直接追加到外部 `(out_data: &mut Vec<u8>, out_offsets_u32_or_u64)` 并返回 `RepDefUnraveler`。
+  2. `rust/lance-encoding/src/encodings/physical/block.rs`：为 `VariablePerValueDecompressor`（及 `CompressedBufferEncoder`）增加将值直接追加解压进外部 `&mut Vec<u8>` 与外部 offsets buffer 的默认/覆写方法（注意支持 `bits_per_offset == 32 | 64`、空值/null 零长度跳过，且 offsets 基于外部 `out_data.len()` 累加）。
+  3. `rust/lance-encoding/src/encodings/logical/primitive/fullzip_decode.rs`：仅为 `VariableFullZipDecodeTask` 实现上述 opt-in 方法。
+  4. `rust/lance-encoding/src/encodings/logical/primitive/field.rs`：在 `StructuralCompositeDecodeArrayTask::decode` 中，当满足以下全部条件时走直写快路径，否则原样回退现有 `decode + concat_decoded_arrays` 路径：
+     - `self.tasks.len() > 1`；
+     - `self.data_type` 为 `Utf8 | LargeUtf8 | Binary | LargeBinary`；
+     - 所有子任务均返回 `Some(plan)` 且 `bits_per_offset` 与 `self.data_type` 一致（32 对应 `Utf8/Binary`，64 对应 `LargeUtf8/LargeBinary`）；
+     - 若为 32 位偏移，`total_bytes <= i32::MAX as usize`。
+     - 一次性 `try_reserve_exact(total_bytes)` 分配单块 `data` 与单块 `offsets`，逐任务直写，最后构造成单个 `DataBlock::VariableWidth` 调用一次 `into_arrow` + `restore_validity`（完全跳过中间 `Vec<ArrayRef>` 和 `concat_decoded_arrays`）。
+- 校验：
+  - 为 `StructuralCompositeDecodeArrayTask` 多页直写补单元测试（覆盖 `Utf8`/`LargeUtf8`/`Binary`/`LargeBinary`、含 null 与空字符串、混合压缩/非压缩页回退）；
+  - 跑通 `cargo test -p lance-encoding`、`cargo fmt --all -- --check`、`cargo clippy -p lance-encoding --tests -- -D warnings`；
+  - 编译 `release-with-debug` Python 扩展（记录 sha256），对 `wide-unique`、`wide-unique-8k`、`wide-mixed` 做全量 scan + take 逐行 exact round-trip 校验（含 null、空串、短串）。
+- 测量：用与实验 A **完全相同的矩阵与数据集**再跑一遍：
+  1. `wide-unique`（135 页）：`take(128)` 与 `take(1024)` 的连续 20 次（冷第 1 次 + 热稳态 + 峰值 RSS）；
+  2. `wide-unique-8k`（44 页）：`scan`（耗时 + 峰值 RSS）与 `take(128)`（耗时 + 峰值 RSS）；
+  3. `wide-unique`（135 页）：`scan`（耗时 + 峰值 RSS）。
 
-## 2. 输入数据
+---
 
-输入放在系统盘或数据盘上，计时开始前读入内存。
+## 交付与 `$issue-branches` 发布要求
 
-| 名称 | 内容 | 想证明什么 |
-| --- | --- | --- |
-| wide-unique | 25,000 行，每行 180,000 字节，互不相同 | issue 原例：1 页变成很多页 |
-| wide-unique-8k | 同上，8,000 行 | 8 个 writer 时每个 writer 的输入，和上次规模一致 |
-| wide-low-card | 25,000 行，只有 10 个不同值，随机分布（去重后约 1.8 MB） | 字典装得下时不切：仍是 1 页，文件不变大 |
-| wide-repeated | 沿用上次：100 个不同值，各重复 80 次 | 上次两边一样，这次最终版会切 |
-| wide-template | 25,000 行，5% 的行是同一个值，其余互不相同 | 偶尔有重复时也能切 |
-| wide-clustered | 50 个不同值，每个连续重复 500 行 | 成段重复、总量超过字典上限时切开，每页能用字典 |
-| wide-mixed | 25,000 行，95% 是 180,000 字节，4% 是 100 字节左右的短值，0.5% 是空字符串，0.5% 是 null，随机分布 | 夹着短值、空值和 null 时不会失效 |
-| wide-constant | 25,000 行，全是同一个 180,000 字节的值 | 仍然是一页 |
-| narrow | 沿用上次的小值数据 | 小值列不受影响 |
-
-## 3. 文件结果（每类数据一次，1 个 writer、64 线程）
-
-每类数据记录：文件大小、页数、最大页（原始字节和编码后字节）、每页用的编码方式。另起一个进程把数据全部读回来，和输入逐行比对，必须完全一致。
-
-快速自检：wide-unique 的压缩率应该和上一轮相近（约 3 倍）；wide-low-card、wide-constant、narrow 的页数和文件大小应该和上游完全一致。不一致就先停下来查原因。
-
-## 4. 读取测试（另起进程，每类数据、每个版本各 3 次）
-
-写完后另起一个新进程，只做读取：
-
-- 全表扫描：耗时，以及这个进程的峰值 RSS
-- 随机取 128 行（固定随机种子，两个版本用同一组行号）：耗时和峰值 RSS
-
-读取进程不做逐行比对（第 3 步做过了），免得比对时间混进读取时间。
-
-## 5. 写入矩阵
-
-- 数据：1 个 writer 用 wide-unique（25,000 行），8 个 writer 用 wide-unique-8k
-- 组合：1 和 8 个 writer × `LANCE_CPU_THREADS` 8 和 64
-- 每个组合 1 次预热 + 3 次实测，两个版本交替跑
-- 记录：写入耗时、进程 CPU 时间（user + sys）、峰值 RSS、写入前 RSS
-- wide-clustered 和 wide-mixed 在 1 个 writer、64 线程下各补 3 次写入
-- 不要用 `taskset` 绑核，保持和 #10531 一样的默认调度
-
-## 6. 输出位置
-
-写出的 Lance 文件放 `/dev/shm`，每次跑完立刻删掉。开跑前确认剩余空间够放 8 个输出。
-
-## 事先定好的判断标准
-
-先把标准写进结果文件，再看数据：
-
-- 文件大小：增长不超过 2%（变小不算问题）
-- 峰值 RSS：写入和读取都不比上游高 10% 以上
-- 写入耗时：所有组合不比上游慢 10% 以上；8 个 writer × 8 线程（CPU 吃满）时尤其要看
-- CPU 时间：如实报告，和耗时一起写
-- 不达标的项如实记下，不要换一种统计方式（比如合并几轮）让它过线
-
-## 交付
-
-全部跑完后统一更新 review 分支 `review/10526-wide-value-page-split`：
-
-- 原始数据和日志
-- 机器配置（CPU 型号、核数、内存、系统版本）
-- 一张汇总表
-- 按新数据更新 `pr-draft.md` 的 Evidence 部分：写清机器规格和数据生成方式
-
-释放实例前确认这些都已推送。不要开 PR。
+1. **纯主分支不动**：确认 `perf/10526-wide-value-page-split` 仍指向 `d0020f429`。
+2. **试验分支发布**：按 `$issue-branches` 规范推送包含实验 A、B 两个独立提交的试验分支（记录两个提交的完整 SHA）。
+3. **Review 分支更新**：在 `review/10526-wide-value-page-split` 新增：
+   - `review/issue-10526/linux-64cpu/decode-followup.md`：包含四列完整对比表（`base (1p)` / `final (135p/44p)` / `exp-A (exact reserve)` / `exp-B (page bridging)`），明确列出：
+     - `take(128)` 冷第 1 次、第 2 次、稳态（#6–#20）耗时与峰值 RSS；
+     - `take(1024)` 冷第 1 次、第 2 次、稳态（#6–#20）耗时与峰值 RSS；
+     - `wide-unique-8k scan` 与 `wide-unique scan` 耗时与峰值 RSS（重点核对 `+25.86%` RSS 超标项的变化）；
+     - 两个扩展的 sha256 与提交 SHA；
+     - 明确结论：`#10526` 保持独立提交时 PR Evidence 应该如何准确表述冷/热 take 表现，以及实验 A / B 各自作为 follow-up PR 的实测收益。
+   - `review/issue-10526/linux-64cpu/decode-followup/`：保留脚本、原始 JSON/JSONL 与 `SHA256SUMS`。
+4. **暂不改写 `pr-draft.md` 里的主 PR 承诺，也不合入实验代码到 `#10526`**；全部推送完毕后汇报结果与分支/SHA 链接。

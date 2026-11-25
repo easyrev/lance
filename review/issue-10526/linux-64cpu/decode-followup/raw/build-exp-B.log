@@ -1,0 +1,26 @@
+uv run --frozen --no-sync maturin develop --uv
+🍹 Building a mixed python/rust project
+🐍 Found CPython 3.12 at /dev/shm/lance-10526/decode-followup/venv-exp/bin/python
+🔗 Found pyo3 bindings with abi3 support
+Using Python 3.12.16 environment at: /dev/shm/lance-10526/decode-followup/venv-exp
+Checked 24 packages in 1ms
+Using Python 3.12.16 environment at: /dev/shm/lance-10526/decode-followup/venv-exp
+Resolved 5 packages in 4ms
+Checked 5 packages in 0.09ms
+   Compiling lance-encoding v15.0.0-beta.35 (/root/lance/exp-decode/rust/lance-encoding)
+warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling lance-file v15.0.0-beta.35 (/root/lance/exp-decode/rust/lance-file)
+   Compiling lance-table v15.0.0-beta.35 (/root/lance/exp-decode/rust/lance-table)
+   Compiling lance-index v15.0.0-beta.35 (/root/lance/exp-decode/rust/lance-index)
+   Compiling lance-table-runtime v15.0.0-beta.35 (/root/lance/exp-decode/rust/lance-table-runtime)
+   Compiling lance-geo v15.0.0-beta.35 (/root/lance/exp-decode/rust/lance-geo)
+   Compiling lance v15.0.0-beta.35 (/root/lance/exp-decode/rust/lance)
+   Compiling lance-namespace-impls v15.0.0-beta.35 (/root/lance/exp-decode/rust/lance-namespace-impls)
+   Compiling pylance v15.0.0-beta.35 (/root/lance/exp-decode/python)
+    Finished `release-with-debug` profile [optimized + debuginfo] target(s) in 7m 40s
+📦 Built wheel for abi3 Python ≥ 3.10 to /dev/shm/lance-10526/decode-followup/tmp/.tmpVi1Gdb/pylance-15.0.0b35-cp310-abi3-linux_x86_64.whl
+✏️ Setting installed package as editable
+🛠 Installed pylance-15.0.0b35
