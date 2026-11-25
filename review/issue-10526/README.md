@@ -1,15 +1,9 @@
-# Issue 10526 · wide-value page splitting
+# Issue 10526 · Mac issue-scale validation
 
-[Execution handoff](handoff.md) · [Pre-measurement criteria](local-matrix/acceptance.md) · [Machine, revisions and toolchain](local-matrix/versions.txt)
+Pure branch `fix/10526-wide-value-page-split` at `d0020f429` includes P1, P2 and the follow-up to the empty-value and dictionary-entry checks. Review branch `review/10526-wide-value-page-split` carries this record. Upstream baseline is `cb8c25692`. No PR opened.
 
-The pure branch `fix/10526-wide-value-page-split` ends at `fde471a51`. The review branch is `review/10526-wide-value-page-split`. This round used upstream `cb8c25692`, the rebased original fix `1fee2feab`, P1 `19636f49c` and P2 `fde471a51`. No upstream PR was opened.
+[Handoff](handoff.md) · [Execution record, host and reproduction commands](issue-scale/README.md) · [Current PR draft](pr-draft.md)
 
-## Measurements
+[Benchmark medians, ranges and raw data](issue-scale/benchmark-results.md) cover one 4.5 GB batch in format 2.2, three measured trials per build, full scan and sorted random take after write. The first shared-target attempt reused a build artifact. The reported trials used separate build directories.
 
-The [combined medians](local-matrix/combined-summary.md) include file size, page count, largest page, encoding and elapsed time per workload. The predeclared limits were 2% file growth and 10% full-scan time growth against the rebased fix. [Per-cohort counts, minima, medians and maxima](local-matrix/timing-ranges.tsv) correspond to the raw [first](local-matrix/first.tsv), [confirmation](local-matrix/confirmed.tsv) and [focused](local-matrix/focused.tsv) matrices. [Format 2.1 and 2.3 readback](local-matrix/version-smoke.tsv) used one trial per case. The timing matrix used local warm-cache, single-writer format 2.2.
-
-## Execution and deviations
-
-The [first build](local-matrix/build-matrix.sh) tested literal P1 and P2 snapshots. Literal P1 recorded 25 existing small-page test failures ([log](local-matrix/test-p1.log)). The [compatibility build](local-matrix/build-compatible.sh) retained all-wide splitting for wholly distinct samples when the configured page budget is below the dictionary budget. Mixed-width and template measurements were repeated. The mostly-wide read median increased 11.2% in the seven-run cohort and 8.3% in the pooled 22 runs. Mostly-short inputs used 31,000-byte short values.
-
-[Writer harness](local-matrix/writer10526.rs) · [Matrix command loop](local-matrix/run-matrix.sh) · [Format smoke commands](local-matrix/run-version-smoke.sh) · [Scoped test commands](local-matrix/reproduce-final-tests.sh). Build scripts contain checkout-specific paths. P1 recorded 142 successful tests and one ignored; P2 recorded 145 and one ignored ([P1 log](local-matrix/test-p1-compatible.log), [P2 log](local-matrix/test-p2-compatible.log)). The smoke run overlapped compilation. Cold-cache reads, remote storage, multi-writer RSS and production distributions were not measured.
+[Verification results and command logs](issue-scale/verification-results.md) include the corrected byte-typed test fixture, the Python installation retry and two upstream-identical Arm64 unreachable expressions reported by strict workspace Clippy. The benchmark used highly compressible distinct values. Cold-cache and multi-writer behavior were not measured in this round.

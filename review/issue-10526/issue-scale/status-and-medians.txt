@@ -1,0 +1,47 @@
+base-1: exit 0
+base-2: exit 0
+base-3: exit 0
+base-warmup: exit 0
+benchmark: exit 0
+build-base: exit 0
+build-final: exit 0
+final-1: exit 0
+final-2: exit 0
+final-3: exit 0
+final-warmup: exit 0
+fmt-check: exit 0
+fmt-final: exit 0
+fmt: exit 0
+python-build: exit 0
+python-install-retry: exit 0
+python-install: exit 2
+python-lint: exit 0
+python-test-file: exit 0
+retry: exit 0
+rust-clippy: exit 101
+rust-tests-fixture-failure: exit 101
+rust-tests-initial: exit 0
+rust-tests: exit 0
+verification: exit 0
+
+base (n=3)
+  file_bytes: 103950079
+  pages: 1
+  max_raw_bytes: 4500000000
+  max_encoded_bytes: 103949748
+  write_s: median 0.203375, range 0.191388–0.207335
+  write_cpu_s: median 0.758884, range 0.756901–0.776261
+  write_avg_cores: median 3.744000, range 3.731500–3.954800
+  scan_s: median 0.629764, range 0.617870–0.659794
+  take_s: median 0.006328, range 0.006012–0.007399
+
+final (n=3)
+  file_bytes: 103969834
+  pages: 135
+  max_raw_bytes: 33480000
+  max_encoded_bytes: 773392
+  write_s: median 0.177324, range 0.161410–0.179821
+  write_cpu_s: median 1.055540, range 1.052799–1.067854
+  write_avg_cores: median 5.952600, range 5.938400–6.522500
+  scan_s: median 0.502074, range 0.483790–0.505988
+  take_s: median 0.005323, range 0.004899–0.005665

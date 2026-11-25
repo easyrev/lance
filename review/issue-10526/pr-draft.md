@@ -1,51 +1,30 @@
-# fix(encoding): split oversized pages of wide variable-width values
+# perf(encoding): split oversized pages of wide variable-width values
 
-A single batch of wide variable-width values can produce an oversized page in the 2.1+ structural writer. The dense page planner does not apply `max_page_bytes` to that batch.
+## Summary
 
-Dense planning can now split at value boundaries after rep/def serialization. The rep/def budget must permit the split. Each row must map to one string or binary value, and the field must use the default layout or request FullZip. The planner requires at least two values whose total uncompressed value bytes exceed the page limit. It uses proportional boundaries when they fit in the same number of pages as greedy packing.
+The structural writer can send a batch of wide values to one FullZip page even when its uncompressed values exceed the requested page size.
 
-The planner requires at least one valid slot, and every valid slot must exceed 32 KiB. A null slot must be empty or exceed 32 KiB. The planner samples non-empty physical slots, including payloads under nulls, because the dictionary encoder interns them.
+```text
+eligible dense string/binary batch
+  sample physical dictionary bytes and compare valid values
+  on a split decision, partition at row boundaries
+  encode the resulting pages through the existing structural writer
+```
 
-For a dictionary limit of `D` bytes, the planner samples up to `floor(D / 32,769) + 1` non-empty physical slots. Each non-empty entry uses at least 32,769 bytes. A dictionary that fits holds at most one fewer distinct non-empty entry, so a full sample must contain a repeat. An average-width rule would not establish this bound.
+The split requires evidence of two different logical values. Empty valid values can supply that evidence, and payloads under nulls only affect the physical dictionary check. The planner requires a sampled distinct-byte lower bound above the configured dictionary budget, or a page budget below the dictionary budget, full coverage of distinct non-empty physical values, and a count above the dictionary's entry limit. The probe is bounded by the dictionary budget. Batches dominated by 31,000-byte values can still stay oversized, and logically constant batches can pay the probe cost before retaining a single page.
 
-The planner also samples the same number of valid slots, up to the number available, to detect constant values. It hashes the full payload of each slot in the union once. A repeated key keeps the batch unsplit.
+## Evidence
 
-This change leaves 2.3 sparse pages for mostly-null wide columns, mixed-width batches, lists, and fixed-width values on their existing paths. It preserves the file format.
+The regression cases cover a valid empty value alongside dirty null payloads, dictionary budget boundaries, configured entry limits, and contiguous repeats with round-trip decoding. On an Apple Silicon Mac, one format 2.2 writer call with 25,000 distinct 180,000-byte LargeBinary values went from one 4.5 GB raw FullZip page to 135 pages with a maximum raw payload of 33.48 MB. The file grew 0.019%, and all full scans and seeded random takes matched the original input.
 
-Mixed-width batches can still produce oversized pages.
+Across three interleaved measured trials, median write wall time went from 203 ms to 177 ms and process CPU time from 759 ms to 1,056 ms. Warm local scan and take medians were 630 to 502 ms and 6.33 to 5.32 ms. These timings use one compressible input on one machine. [Measurement details](benchmark-results.md)
 
-PR #10531 parallelizes compression within a page and complements parallel work across pages. [#10531](https://github.com/lance-format/lance/pull/10531)
+The complete lance-encoding and lance-file suites, Python file tests, Rust formatting, and Python lint passed. The strict workspace Rust Clippy command reports two pre-existing unreachable expressions in the Arm64 byte-stream-split code on this Mac. [Verification details](verification-results.md)
 
-Reader-side chunking remains necessary for existing files and pages that stay unsplit. [#10160](https://github.com/lance-format/lance/pull/10160) · [#10168](https://github.com/lance-format/lance/pull/10168)
+## Merge Danger
 
-## Measurements
+**Door** Two-way.
 
-A separate probe at `8d39b38` used fixed-seed random payloads under nulls. At 16 MiB, both 2.1 and 2.2 wrote three pages totaling 8,364,434 encoded bytes. At `u64::MAX`, each version wrote one page. Version 2.1 wrote 8,359,337 encoded bytes, and 2.2 wrote 8,391,350. Splitting added 5,097 encoded bytes in 2.1 and saved 26,916 in 2.2.
+**Blast radius** Structural writes of flat UTF-8 and binary values with a wide value and an oversized batch. Page boundaries can change. The file format is unchanged.
 
-The tables compare baseline `b4fb0936d` with fix `d47fe89d8`. Both builds used `release-with-debug` and the same Arrow IPC inputs on a 16-vCPU host. The 32 MiB limit compares uncompressed value bytes. The largest resulting compressed page was about 11 MB on the unique-wide input. The write matrix reports medians of three trials. [Method and raw results](https://github.com/easyrev/lance/blob/review/10526-wide-value-page-split/review/issue-10526/README.md)
-
-### Table A. Files
-
-| Input | Build | File B | Pages | Max encoded page B | Max uncompressed value B |
-| --- | --- | ---: | ---: | ---: | ---: |
-| wide-unique | baseline | 491,127,295 | 1 | 491,126,941 | 1,440,000,000 |
-| wide-unique | fix | 491,134,489 | 44 | 11,175,002 | 32,760,000 |
-| wide-repeated | baseline | 491,019,071 | 1 | 491,018,724 | 1,440,000,000 |
-| wide-repeated | fix | 491,019,071 | 1 | 491,018,724 | 1,440,000,000 |
-| narrow | baseline | 28,099,756 | 1 | 28,099,448 | 80,000,000 |
-| narrow | fix | 28,099,756 | 1 | 28,099,448 | 80,000,000 |
-
-### Table B. Median of three writes
-
-| Writers | CPU threads | Build | Write s | Peak RSS KiB | Pre-write RSS KiB | Peak minus pre-write KiB |
-| ---: | ---: | --- | ---: | ---: | ---: | ---: |
-| 1 | 8 | baseline | 1.035 | 2,543,760 | 1,555,160 | 988,600 |
-| 1 | 8 | fix | 0.787 | 2,182,416 | 1,554,832 | 627,584 |
-| 1 | 16 | baseline | 0.892 | 2,549,548 | 1,554,924 | 994,548 |
-| 1 | 16 | fix | 0.627 | 2,237,864 | 1,555,024 | 682,804 |
-| 8 | 8 | baseline | 7.712 | 15,334,420 | 11,420,424 | 3,914,024 |
-| 8 | 8 | fix | 5.474 | 15,374,816 | 11,420,560 | 3,954,276 |
-| 8 | 16 | baseline | 4.614 | 18,126,624 | 11,420,412 | 6,706,108 |
-| 8 | 16 | fix | 4.238 | 15,445,576 | 11,420,288 | 4,025,288 |
-
-Closes #10526
+Refs #10526

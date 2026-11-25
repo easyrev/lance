@@ -1,0 +1,94 @@
+warning: function `mark_huggingface_rate_limited` is never used
+  --> rust/lance-io/src/object_store/hf_throttle.rs:34:8
+   |
+34 | pub fn mark_huggingface_rate_limited(error: object_store::Error) -> object_store::Error {
+   |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: unreachable expression
+   --> rust/lance-encoding/src/encodings/physical/byte_stream_split.rs:358:5
+    |
+352 | /         match bytes_per_value {
+353 | |             4 => return aarch64_neon::split_w4(src, dst, num_values),
+354 | |             8 => return aarch64_neon::split_w8(src, dst, num_values),
+355 | |             _ => unreachable!("ByteStreamSplit only supports 4 or 8 byte values"),
+356 | |         }
+    | |_________- any code following this `match` expression is unreachable, as all arms diverge
+357 |       }
+358 | /     match bytes_per_value {
+359 | |         4 => split_scalar_range::<4>(src, dst, num_values, 0),
+360 | |         8 => split_scalar_range::<8>(src, dst, num_values, 0),
+361 | |         _ => unreachable!("ByteStreamSplit only supports 4 or 8 byte values"),
+362 | |     }
+    | |_____^ unreachable expression
+    |
+    = note: `#[warn(unreachable_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: unreachable expression
+   --> rust/lance-encoding/src/encodings/physical/byte_stream_split.rs:393:5
+    |
+387 | /         match bytes_per_value {
+388 | |             4 => return aarch64_neon::unsplit_w4(src, dst, num_values),
+389 | |             8 => return aarch64_neon::unsplit_w8(src, dst, num_values),
+390 | |             _ => unreachable!("ByteStreamSplit only supports 4 or 8 byte values"),
+391 | |         }
+    | |_________- any code following this `match` expression is unreachable, as all arms diverge
+392 |       }
+393 | /     match bytes_per_value {
+394 | |         4 => unsplit_scalar_range::<4>(src, dst, num_values, 0),
+395 | |         8 => unsplit_scalar_range::<8>(src, dst, num_values, 0),
+396 | |         _ => unreachable!("ByteStreamSplit only supports 4 or 8 byte values"),
+397 | |     }
+    | |_____^ unreachable expression
+
+
+running 2651 tests
+.....................................................i................................. 87/2651
+....................................................................................... 174/2651
+....................................................................................... 261/2651
+....................................................................................... 348/2651
+....................................................................................... 435/2651
+....................................................................................... 522/2651
+....................................................................................... 609/2651
+....................................................................................... 696/2651
+....................................................................................... 783/2651
+....................................................................................... 870/2651
+.........i............................................................................. 957/2651
+....................................................................................... 1044/2651
+....................................................................................... 1131/2651
+....................................................................................... 1218/2651
+....................................................................................... 1305/2651
+....................................................................................... 1392/2651
+....................................................................................... 1479/2651
+....................................................................................... 1566/2651
+....................................................................................... 1653/2651
+............................................. 1698/2651
+encodings::logical::primitive::wide_value_split::tests::test_empty_slot_distinguishes_logical_values::case_2_null_empty --- FAILED
+....................................................................................... 1786/2651
+....................................................................................... 1873/2651
+....................................................................................... 1960/2651
+....................................................................................... 2047/2651
+.............i......................................................................... 2134/2651
+....................................................................................... 2221/2651
+....................................................................................... 2308/2651
+....................................................................................... 2395/2651
+....................................................................................... 2482/2651
+....................................................................................... 2569/2651
+..................................................................................
+failures:
+
+---- encodings::logical::primitive::wide_value_split::tests::test_empty_slot_distinguishes_logical_values::case_2_null_empty stdout ----
+
+thread 'encodings::logical::primitive::wide_value_split::tests::test_empty_slot_distinguishes_logical_values::case_2_null_empty' (1133189) panicked at rust/lance-encoding/src/encodings/logical/primitive/wide_value_split.rs:438:9:
+assertion `left == right` failed
+  left: true
+ right: false
+
+
+failures:
+    encodings::logical::primitive::wide_value_split::tests::test_empty_slot_distinguishes_logical_values::case_2_null_empty
+
+test result: FAILED. 2647 passed; 1 failed; 3 ignored; 0 measured; 0 filtered out; finished in 4.21s
+
+error: test failed, to rerun pass `-p lance-encoding --lib`
