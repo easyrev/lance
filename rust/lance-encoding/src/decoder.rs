@@ -38,7 +38,7 @@
 //!    bridging".  If we are trying to decode into a batch of 1024 rows and
 //!    the rows 0..1024 are spread across two pages then we can avoid a memory
 //!    copy by allocating once and decoding each page into the outer allocation.
-//!    (note: page bridging is not actually implemented yet)
+//!    Variable-width full-zip tasks can opt into this path.
 //!
 //! However, there are some limitations for physical decoders:
 //!
@@ -247,7 +247,9 @@ use crate::array_encoding::logical::{
     binary::BinaryFieldScheduler, blob::BlobFieldScheduler, list::ListFieldScheduler,
     primitive::PrimitiveFieldScheduler,
 };
-use crate::compression::{DecompressionStrategy, DefaultDecompressionStrategy};
+use crate::compression::{
+    DecompressionStrategy, DefaultDecompressionStrategy, VariableWidthOffsets,
+};
 use crate::data::DataBlock;
 use crate::encoder::EncodedBatch;
 use crate::encodings::logical::fixed_size_list::StructuralFixedSizeListScheduler;
@@ -3777,9 +3779,36 @@ pub struct DecodedPage {
     pub repdef: RepDefUnraveler,
 }
 
+/// Output requirements for appending a variable-width page to shared buffers.
+pub struct VariablePageDecodePlan {
+    /// Number of physical output values, including null slots.
+    pub num_values: u64,
+    /// Exact size of the output values buffer in bytes.
+    pub decompressed_bytes: u64,
+    /// Offset width in bits, either 32 or 64.
+    pub bits_per_offset: u8,
+}
+
 pub trait DecodePageTask: Send + std::fmt::Debug {
     /// Decodes the data into an Arrow array
     fn decode(self: Box<Self>) -> Result<DecodedPage>;
+
+    /// Provides exact output sizes if this task supports direct variable-width decode.
+    fn variable_decode_plan(&self) -> Option<VariablePageDecodePlan> {
+        None
+    }
+
+    /// Appends the values and end offsets for this page, returning its repetition and
+    /// definition levels for restoring validity and nested structure.
+    fn decode_variable_into(
+        self: Box<Self>,
+        _out_data: &mut Vec<u8>,
+        _out_offsets: &mut VariableWidthOffsets,
+    ) -> Result<RepDefUnraveler> {
+        Err(Error::not_supported(
+            "Direct variable-width decoding is not supported for this page".to_string(),
+        ))
+    }
 }
 
 pub trait StructuralPageDecoder: std::fmt::Debug + Send {
