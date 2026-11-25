@@ -1115,7 +1115,19 @@ impl VariablePerValueDecompressor for CompressedBufferEncoder {
 
     fn decompress(&self, data: VariableWidthBlock) -> Result<DataBlock> {
         let data_bytes = &data.data;
-        let mut decompressed = Vec::with_capacity(data_bytes.len() * 2);
+        let capacity = match self.decompressed_size(data_bytes, &data.offsets, data.bits_per_offset)
+        {
+            Some(exact_bytes) => usize::try_from(exact_bytes).map_err(|_| {
+                Error::invalid_input(format!("Decompressed size {exact_bytes} exceeds usize"))
+            })?,
+            None => data_bytes.len().saturating_mul(2),
+        };
+        let mut decompressed = Vec::new();
+        decompressed.try_reserve_exact(capacity).map_err(|err| {
+            Error::invalid_input(format!(
+                "Cannot reserve {capacity} decompressed bytes: {err}"
+            ))
+        })?;
 
         let new_offsets = match data.bits_per_offset {
             32 => self.per_value_decompress(
@@ -1798,6 +1810,28 @@ mod tests {
                 compressor.decompressed_size(&[u8::MAX; 16], &offsets, 32),
                 None
             );
+        }
+
+        #[test]
+        fn test_compressed_buffer_rejects_unreservable_length() {
+            let compressor = CompressedBufferEncoder::try_new(CompressionConfig::new(
+                CompressionScheme::Zstd,
+                Some(0),
+            ))
+            .unwrap();
+            let length = isize::MAX as u64 + 1;
+            let compressed = VariableWidthBlock {
+                data: LanceBuffer::copy_slice(&length.to_le_bytes()),
+                offsets: LanceBuffer::reinterpret_vec(vec![0_u32, 8]),
+                bits_per_offset: 32,
+                num_values: 1,
+                block_info: BlockInfo::new(),
+            };
+
+            let error =
+                VariablePerValueDecompressor::decompress(&compressor, compressed).unwrap_err();
+            assert!(matches!(error, Error::InvalidInput { .. }));
+            assert!(error.to_string().contains("Cannot reserve"));
         }
     }
 
