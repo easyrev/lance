@@ -1,1 +1,103 @@
-Question: Finish Lance #10526 following Opus review locally on Mac. Existing pure ref fix/10526-wide-value-page-split=fde471a51 based cb8c25692. In your provided checkout build atop that exact fix. Review material at review/10526-wide-value-page-split=e0811f11e:review/issue-10526/, prior local harness/data at ~/Documents/Codex/lance-10526-local. Do not push, create PR, delegate or use ECS. Root will publish and update review branch. Read AGENTS/rust/python guides. Correct empty-string veto with logical validity/dirty-null correctness. Check true dictionary cardinality condition (configured limit, physical rows, nulls etc) before replacing small-page exception with full coverage/cardinality proof; preserve existing behavior where appropriate. Clarify bounded sampling budget. Test valid empty vs dirty nulls, 255/341 and 257-340 sampling boundaries after verifying fixture, explicit budget case parameter, encoder-level contiguous repeats/readback. Avoid new sampling design or unrelated changes. Run complete lance-encoding and lance-file tests, python/tests/test_file.py via prescribed make build, full required Rust fmt/clippy and Python lint for PR readiness; record blockers and retry recoverable failures. Benchmark exact 25k x 180000 bytes in ONE writer batch, LargeUtf8 or LargeBinary (32-bit offsets cannot represent 4.5GB), distinct per-value compressible inputs plus verify same inputs; real upstream cb8c25692 vs final head, format 2.2, same settings/thread count, warmup if feasible and >=3 measured trials. Record wall+process CPU around write, average cores, file/page metrics, scan and reproducible random take timings / readback. Stream reads to bound memory; 32GiB Mac, run builds and benchmarks sequentially, monitor memory pressure and swap delta, stop if unsafe; don't substitute smaller scale. Control generator overhead and record machine, commands, raw artifacts. Track paths of jobs/logs/status. Done when: code/tests committed locally, full tests/lint and measurement outcomes documented; produce neutral execution record, current perf(encoding) PR draft without stale claims, exact reproduction commands and portable raw evidence in a fresh durable local directory (no binaries/datasets), for root to copy to review branch. Include limitations e.g. mostly-short 31KB, constant cost and 10% timing variation. No historical rewording necessary. Report SHA, evidence path, failures and remaining work.
+环境说明：
+- 机器：64 vCPU / 256 GiB，AMD EPYC 9T24，Debian 13。base 和 final 两个 worktree 已在 /root/lance 下建好。
+- 系统盘只有约 90 GB 可用。编译产物放系统盘，两个版本用各自独立的 target 目录。
+  输入数据和所有输出都放 /dev/shm；每次开始前检查 df -h / 和 /dev/shm，任一可用空间低于 10 GB 就停下来告诉我。
+
+任务：
+# #10526 benchmark 方案（最终版 vs 上游，单台 64 核实例）
+
+## 目的
+
+给 PR 提供 Linux 上、接近真实数据的性能证据，并兑现 issue 评论里的承诺：三类数据的文件大小、峰值 RSS，以及 1 / 8 个 writer 在 8 / 64 线程下的吞吐（"as in #10531"）。
+
+对比的两个版本：
+
+- 上游：`cb8c25692`
+- 最终版：`d0020f429`（`fix/10526-wide-value-page-split`）
+
+如果开跑前上游有新提交，不要 rebase，就用这两个 commit。
+
+## 机器
+
+一台 64 vCPU / 256 GiB 的抢占式实例，编译和测试都在上面做。开始时记录 `lscpu`、内存、系统版本、`df -h /dev/shm`。
+
+## 沿用的东西
+
+沿用 `review/10526-wide-value-page-split` 里 11 月 18 日那套脚本：`bench.py`、`build.sh`、`measure.sh`、`summarize.py`。它们已经做到了：
+
+- 每个测试组合起一个新进程，进程内用线程池并发跑多个 writer，并用 barrier 同时开跑
+- 记录进程峰值 RSS
+- 数据用 4,096 个随机词拼接，压缩率约 3 倍
+
+数据生成方式不要换。只改版本、路径，以及下面新增的内容。
+
+## 1. 编译
+
+- 两个版本各自建 worktree，用和 11 月 18 日相同的 `release-with-debug` profile 编译 Python 扩展，装进两个独立的虚拟环境。
+- 不要用 `--release`：它在这个仓库里是 fat LTO、`codegen-units = 1`，编译慢很多，也和上一轮不一致。两个版本用同一个 profile 就够公平。
+- 记录两个扩展文件的 sha256，必须不同。
+
+## 2. 输入数据
+
+输入放在系统盘或数据盘上，计时开始前读入内存。
+
+| 名称 | 内容 | 想证明什么 |
+| --- | --- | --- |
+| wide-unique | 25,000 行，每行 180,000 字节，互不相同 | issue 原例：1 页变成很多页 |
+| wide-unique-8k | 同上，8,000 行 | 8 个 writer 时每个 writer 的输入，和上次规模一致 |
+| wide-low-card | 25,000 行，只有 10 个不同值，随机分布（去重后约 1.8 MB） | 字典装得下时不切：仍是 1 页，文件不变大 |
+| wide-repeated | 沿用上次：100 个不同值，各重复 80 次 | 上次两边一样，这次最终版会切 |
+| wide-template | 25,000 行，5% 的行是同一个值，其余互不相同 | 偶尔有重复时也能切 |
+| wide-clustered | 50 个不同值，每个连续重复 500 行 | 成段重复、总量超过字典上限时切开，每页能用字典 |
+| wide-mixed | 25,000 行，95% 是 180,000 字节，4% 是 100 字节左右的短值，0.5% 是空字符串，0.5% 是 null，随机分布 | 夹着短值、空值和 null 时不会失效 |
+| wide-constant | 25,000 行，全是同一个 180,000 字节的值 | 仍然是一页 |
+| narrow | 沿用上次的小值数据 | 小值列不受影响 |
+
+## 3. 文件结果（每类数据一次，1 个 writer、64 线程）
+
+每类数据记录：文件大小、页数、最大页（原始字节和编码后字节）、每页用的编码方式。另起一个进程把数据全部读回来，和输入逐行比对，必须完全一致。
+
+快速自检：wide-unique 的压缩率应该和上一轮相近（约 3 倍）；wide-low-card、wide-constant、narrow 的页数和文件大小应该和上游完全一致。不一致就先停下来查原因。
+
+## 4. 读取测试（另起进程，每类数据、每个版本各 3 次）
+
+写完后另起一个新进程，只做读取：
+
+- 全表扫描：耗时，以及这个进程的峰值 RSS
+- 随机取 128 行（固定随机种子，两个版本用同一组行号）：耗时和峰值 RSS
+
+读取进程不做逐行比对（第 3 步做过了），免得比对时间混进读取时间。
+
+## 5. 写入矩阵
+
+- 数据：1 个 writer 用 wide-unique（25,000 行），8 个 writer 用 wide-unique-8k
+- 组合：1 和 8 个 writer × `LANCE_CPU_THREADS` 8 和 64
+- 每个组合 1 次预热 + 3 次实测，两个版本交替跑
+- 记录：写入耗时、进程 CPU 时间（user + sys）、峰值 RSS、写入前 RSS
+- wide-clustered 和 wide-mixed 在 1 个 writer、64 线程下各补 3 次写入
+- 不要用 `taskset` 绑核，保持和 #10531 一样的默认调度
+
+## 6. 输出位置
+
+写出的 Lance 文件放 `/dev/shm`，每次跑完立刻删掉。开跑前确认剩余空间够放 8 个输出。
+
+## 事先定好的判断标准
+
+先把标准写进结果文件，再看数据：
+
+- 文件大小：增长不超过 2%（变小不算问题）
+- 峰值 RSS：写入和读取都不比上游高 10% 以上
+- 写入耗时：所有组合不比上游慢 10% 以上；8 个 writer × 8 线程（CPU 吃满）时尤其要看
+- CPU 时间：如实报告，和耗时一起写
+- 不达标的项如实记下，不要换一种统计方式（比如合并几轮）让它过线
+
+## 交付
+
+全部跑完后统一更新 review 分支 `review/10526-wide-value-page-split`：
+
+- 原始数据和日志
+- 机器配置（CPU 型号、核数、内存、系统版本）
+- 一张汇总表
+- 按新数据更新 `pr-draft.md` 的 Evidence 部分：写清机器规格和数据生成方式
+
+释放实例前确认这些都已推送。不要开 PR。

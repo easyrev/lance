@@ -14,14 +14,17 @@ def read_json(stem):
     return json.loads((raw / f"{stem}.json").read_text())
 
 
-def comparison(name, baseline, final, limit=None, suffix=""):
+def comparison(name, baseline, final, limit=None, suffix="", samples=None):
     ratio = final / baseline if baseline else None
     delta = f", {(ratio - 1):+.2%}" if ratio is not None else ""
-    missed = limit is not None and final > baseline * (1 + limit)
-    status = " **MISS**" if missed else ""
-    if missed:
-        misses.append(name)
-    return f"{baseline:,.3f} → {final:,.3f}{suffix}{delta}{status}"
+    limit_text = f", limit {limit:+.0%}" if limit is not None else ""
+    if limit is not None and final > baseline * (1 + limit):
+        above_limits.append((name, delta.removeprefix(", "), f"{limit:+.0%}"))
+    ranges = ""
+    if samples is not None:
+        bounds = [f"{min(group):,.3f}–{max(group):,.3f}" for group in samples]
+        ranges = f"<br>Ranges {bounds[0]} → {bounds[1]}"
+    return f"{baseline:,.3f} → {final:,.3f}{suffix}{delta}{limit_text}{ranges}"
 
 
 def file_summary(result):
@@ -37,16 +40,17 @@ def repeat(stem, variant):
 
 
 def compare_metric(name, runs, key, limit=None, divisor=1, suffix=""):
-    baseline, final = (median(run[key] / divisor for run in group) for group in runs)
-    return comparison(name, baseline, final, limit, suffix)
+    samples = [[run[key] / divisor for run in group] for group in runs]
+    baseline, final = map(median, samples)
+    return comparison(name, baseline, final, limit, suffix, samples)
 
 
-misses = []
+above_limits = []
 variants = ("baseline", "fix")
 print((raw / "criteria.md").read_text())
 print(
-    "Baseline → final. Time and RSS are medians except for single file-stage writes. "
-    "Max page sizes are logical value payload bytes / sum of encoded page buffers. "
+    "Baseline → final. Three measured runs per build and case, summarized by median and min–max. "
+    "File rows are single observations per build. Max page sizes are logical value payload bytes / sum of encoded page buffers. "
     "Per-page encoding details and all trial values are in the raw JSON."
 )
 print()
@@ -101,17 +105,19 @@ for dataset, writers, threads in (
         case, runs, "pre_write_rss_kib", divisor=1024**2, suffix=" GiB pre-write"
     )
     throughput = [
-        median(
+        [
             run["rows_per_writer"] * run["writers"] / run["write_wall_seconds"]
             for run in group
-        )
+        ]
         for group in runs
     ]
-    rate = comparison(case, *throughput, suffix=" rows/s")
+    rate = comparison(
+        case, *map(median, throughput), suffix=" rows/s", samples=throughput
+    )
     print(f"| {case} | {wall} | {rss} | {cpu}<br>{before}<br>{rate} |")
 
 print()
-print(f"Threshold misses ({len(misses)})")
-print()
-for miss in misses:
-    print(f"- {miss}")
+print("| Comparisons above the recorded limits | Measured change | Limit |")
+print("| --- | ---: | ---: |")
+for name, delta, limit in above_limits:
+    print(f"| {name} | {delta} | {limit} |")
