@@ -1362,9 +1362,34 @@ pub trait FixedPerValueDecompressor: std::fmt::Debug + Send + Sync {
     }
 }
 
+/// Destination offsets for a variable-width decode, including the initial zero.
+pub enum VariableWidthOffsets {
+    /// Offsets for Binary and Utf8.
+    U32(Vec<u32>),
+    /// Offsets for LargeBinary and LargeUtf8.
+    U64(Vec<u64>),
+}
+
 pub trait VariablePerValueDecompressor: std::fmt::Debug + Send + Sync {
     /// Decompress one or more values
     fn decompress(&self, data: VariableWidthBlock) -> Result<DataBlock>;
+
+    /// Exact output size when this decoder can append into caller-owned buffers.
+    fn appended_size(&self, _data: &[u8], _offsets: &[u8], _bits_per_offset: u8) -> Option<u64> {
+        None
+    }
+
+    /// Appends values and their end offsets, measured from the start of `out_data`.
+    fn decompress_into(
+        &self,
+        _data: VariableWidthBlock,
+        _out_data: &mut Vec<u8>,
+        _out_offsets: &mut VariableWidthOffsets,
+    ) -> Result<()> {
+        Err(lance_core::Error::not_supported(
+            "Direct variable-width decompression is not supported".to_string(),
+        ))
+    }
 
     /// Whether every buffer returned by `decompress` is newly allocated, never a
     /// view of the input, on all paths.

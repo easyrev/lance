@@ -38,7 +38,7 @@ use crate::format::{
 };
 use crate::{
     buffer::LanceBuffer,
-    compression::VariablePerValueDecompressor,
+    compression::{VariablePerValueDecompressor, VariableWidthOffsets},
     data::{BlockInfo, DataBlock, VariableWidthBlock},
     encodings::logical::primitive::fullzip::{PerValueCompressor, PerValueDataBlock},
 };
@@ -847,13 +847,40 @@ impl CompressedBufferEncoder {
         offsets: &[T],
         decompressed: &mut Vec<u8>,
     ) -> Result<LanceBuffer> {
-        map_values(data, offsets, decompressed, &|value, out| {
-            if value.is_empty() {
-                Ok(())
-            } else {
-                self.compressor.decompress(value, out)
+        let mut new_offsets = Vec::with_capacity(offsets.len());
+        new_offsets.push(zero_offset::<T>()?);
+        self.per_value_decompress_into(data, offsets, decompressed, &mut new_offsets)?;
+        Ok(LanceBuffer::reinterpret_vec(new_offsets))
+    }
+
+    fn per_value_decompress_into<T: ArrowNativeType>(
+        &self,
+        data: &[u8],
+        offsets: &[T],
+        out_data: &mut Vec<u8>,
+        out_offsets: &mut Vec<T>,
+    ) -> Result<()> {
+        for pair in offsets.windows(2) {
+            let start = pair[0].as_usize();
+            let end = pair[1].as_usize();
+            let value = data.get(start..end).ok_or_else(|| {
+                Error::invalid_input(format!(
+                    "Compressed value range {start}..{end} exceeds {} bytes",
+                    data.len()
+                ))
+            })?;
+            if !value.is_empty() {
+                self.compressor.decompress(value, out_data)?;
             }
-        })
+            out_offsets.push(T::from_usize(out_data.len()).ok_or_else(|| {
+                Error::invalid_input(format!(
+                    "Decompressed size {} does not fit in a {}-bit offset",
+                    out_data.len(),
+                    std::mem::size_of::<T>() * 8
+                ))
+            })?);
+        }
+        Ok(())
     }
 }
 
@@ -1149,6 +1176,35 @@ impl VariablePerValueDecompressor for CompressedBufferEncoder {
             num_values: data.num_values,
             block_info: BlockInfo::new(),
         }))
+    }
+
+    fn appended_size(&self, data: &[u8], offsets: &[u8], bits_per_offset: u8) -> Option<u64> {
+        self.decompressed_size(data, offsets, bits_per_offset)
+    }
+
+    fn decompress_into(
+        &self,
+        data: VariableWidthBlock,
+        out_data: &mut Vec<u8>,
+        out_offsets: &mut VariableWidthOffsets,
+    ) -> Result<()> {
+        match (data.bits_per_offset, out_offsets) {
+            (32, VariableWidthOffsets::U32(offsets)) => self.per_value_decompress_into(
+                &data.data,
+                &data.offsets.borrow_to_typed_slice::<u32>(),
+                out_data,
+                offsets,
+            ),
+            (64, VariableWidthOffsets::U64(offsets)) => self.per_value_decompress_into(
+                &data.data,
+                &data.offsets.borrow_to_typed_slice::<u64>(),
+                out_data,
+                offsets,
+            ),
+            (bits, _) => Err(Error::invalid_input(format!(
+                "Destination offsets do not match the compressed block's {bits}-bit offsets"
+            ))),
+        }
     }
 
     fn decompressed_size(

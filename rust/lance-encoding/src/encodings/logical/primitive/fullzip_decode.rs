@@ -21,9 +21,12 @@ use crate::EncodingsIo;
 use crate::buffer::LanceBuffer;
 use crate::compression::{
     DecompressionStrategy, FixedPerValueDecompressor, VariablePerValueDecompressor,
+    VariableWidthOffsets,
 };
 use crate::data::{BlockInfo, DataBlockBuilder, FixedWidthDataBlock, VariableWidthBlock};
-use crate::decoder::{DecodePageTask, DecodedPage, ListReadMode, StructuralPageDecoder};
+use crate::decoder::{
+    DecodePageTask, DecodedPage, ListReadMode, StructuralPageDecoder, VariablePageDecodePlan,
+};
 use crate::encodings::logical::primitive::fullzip::PerValueDataBlock;
 use crate::format::{EncodingUtils, metadata};
 use crate::repdef::{
@@ -1789,8 +1792,14 @@ struct VariableFullZipDecodeTask {
     def: ScalarBuffer<u16>,
 }
 
-impl DecodePageTask for VariableFullZipDecodeTask {
-    fn decode(self: Box<Self>) -> Result<DecodedPage> {
+impl VariableFullZipDecodeTask {
+    fn into_parts(
+        self,
+    ) -> (
+        Arc<dyn VariablePerValueDecompressor>,
+        VariableWidthBlock,
+        RepDefUnraveler,
+    ) {
         let block = VariableWidthBlock {
             data: self.data,
             offsets: self.offsets,
@@ -1798,7 +1807,6 @@ impl DecodePageTask for VariableFullZipDecodeTask {
             num_values: self.num_visible_items,
             block_info: BlockInfo::new(),
         };
-        let decomopressed = self.decompressor.decompress(block)?;
         let rep = if self.rep.is_empty() {
             None
         } else {
@@ -1815,10 +1823,39 @@ impl DecodePageTask for VariableFullZipDecodeTask {
             self.details.def_meaning.clone(),
             self.num_visible_items,
         );
+        (self.decompressor, block, unraveler)
+    }
+}
+
+impl DecodePageTask for VariableFullZipDecodeTask {
+    fn decode(self: Box<Self>) -> Result<DecodedPage> {
+        let (decompressor, block, repdef) = self.into_parts();
         Ok(DecodedPage {
-            data: decomopressed,
-            repdef: unraveler,
+            data: decompressor.decompress(block)?,
+            repdef,
         })
+    }
+
+    fn variable_decode_plan(&self) -> Option<VariablePageDecodePlan> {
+        Some(VariablePageDecodePlan {
+            num_values: self.num_visible_items,
+            decompressed_bytes: self.decompressor.appended_size(
+                &self.data,
+                &self.offsets,
+                self.bits_per_offset,
+            )?,
+            bits_per_offset: self.bits_per_offset,
+        })
+    }
+
+    fn decode_variable_into(
+        self: Box<Self>,
+        out_data: &mut Vec<u8>,
+        out_offsets: &mut VariableWidthOffsets,
+    ) -> Result<RepDefUnraveler> {
+        let (decompressor, block, repdef) = self.into_parts();
+        decompressor.decompress_into(block, out_data, out_offsets)?;
+        Ok(repdef)
     }
 }
 
@@ -1980,7 +2017,7 @@ impl DecodePageTask for FixedFullZipDecodeTask {
 
 #[cfg(test)]
 #[allow(clippy::single_range_in_vec_init)]
-mod tests {
+pub(super) mod tests {
     use std::collections::HashMap;
     use std::sync::Arc;
 
@@ -1990,6 +2027,8 @@ mod tests {
     use arrow_schema::{DataType, Field as ArrowField};
 
     use crate::buffer::LanceBuffer;
+    #[cfg(feature = "zstd")]
+    use crate::compression::VariablePerValueDecompressor;
     use crate::compression::{DecompressionStrategy, FixedPerValueDecompressor};
     use crate::constants::{STRUCTURAL_ENCODING_META_KEY, STRUCTURAL_ENCODING_MINIBLOCK};
     use crate::data::{BlockInfo, DataBlock, FixedWidthDataBlock};
@@ -2000,6 +2039,8 @@ mod tests {
     use crate::encodings::logical::primitive::{
         StructuralPageScheduler, StructuralPrimitiveFieldDecoder,
     };
+    #[cfg(feature = "zstd")]
+    use crate::encodings::physical::binary::VariableDecoder;
     use crate::encodings::physical::binary::VariableEncoder;
     #[cfg(feature = "zstd")]
     use crate::encodings::physical::block::{
@@ -2009,15 +2050,61 @@ mod tests {
     use crate::encodings::physical::value::{ValueDecompressor, ValueEncoder};
     use crate::format::metadata::compressive_encoding::Compression;
     use crate::repdef::ControlWordParser;
+    #[cfg(feature = "zstd")]
+    use crate::repdef::DefinitionInterpretation;
     use crate::testing::{TestCases, check_round_trip_encoding_of_data};
     use lance_core::Error;
     use rstest::rstest;
 
+    #[cfg(feature = "zstd")]
+    use super::VariableFullZipDecodeTask;
     use super::{
         FixedFullZipDecodeTask, FullZipCacheableState, FullZipDecodeDetails, FullZipDecodeTaskItem,
         FullZipReadSource, FullZipRepIndexDetails, FullZipScheduler, PerValueDecompressor,
         VariableFullZipDecoder, has_padded_fixed_control_words,
     };
+
+    #[cfg(feature = "zstd")]
+    pub(in crate::encodings::logical::primitive) fn variable_bridge_test_page(
+        value: &str,
+        bits_per_offset: u8,
+        compressed: bool,
+    ) -> Box<dyn DecodePageTask> {
+        let mut data = Vec::new();
+        let decompressor: Arc<dyn VariablePerValueDecompressor> = if compressed {
+            let compressor = CompressedBufferEncoder::default();
+            compressor
+                .per_value_compress(value.as_bytes(), &[0, value.len() as u64], &mut data)
+                .unwrap();
+            Arc::new(compressor)
+        } else {
+            data.extend_from_slice(value.as_bytes());
+            Arc::new(VariableDecoder::default())
+        };
+        let end = data.len();
+        let offsets = if bits_per_offset == 32 {
+            LanceBuffer::reinterpret_vec(vec![0_u32, end as u32, end as u32, end as u32])
+        } else {
+            LanceBuffer::reinterpret_vec(vec![0_u64, end as u64, end as u64, end as u64])
+        };
+        Box::new(VariableFullZipDecodeTask {
+            details: Arc::new(FullZipDecodeDetails {
+                value_decompressor: PerValueDecompressor::Variable(decompressor.clone()),
+                def_meaning: vec![DefinitionInterpretation::NullableItem].into(),
+                ctrl_word_parser: ControlWordParser::new(0, 1),
+                is_padded: false,
+                max_rep: 0,
+                max_visible_def: 1,
+            }),
+            decompressor,
+            data: LanceBuffer::from(data),
+            offsets,
+            bits_per_offset,
+            num_visible_items: 3,
+            rep: LanceBuffer::empty().borrow_to_typed_slice(),
+            def: vec![0_u16, 1, 0].into(),
+        })
+    }
 
     fn decode_fixed_fullzip_no_levels(
         decompressor: Arc<dyn FixedPerValueDecompressor>,
