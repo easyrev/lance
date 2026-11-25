@@ -1,4 +1,5 @@
 # Linux benchmarks for #10526
+[Random take investigation](take-investigation.md) compares open and take latency, page counts, and CPU samples.
 
 See [summary.md](summary.md) for results and [raw/](raw/) for individual observations, page encodings, correctness checks, build and run logs, host configuration, and hashes. The two measured commits were upstream `cb8c25692` and final `d0020f429`. Both used format 2.2, Python 3.12, the `release-with-debug` profile, independent environments and target directories, and default Linux scheduling. See [machine.txt](raw/machine.txt) for the complete host record.
 
