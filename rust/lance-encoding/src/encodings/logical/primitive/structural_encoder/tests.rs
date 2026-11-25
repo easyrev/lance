@@ -1582,11 +1582,36 @@ fn wide_string_struct() -> ArrayRef {
     ))
 }
 
+#[tokio::test]
+async fn test_wide_contiguous_repeats_split_and_round_trip() {
+    let suffix = "x".repeat(65_538 - 8);
+    let values: Vec<_> = (0..130)
+        .map(|index| format!("{index:08}{suffix}"))
+        .collect();
+    let array: ArrayRef = Arc::new(LargeStringArray::from_iter_values(
+        values.iter().flat_map(|value| [value.as_str(); 2]),
+    ));
+    let version = TestEncoding::StructuralU32;
+    let page_limit = 2 * 1024 * 1024;
+    let field = ArrowField::new("wide", DataType::LargeUtf8, false);
+    let pages = encode_all_pages(field, vec![array.clone()], version, page_limit).await;
+    assert!(pages.len() > 1);
+    assert_eq!(pages.iter().map(|page| page.num_rows).sum::<u64>(), 260);
+    let test_cases = TestCases::default()
+        .with_encoding(version)
+        .with_page_sizes(vec![32 * 1024 * 1024])
+        .with_max_page_size(page_limit);
+    check_round_trip_encoding_of_data(vec![array], &test_cases, HashMap::new()).await;
+}
+
 #[rstest::rstest]
 #[case::nullable_large_binary(
     Arc::new(nullable_wide_strings().collect::<LargeBinaryArray>()),
 )]
 #[case::utf8(Arc::new(StringArray::from_iter_values(wide_unique(20))))]
+#[case::valid_empty(Arc::new(LargeStringArray::from_iter_values(
+    wide_unique(20).chain(std::iter::once(String::new()))
+)))]
 #[case::nullable_struct(wide_string_struct())]
 #[tokio::test]
 async fn test_wide_value_split_round_trip(

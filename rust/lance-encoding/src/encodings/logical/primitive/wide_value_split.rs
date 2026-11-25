@@ -170,22 +170,6 @@ pub(super) fn wide_value_page_counts(
     if valid_count < 2 {
         return Ok(None);
     }
-    if non_empty_count != num_values {
-        let Some(valid) = validity.as_ref() else {
-            return Ok(None);
-        };
-        let mut array_start = 0;
-        for array in arrays {
-            if with_byte_array!(array, |bytes| value_lengths!(bytes)
-                .enumerate()
-                .any(|(index, len)| len == 0 && valid.value(array_start + index)))
-            {
-                return Ok(None);
-            }
-            array_start += array.len();
-        }
-    }
-
     let max_dict_bytes = match ctx.field.metadata.get(DICT_MAX_SIZE_META_KEY) {
         Some(limit) => match limit.parse::<usize>() {
             Ok(limit) => limit,
@@ -193,8 +177,11 @@ pub(super) fn wide_value_page_counts(
         },
         None => DEFAULT_DICT_MAX_SIZE_BYTES,
     };
-    // Retain the bounded, evenly spaced sample. Sample at least two valid
-    // values so tiny dictionary budgets can still distinguish a constant.
+    // Sample up to this many non-empty physical slots and, when the slots
+    // differ, up to this many logically valid slots. Merge the two sequences
+    // to visit each sampled row once. This bounds row probes for a given
+    // dictionary budget, while payload work also depends on sampled widths.
+    // Two valid probes let even a tiny budget distinguish a constant.
     let required_samples =
         (max_dict_bytes / (PER_VALUE_COMPRESSION_MIN_VALUE_BYTES as usize + 1) + 1).max(2);
     let mut value_bytes = Vec::with_capacity(num_values);
@@ -222,22 +209,24 @@ pub(super) fn wide_value_page_counts(
             }
             None => Some(rank),
         });
-    let valid_samples = validity
-        .iter()
-        .filter(|_| valid_count != non_empty_count)
-        .flat_map(|valid| {
-            let mut indices = valid.set_indices();
-            let mut next_valid_rank = 0;
-            sample_ranks(valid_count).map_while(move |rank| {
-                let index = indices.nth(rank - next_valid_rank);
-                next_valid_rank = rank + 1;
-                index
+    let mut next_valid_rank = 0;
+    let mut valid_indices = validity.as_ref().map(|valid| valid.set_indices());
+    let valid_samples = (validity.is_some() || non_empty_count != num_values)
+        .then(|| {
+            sample_ranks(valid_count).map_while(move |rank| match valid_indices.as_mut() {
+                Some(indices) => {
+                    let index = indices.nth(rank - next_valid_rank);
+                    next_valid_rank = rank + 1;
+                    index
+                }
+                None => Some(rank),
             })
-        });
+        })
+        .into_iter()
+        .flatten();
     let mut sample_indices = physical_samples.merge(valid_samples).dedup().peekable();
     let mut seen = HashSet::with_capacity(non_empty_count.min(required_samples));
     let mut distinct_bytes = 0usize;
-    let mut has_duplicate = false;
     let mut first_valid = None;
     let mut has_distinct_valid_values = false;
     let mut array_start = 0;
@@ -259,7 +248,6 @@ pub(super) fn wide_value_page_counts(
                     // Its physical bytes were already counted at the first
                     // sampled valid occurrence.
                     Some(first) if value == first => {
-                        has_duplicate = true;
                         continue;
                     }
                     Some(_) => has_distinct_valid_values = true,
@@ -268,12 +256,11 @@ pub(super) fn wide_value_page_counts(
             }
 
             // Hash collisions can only undercount sampled distinct bytes.
-            if distinct_bytes <= max_dict_bytes {
-                if seen.insert((value_len, xxh3_64(value))) {
-                    distinct_bytes = distinct_bytes.saturating_add(value.len());
-                } else {
-                    has_duplicate = true;
-                }
+            if value_len != 0
+                && distinct_bytes <= max_dict_bytes
+                && seen.insert((value_len, xxh3_64(value)))
+            {
+                distinct_bytes = distinct_bytes.saturating_add(value.len());
             }
             if distinct_bytes > max_dict_bytes && has_distinct_valid_values {
                 break 'samples;
@@ -282,12 +269,19 @@ pub(super) fn wide_value_page_counts(
         array_start = array_end;
     }
 
-    // A caller can request smaller pages than the dictionary budget. Retain
-    // splitting for an entirely distinct sample in that case.
-    let has_distinct_sample_with_small_page_limit =
-        !has_short_values && ctx.max_page_bytes < max_dict_bytes as u64 && !has_duplicate;
+    // Preserve the small-page exception for wholly distinct non-empty
+    // slots only when the probe covers them all and they already exceed
+    // the real dictionary entry limit. Empty slots can add an entry; the
+    // denominator still includes every physical slot, including nulls.
+    let exceeds_small_page_dict_entries = !has_short_values
+        && ctx.max_page_bytes < max_dict_bytes as u64
+        && non_empty_count <= required_samples
+        && seen.len() == non_empty_count
+        && seen.len() as u64
+            > PrimitiveStructuralEncoder::dictionary_entry_limit(num_values as u64, ctx.field)
+                .min(i32::MAX as u64);
     if !has_distinct_valid_values
-        || (distinct_bytes <= max_dict_bytes && !has_distinct_sample_with_small_page_limit)
+        || (distinct_bytes <= max_dict_bytes && !exceeds_small_page_dict_entries)
     {
         return Ok(None);
     }
@@ -309,7 +303,7 @@ pub(super) mod tests {
     use rand::{Rng, SeedableRng};
     use rstest::rstest;
 
-    use crate::constants::DICT_MAX_SIZE_META_KEY;
+    use crate::constants::{DICT_DIVISOR_META_KEY, DICT_MAX_SIZE_META_KEY};
     use crate::repdef::{MiniBlockRepDefBudget, RepDefBuilder};
 
     use super::{PrimitivePlanContext, balanced_page_value_counts, wide_value_page_counts};
@@ -402,13 +396,14 @@ pub(super) mod tests {
     }
 
     #[rstest]
-    #[case::ordinary_constant(&[0, 0, 0, 0], None, false)]
-    #[case::dirty_null_constant(&[0, 0, 1, 0], Some([false, true, false, true]), false)]
-    #[case::valid_after_same_null(&[0, 0, 0, 1], Some([false, true, false, true]), true)]
-    #[case::occasional_template(&[0, 1, 2, 3, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], None, true)]
+    #[case::ordinary_constant(&[0, 0, 0, 0], None, 1, false)]
+    #[case::dirty_null_constant(&[0, 0, 1, 0], Some([false, true, false, true]), 1, false)]
+    #[case::valid_after_same_null(&[0, 0, 0, 1], Some([false, true, false, true]), 1, true)]
+    #[case::occasional_template(&[0, 1, 2, 3, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18], None, 4 * 65_538, true)]
     fn test_sampled_wide_dictionary_budget(
         #[case] values: &[u8],
         #[case] validity: Option<[bool; 4]>,
+        #[case] budget: usize,
         #[case] should_split: bool,
     ) {
         let value_bytes = 65_538;
@@ -422,15 +417,52 @@ pub(super) mod tests {
             ),
             validity.map(|valid| NullBuffer::from(valid.to_vec())),
         );
-        let budget = if validity.is_none() && values.len() > 4 {
-            4 * value_bytes
-        } else {
-            1
-        };
         assert_eq!(
             plan_wide_binary_with_budget(array, (2 * value_bytes) as u64, Some(budget)).is_some(),
             should_split
         );
+    }
+
+    #[rstest]
+    #[case::valid_empty(true)]
+    #[case::null_empty(false)]
+    fn test_empty_slot_distinguishes_logical_values(#[case] is_empty_valid: bool) {
+        let width = 32_769;
+        let mut values = vec![1u8; 3 * width];
+        values[..width].fill(2);
+        let array = LargeBinaryArray::new(
+            OffsetBuffer::from_lengths([width, width, 0, width]),
+            Buffer::from(values),
+            Some(NullBuffer::from(vec![false, true, is_empty_valid, true])),
+        );
+        assert_eq!(
+            plan_wide_binary_with_budget(array, width as u64, Some(1)).is_some(),
+            is_empty_valid
+        );
+    }
+
+    #[rstest]
+    #[case::over_budget_257(257, 257, true)]
+    #[case::over_budget_340(340, 340, true)]
+    #[case::under_budget_257(257, 255, false)]
+    #[case::under_budget_340(340, 255, false)]
+    #[case::under_budget_341(341, 255, false)]
+    fn test_default_dictionary_sample_boundary(
+        #[case] rows: usize,
+        #[case] distinct_values: usize,
+        #[case] should_split: bool,
+    ) {
+        let width = 32_769;
+        let mut values = vec![0; rows * width];
+        for (row, payload) in values.chunks_exact_mut(width).enumerate() {
+            payload[..2].copy_from_slice(&((row % distinct_values) as u16).to_le_bytes());
+        }
+        let array = LargeBinaryArray::new(
+            OffsetBuffer::from_lengths(std::iter::repeat_n(width, rows)),
+            Buffer::from(values),
+            None,
+        );
+        assert_eq!(plan_wide_binary(array, 256 * 1024).is_some(), should_split);
     }
 
     #[rstest]
@@ -462,10 +494,42 @@ pub(super) mod tests {
         }
     }
 
+    #[rstest]
+    #[case::above_entry_limit(2, 21, true)]
+    #[case::within_configured_entry_limit(1, 21, false)]
+    #[case::empty_null_slots_count_toward_entry_limit(2, 43, false)]
+    fn test_small_pages_require_dictionary_entry_proof(
+        #[case] divisor: u64,
+        #[case] rows: usize,
+        #[case] should_split: bool,
+    ) {
+        let width = 32_769;
+        let array: LargeBinaryArray = (0..rows)
+            .map(|row| (row < 21).then(|| vec![row as u8; width]))
+            .collect();
+        let metadata = HashMap::from([(DICT_DIVISOR_META_KEY.to_string(), divisor.to_string())]);
+        assert_eq!(
+            plan_wide_binary_with_metadata(array, 200 * 1024, metadata).is_some(),
+            should_split
+        );
+    }
+
     fn plan_wide_binary_with_budget(
         array: LargeBinaryArray,
         max_page_bytes: u64,
         max_dict_bytes: Option<usize>,
+    ) -> Option<Vec<usize>> {
+        let metadata = max_dict_bytes
+            .map(|limit| (DICT_MAX_SIZE_META_KEY.to_string(), limit.to_string()))
+            .into_iter()
+            .collect();
+        plan_wide_binary_with_metadata(array, max_page_bytes, metadata)
+    }
+
+    fn plan_wide_binary_with_metadata(
+        array: LargeBinaryArray,
+        max_page_bytes: u64,
+        metadata: HashMap<String, String>,
     ) -> Option<Vec<usize>> {
         let num_rows = array.len() as u64;
         let mut repdef = RepDefBuilder::default();
@@ -473,10 +537,6 @@ pub(super) mod tests {
             repdef.add_validity_bitmap(nulls.clone());
         }
         let repdef = RepDefBuilder::normalize(vec![repdef]).serialize();
-        let metadata = max_dict_bytes
-            .map(|limit| (DICT_MAX_SIZE_META_KEY.to_string(), limit.to_string()))
-            .into_iter()
-            .collect();
         let field = Field::try_from(
             &ArrowField::new("wide", DataType::LargeBinary, true).with_metadata(metadata),
         )

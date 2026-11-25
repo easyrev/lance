@@ -1679,6 +1679,30 @@ impl PrimitiveStructuralEncoder {
         })
     }
 
+    /// Configured dictionary entry limit for the physical values in the candidate page.
+    pub(super) fn dictionary_entry_limit(num_values: u64, field: &Field) -> u64 {
+        let divisor: u64 = field
+            .metadata
+            .get(DICT_DIVISOR_META_KEY)
+            .and_then(|val| val.parse().ok())
+            .or_else(|| {
+                env::var("LANCE_ENCODING_DICT_DIVISOR")
+                    .ok()
+                    .and_then(|val| val.parse().ok())
+            })
+            .unwrap_or(DEFAULT_DICT_DIVISOR);
+
+        let max_cardinality: u64 = env::var("LANCE_ENCODING_DICT_MAX_CARDINALITY")
+            .ok()
+            .and_then(|val| val.parse().ok())
+            .unwrap_or(DEFAULT_DICT_MAX_CARDINALITY);
+
+        num_values
+            .checked_div(divisor.max(1))
+            .unwrap_or(0)
+            .min(max_cardinality)
+    }
+
     pub(super) fn dictionary_min_values() -> u64 {
         env::var("LANCE_ENCODING_DICT_TOO_SMALL")
             .ok()
@@ -1809,27 +1833,7 @@ impl PrimitiveStructuralEncoder {
 
         let num_values = data_block.num_values();
 
-        // Bound actual dictionary construction by the configured cardinality and size budgets.
-        let divisor: u64 = field
-            .metadata
-            .get(DICT_DIVISOR_META_KEY)
-            .and_then(|val| val.parse().ok())
-            .or_else(|| {
-                env::var("LANCE_ENCODING_DICT_DIVISOR")
-                    .ok()
-                    .and_then(|val| val.parse().ok())
-            })
-            .unwrap_or(DEFAULT_DICT_DIVISOR);
-
-        let max_cardinality: u64 = env::var("LANCE_ENCODING_DICT_MAX_CARDINALITY")
-            .ok()
-            .and_then(|val| val.parse().ok())
-            .unwrap_or(DEFAULT_DICT_MAX_CARDINALITY);
-
-        let threshold_cardinality = num_values
-            .checked_div(divisor.max(1))
-            .unwrap_or(0)
-            .min(max_cardinality);
+        let threshold_cardinality = Self::dictionary_entry_limit(num_values, field);
         if threshold_cardinality == 0 {
             return None;
         }
