@@ -1,0 +1,99 @@
+2026-11-26T04:22:15Z
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p3   99G   84G   11G  90% /
+tmpfs           124G  124G   36M 100% /dev/shm
+Mounted on       Avail
+/          10778615808
+/dev/shm      37339136
+0	/dev/shm/aliyun-assist-agent-coldstarted
+124G	/dev/shm/lance-10526
+23G	/dev/shm/lance-10526/decode-followup
+20K	/dev/shm/lance-10526/git-commit-retry.log
+4.0K	/dev/shm/lance-10526/git-commit.log
+28G	/dev/shm/lance-10526/ipc
+2.7M	/dev/shm/lance-10526/raw
+0	/dev/shm/lance-10526/scratch
+74G	/dev/shm/lance-10526/shared-buffer
+8.0K	/dev/shm/lance-10526/summary.md
+17M	/dev/shm/lance-10526/take-investigation
+
+Paths to remove
+17M	/dev/shm/lance-10526/take-investigation
+23G	/dev/shm/lance-10526/decode-followup
+0	/dev/shm/lance-10526/scratch
+29G	/dev/shm/lance-10526/shared-buffer/target-pure
+26G	/dev/shm/lance-10526/shared-buffer/target-var
+778M	/dev/shm/lance-10526/shared-buffer/venv-pure
+777M	/dev/shm/lance-10526/shared-buffer/venv-var
+0	/dev/shm/lance-10526/shared-buffer/tmp
+87M	/dev/shm/lance-10526/shared-buffer/checkout-var
+
+After cleanup
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p3   99G   84G   11G  90% /
+tmpfs           124G   46G   78G  38% /dev/shm
+Mounted on       Avail
+/          10778976256
+/dev/shm   83707252736
+20K	/dev/shm/lance-10526/git-commit-retry.log
+4.0K	/dev/shm/lance-10526/git-commit.log
+28G	/dev/shm/lance-10526/ipc
+2.7M	/dev/shm/lance-10526/raw
+19G	/dev/shm/lance-10526/shared-buffer
+8.0K	/dev/shm/lance-10526/summary.md
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p3   99G   84G   11G  90% /
+tmpfs           124G   46G   78G  38% /dev/shm
+
+Superseded editable bootstrap extension to remove
+4.8G	/root/lance/shared-buffer-pure/python/python/lance/lance.abi3.so
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p3   99G   80G   15G  85% /
+Mounted on       Avail
+/          15857721344
+
+Authorized disk cache cleanup
+2026-11-26T04:25:47Z
+19G	/root/lance/targets/base
+19G	/root/lance/targets/final
+19G	/root/.cache/sccache
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p3   99G   24G   71G  25% /
+tmpfs           124G   48G   77G  39% /dev/shm
+Mounted on       Avail
+/          76078264320
+/dev/shm   81703145472
+5080406496 /root/lance/base/python/python/lance/lance.abi3.so
+5080713056 /root/lance/final/python/python/lance/lance.abi3.so
+
+Relocated archived logs and build records from tmpfs to disk
+2.7M	/dev/shm/lance-10526/raw
+8.0K	/dev/shm/lance-10526/summary.md
+20K	/dev/shm/lance-10526/git-commit-retry.log
+4.0K	/dev/shm/lance-10526/git-commit.log
+272K	total
+/dev/shm/lance-10526/shared-buffer/raw/build-base.exit
+/dev/shm/lance-10526/shared-buffer/raw/build-base.log
+/dev/shm/lance-10526/shared-buffer/raw/build-pure.exit
+/dev/shm/lance-10526/shared-buffer/raw/build-pure.log
+/dev/shm/lance-10526/shared-buffer/raw/build-var-job.exit
+/dev/shm/lance-10526/shared-buffer/raw/build-var-job.log
+/dev/shm/lance-10526/shared-buffer/raw/build-var.exit
+/dev/shm/lance-10526/shared-buffer/raw/build-var.log
+/dev/shm/lance-10526/shared-buffer/raw/commit-base.txt
+/dev/shm/lance-10526/shared-buffer/raw/commit-pure.txt
+/dev/shm/lance-10526/shared-buffer/raw/commit-var.txt
+/dev/shm/lance-10526/shared-buffer/raw/extension-base.sha256
+/dev/shm/lance-10526/shared-buffer/raw/install-pure.log
+/dev/shm/lance-10526/shared-buffer/raw/install-var.log
+/dev/shm/lance-10526/shared-buffer/raw/test-pure-stage0.exit
+/dev/shm/lance-10526/shared-buffer/raw/test-pure-stage0.log
+/dev/shm/lance-10526/shared-buffer/raw/test-var.exit
+/dev/shm/lance-10526/shared-buffer/raw/test-var.log
+/dev/shm/lance-10526/shared-buffer/raw/stage0-10526-head.txt
+/dev/shm/lance-10526/shared-buffer/raw/stage0-b-files.txt
+/dev/shm/lance-10526/shared-buffer/raw/stage0-file-intersection.txt
+/dev/shm/lance-10526/shared-buffer/raw/stage0-final-diff-stat.txt
+/dev/shm/lance-10526/shared-buffer/raw/stage0-final-files.txt
+/dev/shm/lance-10526/shared-buffer/raw/pure-install-intermediate.txt
+/dev/shm/lance-10526/shared-buffer/stage0.md

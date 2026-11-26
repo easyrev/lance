@@ -1,0 +1,39 @@
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/nvme0n1p3   99G   33G   62G  35% /
+tmpfs           124G   48G   77G  39% /dev/shm
+verify utf8-1page var
+verify utf8-zstd-25k var
+verify utf8-zstd-8k var
+verify binary-zstd-varlen var
+verify binary-random-varlen var
+verify binary-zstd-medium var
+verify binary-medium-default var
+verify mixed var
+scan utf8-1page 1 base
+scan utf8-1page 1 pure
+scan utf8-1page 1 var
+scan utf8-1page 2 base
+scan utf8-1page 2 pure
+scan utf8-1page 2 var
+scan utf8-1page 3 base
+scan utf8-1page 3 pure
+scan utf8-1page 3 var
+utf8-1page scan peak RSS MiB base → pure n=3 +4.69% 区间相交，中位数增加超过 3%
+utf8-1page scan peak RSS MiB base → var n=3 +3.52% 区间相交，中位数增加超过 3%
+scan utf8-1page 4 base
+scan utf8-1page 4 pure
+scan utf8-1page 4 var
+scan utf8-1page 5 base
+scan utf8-1page 5 pure
+scan utf8-1page 5 var
+take128 utf8-1page 1 base
+take128 utf8-1page 1 pure
+take128 utf8-1page 1 var
+take128 utf8-1page 2 base
+take128 utf8-1page 2 pure
+take128 utf8-1page 2 var
+take128 utf8-1page 3 base
+take128 utf8-1page 3 pure
+take128 utf8-1page 3 var
+utf8-1page take128 first peak RSS MiB base → pure n=3 +3.82% 回归
+pure-B regression

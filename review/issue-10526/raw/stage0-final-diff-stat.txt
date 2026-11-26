@@ -1,0 +1,13 @@
+ python/python/lance/file.py                        |   6 +-
+ python/python/tests/test_file.py                   |   1 -
+ rust/lance-encoding/src/compression.rs             |   5 +-
+ rust/lance-encoding/src/encoder.rs                 |   6 +-
+ .../src/encodings/logical/primitive.rs             |   1 +
+ .../src/encodings/logical/primitive/planar.rs      |  17 +-
+ .../logical/primitive/structural_encoder.rs        |  96 ++-
+ .../logical/primitive/structural_encoder/tests.rs  | 345 ++++++++++-
+ .../logical/primitive/wide_value_split.rs          | 670 +++++++++++++++++++++
+ rust/lance-file/src/versions/v2_0/writer.rs        |   8 +-
+ rust/lance-file/src/writer.rs                      |   5 +-
+ rust/lance-file/src/writer_tests.rs                |  62 +-
+ 12 files changed, 1149 insertions(+), 73 deletions(-)

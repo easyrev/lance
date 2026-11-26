@@ -1,0 +1,83 @@
+uv run --frozen --no-sync maturin develop --uv
+🍹 Building a mixed python/rust project
+🐍 Found CPython 3.12 at /dev/shm/lance-10526/shared-buffer/venv-pure/bin/python
+🔗 Found pyo3 bindings with abi3 support
+Using Python 3.12.16 environment at: /dev/shm/lance-10526/shared-buffer/venv-pure
+Checked 24 packages in 1ms
+Using Python 3.12.16 environment at: /dev/shm/lance-10526/shared-buffer/venv-pure
+Resolved 5 packages in 687ms
+Checked 5 packages in 0.09ms
+   Compiling pyo3-ffi v0.29.3
+warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of bf16 kernels
+warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of fp16 kernels
+warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of bf16 kernels
+   Compiling pyo3 v0.29.3
+   Compiling arrow-pyarrow v59.3.2
+   Compiling pythonize v0.29.0
+   Compiling arrow v59.3.2
+   Compiling datafusion-common v55.2.0
+   Compiling datafusion-proto-common v55.2.0
+   Compiling datafusion-expr-common v55.2.0
+   Compiling datafusion-proto-models v55.2.0
+   Compiling datafusion-physical-expr-common v55.2.0
+   Compiling datafusion-functions-window-common v55.2.0
+   Compiling datafusion-functions-aggregate-common v55.2.0
+   Compiling datafusion-expr v55.2.0
+   Compiling datafusion-physical-expr v55.2.0
+   Compiling datafusion-execution v55.2.0
+   Compiling datafusion-functions v55.2.0
+   Compiling datafusion-functions-aggregate v55.2.0
+   Compiling datafusion-optimizer v55.2.0
+   Compiling datafusion-functions-window v55.2.0
+   Compiling datafusion-physical-plan v55.2.0
+   Compiling datafusion-physical-expr-adapter v55.2.0
+   Compiling datafusion-functions-nested v55.2.0
+   Compiling datafusion-sql v55.2.0
+   Compiling lance-core v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-core)
+   Compiling datafusion-session v55.2.0
+   Compiling datafusion-datasource v55.2.0
+   Compiling lance-namespace v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-namespace)
+   Compiling lance-encoding v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-encoding)
+   Compiling lance-select v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-select)
+   Compiling lance-linalg v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-linalg)
+   Compiling lance-io v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-io)
+   Compiling datafusion-catalog v55.2.0
+   Compiling datafusion-pruning v55.2.0
+   Compiling datafusion-datasource-json v55.2.0
+   Compiling datafusion-datasource-arrow v55.2.0
+   Compiling datafusion-datasource-csv v55.2.0
+   Compiling datafusion-physical-optimizer v55.2.0
+   Compiling datafusion-datasource-parquet v55.2.0
+   Compiling datafusion-catalog-listing v55.2.0
+   Compiling datafusion-functions-table v55.2.0
+   Compiling datafusion v55.2.0
+   Compiling datafusion-proto v55.2.0
+   Compiling lance-file v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-file)
+   Compiling lance-datafusion-exec v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-datafusion-exec)
+   Compiling lance-index-core v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-index-core)
+   Compiling lance-table v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-table)
+   Compiling datafusion-ffi v55.2.0
+   Compiling datafusion-substrait v55.2.0
+   Compiling geodatafusion v0.6.0
+   Compiling lance-datafusion v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-datafusion)
+   Compiling lance-table-runtime v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-table-runtime)
+   Compiling lance-index v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-index)
+   Compiling lance-geo v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-geo)
+   Compiling lance v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance)
+   Compiling lance-namespace-impls v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-namespace-impls)
+   Compiling pylance v15.0.0-beta.35 (/root/lance/shared-buffer-pure/python)
+error: linking with `cc` failed: exit status: 1
+  |
+  = note:  "cc" "-Wl,--version-script=/dev/shm/lance-10526/shared-buffer/target-pure/release-with-debug/deps/rustcFh6dio/list" "-Wl,--no-undefined-version" "-m64" "<5737 object files omitted>" "-Wl,--as-needed" "-Wl,-Bstatic" "/dev/shm/lance-10526/shared-buffer/target-pure/release-with-debug/deps/rustcFh6dio/{liblance_linalg-bbe20faabeb9c453,liblz4_sys-551be1ae55b63aa5,libblake3-a4a4956e617e3889,libring-7f7950cfff66e46d,libaws_lc_sys-29e33f0687cdf74a,libzstd_sys-dec7998748392251}.rlib" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib/libcompiler_builtins-*.rlib" "-Wl,-Bdynamic" "-lgcc_s" "-lutil" "-lrt" "-lpthread" "-lm" "-ldl" "-lc" "-L" "/dev/shm/lance-10526/shared-buffer/target-pure/release-with-debug/deps/rustcFh6dio/raw-dylibs" "-B<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/bin/gcc-ld" "-fuse-ld=lld" "-Wl,--eh-frame-hdr" "-Wl,-z,noexecstack" "-L" "/dev/shm/lance-10526/shared-buffer/target-pure/release-with-debug/build/zstd-sys-854d514955a56a04/out" "-L" "/dev/shm/lance-10526/shared-buffer/target-pure/release-with-debug/build/blake3-8e8713a2264fdec8/out" "-L" "/dev/shm/lance-10526/shared-buffer/target-pure/release-with-debug/build/aws-lc-sys-f24b417d35018b51/out" "-L" "/dev/shm/lance-10526/shared-buffer/target-pure/release-with-debug/build/ring-c1b90fd740e793a6/out" "-L" "/dev/shm/lance-10526/shared-buffer/target-pure/release-with-debug/build/lz4-sys-a8a4e129b36f71b5/out" "-L" "/dev/shm/lance-10526/shared-buffer/target-pure/release-with-debug/build/lance-linalg-c56661cd4f04683b/out" "-L" "<sysroot>/lib/rustlib/x86_64-unknown-linux-gnu/lib" "-o" "/dev/shm/lance-10526/shared-buffer/target-pure/release-with-debug/deps/liblance.so" "-Wl,--gc-sections" "-shared" "-Wl,-z,relro,-z,now" "-Wl,-O1" "-nodefaultlibs" "-fuse-ld=mold"
+  = note: some arguments are omitted. use `--verbose` to show all linker arguments
+  = note: mold: failed to write to an output file. Disk full?
+          collect2: fatal error: ld terminated with signal 7 [Bus error]
+          compilation terminated.
+          
+
+error: could not compile `pylance` (lib) due to 1 previous error
+💥 maturin failed
+  Caused by: Failed to build a native library through cargo
+  Caused by: Cargo build finished with "exit status: 101": `env -u CARGO PYO3_BUILD_EXTENSION_MODULE="1" PYO3_ENVIRONMENT_SIGNATURE="cpython-3.12-64bit" PYO3_PYTHON="/dev/shm/lance-10526/shared-buffer/venv-pure/bin/python" PYTHON_SYS_EXECUTABLE="/dev/shm/lance-10526/shared-buffer/venv-pure/bin/python" "cargo" "rustc" "--profile" "release-with-debug" "--message-format" "json-render-diagnostics" "--manifest-path" "/root/lance/shared-buffer-pure/python/Cargo.toml" "--lib"`
+make: *** [Makefile:44: build] Error 1

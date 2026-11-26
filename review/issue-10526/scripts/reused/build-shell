@@ -1,0 +1,6 @@
+#!/bin/bash
+set -eu
+if [[ $1 == -c && $2 == 'uv run --frozen --no-sync maturin develop --uv' ]]; then
+    exec uv run --frozen --no-sync maturin develop --uv --profile release-with-debug
+fi
+exec /bin/bash "$@"

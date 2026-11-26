@@ -1,0 +1,1064 @@
+uv sync --frozen --python 3.12 --verbose
+DEBUG Found workspace root: /root/lance/shared-buffer-pure/python
+DEBUG Adding root workspace member: /root/lance/shared-buffer-pure/python
+DEBUG Found workspace configuration at `/root/lance/shared-buffer-pure/python/pyproject.toml`
+DEBUG Searching for user configuration in: /root/.config/uv/uv.toml
+DEBUG uv 0.13.10 (x86_64-unknown-linux-gnu)
+DEBUG Found project root: /root/lance/shared-buffer-pure/python
+DEBUG Using Python request `3.12` from explicit request
+DEBUG Checking for Python environment at: /dev/shm/lance-10526/shared-buffer/venv-pure
+DEBUG Searching for Python 3.12 in managed installations or search path
+DEBUG Searching for managed installations at `/root/.local/share/uv/python`
+DEBUG Found managed installation `cpython-3.12.16-linux-x86_64-gnu`
+DEBUG Found `cpython-3.12.16-linux-x86_64-gnu` at `/root/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12` (managed installations)
+Using CPython 3.12.16
+Creating virtual environment at: /dev/shm/lance-10526/shared-buffer/venv-pure
+DEBUG Assessing Python executable as base candidate: /root/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12
+DEBUG Using base executable for virtual environment: /root/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12
+DEBUG Using symlink directory `/root/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu` instead of base Python path `/root/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12`
+DEBUG Identified uncached distribution: pylance @ file:///root/lance/shared-buffer-pure/python
+DEBUG Registry requirement already cached: maturin==1.13.3
+DEBUG Registry requirement already cached: pyright==1.1.406
+DEBUG Registry requirement already cached: ruff==0.11.2
+DEBUG Registry requirement already cached: boto3==1.40.43
+DEBUG Registry requirement already cached: datafusion==55.0.0
+DEBUG Registry requirement already cached: datasets==4.4.0
+DEBUG Registry requirement already cached: duckdb==1.5.6
+DEBUG Registry requirement already cached: ml-dtypes==0.5.3
+DEBUG Registry requirement already cached: numpy==2.5.1
+DEBUG Registry requirement already cached: opentelemetry-sdk==1.30.0
+DEBUG Registry requirement already cached: pandas==2.3.3
+DEBUG Registry requirement already cached: pillow==11.3.0
+DEBUG Registry requirement already cached: polars==1.34.0
+DEBUG Registry requirement already cached: psutil==7.1.0
+DEBUG Registry requirement already cached: pytest==8.4.2
+DEBUG Registry requirement already cached: pytest-xdist==3.8.0
+DEBUG Registry requirement already cached: tqdm==4.67.1
+DEBUG Registry requirement already cached: lance-namespace==0.13.0
+DEBUG Registry requirement already cached: pyarrow==25.0.1
+DEBUG Registry requirement already cached: nodeenv==1.10.0
+DEBUG Registry requirement already cached: typing-extensions==4.16.0
+DEBUG Registry requirement already cached: botocore==1.40.76
+DEBUG Registry requirement already cached: jmespath==1.1.0
+DEBUG Registry requirement already cached: s3transfer==0.14.0
+DEBUG Registry requirement already cached: cloudpickle==3.1.2
+DEBUG Registry requirement already cached: dill==0.4.0
+DEBUG Registry requirement already cached: filelock==3.29.7
+DEBUG Registry requirement already cached: fsspec==2025.10.0
+DEBUG Registry requirement already cached: httpx==0.28.1
+DEBUG Registry requirement already cached: huggingface-hub==1.23.0
+DEBUG Registry requirement already cached: multiprocess==0.70.18
+DEBUG Registry requirement already cached: packaging==26.2
+DEBUG Registry requirement already cached: pyyaml==6.0.3
+DEBUG Registry requirement already cached: requests==2.34.2
+DEBUG Registry requirement already cached: xxhash==3.8.1
+DEBUG Registry requirement already cached: opentelemetry-api==1.30.0
+DEBUG Registry requirement already cached: opentelemetry-semantic-conventions==0.51b0
+DEBUG Registry requirement already cached: python-dateutil==2.9.0.post0
+DEBUG Registry requirement already cached: pytz==2026.2
+DEBUG Registry requirement already cached: tzdata==2026.3
+DEBUG Registry requirement already cached: polars-runtime-32==1.34.0
+DEBUG Registry requirement already cached: iniconfig==2.3.0
+DEBUG Registry requirement already cached: pluggy==1.6.0
+DEBUG Registry requirement already cached: pygments==2.20.0
+DEBUG Registry requirement already cached: execnet==2.1.2
+DEBUG Registry requirement already cached: lance-namespace-urllib3-client==0.13.0
+DEBUG Registry requirement already cached: urllib3==2.8.0
+DEBUG Registry requirement already cached: aiohttp==3.14.4
+DEBUG Registry requirement already cached: anyio==4.14.2
+DEBUG Registry requirement already cached: certifi==2026.10.19
+DEBUG Registry requirement already cached: httpcore==1.0.9
+DEBUG Registry requirement already cached: idna==3.18
+DEBUG Registry requirement already cached: click==8.4.2
+DEBUG Registry requirement already cached: hf-xet==1.5.1
+DEBUG Registry requirement already cached: charset-normalizer==3.4.9
+DEBUG Registry requirement already cached: deprecated==1.3.1
+DEBUG Registry requirement already cached: importlib-metadata==8.5.0
+DEBUG Registry requirement already cached: six==1.17.0
+DEBUG Registry requirement already cached: pydantic==2.13.4
+DEBUG Registry requirement already cached: aiohappyeyeballs==2.7.1
+DEBUG Registry requirement already cached: aiosignal==1.4.0
+DEBUG Registry requirement already cached: attrs==26.1.0
+DEBUG Registry requirement already cached: frozenlist==1.8.0
+DEBUG Registry requirement already cached: multidict==6.9.1
+DEBUG Registry requirement already cached: propcache==0.5.2
+DEBUG Registry requirement already cached: yarl==1.25.1
+DEBUG Registry requirement already cached: h11==0.16.0
+DEBUG Registry requirement already cached: wrapt==2.2.2
+DEBUG Registry requirement already cached: zipp==4.1.0
+DEBUG Registry requirement already cached: annotated-types==0.7.0
+DEBUG Registry requirement already cached: pydantic-core==2.46.4
+DEBUG Registry requirement already cached: typing-inspection==0.4.2
+DEBUG Using request connect timeout of 10s and read timeout of 30s
+DEBUG Computed cache info: Timestamp(SystemTime { tv_sec: 1795664290, tv_nsec: 624953756 }), None, None, {}, {"src": Some(Timestamp(Timestamp(SystemTime { tv_sec: 1795664290, tv_nsec: 644954392 })))}. Most recently modified: pyproject.toml
+   Building pylance @ file:///root/lance/shared-buffer-pure/python
+DEBUG Building: pylance @ file:///root/lance/shared-buffer-pure/python
+DEBUG Assessing Python executable as base candidate: /root/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12
+DEBUG Creating build environment for: pylance @ file:///root/lance/shared-buffer-pure/python
+DEBUG Assessing Python executable as base candidate: /root/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12
+DEBUG Using base executable for virtual environment: /root/.local/share/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12
+DEBUG Resolving build requirements
+DEBUG Solving with installed Python version: 3.12.16
+DEBUG Solving with target Python version: >=3.12.16
+DEBUG Adding direct dependency: maturin>=1.4
+DEBUG Found fresh response for: https://pypi.org/simple/maturin/
+DEBUG Searching for a compatible version of maturin (>=1.4)
+DEBUG Selecting: maturin==1.16.0 [compatible] (maturin-1.16.0-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.musllinux_1_1_x86_64.whl)
+DEBUG Found fresh response for: https://files.pythonhosted.org/packages/0a/dc/e77f490557cb5e045a75c3d18a7965425ac576235c970dfff4d903eb2c74/maturin-1.16.0-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.musllinux_1_1_x86_64.whl.metadata
+DEBUG Tried 1 versions: maturin 1
+DEBUG marker environment resolution took 0.001s
+DEBUG Installing `maturin==1.16.0` in `/root/lance/cache/uv/builds-v0/.tmpVwMJoC`
+DEBUG Registry requirement already cached: maturin==1.16.0
+DEBUG Installing build requirement: maturin==1.16.0
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/v21rCFRZfojWwUpW/maturin-1.16.0.data/scripts/maturin` to `/root/lance/cache/uv/builds-v0/.tmpVwMJoC/lib/python3.12/site-packages/maturin-1.16.0.data/scripts/maturin`: Operation not supported (os error 95), falling back
+DEBUG Creating PEP 517 build environment
+DEBUG Calling `maturin.get_requires_for_build_editable()`
+DEBUG Calling `maturin.build_editable(__import__("os").fsdecode(b"/root/lance/cache/uv/builds-v0/.tmpOyn0La"), {}, None)`
+DEBUG Running `maturin pep517 build-wheel -i /root/lance/cache/uv/builds-v0/.tmpVwMJoC/bin/python --compatibility off --editable --profile release-with-debug`
+DEBUG 🍹 Building a mixed python/rust project
+DEBUG 🐍 Found CPython 3.12 at /root/lance/cache/uv/builds-v0/.tmpVwMJoC/bin/python
+DEBUG 🔗 Found pyo3 bindings with abi3-py3.10 support
+DEBUG    Compiling proc-macro2 v1.0.107
+DEBUG    Compiling quote v1.0.47
+DEBUG    Compiling unicode-ident v1.0.24
+DEBUG    Compiling libc v0.2.191
+DEBUG    Compiling cfg-if v1.0.4
+DEBUG    Compiling autocfg v1.5.1
+DEBUG    Compiling memchr v2.8.2
+DEBUG    Compiling libm v0.2.16
+DEBUG    Compiling serde_core v1.0.229
+DEBUG    Compiling bytes v1.12.1
+DEBUG    Compiling itoa v1.0.19
+DEBUG    Compiling equivalent v1.0.2
+DEBUG    Compiling foldhash v0.2.0
+DEBUG    Compiling allocator-api2 v0.2.21
+DEBUG    Compiling smallvec v1.16.5
+DEBUG    Compiling pin-project-lite v0.2.17
+DEBUG    Compiling once_cell v1.21.4
+DEBUG    Compiling log v0.4.35
+DEBUG    Compiling serde v1.0.229
+DEBUG    Compiling version_check v0.9.5
+DEBUG    Compiling zmij v1.0.23
+DEBUG    Compiling futures-core v0.3.32
+DEBUG    Compiling futures-sink v0.3.32
+DEBUG    Compiling serde_json v1.0.154
+DEBUG    Compiling slab v0.4.12
+DEBUG    Compiling futures-io v0.3.32
+DEBUG    Compiling futures-task v0.3.32
+DEBUG    Compiling percent-encoding v2.3.2
+DEBUG    Compiling num-traits v0.2.19
+DEBUG    Compiling zerocopy v0.8.52
+DEBUG    Compiling futures-channel v0.3.32
+DEBUG    Compiling shlex v2.0.1
+DEBUG    Compiling stable_deref_trait v1.2.1
+DEBUG    Compiling find-msvc-tools v0.1.15
+DEBUG    Compiling typenum v1.20.1
+DEBUG    Compiling tracing-core v0.1.36
+DEBUG    Compiling anyhow v1.0.104
+DEBUG    Compiling cpufeatures v0.3.0
+DEBUG    Compiling ryu v1.0.23
+DEBUG    Compiling rand_core v0.10.1
+DEBUG    Compiling hashbrown v0.17.1
+DEBUG    Compiling subtle v2.6.1
+DEBUG    Compiling either v1.19.0
+DEBUG    Compiling getrandom v0.4.3
+DEBUG    Compiling form_urlencoded v1.2.3
+DEBUG    Compiling generic-array v0.14.7
+DEBUG    Compiling bitflags v2.13.0
+DEBUG    Compiling pkg-config v0.3.33
+DEBUG    Compiling writeable v0.6.3
+DEBUG    Compiling litemap v0.8.2
+DEBUG    Compiling utf8_iter v1.0.4
+DEBUG    Compiling base64 v0.23.1
+DEBUG    Compiling http v1.5.0
+DEBUG    Compiling icu_normalizer_data v2.2.0
+DEBUG    Compiling icu_properties_data v2.2.0
+DEBUG    Compiling const-oid v0.9.6
+DEBUG    Compiling zeroize v1.9.0
+DEBUG    Compiling iana-time-zone v0.1.65
+DEBUG    Compiling crossbeam-utils v0.8.21
+DEBUG    Compiling getrandom v0.3.4
+DEBUG    Compiling thiserror v2.0.18
+DEBUG    Compiling aho-corasick v1.1.4
+DEBUG    Compiling regex-syntax v0.8.11
+DEBUG    Compiling chacha20 v0.10.2
+DEBUG    Compiling siphasher v1.0.3
+DEBUG    Compiling heck v0.5.0
+DEBUG    Compiling cmov v0.5.4
+DEBUG    Compiling const-oid v0.10.2
+DEBUG    Compiling hex v0.4.3
+DEBUG    Compiling crc32fast v1.5.0
+DEBUG    Compiling ahash v0.8.12
+DEBUG    Compiling simd-adler32 v0.3.9
+DEBUG    Compiling syn v2.0.119
+DEBUG    Compiling syn v3.0.10
+DEBUG    Compiling adler2 v2.0.1
+DEBUG    Compiling phf_shared v0.12.1
+DEBUG    Compiling zlib-rs v0.6.3
+DEBUG    Compiling ctutils v0.4.7
+DEBUG    Compiling miniz_oxide v0.8.9
+DEBUG    Compiling chrono-tz v0.10.4
+DEBUG    Compiling parking_lot_core v0.9.12
+DEBUG    Compiling scopeguard v1.2.0
+DEBUG    Compiling hybrid-array v0.4.12
+DEBUG    Compiling phf v0.12.1
+DEBUG    Compiling lock_api v0.4.14
+DEBUG    Compiling target-lexicon v0.13.5
+DEBUG    Compiling humantime v2.4.0
+DEBUG    Compiling lexical-util v1.0.7
+DEBUG    Compiling fnv v1.0.7
+DEBUG    Compiling itertools v0.15.0
+DEBUG    Compiling http-body v1.0.1
+DEBUG    Compiling itertools v0.14.0
+DEBUG    Compiling simdutf8 v0.1.5
+DEBUG    Compiling jobserver v0.1.34
+DEBUG    Compiling unicode-segmentation v1.13.3
+DEBUG    Compiling rustix v1.1.4
+DEBUG    Compiling zstd-safe v7.2.1
+DEBUG    Compiling fastrand v2.4.1
+DEBUG    Compiling block-buffer v0.12.1
+DEBUG    Compiling cc v1.11.2
+DEBUG    Compiling crypto-common v0.1.7
+DEBUG    Compiling block-buffer v0.10.4
+DEBUG    Compiling crypto-common v0.2.2
+DEBUG    Compiling num-integer v0.1.46
+DEBUG    Compiling num-complex v0.4.6
+DEBUG    Compiling lexical-parse-integer v1.0.6
+DEBUG    Compiling digest v0.10.7
+DEBUG    Compiling pyo3-build-config v0.29.3
+DEBUG    Compiling lexical-write-integer v1.0.6
+DEBUG    Compiling http-body-util v0.1.3
+DEBUG    Compiling csv-core v0.1.13
+DEBUG    Compiling errno v0.3.14
+DEBUG    Compiling mio v1.2.1
+DEBUG    Compiling socket2 v0.6.4
+DEBUG    Compiling signal-hook-registry v1.4.8
+DEBUG    Compiling getrandom v0.2.17
+DEBUG    Compiling num-bigint v0.5.1
+DEBUG    Compiling rand v0.10.1
+DEBUG    Compiling lexical-write-float v1.0.6
+DEBUG    Compiling indexmap v2.14.0
+DEBUG    Compiling uuid v1.29.2
+DEBUG    Compiling lexical-parse-float v1.0.6
+DEBUG    Compiling unicode-width v0.2.2
+DEBUG    Compiling digest v0.11.3
+DEBUG    Compiling parking_lot v0.12.5
+DEBUG    Compiling pyo3-ffi v0.29.3
+DEBUG    Compiling regex-automata v0.4.14
+DEBUG    Compiling pyo3 v0.29.3
+DEBUG    Compiling comfy-table v7.2.2
+DEBUG    Compiling sha2 v0.11.0
+DEBUG    Compiling md-5 v0.11.0
+DEBUG    Compiling semver v1.0.28
+DEBUG    Compiling lexical-core v1.0.6
+DEBUG    Compiling csv v1.4.0
+DEBUG    Compiling atoi v2.0.0
+DEBUG    Compiling same-file v1.0.6
+DEBUG    Compiling twox-hash v2.1.5
+DEBUG    Compiling zstd-sys v2.1.3+zstd.1.5.7
+DEBUG    Compiling walkdir v2.5.0
+DEBUG    Compiling rustc_version v0.4.1
+DEBUG    Compiling alloc-no-stdlib v2.0.4
+DEBUG    Compiling base64 v0.22.1
+DEBUG    Compiling hashbrown v0.14.5
+DEBUG    Compiling snap v1.1.1
+DEBUG    Compiling cpufeatures v0.2.17
+DEBUG    Compiling alloc-stdlib v0.2.2
+DEBUG    Compiling seq-macro v0.3.6
+DEBUG    Compiling hmac v0.12.1
+DEBUG    Compiling flatbuffers v25.12.19
+DEBUG    Compiling brotli-decompressor v5.0.3
+DEBUG    Compiling sha2 v0.10.9
+DEBUG    Compiling rand_core v0.9.5
+DEBUG    Compiling lz4_flex v0.14.0
+DEBUG    Compiling tower-service v0.3.3
+DEBUG    Compiling spin v0.9.9
+DEBUG    Compiling cmake v0.1.58
+DEBUG    Compiling dunce v1.0.5
+DEBUG    Compiling lazy_static v1.5.0
+DEBUG    Compiling fs_extra v1.3.0
+DEBUG    Compiling httparse v1.10.1
+DEBUG    Compiling rand_core v0.6.4
+DEBUG    Compiling block-padding v0.3.3
+DEBUG    Compiling try-lock v0.2.5
+DEBUG    Compiling flate2 v1.1.9
+DEBUG    Compiling atomic-waker v1.1.2
+DEBUG    Compiling want v0.3.2
+DEBUG    Compiling inout v0.1.4
+DEBUG    Compiling tower-layer v0.3.3
+DEBUG    Compiling jiff-core v0.1.8
+DEBUG    Compiling aws-lc-sys v0.45.0
+DEBUG    Compiling httpdate v1.0.3
+DEBUG    Compiling linux-raw-sys v0.12.1
+DEBUG    Compiling cipher v0.4.4
+DEBUG    Compiling blake3 v1.8.7
+DEBUG    Compiling ring v0.17.14
+DEBUG    Compiling sync_wrapper v1.0.2
+DEBUG    Compiling ipnet v2.12.0
+DEBUG    Compiling aws-lc-rs v1.18.1
+DEBUG    Compiling constant_time_eq v0.4.2
+DEBUG    Compiling base64ct v1.8.3
+DEBUG    Compiling arrayvec v0.7.6
+DEBUG    Compiling rustls-pki-types v1.16.0
+DEBUG    Compiling synstructure v0.13.2
+DEBUG    Compiling pyo3-macros-backend v0.29.3
+DEBUG    Compiling serde_derive v1.0.229
+DEBUG    Compiling async-trait v0.1.92
+DEBUG    Compiling brotli v8.0.4
+DEBUG    Compiling untrusted v0.9.0
+DEBUG    Compiling pem-rfc7468 v0.7.0
+DEBUG    Compiling salsa20 v0.10.2
+DEBUG    Compiling dashmap v6.2.1
+DEBUG    Compiling pbkdf2 v0.12.2
+DEBUG    Compiling rustls v0.23.46
+DEBUG    Compiling arrow-schema v59.3.3
+DEBUG    Compiling zstd v0.13.1
+DEBUG    Compiling der v0.7.10
+DEBUG    Compiling datafusion-doc v55.2.0
+DEBUG    Compiling foldhash v0.1.5
+DEBUG    Compiling tokio-macros v2.7.0
+DEBUG    Compiling futures-macro v0.3.32
+DEBUG    Compiling zerocopy-derive v0.8.52
+DEBUG    Compiling tracing-attributes v0.1.31
+DEBUG    Compiling zerofrom-derive v0.1.7
+DEBUG    Compiling yoke-derive v0.8.2
+DEBUG    Compiling zerovec-derive v0.11.3
+DEBUG    Compiling displaydoc v0.2.6
+DEBUG    Compiling bytemuck_derive v1.10.2
+DEBUG    Compiling thiserror-impl v2.0.18
+DEBUG    Compiling tokio v1.54.1
+DEBUG    Compiling prost-derive v0.14.6
+DEBUG    Compiling futures-util v0.3.32
+DEBUG    Compiling pin-project-internal v1.1.13
+DEBUG    Compiling sqlparser_derive v0.5.0
+DEBUG    Compiling jiff v0.2.46
+DEBUG    Compiling zerofrom v0.1.8
+DEBUG    Compiling hashbrown v0.15.5
+DEBUG    Compiling tracing v0.1.44
+DEBUG    Compiling yoke v0.8.3
+DEBUG    Compiling scrypt v0.11.0
+DEBUG    Compiling zerovec v0.11.6
+DEBUG    Compiling zerotrie v0.2.4
+DEBUG    Compiling bytemuck v1.25.2
+DEBUG    Compiling sqlparser v0.62.0
+DEBUG    Compiling spki v0.7.3
+DEBUG    Compiling pin-project v1.1.13
+DEBUG    Compiling cbc v0.1.2
+DEBUG    Compiling aes v0.8.4
+DEBUG    Compiling num-bigint-dig v0.8.6
+DEBUG    Compiling openssl-probe v0.2.1
+DEBUG    Compiling fixedbitset v0.5.7
+DEBUG    Compiling prost v0.14.6
+DEBUG    Compiling num-iter v0.1.45
+DEBUG    Compiling powerfmt v0.2.0
+DEBUG    Compiling asyncband v0.7.2
+DEBUG    Compiling rustls-native-certs v0.8.4
+DEBUG    Compiling regex v1.12.4
+DEBUG    Compiling signature v2.2.0
+DEBUG    Compiling tempfile v3.27.0
+DEBUG    Compiling petgraph v0.8.3
+DEBUG    Compiling datafusion-macros v55.2.0
+DEBUG    Compiling pkcs5 v0.7.1
+DEBUG    Compiling deranged v0.5.8
+DEBUG    Compiling num-conv v0.2.2
+DEBUG    Compiling time-core v0.1.8
+DEBUG    Compiling hmac v0.13.0
+DEBUG    Compiling sha1 v0.11.0
+DEBUG    Compiling blake2 v0.10.6
+DEBUG    Compiling tinystr v0.8.3
+DEBUG    Compiling potential_utf v0.1.5
+DEBUG    Compiling chrono v0.4.45
+DEBUG    Compiling crossbeam-epoch v0.9.20
+DEBUG    Compiling serde_urlencoded v0.7.1
+DEBUG    Compiling hashbrown v0.16.1
+DEBUG    Compiling icu_locale_core v2.2.0
+DEBUG    Compiling icu_collections v2.2.0
+DEBUG    Compiling pkcs8 v0.10.2
+DEBUG    Compiling rustversion v1.0.22
+DEBUG    Compiling byteorder v1.5.0
+DEBUG    Compiling encoding_rs v0.8.35
+DEBUG    Compiling pkcs1 v0.7.5
+DEBUG    Compiling strsim v0.11.1
+DEBUG    Compiling compression-core v0.4.32
+DEBUG    Compiling mime v0.3.17
+DEBUG    Compiling ident_case v1.0.1
+DEBUG    Compiling pyo3-macros v0.29.3
+DEBUG    Compiling crunchy v0.2.4
+DEBUG    Compiling compression-codecs v0.4.38
+DEBUG    Compiling approx v0.5.1
+DEBUG    Compiling http v0.2.12
+DEBUG    Compiling crossbeam-channel v0.5.15
+DEBUG    Compiling vsimd v0.8.0
+DEBUG    Compiling outref v0.5.2
+DEBUG    Compiling quick-xml v0.42.0
+DEBUG    Compiling bytes-utils v0.1.4
+DEBUG    Compiling pin-utils v0.1.0
+DEBUG    Compiling time v0.3.47
+DEBUG    Compiling aws-smithy-runtime-api-macros v1.0.0
+DEBUG    Compiling tiny-keccak v2.0.2
+DEBUG    Compiling spin v0.10.1
+DEBUG    Compiling futures-executor v0.3.32
+DEBUG    Compiling quick-xml v0.41.0
+DEBUG    Compiling rayon-core v1.13.0
+DEBUG    Compiling crc-fast v1.10.0
+DEBUG    Compiling futures v0.3.32
+DEBUG    Compiling icu_provider v2.2.0
+DEBUG    Compiling base64-simd v0.8.0
+DEBUG    Compiling const-random-macro v0.1.16
+DEBUG    Compiling darling_core v0.24.1
+DEBUG    Compiling crossbeam-deque v0.8.6
+DEBUG    Compiling glob v0.3.3
+DEBUG    Compiling const-random v0.1.18
+DEBUG    Compiling http-body v0.4.6
+DEBUG    Compiling dlv-list v0.5.2
+DEBUG    Compiling icu_normalizer v2.2.0
+DEBUG    Compiling icu_properties v2.2.0
+DEBUG    Compiling tracing-serde v0.2.0
+DEBUG    Compiling matchers v0.2.0
+DEBUG    Compiling sharded-slab v0.1.7
+DEBUG    Compiling num_cpus v1.17.0
+DEBUG    Compiling tracing-log v0.2.0
+DEBUG    Compiling bigdecimal v0.4.10
+DEBUG    Compiling thread_local v1.1.9
+DEBUG    Compiling paste v1.0.15
+DEBUG    Compiling option-ext v0.2.0
+DEBUG    Compiling nu-ansi-term v0.50.3
+DEBUG    Compiling dirs-sys v0.5.0
+DEBUG    Compiling rayon v1.12.0
+DEBUG    Compiling ordered-multimap v0.7.3
+DEBUG    Compiling num-bigint v0.4.6
+DEBUG    Compiling parking v2.2.1
+DEBUG    Compiling typewit v1.15.2
+DEBUG    Compiling tracing-subscriber v0.3.23
+DEBUG    Compiling cfg_aliases v0.2.2
+DEBUG    Compiling event-listener v5.4.2
+DEBUG    Compiling dirs v6.0.0
+DEBUG    Compiling nix v0.31.4
+DEBUG    Compiling rust-ini v0.21.3
+DEBUG    Compiling bstr v1.12.1
+DEBUG    Compiling const_panic v0.2.15
+DEBUG    Compiling git-version-macro v0.3.9
+DEBUG    Compiling os_str_bytes v6.6.1
+DEBUG    Compiling symlink v0.1.0
+DEBUG    Compiling idna_adapter v1.2.2
+DEBUG    Compiling ppv-lite86 v0.2.21
+DEBUG    Compiling half v2.7.1
+DEBUG    Compiling idna v1.1.0
+DEBUG    Compiling urlencoding v2.1.3
+DEBUG    Compiling konst_proc_macros v0.4.1
+DEBUG    Compiling git-version v0.3.9
+DEBUG    Compiling event-listener-strategy v0.5.4
+DEBUG    Compiling serde_repr v0.1.20
+DEBUG    Compiling aws-types v1.3.16
+DEBUG    Compiling whoami v2.1.2
+DEBUG    Compiling sysinfo v0.39.6
+DEBUG    Compiling shellexpand v3.1.2
+DEBUG    Compiling memoffset v0.9.1
+DEBUG    Compiling tokio-util v0.7.20
+DEBUG    Compiling rand_chacha v0.9.0
+DEBUG    Compiling rand_chacha v0.3.1
+DEBUG    Compiling async-compression v0.4.42
+DEBUG    Compiling arrow-buffer v59.3.3
+DEBUG    Compiling url v2.5.9
+DEBUG    Compiling aws-smithy-async v1.2.14
+DEBUG    Compiling datafusion-common-runtime v55.2.0
+DEBUG    Compiling darling_macro v0.24.1
+DEBUG    Compiling konst v0.4.3
+DEBUG    Compiling rand v0.9.5
+DEBUG    Compiling rand v0.8.6
+DEBUG    Compiling darling v0.24.1
+DEBUG    Compiling const-str v1.1.0
+DEBUG    Compiling more-asserts v0.3.1
+DEBUG    Compiling serde_with_macros v3.24.0
+DEBUG    Compiling oneshot v0.1.13
+DEBUG    Compiling colored v3.1.1
+DEBUG    Compiling redb v3.1.3
+DEBUG    Compiling h2 v0.4.16
+DEBUG    Compiling tower v0.5.3
+DEBUG    Compiling aws-smithy-types v1.5.0
+DEBUG    Compiling object_store v0.13.2
+DEBUG    Compiling tokio-stream v0.1.19
+DEBUG    Compiling tracing-appender v0.2.5
+DEBUG    Compiling serde_with v3.24.0
+DEBUG    Compiling portable-atomic v1.13.1
+DEBUG    Compiling arrow-data v59.3.3
+DEBUG    Compiling rapidhash v4.4.2
+DEBUG    Compiling lz4_flex v0.13.1
+DEBUG    Compiling ordered-float v5.5.1
+DEBUG    Compiling nom v8.0.0
+DEBUG    Compiling countio v0.3.0
+DEBUG    Compiling winnow v1.0.3
+DEBUG    Compiling static_assertions v1.1.0
+DEBUG    Compiling aws-smithy-runtime-api v1.12.3
+DEBUG    Compiling ethnum v1.5.3
+DEBUG    Compiling heapify v0.2.0
+DEBUG    Compiling fast-float2 v0.2.4
+DEBUG    Compiling heapless v0.8.0
+DEBUG    Compiling safe-transmute v0.11.3
+DEBUG    Compiling metrics v0.24.6
+DEBUG    Compiling tower-http v0.6.11
+DEBUG    Compiling rsa v0.9.10
+DEBUG    Compiling foyer-tokio v0.22.6
+DEBUG    Compiling tokio-retry v0.3.2
+DEBUG    Compiling async-lock v3.4.2
+DEBUG    Compiling statrs v0.18.0
+DEBUG    Compiling hash32 v0.3.1
+DEBUG    Compiling snafu-derive v0.9.2
+DEBUG    Compiling mixtrics v0.2.5
+DEBUG    Compiling unicase v2.9.0
+DEBUG    Compiling io-uring v0.7.16
+DEBUG    Compiling cfg-if v0.1.10
+DEBUG    Compiling reqsign-core v3.3.2
+DEBUG    Compiling toml_datetime v1.1.1+spec-1.1.0
+DEBUG    Compiling arrow-array v59.3.3
+DEBUG    Compiling tagptr v0.2.0
+DEBUG    Compiling mime_guess v2.0.5
+DEBUG    Compiling gearhash v0.1.3
+DEBUG    Compiling toml_parser v1.1.2+spec-1.1.0
+DEBUG    Compiling moka v0.12.16
+DEBUG    Compiling foyer-common v0.22.6
+DEBUG    Compiling foyer-intrusive-collections v0.10.0-dev
+DEBUG    Compiling aws-smithy-http v0.63.5
+DEBUG    Compiling aws-credential-types v1.2.14
+DEBUG    Compiling aws-smithy-schema v0.1.0
+DEBUG    Compiling aws-smithy-observability v0.2.5
+DEBUG    Compiling quick_cache v0.6.24
+DEBUG    Compiling aws-sigv4 v1.4.1
+DEBUG    Compiling toml_edit v0.25.12+spec-1.1.0
+DEBUG    Compiling roaring v0.11.5
+DEBUG    Compiling opendal-core v0.59.5
+DEBUG    Compiling reqsign-file-read-tokio v3.0.7
+DEBUG    Compiling reqsign-aws-core v3.1.1
+DEBUG    Compiling lance-derive v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-derive)
+DEBUG    Compiling pem v3.0.6
+DEBUG    Compiling snafu v0.9.2
+DEBUG    Compiling robust v1.2.0
+DEBUG    Compiling aws-smithy-json v0.62.7
+DEBUG    Compiling regex-lite v0.1.9
+DEBUG    Compiling xxhash-rust v0.8.21
+DEBUG    Compiling goosefs-sdk v0.2.2
+DEBUG    Compiling datasketches v0.3.0
+DEBUG    Compiling spade v2.15.1
+DEBUG    Compiling proc-macro-crate v3.5.0
+DEBUG    Compiling reqsign-azure-storage v3.1.1
+DEBUG    Compiling rstar v0.12.2
+DEBUG    Compiling lru v0.16.4
+DEBUG    Compiling arc-swap v1.9.5
+DEBUG    Compiling foyer-memory v0.22.6
+DEBUG    Compiling hostname v0.4.2
+DEBUG    Compiling prettyplease v0.2.37
+DEBUG    Compiling rustls-webpki v0.103.16
+DEBUG    Compiling reqsign-aliyun-oss v3.1.2
+DEBUG    Compiling reqsign-aws-v4 v3.3.0
+DEBUG    Compiling prost-types v0.14.6
+DEBUG    Compiling reqsign-tencent-cos v3.0.3
+DEBUG    Compiling lance-jsonb v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-jsonb)
+DEBUG    Compiling reqsign-volcengine-tos v3.1.2
+DEBUG    Compiling backon v1.6.0
+DEBUG    Compiling serde_derive_internals v0.29.1
+DEBUG    Compiling reqsign-google v3.1.1
+DEBUG    Compiling geo-types v0.7.19
+DEBUG    Compiling hyper v1.12.0
+DEBUG    Compiling xmlparser v0.13.6
+DEBUG    Compiling schemars v0.8.22
+DEBUG    Compiling schemars_derive v0.8.22
+DEBUG    Compiling aws-smithy-query v0.60.14
+DEBUG    Compiling arrow-select v59.3.3
+DEBUG    Compiling arrow-row v59.3.3
+DEBUG    Compiling arrow-pyarrow v59.3.2
+DEBUG    Compiling arrow-arith v59.3.3
+DEBUG    Compiling aws-smithy-xml v0.60.14
+DEBUG    Compiling thiserror v1.0.69
+DEBUG    Compiling dyn-clone v1.0.20
+DEBUG    Compiling multimap v0.10.1
+DEBUG    Compiling darling_core v0.20.11
+DEBUG    Compiling thiserror-impl v1.0.69
+DEBUG    Compiling ptr_meta_derive v0.3.1
+DEBUG    Compiling std_prelude v0.2.12
+DEBUG    Compiling stfu8 v0.2.7
+DEBUG    Compiling regress v0.10.5
+DEBUG    Compiling geo-traits v0.3.0
+DEBUG    Compiling pbjson-build v0.8.0
+DEBUG    Compiling ptr_meta v0.3.1
+DEBUG    Compiling path_abs v0.5.1
+DEBUG    Compiling serde_tokenstream v0.2.3
+DEBUG    Compiling lz4-sys v1.11.1+lz4-1.10.0
+DEBUG    Compiling zstd-safe v8.3.0
+DEBUG    Compiling rancor v0.1.1
+DEBUG    Compiling num_enum_derive v0.7.6
+DEBUG    Compiling bytecheck_derive v0.8.2
+DEBUG    Compiling i_float v1.16.0
+DEBUG    Compiling hyper-util v0.1.20
+DEBUG    Compiling unsafe-libyaml v0.2.11
+DEBUG    Compiling pco v1.0.4
+DEBUG    Compiling bytecheck v0.8.2
+DEBUG    Compiling num_enum v0.7.6
+DEBUG    Compiling prost-build v0.14.4
+DEBUG    Compiling i_shape v1.18.0
+DEBUG    Compiling phf_shared v0.13.1
+DEBUG    Compiling opendal-service-azure-common v0.59.5
+DEBUG    Compiling opendal-layer-logging v0.59.5
+DEBUG    Compiling opendal-layer-retry v0.59.5
+DEBUG    Compiling opendal-layer-concurrent-limit v0.59.5
+DEBUG    Compiling opendal-service-gcs v0.59.5
+DEBUG    Compiling opendal-layer-timeout v0.59.5
+DEBUG    Compiling opendal-service-tos v0.59.5
+DEBUG    Compiling opendal-service-azblob v0.59.5
+DEBUG    Compiling opendal-service-azdls v0.59.5
+DEBUG    Compiling opendal-service-oss v0.59.5
+DEBUG    Compiling opendal-service-cos v0.59.5
+DEBUG    Compiling opendal-service-s3 v0.59.5
+DEBUG    Compiling darling_macro v0.20.11
+DEBUG    Compiling serde_yaml v0.9.34+deprecated
+DEBUG    Compiling i_key_sort v0.10.3
+DEBUG    Compiling munge_macro v0.4.7
+DEBUG    Compiling darling v0.20.11
+DEBUG    Compiling typify-impl v0.5.0
+DEBUG    Compiling derive_builder_core v0.20.2
+DEBUG    Compiling pbjson-types v0.8.0
+DEBUG    Compiling arrow-ord v59.3.3
+DEBUG    Compiling arrow-ipc v59.3.3
+DEBUG    Compiling arrow-string v59.3.2
+DEBUG    Compiling async-recursion v1.2.0
+DEBUG    Compiling rand_xoshiro v0.6.0
+DEBUG    Compiling icu_locale_data v2.2.0
+DEBUG    Compiling arrayref v0.3.9
+DEBUG    Compiling dtype_dispatch v0.2.1
+DEBUG    Compiling i_tree v0.18.0
+DEBUG    Compiling better_io v0.2.0
+DEBUG    Compiling lance-bitpacking v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/compression/bitpacking)
+DEBUG    Compiling hyper-timeout v0.5.2
+DEBUG    Compiling i_overlay v4.5.2
+DEBUG    Compiling tonic v0.14.6
+DEBUG    Compiling derive_builder_macro v0.20.2
+DEBUG    Compiling munge v0.4.7
+DEBUG    Compiling zstd v0.14.4
+DEBUG    Compiling tokio-rustls v0.26.4
+DEBUG    Compiling rustls-platform-verifier v0.7.0
+DEBUG    Compiling parquet v59.3.3
+DEBUG    Compiling arrow-cast v59.3.3
+DEBUG    Compiling hyper-rustls v0.27.9
+DEBUG    Compiling phf_generator v0.13.1
+DEBUG    Compiling rend v0.5.3
+DEBUG    Compiling lz4 v1.28.1
+DEBUG    Compiling reqwest v0.13.5
+DEBUG    Compiling aws-smithy-http-client v1.1.11
+DEBUG    Compiling reqwest v0.12.28
+DEBUG    Compiling wkb v0.9.2
+DEBUG    Compiling geoarrow-schema v0.9.0
+DEBUG    Compiling typify-macro v0.5.0
+DEBUG    Compiling wkt v0.14.0
+DEBUG    Compiling tonic-prost v0.14.6
+DEBUG    Compiling fsst v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/compression/fsst)
+DEBUG    Compiling typify v0.5.0
+DEBUG    Compiling hyperloglogplus v0.4.1
+DEBUG    Compiling substrait v0.63.0
+DEBUG    Compiling pbjson v0.8.0
+DEBUG    Compiling aws-smithy-runtime v1.10.2
+DEBUG    Compiling rkyv_derive v0.8.17
+DEBUG    Compiling strum_macros v0.28.0
+DEBUG    Compiling earcut v0.4.5
+DEBUG    Compiling geographiclib-rs v0.2.7
+DEBUG    Compiling rand_pcg v0.10.2
+DEBUG    Compiling xet-runtime v1.8.1
+DEBUG    Compiling object_store v0.14.2
+DEBUG    Compiling reqwest-middleware v0.5.2
+DEBUG    Compiling opendal-http-transport-reqwest v0.59.5
+DEBUG    Compiling matrixmultiply v0.3.10
+DEBUG    Compiling sif-itree v0.4.1
+DEBUG    Compiling lance-namespace-reqwest-client v0.13.0
+DEBUG    Compiling tinyvec_macros v0.1.1
+DEBUG    Compiling icu_segmenter_data v2.2.0
+DEBUG    Compiling float_next_after v2.0.0
+DEBUG    Compiling geo v0.33.1
+DEBUG    Compiling tinyvec v1.11.0
+DEBUG    Compiling arrow-json v59.3.2
+DEBUG    Compiling arrow-csv v59.3.2
+DEBUG    Compiling lance-arrow v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-arrow)
+DEBUG    Compiling strum v0.28.0
+DEBUG    Compiling geoarrow-array v0.9.0
+DEBUG    Compiling phf_codegen v0.13.1
+DEBUG    Compiling derive_builder v0.20.2
+DEBUG    Compiling arrow v59.3.2
+DEBUG    Compiling rkyv v0.8.17
+DEBUG    Compiling stop-words v0.10.1
+DEBUG    Compiling encoding_rs_io v0.1.7
+DEBUG    Compiling thread-tree v0.3.3
+DEBUG    Compiling safe_arch v0.7.4
+DEBUG    Compiling aws-runtime v1.7.1
+DEBUG    Compiling memmap2 v0.9.11
+DEBUG    Compiling xet-core-structures v1.8.1
+DEBUG    Compiling radium v0.7.0
+DEBUG    Compiling bitflags v1.3.2
+DEBUG    Compiling rawpointer v0.2.1
+DEBUG    Compiling daachorse v2.1.1
+DEBUG    Compiling phf v0.13.1
+DEBUG    Compiling kanaria v0.2.0
+DEBUG    Compiling wide v0.7.33
+DEBUG    Compiling icu_locale v2.2.0
+DEBUG    Compiling jieba-macros v0.10.2
+DEBUG    Compiling aws-sdk-sts v1.99.0
+DEBUG    Compiling aws-sdk-sso v1.95.0
+DEBUG    Compiling aws-sdk-ssooidc v1.97.0
+DEBUG    Compiling aws-sdk-dynamodb v1.107.0
+DEBUG    Compiling lindera-dictionary v3.0.7
+DEBUG    Compiling geoarrow-expr-geo v0.9.0
+DEBUG    Compiling serde_yaml_ng v0.10.0
+DEBUG    Compiling unicode-normalization v0.1.26
+DEBUG    Compiling geohash v0.13.2
+DEBUG    Compiling xet-client v1.8.1
+DEBUG    Compiling lance-linalg v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-linalg)
+DEBUG    Compiling datafusion-common v55.2.0
+DEBUG    Compiling cedarwood v0.5.0
+DEBUG    Compiling fst v0.4.7
+DEBUG    Compiling libsais-rs v0.2.2
+DEBUG    Compiling tap v1.0.1
+DEBUG    Compiling rangemap v1.8.0
+DEBUG    Compiling unicode-blocks v0.1.9
+DEBUG    Compiling bytecount v0.6.9
+DEBUG    Compiling rustc-hash v2.1.3
+DEBUG    Compiling wyz v0.5.1
+DEBUG    Compiling lindera v3.0.7
+DEBUG    Compiling jieba-rs v0.10.3
+DEBUG    Compiling icu_segmenter v2.2.0
+DEBUG    Compiling simba v0.9.1
+DEBUG    Compiling aws-config v1.8.14
+DEBUG warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of fp16 kernels
+DEBUG warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of bf16 kernels
+DEBUG warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of fp16 kernels
+DEBUG warning: lance-linalg@15.0.0-beta.35: fp16kernels feature is not enabled, skipping build of bf16 kernels
+DEBUG    Compiling num-rational v0.4.2
+DEBUG    Compiling argminmax v0.7.1
+DEBUG    Compiling concurrent-queue v2.5.0
+DEBUG    Compiling frostem v1.20260821.8
+DEBUG    Compiling utf8-ranges v1.0.5
+DEBUG    Compiling stabby-macros v72.1.8
+DEBUG    Compiling funty v2.0.0
+DEBUG    Compiling async-channel v2.5.0
+DEBUG    Compiling ndarray v0.16.1
+DEBUG    Compiling bitvec v1.1.1
+DEBUG    Compiling rand_distr v0.5.1
+DEBUG    Compiling lance-tokenizer v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-tokenizer)
+DEBUG    Compiling stabby-abi v72.1.8
+DEBUG    Compiling crossbeam-queue v0.3.14
+DEBUG    Compiling sha2-const-stable v0.1.0
+DEBUG    Compiling utf8parse v0.2.2
+DEBUG    Compiling stabby v72.1.8
+DEBUG    Compiling anstyle-parse v1.0.0
+DEBUG    Compiling axum-core v0.4.5
+DEBUG    Compiling crossbeam-skiplist v0.1.3
+DEBUG    Compiling serde_path_to_error v0.1.20
+DEBUG    Compiling nalgebra v0.33.3
+DEBUG    Compiling raw-cpuid v11.6.0
+DEBUG    Compiling nibble_vec v0.1.0
+DEBUG    Compiling matchit v0.7.3
+DEBUG    Compiling datafusion-proto-common v55.2.0
+DEBUG    Compiling datafusion-expr-common v55.2.0
+DEBUG    Compiling permutation v0.4.1
+DEBUG    Compiling anstyle-query v1.1.5
+DEBUG    Compiling colorchoice v1.0.5
+DEBUG    Compiling async_cell v0.2.3
+DEBUG    Compiling anstyle v1.0.14
+DEBUG    Compiling is_terminal_polyfill v1.70.2
+DEBUG    Compiling endian-type v0.1.2
+DEBUG    Compiling anstream v1.0.0
+DEBUG    Compiling axum v0.7.9
+DEBUG    Compiling radix_trie v0.2.1
+DEBUG    Compiling env_filter v2.0.0
+DEBUG    Compiling datafusion-proto-models v55.2.0
+DEBUG    Compiling opendal-service-goosefs v0.59.5
+DEBUG    Compiling quanta v0.12.6
+DEBUG    Compiling tower-http v0.5.2
+DEBUG    Compiling rand_xoshiro v0.7.0
+DEBUG    Compiling ordered-float v4.6.0
+DEBUG    Compiling libloading v0.9.0
+DEBUG    Compiling libyaml-rs v0.3.0
+DEBUG    Compiling xet-data v1.8.1
+DEBUG    Compiling async-ffi v0.5.0
+DEBUG    Compiling sketches-ddsketch v0.3.1
+DEBUG    Compiling env_logger v0.11.11
+DEBUG    Compiling pythonize v0.29.0
+DEBUG    Compiling tracing-chrome v0.7.2
+DEBUG    Compiling metrics-util v0.19.1
+DEBUG    Compiling yaml_serde v0.10.7
+DEBUG    Compiling datafusion-physical-expr-common v55.2.0
+DEBUG    Compiling datafusion-functions-window-common v55.2.0
+DEBUG    Compiling datafusion-functions-aggregate-common v55.2.0
+DEBUG    Compiling hf-xet v1.8.1
+DEBUG    Compiling datafusion-expr v55.2.0
+DEBUG    Compiling opendal-service-hf v0.59.5
+DEBUG    Compiling opendal v0.59.5
+DEBUG    Compiling object_store_opendal v0.60.5
+DEBUG    Compiling datafusion-physical-expr v55.2.0
+DEBUG    Compiling datafusion-execution v55.2.0
+DEBUG    Compiling datafusion-functions v55.2.0
+DEBUG    Compiling datafusion-functions-aggregate v55.2.0
+DEBUG    Compiling datafusion-functions-window v55.2.0
+DEBUG    Compiling datafusion-optimizer v55.2.0
+DEBUG    Compiling datafusion-physical-plan v55.2.0
+DEBUG    Compiling datafusion-physical-expr-adapter v55.2.0
+DEBUG    Compiling datafusion-functions-nested v55.2.0
+DEBUG    Compiling datafusion-sql v55.2.0
+DEBUG    Compiling datafusion-session v55.2.0
+DEBUG    Compiling lance-core v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-core)
+DEBUG    Compiling lance-namespace v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-namespace)
+DEBUG    Compiling lance-select v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-select)
+DEBUG    Compiling lance-io v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-io)
+DEBUG    Compiling datafusion-datasource v55.2.0
+DEBUG    Compiling datafusion-pruning v55.2.0
+DEBUG    Compiling datafusion-catalog v55.2.0
+DEBUG    Compiling datafusion-datasource-csv v55.2.0
+DEBUG    Compiling datafusion-datasource-json v55.2.0
+DEBUG    Compiling datafusion-datasource-arrow v55.2.0
+DEBUG    Compiling datafusion-physical-optimizer v55.2.0
+DEBUG    Compiling datafusion-datasource-parquet v55.2.0
+DEBUG    Compiling lance-datafusion-exec v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-datafusion-exec)
+DEBUG    Compiling lance-index-core v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-index-core)
+DEBUG    Compiling lance-encoding v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-encoding)
+DEBUG    Compiling lance-file v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-file)
+DEBUG    Compiling lance-table v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-table)
+DEBUG    Compiling lance-table-runtime v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-table-runtime)
+DEBUG    Compiling datafusion-catalog-listing v55.2.0
+DEBUG    Compiling datafusion-functions-table v55.2.0
+DEBUG    Compiling datafusion v55.2.0
+DEBUG    Compiling datafusion-proto v55.2.0
+DEBUG    Compiling datafusion-ffi v55.2.0
+DEBUG    Compiling datafusion-substrait v55.2.0
+DEBUG    Compiling geodatafusion v0.6.0
+DEBUG    Compiling lance-datafusion v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-datafusion)
+DEBUG    Compiling lance-index v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-index)
+DEBUG    Compiling lance-geo v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-geo)
+DEBUG    Compiling lance v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance)
+DEBUG    Compiling lance-namespace-impls v15.0.0-beta.35 (/root/lance/shared-buffer-pure/rust/lance-namespace-impls)
+DEBUG    Compiling pylance v15.0.0-beta.35 (/root/lance/shared-buffer-pure/python)
+DEBUG     Finished `release-with-debug` profile [optimized + debuginfo] target(s) in 11m 34s
+DEBUG 📦 Built wheel for abi3 Python ≥ 3.10 to /dev/shm/lance-10526/shared-buffer/target-pure/wheels/pylance-15.0.0b35-cp310-abi3-linux_x86_64.whl
+DEBUG /dev/shm/lance-10526/shared-buffer/target-pure/wheels/pylance-15.0.0b35-cp310-abi3-linux_x86_64.whl
+DEBUG Built `pylance @ file:///root/lance/shared-buffer-pure/python` into `pylance-15.0.0b35-cp310-abi3-linux_x86_64.whl`
+      Built pylance @ file:///root/lance/shared-buffer-pure/python
+Prepared 1 package in 11m 38s
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/fw9Vq9ZY1Y6vc9dd/pylance.pth` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pylance.pth`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/fw9Vq9ZY1Y6vc9dd/pylance.pth` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pylance.pth`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pylance.pth to /root/lance/cache/uv/archive-v0/fw9Vq9ZY1Y6vc9dd/pylance.pth: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/ebJuLsalnsXA9FkS/pyright/types.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pyright/types.py`: Invalid cross-device link (os error 18), falling back
+warning: Failed to hardlink files; falling back to full copy. This may lead to degraded performance.
+         If the cache and target directories are on different filesystems, hardlinking may not be supported.
+         If this is intentional, set `export UV_LINK_MODE=copy` or use `--link-mode=copy` to suppress this warning.
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/ebJuLsalnsXA9FkS/pyright/types.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pyright/types.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pyright/types.py to /root/lance/cache/uv/archive-v0/ebJuLsalnsXA9FkS/pyright/types.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/RtGtqR5Ic6aEZuuX/numpy/_globals.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/numpy/_globals.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/cy7_peept6X-cb7G/opentelemetry_api-1.30.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/opentelemetry_api-1.30.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/cy7_peept6X-cb7G/opentelemetry_api-1.30.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/opentelemetry_api-1.30.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/opentelemetry_api-1.30.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/cy7_peept6X-cb7G/opentelemetry_api-1.30.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/RtGtqR5Ic6aEZuuX/numpy/_globals.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/numpy/_globals.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/numpy/_globals.py to /root/lance/cache/uv/archive-v0/RtGtqR5Ic6aEZuuX/numpy/_globals.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/2oqeeIAWaeLlKAvL/boto3-1.40.43.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/boto3-1.40.43.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/QBG2K0j3jwtunjm3/lance_namespace/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/lance_namespace/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/FGrjrx_Fe-rS8rqf/pandas/core/indexing.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pandas/core/indexing.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/rFfXWn1nZrjIArAv/execnet/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/execnet/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/FGrjrx_Fe-rS8rqf/pandas/core/indexing.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pandas/core/indexing.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pandas/core/indexing.py to /root/lance/cache/uv/archive-v0/FGrjrx_Fe-rS8rqf/pandas/core/indexing.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/QBG2K0j3jwtunjm3/lance_namespace/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/lance_namespace/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/lance_namespace/__init__.py to /root/lance/cache/uv/archive-v0/QBG2K0j3jwtunjm3/lance_namespace/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/2CvNGLAdR7attov-/lance_namespace_urllib3_client/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/lance_namespace_urllib3_client/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/2oqeeIAWaeLlKAvL/boto3-1.40.43.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/boto3-1.40.43.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/boto3-1.40.43.dist-info/METADATA to /root/lance/cache/uv/archive-v0/2oqeeIAWaeLlKAvL/boto3-1.40.43.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/rFfXWn1nZrjIArAv/execnet/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/execnet/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/execnet/__init__.py to /root/lance/cache/uv/archive-v0/rFfXWn1nZrjIArAv/execnet/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/2CvNGLAdR7attov-/lance_namespace_urllib3_client/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/lance_namespace_urllib3_client/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/lance_namespace_urllib3_client/__init__.py to /root/lance/cache/uv/archive-v0/2CvNGLAdR7attov-/lance_namespace_urllib3_client/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/N1pdbfxVePrvs81d/opentelemetry_sdk-1.30.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/opentelemetry_sdk-1.30.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/N1pdbfxVePrvs81d/opentelemetry_sdk-1.30.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/opentelemetry_sdk-1.30.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/opentelemetry_sdk-1.30.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/N1pdbfxVePrvs81d/opentelemetry_sdk-1.30.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/lPjQof9eTz7ctbGd/wrapt-stubs/__init__.pyi` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/wrapt-stubs/__init__.pyi`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/lPjQof9eTz7ctbGd/wrapt-stubs/__init__.pyi` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/wrapt-stubs/__init__.pyi`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/wrapt-stubs/__init__.pyi to /root/lance/cache/uv/archive-v0/lPjQof9eTz7ctbGd/wrapt-stubs/__init__.pyi: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/-EUAPq_lTv6HddT1/pytz/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pytz/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/-EUAPq_lTv6HddT1/pytz/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pytz/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pytz/__init__.py to /root/lance/cache/uv/archive-v0/-EUAPq_lTv6HddT1/pytz/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/uVCD7gtN-AtO7t-D/pyarrow/types.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pyarrow/types.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/uVCD7gtN-AtO7t-D/pyarrow/types.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pyarrow/types.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pyarrow/types.py to /root/lance/cache/uv/archive-v0/uVCD7gtN-AtO7t-D/pyarrow/types.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/No75GLiHgsdAHHkj/nodeenv-1.10.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/nodeenv-1.10.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/No75GLiHgsdAHHkj/nodeenv-1.10.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/nodeenv-1.10.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/nodeenv-1.10.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/No75GLiHgsdAHHkj/nodeenv-1.10.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/ZDMd9BXQfookuFV_/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/ZDMd9BXQfookuFV_/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so to /root/lance/cache/uv/archive-v0/ZDMd9BXQfookuFV_/frozenlist/_frozenlist.cpython-312-x86_64-linux-gnu.so: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/f2lShKi1lOF_5qXY/attrs-26.1.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/attrs-26.1.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/f2lShKi1lOF_5qXY/attrs-26.1.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/attrs-26.1.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/attrs-26.1.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/f2lShKi1lOF_5qXY/attrs-26.1.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/VLftzV93cCdrEMRR/PIL/ImageMath.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/PIL/ImageMath.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/VLftzV93cCdrEMRR/PIL/ImageMath.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/PIL/ImageMath.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/PIL/ImageMath.py to /root/lance/cache/uv/archive-v0/VLftzV93cCdrEMRR/PIL/ImageMath.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/7AGmDkjkg2ka8q46/multidict/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/multidict/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/WnyUKbMdK1_4QPvW/typing_inspection-0.4.2.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/typing_inspection-0.4.2.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/7AGmDkjkg2ka8q46/multidict/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/multidict/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/multidict/__init__.py to /root/lance/cache/uv/archive-v0/7AGmDkjkg2ka8q46/multidict/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/WnyUKbMdK1_4QPvW/typing_inspection-0.4.2.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/typing_inspection-0.4.2.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/typing_inspection-0.4.2.dist-info/METADATA to /root/lance/cache/uv/archive-v0/WnyUKbMdK1_4QPvW/typing_inspection-0.4.2.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/vhKIa-Mu0Tft7eDe/yarl-1.25.1.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/yarl-1.25.1.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/vhKIa-Mu0Tft7eDe/yarl-1.25.1.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/yarl-1.25.1.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/yarl-1.25.1.dist-info/METADATA to /root/lance/cache/uv/archive-v0/vhKIa-Mu0Tft7eDe/yarl-1.25.1.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/vWG0OdrnAuP7CTeD/datafusion-55.0.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/datafusion-55.0.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/Q8bJ4noKSYoAW8z9/aiohttp-3.14.4.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/aiohttp-3.14.4.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/Ui1OyKJg_DCILNDN/anyio-4.14.2.dist-info/scm_file_list.json` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/anyio-4.14.2.dist-info/scm_file_list.json`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/dtF9ybzoUNZ065Zw/opentelemetry_semantic_conventions-0.51b0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/opentelemetry_semantic_conventions-0.51b0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/SyjE06wxJmw1-y0R/filelock/_windows.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/filelock/_windows.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/Q8bJ4noKSYoAW8z9/aiohttp-3.14.4.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/aiohttp-3.14.4.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/aiohttp-3.14.4.dist-info/METADATA to /root/lance/cache/uv/archive-v0/Q8bJ4noKSYoAW8z9/aiohttp-3.14.4.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/vWG0OdrnAuP7CTeD/datafusion-55.0.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/datafusion-55.0.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/datafusion-55.0.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/vWG0OdrnAuP7CTeD/datafusion-55.0.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/GHEUv7UBWE4VgIQK/polars/_plr.pyi` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/polars/_plr.pyi`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/SyjE06wxJmw1-y0R/filelock/_windows.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/filelock/_windows.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/filelock/_windows.py to /root/lance/cache/uv/archive-v0/SyjE06wxJmw1-y0R/filelock/_windows.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/RaaXs8KINWnlDZRZ/typing_extensions-4.16.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/typing_extensions-4.16.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/anOqAoFgscbYV8lZ/ruff-0.11.2.data/scripts/ruff` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/ruff-0.11.2.data/scripts/ruff`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/Ui1OyKJg_DCILNDN/anyio-4.14.2.dist-info/scm_file_list.json` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/anyio-4.14.2.dist-info/scm_file_list.json`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/anyio-4.14.2.dist-info/scm_file_list.json to /root/lance/cache/uv/archive-v0/Ui1OyKJg_DCILNDN/anyio-4.14.2.dist-info/scm_file_list.json: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/RaaXs8KINWnlDZRZ/typing_extensions-4.16.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/typing_extensions-4.16.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/typing_extensions-4.16.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/RaaXs8KINWnlDZRZ/typing_extensions-4.16.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/anOqAoFgscbYV8lZ/ruff-0.11.2.data/scripts/ruff` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/ruff-0.11.2.data/scripts/ruff`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/ruff-0.11.2.data/scripts/ruff to /root/lance/cache/uv/archive-v0/anOqAoFgscbYV8lZ/ruff-0.11.2.data/scripts/ruff: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/GHEUv7UBWE4VgIQK/polars/_plr.pyi` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/polars/_plr.pyi`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/polars/_plr.pyi to /root/lance/cache/uv/archive-v0/GHEUv7UBWE4VgIQK/polars/_plr.pyi: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/dtF9ybzoUNZ065Zw/opentelemetry_semantic_conventions-0.51b0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/opentelemetry_semantic_conventions-0.51b0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/opentelemetry_semantic_conventions-0.51b0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/dtF9ybzoUNZ065Zw/opentelemetry_semantic_conventions-0.51b0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/_kXFgb6rLZKi6pKe/hf_xet-1.5.1.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/hf_xet-1.5.1.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/_kXFgb6rLZKi6pKe/hf_xet-1.5.1.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/hf_xet-1.5.1.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/hf_xet-1.5.1.dist-info/METADATA to /root/lance/cache/uv/archive-v0/_kXFgb6rLZKi6pKe/hf_xet-1.5.1.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/_xlnhczcyGUUnPMW/requests/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/requests/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/_xlnhczcyGUUnPMW/requests/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/requests/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/requests/__init__.py to /root/lance/cache/uv/archive-v0/_xlnhczcyGUUnPMW/requests/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/Rzkl7uHMi3HcOnmi/xxhash/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/xxhash/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/Rzkl7uHMi3HcOnmi/xxhash/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/xxhash/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/xxhash/__init__.py to /root/lance/cache/uv/archive-v0/Rzkl7uHMi3HcOnmi/xxhash/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/MKIeIKDdd2I3xzSx/httpx-0.28.1.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/httpx-0.28.1.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/MKIeIKDdd2I3xzSx/httpx-0.28.1.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/httpx-0.28.1.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/httpx-0.28.1.dist-info/METADATA to /root/lance/cache/uv/archive-v0/MKIeIKDdd2I3xzSx/httpx-0.28.1.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/qEn-pK6779dirLcn/huggingface_hub/dataclasses.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/huggingface_hub/dataclasses.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/qEn-pK6779dirLcn/huggingface_hub/dataclasses.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/huggingface_hub/dataclasses.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/huggingface_hub/dataclasses.py to /root/lance/cache/uv/archive-v0/qEn-pK6779dirLcn/huggingface_hub/dataclasses.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/EgJp_isIX18-ivSL/pluggy/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pluggy/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/EgJp_isIX18-ivSL/pluggy/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pluggy/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pluggy/__init__.py to /root/lance/cache/uv/archive-v0/EgJp_isIX18-ivSL/pluggy/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/OfFYYjufj3QB0k7Y/datasets/data_files.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/datasets/data_files.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/OfFYYjufj3QB0k7Y/datasets/data_files.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/datasets/data_files.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/datasets/data_files.py to /root/lance/cache/uv/archive-v0/OfFYYjufj3QB0k7Y/datasets/data_files.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/3FdthtLRgrDp9Wcz/_duckdb.cpython-312-x86_64-linux-gnu.so` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/_duckdb.cpython-312-x86_64-linux-gnu.so`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/WJIXKSQUTQwjen_S/multiprocess-0.70.18.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/multiprocess-0.70.18.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/6DfzQLjMsmPx6Rbz/packaging-26.2.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/packaging-26.2.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/WJIXKSQUTQwjen_S/multiprocess-0.70.18.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/multiprocess-0.70.18.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/multiprocess-0.70.18.dist-info/METADATA to /root/lance/cache/uv/archive-v0/WJIXKSQUTQwjen_S/multiprocess-0.70.18.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/USMGfp0CE46tCDQW/pygments-2.20.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pygments-2.20.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/6DfzQLjMsmPx6Rbz/packaging-26.2.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/packaging-26.2.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/packaging-26.2.dist-info/METADATA to /root/lance/cache/uv/archive-v0/6DfzQLjMsmPx6Rbz/packaging-26.2.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/3FdthtLRgrDp9Wcz/_duckdb.cpython-312-x86_64-linux-gnu.so` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/_duckdb.cpython-312-x86_64-linux-gnu.so`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/_duckdb.cpython-312-x86_64-linux-gnu.so to /root/lance/cache/uv/archive-v0/3FdthtLRgrDp9Wcz/_duckdb.cpython-312-x86_64-linux-gnu.so: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/USMGfp0CE46tCDQW/pygments-2.20.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pygments-2.20.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pygments-2.20.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/USMGfp0CE46tCDQW/pygments-2.20.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/83Wf7IMJbII3RTd2/xdist/looponfail.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/xdist/looponfail.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/83Wf7IMJbII3RTd2/xdist/looponfail.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/xdist/looponfail.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/xdist/looponfail.py to /root/lance/cache/uv/archive-v0/83Wf7IMJbII3RTd2/xdist/looponfail.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/ZFLc3FuDn_04YuLA/tzdata/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/tzdata/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/_93uhmLLSxMJwspS/cloudpickle-3.1.2.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/cloudpickle-3.1.2.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/ZFLc3FuDn_04YuLA/tzdata/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/tzdata/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/tzdata/__init__.py to /root/lance/cache/uv/archive-v0/ZFLc3FuDn_04YuLA/tzdata/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/_93uhmLLSxMJwspS/cloudpickle-3.1.2.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/cloudpickle-3.1.2.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/cloudpickle-3.1.2.dist-info/METADATA to /root/lance/cache/uv/archive-v0/_93uhmLLSxMJwspS/cloudpickle-3.1.2.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/tg1sX2KYLTrq_JjQ/aiosignal-1.4.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/aiosignal-1.4.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/tg1sX2KYLTrq_JjQ/aiosignal-1.4.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/aiosignal-1.4.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/aiosignal-1.4.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/tg1sX2KYLTrq_JjQ/aiosignal-1.4.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/7Z6XkOxtfwMjwQNZ/botocore-1.40.76.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/botocore-1.40.76.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/4Qyfu8vKdOO4D7qA/s3transfer/upload.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/s3transfer/upload.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/7Z6XkOxtfwMjwQNZ/botocore-1.40.76.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/botocore-1.40.76.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/botocore-1.40.76.dist-info/METADATA to /root/lance/cache/uv/archive-v0/7Z6XkOxtfwMjwQNZ/botocore-1.40.76.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/4Qyfu8vKdOO4D7qA/s3transfer/upload.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/s3transfer/upload.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/s3transfer/upload.py to /root/lance/cache/uv/archive-v0/4Qyfu8vKdOO4D7qA/s3transfer/upload.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/oNBrLzkLUMNSKEK2/six.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/six.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/B1NBFJddmUUt_285/maturin-1.13.3.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/maturin-1.13.3.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/oNBrLzkLUMNSKEK2/six.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/six.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/six.py to /root/lance/cache/uv/archive-v0/oNBrLzkLUMNSKEK2/six.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/jayTGrGxCpv1UnL5/jmespath-1.1.0.data/scripts/jp.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/jmespath-1.1.0.data/scripts/jp.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/B1NBFJddmUUt_285/maturin-1.13.3.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/maturin-1.13.3.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/maturin-1.13.3.dist-info/METADATA to /root/lance/cache/uv/archive-v0/B1NBFJddmUUt_285/maturin-1.13.3.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/jayTGrGxCpv1UnL5/jmespath-1.1.0.data/scripts/jp.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/jmespath-1.1.0.data/scripts/jp.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/jmespath-1.1.0.data/scripts/jp.py to /root/lance/cache/uv/archive-v0/jayTGrGxCpv1UnL5/jmespath-1.1.0.data/scripts/jp.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/ZHbwdtR2dzYwoUJK/python_dateutil-2.9.0.post0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/python_dateutil-2.9.0.post0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/ZHbwdtR2dzYwoUJK/python_dateutil-2.9.0.post0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/python_dateutil-2.9.0.post0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/python_dateutil-2.9.0.post0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/ZHbwdtR2dzYwoUJK/python_dateutil-2.9.0.post0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/9Gy3jfL0rNgyPxCH/urllib3-2.8.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/urllib3-2.8.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/KPokAmj12Ryn-ge6/polars_runtime_32-1.34.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/polars_runtime_32-1.34.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/9Gy3jfL0rNgyPxCH/urllib3-2.8.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/urllib3-2.8.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/urllib3-2.8.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/9Gy3jfL0rNgyPxCH/urllib3-2.8.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/KPokAmj12Ryn-ge6/polars_runtime_32-1.34.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/polars_runtime_32-1.34.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/polars_runtime_32-1.34.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/KPokAmj12Ryn-ge6/polars_runtime_32-1.34.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/K458wI1XfPwSS_Ls/py.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/py.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/V6I_EyH9Oon9YGtM/ml_dtypes-0.5.3.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/ml_dtypes-0.5.3.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/K458wI1XfPwSS_Ls/py.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/py.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/py.py to /root/lance/cache/uv/archive-v0/K458wI1XfPwSS_Ls/py.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/V6I_EyH9Oon9YGtM/ml_dtypes-0.5.3.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/ml_dtypes-0.5.3.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/ml_dtypes-0.5.3.dist-info/METADATA to /root/lance/cache/uv/archive-v0/V6I_EyH9Oon9YGtM/ml_dtypes-0.5.3.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/ehY67j2HNulpIqsi/httpcore-1.0.9.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/httpcore-1.0.9.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/ehY67j2HNulpIqsi/httpcore-1.0.9.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/httpcore-1.0.9.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/httpcore-1.0.9.dist-info/METADATA to /root/lance/cache/uv/archive-v0/ehY67j2HNulpIqsi/httpcore-1.0.9.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/giCUuzdDpkt1Alb-/pydantic_core-2.46.4.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pydantic_core-2.46.4.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/p3Q5C8NUEXBem_ab/importlib_metadata-8.5.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/importlib_metadata-8.5.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/lxvolnltQF8sR93m/psutil-7.1.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/psutil-7.1.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/hcD3CqoWuCU8CH59/tqdm-4.67.1.dist-info/LICENCE` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/tqdm-4.67.1.dist-info/LICENCE`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/p3Q5C8NUEXBem_ab/importlib_metadata-8.5.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/importlib_metadata-8.5.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/importlib_metadata-8.5.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/p3Q5C8NUEXBem_ab/importlib_metadata-8.5.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/lxvolnltQF8sR93m/psutil-7.1.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/psutil-7.1.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/psutil-7.1.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/lxvolnltQF8sR93m/psutil-7.1.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/giCUuzdDpkt1Alb-/pydantic_core-2.46.4.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pydantic_core-2.46.4.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pydantic_core-2.46.4.dist-info/METADATA to /root/lance/cache/uv/archive-v0/giCUuzdDpkt1Alb-/pydantic_core-2.46.4.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/hcD3CqoWuCU8CH59/tqdm-4.67.1.dist-info/LICENCE` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/tqdm-4.67.1.dist-info/LICENCE`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/tqdm-4.67.1.dist-info/LICENCE to /root/lance/cache/uv/archive-v0/hcD3CqoWuCU8CH59/tqdm-4.67.1.dist-info/LICENCE: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/QGw_OOdyUao08EVG/idna/uts46data.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/idna/uts46data.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/QGw_OOdyUao08EVG/idna/uts46data.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/idna/uts46data.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/idna/uts46data.py to /root/lance/cache/uv/archive-v0/QGw_OOdyUao08EVG/idna/uts46data.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/dNQZ0Yv4Ze576xy8/h11-0.16.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/h11-0.16.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/dNQZ0Yv4Ze576xy8/h11-0.16.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/h11-0.16.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/h11-0.16.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/dNQZ0Yv4Ze576xy8/h11-0.16.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/Cxjrzww_p1_iLYJK/charset_normalizer/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/charset_normalizer/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/Cxjrzww_p1_iLYJK/charset_normalizer/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/charset_normalizer/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/charset_normalizer/__init__.py to /root/lance/cache/uv/archive-v0/Cxjrzww_p1_iLYJK/charset_normalizer/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/S7oE8cWMs7xsiIBR/click/types.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/click/types.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/S7oE8cWMs7xsiIBR/click/types.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/click/types.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/click/types.py to /root/lance/cache/uv/archive-v0/S7oE8cWMs7xsiIBR/click/types.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/fNOeIv_GFRyh7_Zs/fsspec-2025.10.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/fsspec-2025.10.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/fNOeIv_GFRyh7_Zs/fsspec-2025.10.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/fsspec-2025.10.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/fsspec-2025.10.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/fNOeIv_GFRyh7_Zs/fsspec-2025.10.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/c_UrO8Xitav53hKk/iniconfig-2.3.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/iniconfig-2.3.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/c_UrO8Xitav53hKk/iniconfig-2.3.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/iniconfig-2.3.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/iniconfig-2.3.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/c_UrO8Xitav53hKk/iniconfig-2.3.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/Wm1ObqjBvOWDZR_-/dill-0.4.0.data/scripts/get_objgraph` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/dill-0.4.0.data/scripts/get_objgraph`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/LAR4mQlWJYfvvk0N/deprecated/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/deprecated/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/Wm1ObqjBvOWDZR_-/dill-0.4.0.data/scripts/get_objgraph` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/dill-0.4.0.data/scripts/get_objgraph`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/dill-0.4.0.data/scripts/get_objgraph to /root/lance/cache/uv/archive-v0/Wm1ObqjBvOWDZR_-/dill-0.4.0.data/scripts/get_objgraph: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/q2dPps4fzOAgtuBt/aiohappyeyeballs-2.7.1.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/aiohappyeyeballs-2.7.1.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/LAR4mQlWJYfvvk0N/deprecated/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/deprecated/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/deprecated/__init__.py to /root/lance/cache/uv/archive-v0/LAR4mQlWJYfvvk0N/deprecated/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/q2dPps4fzOAgtuBt/aiohappyeyeballs-2.7.1.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/aiohappyeyeballs-2.7.1.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/aiohappyeyeballs-2.7.1.dist-info/METADATA to /root/lance/cache/uv/archive-v0/q2dPps4fzOAgtuBt/aiohappyeyeballs-2.7.1.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/1MdPlWwFOnw1Hkk6/zipp/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/zipp/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/1MdPlWwFOnw1Hkk6/zipp/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/zipp/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/zipp/__init__.py to /root/lance/cache/uv/archive-v0/1MdPlWwFOnw1Hkk6/zipp/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/Klf7ymEohkCA9XBc/_yaml/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/_yaml/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/Klf7ymEohkCA9XBc/_yaml/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/_yaml/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/_yaml/__init__.py to /root/lance/cache/uv/archive-v0/Klf7ymEohkCA9XBc/_yaml/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/JusASe-Zps_cu41n/propcache/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/propcache/__init__.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/JusASe-Zps_cu41n/propcache/__init__.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/propcache/__init__.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/propcache/__init__.py to /root/lance/cache/uv/archive-v0/JusASe-Zps_cu41n/propcache/__init__.py: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/P6bCVpe7XEKKwjlJ/annotated_types-0.7.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/annotated_types-0.7.0.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/P6bCVpe7XEKKwjlJ/annotated_types-0.7.0.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/annotated_types-0.7.0.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/annotated_types-0.7.0.dist-info/METADATA to /root/lance/cache/uv/archive-v0/P6bCVpe7XEKKwjlJ/annotated_types-0.7.0.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/lifHyoE8MIsBW7px/certifi-2026.10.19.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/certifi-2026.10.19.dist-info/METADATA`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/lifHyoE8MIsBW7px/certifi-2026.10.19.dist-info/METADATA` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/certifi-2026.10.19.dist-info/METADATA`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/certifi-2026.10.19.dist-info/METADATA to /root/lance/cache/uv/archive-v0/lifHyoE8MIsBW7px/certifi-2026.10.19.dist-info/METADATA: Invalid cross-device link (os error 18); falling back to copy
+DEBUG Failed to reflink `/root/lance/cache/uv/archive-v0/FMMgTl6rlyi9zGys/pydantic/types.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pydantic/types.py`: Invalid cross-device link (os error 18), falling back
+DEBUG Failed to hard link `/root/lance/cache/uv/archive-v0/FMMgTl6rlyi9zGys/pydantic/types.py` to `/dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pydantic/types.py`: failed to hardlink file from /dev/shm/lance-10526/shared-buffer/venv-pure/lib/python3.12/site-packages/pydantic/types.py to /root/lance/cache/uv/archive-v0/FMMgTl6rlyi9zGys/pydantic/types.py: Invalid cross-device link (os error 18); falling back to copy
+Installed 73 packages in 335ms
+ + aiohappyeyeballs==2.7.1
+ + aiohttp==3.14.4
+ + aiosignal==1.4.0
+ + annotated-types==0.7.0
+ + anyio==4.14.2
+ + attrs==26.1.0
+ + boto3==1.40.43
+ + botocore==1.40.76
+ + certifi==2026.10.19
+ + charset-normalizer==3.4.9
+ + click==8.4.2
+ + cloudpickle==3.1.2
+ + datafusion==55.0.0
+ + datasets==4.4.0
+ + deprecated==1.3.1
+ + dill==0.4.0
+ + duckdb==1.5.6
+ + execnet==2.1.2
+ + filelock==3.29.7
+ + frozenlist==1.8.0
+ + fsspec==2025.10.0
+ + h11==0.16.0
+ + hf-xet==1.5.1
+ + httpcore==1.0.9
+ + httpx==0.28.1
+ + huggingface-hub==1.23.0
+ + idna==3.18
+ + importlib-metadata==8.5.0
+ + iniconfig==2.3.0
+ + jmespath==1.1.0
+ + lance-namespace==0.13.0
+ + lance-namespace-urllib3-client==0.13.0
+ + maturin==1.13.3
+ + ml-dtypes==0.5.3
+ + multidict==6.9.1
+ + multiprocess==0.70.18
+ + nodeenv==1.10.0
+ + numpy==2.5.1
+ + opentelemetry-api==1.30.0
+ + opentelemetry-sdk==1.30.0
+ + opentelemetry-semantic-conventions==0.51b0
+ + packaging==26.2
+ + pandas==2.3.3
+ + pillow==11.3.0
+ + pluggy==1.6.0
+ + polars==1.34.0
+ + polars-runtime-32==1.34.0
+ + propcache==0.5.2
+ + psutil==7.1.0
+ + pyarrow==25.0.1
+ + pydantic==2.13.4
+ + pydantic-core==2.46.4
+ + pygments==2.20.0
+ + pylance==15.0.0b35 (from file:///root/lance/shared-buffer-pure/python)
+ + pyright==1.1.406
+ + pytest==8.4.2
+ + pytest-xdist==3.8.0
+ + python-dateutil==2.9.0.post0
+ + pytz==2026.2
+ + pyyaml==6.0.3
+ + requests==2.34.2
+ + ruff==0.11.2
+ + s3transfer==0.14.0
+ + six==1.17.0
+ + tqdm==4.67.1
+ + typing-extensions==4.16.0
+ + typing-inspection==0.4.2
+ + tzdata==2026.3
+ + urllib3==2.8.0
+ + wrapt==2.2.2
+ + xxhash==3.8.1
+ + yarl==1.25.1
+ + zipp==4.1.0
+uv tool run pre-commit install
+pre-commit installed at /root/lance/repo/.git/hooks/pre-commit
