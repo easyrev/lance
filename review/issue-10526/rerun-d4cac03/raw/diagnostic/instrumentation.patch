@@ -1,0 +1,152 @@
+diff --git a/rust/lance-encoding/src/compression.rs b/rust/lance-encoding/src/compression.rs
+index d53b326b0..6f31f2085 100644
+--- a/rust/lance-encoding/src/compression.rs
++++ b/rust/lance-encoding/src/compression.rs
+@@ -1384,6 +1384,7 @@ pub trait VariablePerValueDecompressor: std::fmt::Debug + Send + Sync {
+     /// Implementations returning `Some` must also implement [`Self::decompress_into`]
+     /// and append the exact reported byte count.
+     fn appended_size(&self, _data: &[u8], _offsets: &[u8], _bits_per_offset: u8) -> Option<u64> {
++        eprintln!("PR1_BRIDGE reason compression.rs:1387 default-appended-size-none");
+         None
+     }
+ 
+diff --git a/rust/lance-encoding/src/decoder.rs b/rust/lance-encoding/src/decoder.rs
+index 404d5c6d5..6b9d4f33a 100644
+--- a/rust/lance-encoding/src/decoder.rs
++++ b/rust/lance-encoding/src/decoder.rs
+@@ -3804,6 +3804,7 @@ pub trait DecodePageTask: Send + std::fmt::Debug {
+     /// [`Self::decode_variable_into`], append exactly `decompressed_bytes` bytes to
+     /// `out_data`, and append exactly `num_values` end offsets to `out_offsets`.
+     fn variable_decode_plan(&self) -> Option<VariablePageDecodePlan> {
++        eprintln!("PR1_BRIDGE reason decoder.rs:3807 default-page-plan-none");
+         None
+     }
+ 
+diff --git a/rust/lance-encoding/src/encodings/logical/primitive/field.rs b/rust/lance-encoding/src/encodings/logical/primitive/field.rs
+index 71667ab56..176ceade8 100644
+--- a/rust/lance-encoding/src/encodings/logical/primitive/field.rs
++++ b/rust/lance-encoding/src/encodings/logical/primitive/field.rs
+@@ -932,26 +932,29 @@ pub struct StructuralCompositeDecodeArrayTask {
+ impl StructuralCompositeDecodeArrayTask {
+     fn variable_decode_plan(&self) -> Option<(VariablePageDecodePlan, Vec<(u64, u64)>)> {
+         if self.tasks.len() <= 1 {
++            eprintln!("PR1_BRIDGE reason field.rs:934 single-page");
+             return None;
+         }
+         let bits_per_offset = match self.data_type {
+             DataType::Utf8 | DataType::Binary => 32,
+             DataType::LargeUtf8 | DataType::LargeBinary => 64,
+-            _ => return None,
++            _ => { eprintln!("PR1_BRIDGE reason field.rs:940 unsupported-array-type"); return None; },
+         };
+         let mut num_values = 0u64;
+         let mut decompressed_bytes = 0u64;
+         let mut page_plans = Vec::with_capacity(self.tasks.len());
+         for task in &self.tasks {
+-            let plan = task.variable_decode_plan()?;
++            let plan = task.variable_decode_plan().or_else(|| { eprintln!("PR1_BRIDGE reason field.rs:946 page-plan-none"); None })?;
+             if plan.bits_per_offset != bits_per_offset {
++                eprintln!("PR1_BRIDGE reason field.rs:947 offset-width-mismatch");
+                 return None;
+             }
+-            num_values = num_values.checked_add(plan.num_values)?;
+-            decompressed_bytes = decompressed_bytes.checked_add(plan.decompressed_bytes)?;
++            num_values = num_values.checked_add(plan.num_values).or_else(|| { eprintln!("PR1_BRIDGE reason field.rs:950 value-count-overflow"); None })?;
++            decompressed_bytes = decompressed_bytes.checked_add(plan.decompressed_bytes).or_else(|| { eprintln!("PR1_BRIDGE reason field.rs:951 byte-count-overflow"); None })?;
+             page_plans.push((plan.num_values, plan.decompressed_bytes));
+         }
+         if bits_per_offset == 32 && decompressed_bytes > i32::MAX as u64 {
++            eprintln!("PR1_BRIDGE reason field.rs:954 i32-offset-overflow");
+             // Let Arrow's existing concatenation path handle an overflowing offset.
+             return None;
+         }
+@@ -1117,8 +1120,15 @@ impl StructuralCompositeDecodeArrayTask {
+ impl StructuralDecodeArrayTask for StructuralCompositeDecodeArrayTask {
+     fn decode(self: Box<Self>) -> Result<DecodedArray> {
+         if let Some((plan, page_plans)) = self.variable_decode_plan() {
+-            return self.decode_variable(plan, page_plans);
++            let pages = self.tasks.len();
++            let result = self.decode_variable(plan, page_plans);
++            match &result {
++                Ok(_) => eprintln!("PR1_BRIDGE outcome bridge pages={pages}"),
++                Err(err) => eprintln!("PR1_BRIDGE outcome error pages={pages} error={err:?}"),
++            }
++            return result;
+         }
++        eprintln!("PR1_BRIDGE outcome concat pages={}", self.tasks.len());
+         let mut arrays = Vec::with_capacity(self.tasks.len());
+         let mut unravelers = Vec::with_capacity(self.tasks.len());
+         let mut data_size = 0u64;
+diff --git a/rust/lance-encoding/src/encodings/logical/primitive/fullzip_decode.rs b/rust/lance-encoding/src/encodings/logical/primitive/fullzip_decode.rs
+index 47a515067..36dfb83fc 100644
+--- a/rust/lance-encoding/src/encodings/logical/primitive/fullzip_decode.rs
++++ b/rust/lance-encoding/src/encodings/logical/primitive/fullzip_decode.rs
+@@ -1840,13 +1840,14 @@ impl DecodePageTask for VariableFullZipDecodeTask {
+         let bytes_per_offset = match self.bits_per_offset {
+             32 => 4_u64,
+             64 => 8_u64,
+-            _ => return None,
++            _ => { eprintln!("PR1_BRIDGE reason fullzip_decode.rs:1843 unsupported-offset-width"); return None; },
+         };
+         let expected_offsets_bytes = self
+             .num_visible_items
+-            .checked_add(1)?
+-            .checked_mul(bytes_per_offset)?;
++            .checked_add(1).or_else(|| { eprintln!("PR1_BRIDGE reason fullzip_decode.rs:1847 offset-count-overflow"); None })?
++            .checked_mul(bytes_per_offset).or_else(|| { eprintln!("PR1_BRIDGE reason fullzip_decode.rs:1848 offset-size-overflow"); None })?;
+         if self.offsets.len() as u64 != expected_offsets_bytes {
++            eprintln!("PR1_BRIDGE reason fullzip_decode.rs:1849 offset-size-mismatch");
+             return None;
+         }
+         Some(VariablePageDecodePlan {
+@@ -1855,7 +1856,7 @@ impl DecodePageTask for VariableFullZipDecodeTask {
+                 &self.data,
+                 &self.offsets,
+                 self.bits_per_offset,
+-            )?,
++            ).or_else(|| { eprintln!("PR1_BRIDGE reason fullzip_decode.rs:1854 appended-size-none"); None })?,
+             bits_per_offset: self.bits_per_offset,
+         })
+     }
+diff --git a/rust/lance-encoding/src/encodings/physical/block.rs b/rust/lance-encoding/src/encodings/physical/block.rs
+index 834761fcb..e513455d0 100644
+--- a/rust/lance-encoding/src/encodings/physical/block.rs
++++ b/rust/lance-encoding/src/encodings/physical/block.rs
+@@ -1256,7 +1256,8 @@ impl VariablePerValueDecompressor for CompressedBufferEncoder {
+     }
+ 
+     fn appended_size(&self, data: &[u8], offsets_bytes: &[u8], bits_per_offset: u8) -> Option<u64> {
+-        if read_offset(offsets_bytes, 0, bits_per_offset)? != 0 {
++        if read_offset(offsets_bytes, 0, bits_per_offset).or_else(|| { eprintln!("PR1_BRIDGE reason block.rs:1259 first-offset-unreadable"); None })? != 0 {
++            eprintln!("PR1_BRIDGE reason block.rs:1259 first-offset-nonzero");
+             return None;
+         }
+         sum_decompressed_sizes(data, offsets_bytes, bits_per_offset, |value| {
+@@ -1325,7 +1326,7 @@ fn sum_decompressed_sizes(
+             .len()
+             .is_multiple_of(bits_per_offset as usize / 8)
+     {
+-        return None;
++        eprintln!("PR1_BRIDGE reason block.rs:1328 offset-buffer-shape"); return None;
+     }
+     let bytes_per_offset = bits_per_offset as usize / 8;
+     let num_offsets = offsets_bytes.len() / bytes_per_offset;
+@@ -1341,14 +1342,14 @@ fn sum_decompressed_sizes(
+         // Rebase: offsets stored in self.offsets are absolute into self.data, but
+         // offsets_bytes here is the raw slice starting at offset_starts[row_start],
+         // so the first offset value is the base we subtract.
+-        let val_start = start.checked_sub(base)?;
+-        let val_end = end.checked_sub(base)?;
++        let val_start = start.checked_sub(base).or_else(|| { eprintln!("PR1_BRIDGE reason block.rs:1344 start-before-base"); None })?;
++        let val_end = end.checked_sub(base).or_else(|| { eprintln!("PR1_BRIDGE reason block.rs:1345 end-before-base"); None })?;
+         if val_start == val_end {
+             // Null / zero-length value — contributes 0 decompressed bytes.
+             continue;
+         }
+-        let value_bytes = data.get(val_start..val_end)?;
+-        total = total.checked_add(size_of_value(value_bytes)?)?;
++        let value_bytes = data.get(val_start..val_end).or_else(|| { eprintln!("PR1_BRIDGE reason block.rs:1350 value-slice-out-of-bounds"); None })?;
++        total = total.checked_add(size_of_value(value_bytes).or_else(|| { eprintln!("PR1_BRIDGE reason block.rs:1351 missing-exact-frame-size"); None })?)?;
+     }
+     Some(total)
+ }
