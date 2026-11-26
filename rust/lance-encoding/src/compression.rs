@@ -1368,6 +1368,17 @@ pub enum VariableWidthOffsets {
     U64(Vec<u64>),
 }
 
+/// Byte range of one compressed variable-width value inside a list of chunk buffers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct CompressedValueSlice {
+    /// Index into the chunk slice passed to [`VariablePerValueDecompressor`].
+    pub chunk_idx: usize,
+    /// Inclusive byte offset inside `chunks[chunk_idx]`.
+    pub start: usize,
+    /// Exclusive byte offset inside `chunks[chunk_idx]`.
+    pub end: usize,
+}
+
 pub trait VariablePerValueDecompressor: std::fmt::Debug + Send + Sync {
     /// Decompress one or more values
     fn decompress(&self, data: VariableWidthBlock) -> Result<DataBlock>;
@@ -1408,6 +1419,58 @@ pub trait VariablePerValueDecompressor: std::fmt::Debug + Send + Sync {
     ) -> Result<()> {
         Err(lance_core::Error::not_supported(
             "Direct variable-width decompression is not supported".to_string(),
+        ))
+    }
+
+    /// Whether this decompressor supports decoding directly from discontiguous
+    /// [`CompressedValueSlice`] references without copying compressed values into
+    /// one contiguous buffer first.
+    fn supports_sliced_input(&self) -> bool {
+        false
+    }
+
+    /// Exact number of bytes [`Self::decompress_slices_into`] will append to
+    /// `out_data` for `slices`, or `None` when unsupported or unknown.
+    fn appended_size_slices(
+        &self,
+        _chunks: &[LanceBuffer],
+        _slices: &[CompressedValueSlice],
+    ) -> Option<u64> {
+        None
+    }
+
+    /// Exact or conservative upper bound on the decoded payload bytes for `slices`.
+    fn decompressed_size_slices(
+        &self,
+        _chunks: &[LanceBuffer],
+        _slices: &[CompressedValueSlice],
+    ) -> Option<u64> {
+        None
+    }
+
+    /// Decompresses `slices` from `chunks` into `out_data` and appends their end
+    /// offsets, measured from the start of `out_data`, to `out_offsets`.
+    fn decompress_slices_into(
+        &self,
+        _chunks: &[LanceBuffer],
+        _slices: &[CompressedValueSlice],
+        _out_data: &mut Vec<u8>,
+        _out_offsets: &mut VariableWidthOffsets,
+    ) -> Result<()> {
+        Err(lance_core::Error::not_supported(
+            "Sliced variable-width decompression is not supported".to_string(),
+        ))
+    }
+
+    /// Decompresses `slices` from `chunks` into a standalone [`DataBlock`].
+    fn decompress_slices(
+        &self,
+        _chunks: &[LanceBuffer],
+        _slices: &[CompressedValueSlice],
+        _bits_per_offset: u8,
+    ) -> Result<DataBlock> {
+        Err(lance_core::Error::not_supported(
+            "Sliced variable-width decompression is not supported".to_string(),
         ))
     }
 

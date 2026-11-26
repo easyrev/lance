@@ -28,11 +28,11 @@ use crate::data::{
     BlockInfo, DataBlock, VariableWidthBlock, concat_decoded_arrays, dictionary_batch_limit,
 };
 use crate::decoder::{
-    ColumnInfo, DecodePageTask, DecodedArray, DrainLimit, FilterExpression, IO_REQUEST_BATCH_BYTES,
-    ListReadMode, LoadedPageShard, MessageType, PageEncoding, PageInfo, RequestBatch,
-    ScheduledScanLine, SchedulerContext, StructuralDecodeArrayTask, StructuralFieldDecoder,
-    StructuralFieldScheduler, StructuralPageDecoder, StructuralSchedulingJob, UnloadedPageShard,
-    VariablePageDecodePlan,
+    ColumnInfo, DecodePageTask, DecodedArray, DecodedPage, DrainLimit, FilterExpression,
+    IO_REQUEST_BATCH_BYTES, ListReadMode, LoadedPageShard, MessageType, PageEncoding, PageInfo,
+    RequestBatch, ScheduledScanLine, SchedulerContext, StructuralDecodeArrayTask,
+    StructuralFieldDecoder, StructuralFieldScheduler, StructuralPageDecoder,
+    StructuralSchedulingJob, UnloadedPageShard, VariablePageDecodePlan,
 };
 use crate::encodings::logical::primitive::blob::{BlobDescriptionPageScheduler, BlobPageScheduler};
 use crate::format::metadata::PageLayout;
@@ -930,15 +930,151 @@ pub struct StructuralCompositeDecodeArrayTask {
 }
 
 impl StructuralCompositeDecodeArrayTask {
+    #[cfg(test)]
+    pub(crate) fn new_for_test(
+        tasks: Vec<Box<dyn DecodePageTask>>,
+        should_validate: bool,
+        data_type: DataType,
+    ) -> Self {
+        Self {
+            tasks,
+            should_validate,
+            data_type,
+        }
+    }
+
+    fn variable_bits_per_offset(data_type: &DataType) -> Option<u8> {
+        match data_type {
+            DataType::Utf8 | DataType::Binary => Some(32),
+            DataType::LargeUtf8 | DataType::LargeBinary => Some(64),
+            _ => None,
+        }
+    }
+
+    fn reserve_variable_vec<T>(len: u64) -> Result<Vec<T>> {
+        let capacity = usize::try_from(len).map_err(|_| {
+            Error::invalid_input(format!("Decode buffer length {len} exceeds usize"))
+        })?;
+        let mut buffer = Vec::new();
+        buffer.try_reserve_exact(capacity).map_err(|err| {
+            Error::invalid_input(format!(
+                "Cannot reserve {capacity} decode buffer elements: {err}"
+            ))
+        })?;
+        Ok(buffer)
+    }
+
+    fn variable_offsets_len(offsets: &VariableWidthOffsets) -> usize {
+        match offsets {
+            VariableWidthOffsets::U32(offsets) => offsets.len(),
+            VariableWidthOffsets::U64(offsets) => offsets.len(),
+        }
+    }
+
+    fn init_variable_buffers(
+        num_values: u64,
+        decompressed_bytes: u64,
+        bits_per_offset: u8,
+    ) -> Result<(Vec<u8>, VariableWidthOffsets)> {
+        let data = Self::reserve_variable_vec(decompressed_bytes)?;
+        let num_offsets = num_values.checked_add(1).ok_or_else(|| {
+            Error::invalid_input(format!("Offset count overflowed for {num_values} values"))
+        })?;
+        let offsets = if bits_per_offset == 32 {
+            let mut offsets = Self::reserve_variable_vec(num_offsets)?;
+            offsets.push(0);
+            VariableWidthOffsets::U32(offsets)
+        } else {
+            let mut offsets = Self::reserve_variable_vec(num_offsets)?;
+            offsets.push(0);
+            VariableWidthOffsets::U64(offsets)
+        };
+        Ok((data, offsets))
+    }
+
+    fn check_page_appended(
+        page_idx: usize,
+        data_len: usize,
+        data_start: usize,
+        expected_bytes: u64,
+        offsets: &VariableWidthOffsets,
+        offsets_start: usize,
+        expected_values: u64,
+    ) -> Result<()> {
+        let produced_bytes = data_len.checked_sub(data_start).ok_or_else(|| {
+            Error::corrupt_file_named(
+                "variable_full_zip",
+                format!("page {page_idx} shortened the shared data buffer"),
+            )
+        })? as u64;
+        if produced_bytes != expected_bytes {
+            return Err(Error::corrupt_file_named(
+                "variable_full_zip",
+                format!(
+                    "page {page_idx} produced {produced_bytes} bytes, expected {expected_bytes}"
+                ),
+            ));
+        }
+        let produced_offsets = Self::variable_offsets_len(offsets)
+            .checked_sub(offsets_start)
+            .ok_or_else(|| {
+                Error::corrupt_file_named(
+                    "variable_full_zip",
+                    format!("page {page_idx} shortened the shared offsets buffer"),
+                )
+            })? as u64;
+        if produced_offsets != expected_values {
+            return Err(Error::corrupt_file_named(
+                "variable_full_zip",
+                format!(
+                    "page {page_idx} produced {produced_offsets} offsets, expected {expected_values}"
+                ),
+            ));
+        }
+        Ok(())
+    }
+
+    fn finish_variable_array(
+        data_type: DataType,
+        should_validate: bool,
+        all_utf8_proven: bool,
+        plan: VariablePageDecodePlan,
+        data: Vec<u8>,
+        offsets: VariableWidthOffsets,
+        unravelers: Vec<crate::repdef::RepDefUnraveler>,
+    ) -> Result<DecodedArray> {
+        let offsets = match offsets {
+            VariableWidthOffsets::U32(offsets) => LanceBuffer::reinterpret_vec(offsets),
+            VariableWidthOffsets::U64(offsets) => LanceBuffer::reinterpret_vec(offsets),
+        };
+        let block = VariableWidthBlock {
+            bits_per_offset: plan.bits_per_offset,
+            data: LanceBuffer::from(data),
+            offsets,
+            num_values: plan.num_values,
+            block_info: BlockInfo::new(),
+        };
+        let data_size = block.data_size();
+        let arrow_data = if all_utf8_proven {
+            block.into_arrow_with_validated_utf8(data_type)?
+        } else {
+            DataBlock::VariableWidth(block).into_arrow(data_type, should_validate)?
+        };
+        let array = make_array(arrow_data);
+        let mut repdef = CompositeRepDefUnraveler::new(unravelers);
+        let array = Self::restore_validity(array, &mut repdef)?;
+        Ok(DecodedArray {
+            array,
+            repdef,
+            data_size,
+        })
+    }
+
     fn variable_decode_plan(&self) -> Option<(VariablePageDecodePlan, Vec<(u64, u64)>)> {
         if self.tasks.len() <= 1 {
             return None;
         }
-        let bits_per_offset = match self.data_type {
-            DataType::Utf8 | DataType::Binary => 32,
-            DataType::LargeUtf8 | DataType::LargeBinary => 64,
-            _ => return None,
-        };
+        let bits_per_offset = Self::variable_bits_per_offset(&self.data_type)?;
         let mut num_values = 0u64;
         let mut decompressed_bytes = 0u64;
         let mut page_plans = Vec::with_capacity(self.tasks.len());
@@ -970,100 +1106,338 @@ impl StructuralCompositeDecodeArrayTask {
         plan: VariablePageDecodePlan,
         page_plans: Vec<(u64, u64)>,
     ) -> Result<DecodedArray> {
-        fn reserve<T>(len: u64) -> Result<Vec<T>> {
-            let capacity = usize::try_from(len).map_err(|_| {
-                Error::invalid_input(format!("Decode buffer length {len} exceeds usize"))
-            })?;
-            let mut buffer = Vec::new();
-            buffer.try_reserve_exact(capacity).map_err(|err| {
-                Error::invalid_input(format!(
-                    "Cannot reserve {capacity} decode buffer elements: {err}"
-                ))
-            })?;
-            Ok(buffer)
-        }
-
-        fn offsets_len(offsets: &VariableWidthOffsets) -> usize {
-            match offsets {
-                VariableWidthOffsets::U32(offsets) => offsets.len(),
-                VariableWidthOffsets::U64(offsets) => offsets.len(),
-            }
-        }
-
-        let mut data = reserve(plan.decompressed_bytes)?;
-        let num_offsets = plan.num_values.checked_add(1).ok_or_else(|| {
-            Error::invalid_input(format!(
-                "Offset count overflowed for {} values",
-                plan.num_values
-            ))
-        })?;
-        let mut offsets = if plan.bits_per_offset == 32 {
-            let mut offsets = reserve(num_offsets)?;
-            offsets.push(0);
-            VariableWidthOffsets::U32(offsets)
-        } else {
-            let mut offsets = reserve(num_offsets)?;
-            offsets.push(0);
-            VariableWidthOffsets::U64(offsets)
-        };
+        let all_utf8_proven = self
+            .tasks
+            .iter()
+            .all(|task| task.variable_decode_utf8_proven());
+        let (mut data, mut offsets) = Self::init_variable_buffers(
+            plan.num_values,
+            plan.decompressed_bytes,
+            plan.bits_per_offset,
+        )?;
         let mut unravelers = Vec::with_capacity(self.tasks.len());
         for (page_idx, (task, (expected_values, expected_bytes))) in
             self.tasks.into_iter().zip(page_plans).enumerate()
         {
             let data_start = data.len();
-            let offsets_start = offsets_len(&offsets);
+            let offsets_start = Self::variable_offsets_len(&offsets);
             unravelers.push(task.decode_variable_into(&mut data, &mut offsets)?);
-            let produced_bytes = data.len().checked_sub(data_start).ok_or_else(|| {
-                Error::corrupt_file_named(
-                    "variable_full_zip",
-                    format!("page {page_idx} shortened the shared data buffer"),
-                )
-            })? as u64;
-            if produced_bytes != expected_bytes {
-                return Err(Error::corrupt_file_named(
-                    "variable_full_zip",
-                    format!(
-                        "page {page_idx} produced {produced_bytes} bytes, expected {expected_bytes}"
-                    ),
-                ));
+            Self::check_page_appended(
+                page_idx,
+                data.len(),
+                data_start,
+                expected_bytes,
+                &offsets,
+                offsets_start,
+                expected_values,
+            )?;
+        }
+        Self::finish_variable_array(
+            self.data_type,
+            self.should_validate,
+            all_utf8_proven,
+            plan,
+            data,
+            offsets,
+            unravelers,
+        )
+    }
+
+    fn append_zero_len_offsets(
+        num_values: u64,
+        data_len: usize,
+        out_offsets: &mut VariableWidthOffsets,
+    ) -> Result<()> {
+        let count = usize::try_from(num_values)
+            .map_err(|_| Error::invalid_input(format!("Value count {num_values} exceeds usize")))?;
+        match out_offsets {
+            VariableWidthOffsets::U32(offsets) => {
+                if data_len > i32::MAX as usize {
+                    return Err(Error::not_supported_source(format!(
+                        "appending variable-width data would require {data_len} bytes, which exceeds the capacity of 32-bit offsets"
+                    ).into()));
+                }
+                let end = u32::try_from(data_len).map_err(|_| {
+                    Error::corrupt_file_named("variable_mixed", "32-bit offset overflows u32")
+                })?;
+                offsets.resize(offsets.len() + count, end);
             }
-            let produced_offsets = offsets_len(&offsets)
-                .checked_sub(offsets_start)
-                .ok_or_else(|| {
-                    Error::corrupt_file_named(
-                        "variable_full_zip",
-                        format!("page {page_idx} shortened the shared offsets buffer"),
-                    )
-                })? as u64;
-            if produced_offsets != expected_values {
-                return Err(Error::corrupt_file_named(
-                    "variable_full_zip",
-                    format!(
-                        "page {page_idx} produced {produced_offsets} offsets, expected {expected_values}"
-                    ),
-                ));
+            VariableWidthOffsets::U64(offsets) => {
+                let end = u64::try_from(data_len).map_err(|_| {
+                    Error::corrupt_file_named("variable_mixed", "64-bit offset overflows u64")
+                })?;
+                offsets.resize(offsets.len() + count, end);
             }
         }
-        let offsets = match offsets {
-            VariableWidthOffsets::U32(offsets) => LanceBuffer::reinterpret_vec(offsets),
-            VariableWidthOffsets::U64(offsets) => LanceBuffer::reinterpret_vec(offsets),
+        Ok(())
+    }
+
+    fn decode_variable_mixed(self, bits_per_offset: u8) -> Result<DecodedArray> {
+        enum MixedPage {
+            Planned {
+                task: Box<dyn DecodePageTask>,
+                expected_values: u64,
+                expected_bytes: u64,
+            },
+            Dictionary {
+                dict: crate::data::DictionaryDataBlock,
+                repdef: crate::repdef::RepDefUnraveler,
+                expected_values: u64,
+                expected_bytes: u64,
+            },
+            VariableWidth {
+                block: VariableWidthBlock,
+                repdef: crate::repdef::RepDefUnraveler,
+                expected_values: u64,
+                expected_bytes: u64,
+            },
+            AllNull {
+                num_values: u64,
+                repdef: crate::repdef::RepDefUnraveler,
+            },
+        }
+
+        let decode_fallback = |data_type: DataType,
+                               should_validate: bool,
+                               prepared: Vec<MixedPage>,
+                               extra_page: Option<DecodedPage>,
+                               remaining: std::vec::IntoIter<Box<dyn DecodePageTask>>|
+         -> Result<DecodedArray> {
+            let mut arrays = Vec::with_capacity(prepared.len() + 1 + remaining.len());
+            let mut unravelers = Vec::with_capacity(prepared.len() + 1 + remaining.len());
+            let mut data_size = 0u64;
+
+            let mut push_page = |page: DecodedPage| -> Result<()> {
+                data_size += page.data.data_size();
+                unravelers.push(page.repdef);
+                arrays.push(make_array(
+                    page.data.into_arrow(data_type.clone(), should_validate)?,
+                ));
+                Ok(())
+            };
+
+            for item in prepared {
+                match item {
+                    MixedPage::Planned { task, .. } => push_page(task.decode()?)?,
+                    MixedPage::Dictionary { dict, repdef, .. } => push_page(DecodedPage {
+                        data: DataBlock::Dictionary(dict),
+                        repdef,
+                    })?,
+                    MixedPage::VariableWidth { block, repdef, .. } => push_page(DecodedPage {
+                        data: DataBlock::VariableWidth(block),
+                        repdef,
+                    })?,
+                    MixedPage::AllNull { num_values, repdef } => push_page(DecodedPage {
+                        data: DataBlock::AllNull(crate::data::AllNullDataBlock { num_values }),
+                        repdef,
+                    })?,
+                }
+            }
+            if let Some(page) = extra_page {
+                push_page(page)?;
+            }
+            for task in remaining {
+                push_page(task.decode()?)?;
+            }
+            let array_refs = arrays.iter().map(|arr| arr.as_ref()).collect::<Vec<_>>();
+            let array = concat_decoded_arrays(&array_refs)?;
+            let mut repdef = CompositeRepDefUnraveler::new(unravelers);
+            let array = Self::restore_validity(array, &mut repdef)?;
+            Ok(DecodedArray {
+                array,
+                repdef,
+                data_size,
+            })
         };
-        let data = DataBlock::VariableWidth(VariableWidthBlock {
-            bits_per_offset: plan.bits_per_offset,
-            data: LanceBuffer::from(data),
+
+        let mut prepared = Vec::with_capacity(self.tasks.len());
+        let mut total_values = 0u64;
+        let mut total_bytes = 0u64;
+        let mut all_utf8_proven = true;
+        let mut overflow = false;
+
+        let mut iter = self.tasks.into_iter();
+        while let Some(task) = iter.next() {
+            if let Some(plan) = task.variable_decode_plan() {
+                if plan.bits_per_offset != bits_per_offset {
+                    prepared.push(MixedPage::Planned {
+                        task,
+                        expected_values: 0,
+                        expected_bytes: 0,
+                    });
+                    return decode_fallback(
+                        self.data_type,
+                        self.should_validate,
+                        prepared,
+                        None,
+                        iter,
+                    );
+                }
+                let utf8 = task.variable_decode_utf8_proven();
+                all_utf8_proven &= utf8;
+                match (
+                    total_values.checked_add(plan.num_values),
+                    total_bytes.checked_add(plan.decompressed_bytes),
+                ) {
+                    (Some(nv), Some(nb)) => {
+                        total_values = nv;
+                        total_bytes = nb;
+                    }
+                    _ => overflow = true,
+                }
+                prepared.push(MixedPage::Planned {
+                    task,
+                    expected_values: plan.num_values,
+                    expected_bytes: plan.decompressed_bytes,
+                });
+                continue;
+            }
+
+            let page = task.decode()?;
+            match page.data {
+                DataBlock::Dictionary(dict) => {
+                    let Some(plan_res) =
+                        dict.variable_gather_plan(bits_per_offset, &self.data_type)
+                    else {
+                        return decode_fallback(
+                            self.data_type,
+                            self.should_validate,
+                            prepared,
+                            Some(DecodedPage {
+                                data: DataBlock::Dictionary(dict),
+                                repdef: page.repdef,
+                            }),
+                            iter,
+                        );
+                    };
+                    let (n, b, utf8) = plan_res?;
+                    all_utf8_proven &= utf8;
+                    match (total_values.checked_add(n), total_bytes.checked_add(b)) {
+                        (Some(nv), Some(nb)) => {
+                            total_values = nv;
+                            total_bytes = nb;
+                        }
+                        _ => overflow = true,
+                    }
+                    prepared.push(MixedPage::Dictionary {
+                        dict,
+                        repdef: page.repdef,
+                        expected_values: n,
+                        expected_bytes: b,
+                    });
+                }
+                DataBlock::VariableWidth(vw) if vw.bits_per_offset == bits_per_offset => {
+                    let (n, b) = vw.variable_byte_span()?;
+                    all_utf8_proven = false;
+                    match (total_values.checked_add(n), total_bytes.checked_add(b)) {
+                        (Some(nv), Some(nb)) => {
+                            total_values = nv;
+                            total_bytes = nb;
+                        }
+                        _ => overflow = true,
+                    }
+                    prepared.push(MixedPage::VariableWidth {
+                        block: vw,
+                        repdef: page.repdef,
+                        expected_values: n,
+                        expected_bytes: b,
+                    });
+                }
+                DataBlock::AllNull(an) if an.num_values == 0 || !page.repdef.is_all_valid() => {
+                    match total_values.checked_add(an.num_values) {
+                        Some(nv) => total_values = nv,
+                        None => overflow = true,
+                    }
+                    prepared.push(MixedPage::AllNull {
+                        num_values: an.num_values,
+                        repdef: page.repdef,
+                    });
+                }
+                other => {
+                    return decode_fallback(
+                        self.data_type,
+                        self.should_validate,
+                        prepared,
+                        Some(DecodedPage {
+                            data: other,
+                            repdef: page.repdef,
+                        }),
+                        iter,
+                    );
+                }
+            }
+        }
+
+        if overflow || (bits_per_offset == 32 && total_bytes > i32::MAX as u64) {
+            return decode_fallback(self.data_type, self.should_validate, prepared, None, iter);
+        }
+
+        let (mut data, mut offsets) =
+            Self::init_variable_buffers(total_values, total_bytes, bits_per_offset)?;
+        let mut unravelers = Vec::with_capacity(prepared.len());
+
+        for (page_idx, item) in prepared.into_iter().enumerate() {
+            let data_start = data.len();
+            let offsets_start = Self::variable_offsets_len(&offsets);
+            let (expected_values, expected_bytes) = match item {
+                MixedPage::Planned {
+                    task,
+                    expected_values,
+                    expected_bytes,
+                } => {
+                    unravelers.push(task.decode_variable_into(&mut data, &mut offsets)?);
+                    (expected_values, expected_bytes)
+                }
+                MixedPage::Dictionary {
+                    dict,
+                    repdef,
+                    expected_values,
+                    expected_bytes,
+                } => {
+                    dict.gather_variable_into(&mut data, &mut offsets)?;
+                    unravelers.push(repdef);
+                    (expected_values, expected_bytes)
+                }
+                MixedPage::VariableWidth {
+                    block,
+                    repdef,
+                    expected_values,
+                    expected_bytes,
+                } => {
+                    block.append_variable_into(&mut data, &mut offsets)?;
+                    unravelers.push(repdef);
+                    (expected_values, expected_bytes)
+                }
+                MixedPage::AllNull { num_values, repdef } => {
+                    Self::append_zero_len_offsets(num_values, data.len(), &mut offsets)?;
+                    unravelers.push(repdef);
+                    (num_values, 0)
+                }
+            };
+            Self::check_page_appended(
+                page_idx,
+                data.len(),
+                data_start,
+                expected_bytes,
+                &offsets,
+                offsets_start,
+                expected_values,
+            )?;
+        }
+
+        Self::finish_variable_array(
+            self.data_type,
+            self.should_validate,
+            all_utf8_proven,
+            VariablePageDecodePlan {
+                num_values: total_values,
+                decompressed_bytes: total_bytes,
+                bits_per_offset,
+            },
+            data,
             offsets,
-            num_values: plan.num_values,
-            block_info: BlockInfo::new(),
-        });
-        let data_size = data.data_size();
-        let array = make_array(data.into_arrow(self.data_type, self.should_validate)?);
-        let mut repdef = CompositeRepDefUnraveler::new(unravelers);
-        let array = Self::restore_validity(array, &mut repdef)?;
-        Ok(DecodedArray {
-            array,
-            repdef,
-            data_size,
-        })
+            unravelers,
+        )
     }
 
     fn restore_validity(
@@ -1118,6 +1492,11 @@ impl StructuralDecodeArrayTask for StructuralCompositeDecodeArrayTask {
     fn decode(self: Box<Self>) -> Result<DecodedArray> {
         if let Some((plan, page_plans)) = self.variable_decode_plan() {
             return self.decode_variable(plan, page_plans);
+        }
+        if self.tasks.len() > 1
+            && let Some(bits_per_offset) = Self::variable_bits_per_offset(&self.data_type)
+        {
+            return self.decode_variable_mixed(bits_per_offset);
         }
         let mut arrays = Vec::with_capacity(self.tasks.len());
         let mut unravelers = Vec::with_capacity(self.tasks.len());
@@ -2953,5 +3332,335 @@ mod tests {
             assert!(matches!(error, lance_core::Error::InvalidInput { .. }));
             assert!(error.to_string().contains(expected_message));
         }
+    }
+
+    #[derive(Debug)]
+    struct StaticDecodedPageTask {
+        data: Option<crate::data::DataBlock>,
+        repdef: Option<RepDefUnraveler>,
+    }
+
+    impl StaticDecodedPageTask {
+        fn new(data: crate::data::DataBlock, repdef: RepDefUnraveler) -> Box<Self> {
+            Box::new(Self {
+                data: Some(data),
+                repdef: Some(repdef),
+            })
+        }
+    }
+
+    impl DecodePageTask for StaticDecodedPageTask {
+        fn decode(mut self: Box<Self>) -> Result<DecodedPage> {
+            Ok(DecodedPage {
+                data: self.data.take().unwrap(),
+                repdef: self.repdef.take().unwrap(),
+            })
+        }
+    }
+
+    #[derive(Debug)]
+    struct ProvenConstantMockTask {
+        value: Vec<u8>,
+        count: usize,
+        bits_per_offset: u8,
+    }
+
+    impl DecodePageTask for ProvenConstantMockTask {
+        fn decode(self: Box<Self>) -> Result<DecodedPage> {
+            Err(Error::not_supported(
+                "unexpected fallback decode".to_string(),
+            ))
+        }
+
+        fn variable_decode_plan(&self) -> Option<VariablePageDecodePlan> {
+            Some(VariablePageDecodePlan {
+                num_values: self.count as u64,
+                decompressed_bytes: (self.value.len() * self.count) as u64,
+                bits_per_offset: self.bits_per_offset,
+            })
+        }
+
+        fn variable_decode_utf8_proven(&self) -> bool {
+            true
+        }
+
+        fn decode_variable_into(
+            self: Box<Self>,
+            out_data: &mut Vec<u8>,
+            out_offsets: &mut VariableWidthOffsets,
+        ) -> Result<RepDefUnraveler> {
+            for _ in 0..self.count {
+                out_data.extend_from_slice(&self.value);
+                let len = out_data.len();
+                match out_offsets {
+                    VariableWidthOffsets::U32(offs) => offs.push(len as u32),
+                    VariableWidthOffsets::U64(offs) => offs.push(len as u64),
+                }
+            }
+            Ok(RepDefUnraveler::new(
+                None,
+                None,
+                vec![DefinitionInterpretation::AllValidItem].into(),
+                self.count as u64,
+            ))
+        }
+    }
+
+    #[rstest::rstest]
+    #[case::utf8(DataType::Utf8, 32)]
+    #[case::large_utf8(DataType::LargeUtf8, 64)]
+    #[case::binary(DataType::Binary, 32)]
+    #[case::large_binary(DataType::LargeBinary, 64)]
+    fn test_composite_variable_mixed_pages(
+        #[case] data_type: DataType,
+        #[case] bits_per_offset: u8,
+    ) {
+        use crate::data::{
+            AllNullDataBlock, BlockInfo, DataBlock, DictionaryDataBlock, FixedWidthDataBlock,
+            VariableWidthBlock,
+        };
+        use arrow_array::{BinaryArray, LargeBinaryArray, LargeStringArray};
+
+        let make_offsets_buf = |vals: &[usize]| -> LanceBuffer {
+            if bits_per_offset == 32 {
+                LanceBuffer::reinterpret_vec(vals.iter().map(|&v| v as u32).collect::<Vec<_>>())
+            } else {
+                LanceBuffer::reinterpret_vec(vals.iter().map(|&v| v as u64).collect::<Vec<_>>())
+            }
+        };
+
+        // Task 1: UTF-8-proven planned page ("const-α", repeated 2x)
+        let t_const: Box<dyn DecodePageTask> = Box::new(ProvenConstantMockTask {
+            value: "const-α".as_bytes().to_vec(),
+            count: 2,
+            bits_per_offset,
+        });
+
+        // Task 2: Nullable Dictionary page (indices -> ["dict-0", NULL, "dict-2"])
+        let dict_data = b"dict-0dict-1dict-2".to_vec();
+        let dict_block = DataBlock::VariableWidth(VariableWidthBlock {
+            bits_per_offset,
+            data: LanceBuffer::from(dict_data),
+            offsets: make_offsets_buf(&[0, 6, 12, 18]),
+            num_values: 3,
+            block_info: BlockInfo::new(),
+        });
+        let dict_indices = FixedWidthDataBlock {
+            data: LanceBuffer::from(vec![0_u8, 1, 2]),
+            bits_per_value: 8,
+            num_values: 3,
+            block_info: BlockInfo::new(),
+        };
+        let t_dict = StaticDecodedPageTask::new(
+            DataBlock::Dictionary(DictionaryDataBlock::from_parts(dict_indices, dict_block)),
+            RepDefUnraveler::new(
+                None,
+                Some(vec![0_u16, 1, 0]),
+                vec![DefinitionInterpretation::NullableItem].into(),
+                3,
+            ),
+        );
+
+        // Task 3: Nullable AllNull page (2 nulls via def levels so !is_all_valid())
+        let t_null = StaticDecodedPageTask::new(
+            DataBlock::AllNull(AllNullDataBlock { num_values: 2 }),
+            RepDefUnraveler::new(
+                None,
+                Some(vec![1_u16, 1]),
+                vec![DefinitionInterpretation::NullableItem].into(),
+                2,
+            ),
+        );
+
+        // Task 4: Sliced VariableWidthBlock starting at non-zero offset (4..9, 9..14 => "kept1", "kept2")
+        let t_sliced = StaticDecodedPageTask::new(
+            DataBlock::VariableWidth(VariableWidthBlock {
+                bits_per_offset,
+                data: LanceBuffer::from(b"SKIPkept1kept2".to_vec()),
+                offsets: make_offsets_buf(&[4, 9, 14]),
+                num_values: 2,
+                block_info: BlockInfo::new(),
+            }),
+            RepDefUnraveler::new(
+                None,
+                None,
+                vec![DefinitionInterpretation::AllValidItem].into(),
+                2,
+            ),
+        );
+
+        let composite = Box::new(StructuralCompositeDecodeArrayTask {
+            tasks: vec![t_const, t_dict, t_null, t_sliced],
+            should_validate: true,
+            data_type: data_type.clone(),
+        });
+        assert!(composite.variable_decode_plan().is_none());
+
+        let decoded = composite.decode().unwrap();
+        let expected_vals = vec![
+            Some("const-α"),
+            Some("const-α"),
+            Some("dict-0"),
+            None,
+            Some("dict-2"),
+            None,
+            None,
+            Some("kept1"),
+            Some("kept2"),
+        ];
+        match data_type {
+            DataType::Utf8 => {
+                let expected: ArrayRef = Arc::new(StringArray::from(expected_vals));
+                assert_eq!(decoded.array.as_ref(), expected.as_ref());
+            }
+            DataType::LargeUtf8 => {
+                let expected: ArrayRef = Arc::new(LargeStringArray::from(expected_vals));
+                assert_eq!(decoded.array.as_ref(), expected.as_ref());
+            }
+            DataType::Binary => {
+                let expected_bin: Vec<Option<&[u8]>> =
+                    expected_vals.iter().map(|s| s.map(str::as_bytes)).collect();
+                let expected: ArrayRef = Arc::new(BinaryArray::from(expected_bin));
+                assert_eq!(decoded.array.as_ref(), expected.as_ref());
+            }
+            DataType::LargeBinary => {
+                let expected_bin: Vec<Option<&[u8]>> =
+                    expected_vals.iter().map(|s| s.map(str::as_bytes)).collect();
+                let expected: ArrayRef = Arc::new(LargeBinaryArray::from(expected_bin));
+                assert_eq!(decoded.array.as_ref(), expected.as_ref());
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn test_composite_variable_dictionary_unreferenced_invalid_utf8_partial_ref() {
+        use crate::data::{
+            BlockInfo, DataBlock, DictionaryDataBlock, FixedWidthDataBlock, VariableWidthBlock,
+        };
+
+        let make_dict_task = |indices: Vec<u8>| {
+            let mut raw = Vec::new();
+            raw.extend_from_slice(b"valid-a");
+            raw.extend_from_slice(&[0xFF_u8, 0xFE]);
+            raw.extend_from_slice(b"valid-b");
+            let dict = DataBlock::VariableWidth(VariableWidthBlock {
+                bits_per_offset: 32,
+                data: LanceBuffer::from(raw),
+                offsets: LanceBuffer::reinterpret_vec(vec![0_u32, 7, 9, 16]),
+                num_values: 3,
+                block_info: BlockInfo::new(),
+            });
+            let idx = FixedWidthDataBlock {
+                data: LanceBuffer::from(indices.clone()),
+                bits_per_value: 8,
+                num_values: indices.len() as u64,
+                block_info: BlockInfo::new(),
+            };
+            StaticDecodedPageTask::new(
+                DataBlock::Dictionary(DictionaryDataBlock::from_parts(idx, dict)),
+                RepDefUnraveler::new(
+                    None,
+                    None,
+                    vec![DefinitionInterpretation::AllValidItem].into(),
+                    indices.len() as u64,
+                ),
+            )
+        };
+
+        // Unreferenced invalid UTF-8 entry: utf8_proven becomes false, valid selection succeeds.
+        let ok_composite = Box::new(StructuralCompositeDecodeArrayTask {
+            tasks: vec![
+                make_dict_task(vec![0, 2]),
+                Box::new(ProvenConstantMockTask {
+                    value: b"tail".to_vec(),
+                    count: 1,
+                    bits_per_offset: 32,
+                }),
+            ],
+            should_validate: true,
+            data_type: DataType::Utf8,
+        });
+        let ok_array = ok_composite.decode().unwrap().array;
+        assert_eq!(
+            ok_array.as_ref(),
+            &StringArray::from(vec!["valid-a", "valid-b", "tail"])
+        );
+
+        // Referenced invalid UTF-8 entry: materialized validation rejects it.
+        let bad_composite = Box::new(StructuralCompositeDecodeArrayTask {
+            tasks: vec![
+                make_dict_task(vec![0, 1]),
+                Box::new(ProvenConstantMockTask {
+                    value: b"tail".to_vec(),
+                    count: 1,
+                    bits_per_offset: 32,
+                }),
+            ],
+            should_validate: true,
+            data_type: DataType::Utf8,
+        });
+        let Err(err) = bad_composite.decode() else {
+            panic!("expected decode error");
+        };
+        assert!(
+            matches!(err, Error::CorruptFile { .. }),
+            "unexpected: {err}"
+        );
+    }
+
+    #[test]
+    fn test_composite_variable_mixed_32bit_overflow_falls_back() {
+        use crate::data::{
+            BlockInfo, DataBlock, DictionaryDataBlock, FixedWidthDataBlock, VariableWidthBlock,
+        };
+
+        let dict = DataBlock::VariableWidth(VariableWidthBlock {
+            bits_per_offset: 32,
+            data: LanceBuffer::from(b"tail".to_vec()),
+            offsets: LanceBuffer::reinterpret_vec(vec![0_u32, 4]),
+            num_values: 1,
+            block_info: BlockInfo::new(),
+        });
+        let idx = FixedWidthDataBlock {
+            data: LanceBuffer::from(vec![0_u8]),
+            bits_per_value: 8,
+            num_values: 1,
+            block_info: BlockInfo::new(),
+        };
+        let dict_task = StaticDecodedPageTask::new(
+            DataBlock::Dictionary(DictionaryDataBlock::from_parts(idx, dict)),
+            RepDefUnraveler::new(
+                None,
+                None,
+                vec![DefinitionInterpretation::AllValidItem].into(),
+                1,
+            ),
+        );
+        let overflow_composite = Box::new(StructuralCompositeDecodeArrayTask {
+            tasks: vec![
+                mock_variable_page_with_plan(VariablePageDecodePlan {
+                    num_values: 1,
+                    decompressed_bytes: i32::MAX as u64,
+                    bits_per_offset: 32,
+                }),
+                dict_task,
+            ],
+            should_validate: true,
+            data_type: DataType::Binary,
+        });
+        // Entering fallback invokes MockVariablePageTask::decode() ("mock decode unused")
+        // rather than trying to reserve > 2 GiB on the mixed path.
+        let Err(err) = overflow_composite.decode() else {
+            panic!("expected decode error");
+        };
+        assert!(
+            matches!(err, Error::NotSupported { .. }),
+            "unexpected: {err}"
+        );
+        assert!(
+            err.to_string().contains("mock decode unused"),
+            "unexpected: {err}"
+        );
     }
 }

@@ -13,12 +13,14 @@ use futures::future::BoxFuture;
 use lance_core::{
     Error, Result,
     cache::{Context, DeepSizeOf},
+    utils::tokio::spawn_cpu,
 };
 
 use crate::{
     EncodingsIo,
     buffer::LanceBuffer,
-    decoder::PageEncoding,
+    compression::VariableWidthOffsets,
+    decoder::{PageEncoding, VariablePageDecodePlan},
     encoder::EncodedPage,
     encodings::logical::primitive::{
         CachedPageData, PageInitialization, PageInitializationBuffers, PageLoadTask,
@@ -245,11 +247,27 @@ impl crate::encodings::logical::primitive::StructuralPageScheduler for ConstantP
                         lance_arrow::scalar::decode_scalar_from_inline_value(&data_type, &inline)?
                     }
                     (ScalarSource::ValueBuffer(_), Some(bytes)) => {
+                        // Copying wide scalars into compact Arrow buffers releases any larger
+                        // coalesced page-init `Bytes` slice (which may pin neighboring compressed
+                        // pages in `LanceCache`) while running UTF-8 validation off the tokio I/O
+                        // thread concurrently across `FuturesOrdered` initializations.
+                        const CONSTANT_SCALAR_SPAWN_CPU_THRESHOLD_BYTES: usize = 32 * 1024;
                         let buf = LanceBuffer::from_bytes(bytes, 1);
-                        lance_arrow::scalar::decode_scalar_from_value_buffer(
-                            &data_type,
-                            buf.as_ref(),
-                        )?
+                        if buf.len() >= CONSTANT_SCALAR_SPAWN_CPU_THRESHOLD_BYTES {
+                            let dt = data_type.clone();
+                            spawn_cpu(move || {
+                                lance_arrow::scalar::decode_scalar_from_value_buffer(
+                                    &dt,
+                                    buf.as_ref(),
+                                )
+                            })
+                            .await?
+                        } else {
+                            lance_arrow::scalar::decode_scalar_from_value_buffer(
+                                &data_type,
+                                buf.as_ref(),
+                            )?
+                        }
                     }
                     _ => {
                         return Err(Error::internal(
@@ -512,6 +530,95 @@ impl DecodeConstantTask {
     }
 }
 
+use arrow_array::cast::AsArray;
+
+impl DecodeConstantTask {
+    fn scalar_variable_bytes(&self) -> Option<(u8, &[u8])> {
+        if self.scalar.len() != 1 || self.scalar.null_count() != 0 {
+            return None;
+        }
+        match self.scalar.data_type() {
+            DataType::Utf8 => Some((32, self.scalar.as_string::<i32>().value(0).as_bytes())),
+            DataType::LargeUtf8 => Some((64, self.scalar.as_string::<i64>().value(0).as_bytes())),
+            DataType::Binary => Some((32, self.scalar.as_binary::<i32>().value(0))),
+            DataType::LargeBinary => Some((64, self.scalar.as_binary::<i64>().value(0))),
+            _ => None,
+        }
+    }
+
+    fn append_constant_values_into(
+        scalar_bytes: &[u8],
+        def: Option<&[u16]>,
+        visible_items_total: u64,
+        max_visible_def: u16,
+        out_data: &mut Vec<u8>,
+        out_offsets: &mut VariableWidthOffsets,
+    ) -> Result<()> {
+        let push_offset = |out_offsets: &mut VariableWidthOffsets, len: usize| -> Result<()> {
+            match out_offsets {
+                VariableWidthOffsets::U32(offsets) => {
+                    if len > i32::MAX as usize {
+                        return Err(Error::corrupt_file_named(
+                            "constant",
+                            format!("decompressed size {len} exceeds 32-bit offsets"),
+                        ));
+                    }
+                    offsets.push(len as u32);
+                }
+                VariableWidthOffsets::U64(offsets) => {
+                    let end = u64::try_from(len).map_err(|_| {
+                        Error::corrupt_file_named(
+                            "constant",
+                            format!("decompressed size {len} exceeds 64-bit offsets"),
+                        )
+                    })?;
+                    offsets.push(end);
+                }
+            }
+            Ok(())
+        };
+
+        if let Some(def) = def {
+            for &d in def {
+                if d <= max_visible_def {
+                    if d == 0 && !scalar_bytes.is_empty() {
+                        out_data.extend_from_slice(scalar_bytes);
+                    }
+                    push_offset(out_offsets, out_data.len())?;
+                }
+            }
+        } else if scalar_bytes.is_empty() {
+            let end = out_data.len();
+            match out_offsets {
+                VariableWidthOffsets::U32(offsets) => {
+                    if end > i32::MAX as usize {
+                        return Err(Error::corrupt_file_named(
+                            "constant",
+                            format!("decompressed size {end} exceeds 32-bit offsets"),
+                        ));
+                    }
+                    offsets.resize(offsets.len() + visible_items_total as usize, end as u32);
+                }
+                VariableWidthOffsets::U64(offsets) => {
+                    let end = u64::try_from(end).map_err(|_| {
+                        Error::corrupt_file_named(
+                            "constant",
+                            format!("decompressed size {end} exceeds 64-bit offsets"),
+                        )
+                    })?;
+                    offsets.resize(offsets.len() + visible_items_total as usize, end);
+                }
+            }
+        } else {
+            for _ in 0..visible_items_total {
+                out_data.extend_from_slice(scalar_bytes);
+                push_offset(out_offsets, out_data.len())?;
+            }
+        }
+        Ok(())
+    }
+}
+
 impl crate::decoder::DecodePageTask for DecodeConstantTask {
     fn decode(self: Box<Self>) -> Result<crate::decoder::DecodedPage> {
         let rep = Self::slice_levels(&self.rep, &self.level_slices);
@@ -532,6 +639,82 @@ impl crate::decoder::DecodePageTask for DecodeConstantTask {
             data,
             repdef: unraveler,
         })
+    }
+
+    fn variable_decode_plan(&self) -> Option<VariablePageDecodePlan> {
+        let (bits_per_offset, scalar_bytes) = self.scalar_variable_bytes()?;
+        let (num_values, valid_values) = if let Some(def) = &self.def {
+            let mut visible = 0u64;
+            let mut valid = 0u64;
+            for range in &self.level_slices {
+                for &d in &def[range.start..range.end] {
+                    if d <= self.max_visible_def {
+                        visible += 1;
+                        if d == 0 {
+                            valid += 1;
+                        }
+                    }
+                }
+            }
+            (visible, valid)
+        } else {
+            (self.visible_items_total, self.visible_items_total)
+        };
+        let decompressed_bytes = valid_values.checked_mul(scalar_bytes.len() as u64)?;
+        Some(VariablePageDecodePlan {
+            num_values,
+            decompressed_bytes,
+            bits_per_offset,
+        })
+    }
+
+    fn variable_decode_utf8_proven(&self) -> bool {
+        self.scalar_variable_bytes().is_some()
+    }
+
+    fn decode_variable_into(
+        self: Box<Self>,
+        out_data: &mut Vec<u8>,
+        out_offsets: &mut VariableWidthOffsets,
+    ) -> Result<RepDefUnraveler> {
+        let Some((bits_per_offset, scalar_bytes)) = self.scalar_variable_bytes() else {
+            return Err(Error::not_supported(
+                "Direct variable-width decoding is not supported for this constant page"
+                    .to_string(),
+            ));
+        };
+        let matches_offsets = matches!(
+            (bits_per_offset, &*out_offsets),
+            (32, VariableWidthOffsets::U32(_)) | (64, VariableWidthOffsets::U64(_))
+        );
+        if !matches_offsets {
+            return Err(Error::invalid_input(format!(
+                "Destination offsets do not match constant page {bits_per_offset}-bit offsets"
+            )));
+        }
+
+        let rep = Self::slice_levels(&self.rep, &self.level_slices);
+        let def = Self::slice_levels(&self.def, &self.level_slices);
+        let visible_items_total = if let Some(def) = &def {
+            def.iter().filter(|d| **d <= self.max_visible_def).count() as u64
+        } else {
+            self.visible_items_total
+        };
+
+        Self::append_constant_values_into(
+            scalar_bytes,
+            def.as_deref(),
+            visible_items_total,
+            self.max_visible_def,
+            out_data,
+            out_offsets,
+        )?;
+        Ok(RepDefUnraveler::new(
+            rep,
+            def,
+            self.def_meaning,
+            visible_items_total,
+        ))
     }
 }
 
@@ -561,5 +744,144 @@ mod tests {
         assert!(matches!(error, Error::InvalidInput { .. }));
         assert!(error.to_string().contains("Boolean"));
         assert!(error.to_string().contains("UInt8"));
+    }
+
+    #[rstest::rstest]
+    #[case::utf8_non_null(DataType::Utf8, 32, false)]
+    #[case::utf8_nullable(DataType::Utf8, 32, true)]
+    #[case::large_utf8_non_null(DataType::LargeUtf8, 64, false)]
+    #[case::large_utf8_nullable(DataType::LargeUtf8, 64, true)]
+    fn decode_constant_task_variable_decode_plan_and_into(
+        #[case] data_type: DataType,
+        #[case] expected_bits: u8,
+        #[case] nullable: bool,
+    ) {
+        use crate::decoder::DecodePageTask;
+        use arrow_array::{LargeStringArray, StringArray};
+
+        let scalar_str = "const-value-β";
+        let scalar: ArrayRef = match data_type {
+            DataType::Utf8 => Arc::new(StringArray::from(vec![scalar_str])),
+            DataType::LargeUtf8 => Arc::new(LargeStringArray::from(vec![scalar_str])),
+            _ => unreachable!(),
+        };
+
+        let make_task = || {
+            Box::new(DecodeConstantTask {
+                scalar: scalar.clone(),
+                rep: None,
+                def: nullable.then(|| ScalarBuffer::from(vec![0_u16, 1, 0])),
+                level_slices: vec![0..if nullable { 3 } else { 2 }],
+                visible_items_total: if nullable { 3 } else { 2 },
+                def_meaning: Arc::from([if nullable {
+                    DefinitionInterpretation::NullableItem
+                } else {
+                    DefinitionInterpretation::AllValidItem
+                }]),
+                max_visible_def: if nullable { 1 } else { 0 },
+            })
+        };
+
+        let task = make_task();
+        assert!(task.variable_decode_utf8_proven());
+        let plan = task.variable_decode_plan().expect("plan");
+        assert_eq!(plan.bits_per_offset, expected_bits);
+        assert_eq!(plan.num_values, if nullable { 3 } else { 2 });
+        assert_eq!(plan.decompressed_bytes, (2 * scalar_str.len()) as u64);
+
+        let mut out_data = Vec::new();
+        let mut out_offsets = if expected_bits == 32 {
+            VariableWidthOffsets::U32(vec![0])
+        } else {
+            VariableWidthOffsets::U64(vec![0])
+        };
+        let repdef = task
+            .decode_variable_into(&mut out_data, &mut out_offsets)
+            .unwrap();
+
+        let expected_bytes = [scalar_str.as_bytes(), scalar_str.as_bytes()].concat();
+        assert_eq!(out_data, expected_bytes);
+        let len = scalar_str.len() as u64;
+        match out_offsets {
+            VariableWidthOffsets::U32(offs) => {
+                let expected = if nullable {
+                    vec![0_u32, len as u32, len as u32, (2 * len) as u32]
+                } else {
+                    vec![0_u32, len as u32, (2 * len) as u32]
+                };
+                assert_eq!(offs, expected);
+            }
+            VariableWidthOffsets::U64(offs) => {
+                let expected = if nullable {
+                    vec![0_u64, len, len, 2 * len]
+                } else {
+                    vec![0_u64, len, 2 * len]
+                };
+                assert_eq!(offs, expected);
+            }
+        }
+        let mut composite = crate::repdef::CompositeRepDefUnraveler::new(vec![repdef]);
+        let validity = composite
+            .unravel_validity(plan.num_values as usize)
+            .unwrap();
+        if nullable {
+            let v = validity.expect("nullable validity");
+            assert!(v.is_valid(0));
+            assert!(v.is_null(1));
+            assert!(v.is_valid(2));
+        } else {
+            assert!(validity.is_none());
+        }
+    }
+
+    #[tokio::test]
+    async fn init_from_buffers_offloads_wide_value_buffer_without_pinning() {
+        use arrow_array::{StringArray, cast::AsArray};
+        #[derive(Debug)]
+        struct NoopEncodingsIo;
+        impl EncodingsIo for NoopEncodingsIo {
+            fn submit_request(
+                &self,
+                _ranges: Vec<Range<u64>>,
+                _priority: u64,
+            ) -> BoxFuture<'static, Result<Vec<Bytes>>> {
+                std::future::ready(Ok(Vec::new())).boxed()
+            }
+        }
+
+        let wide_val = "a".repeat(40 * 1024);
+        let scalar_arr: ArrayRef = Arc::new(StringArray::from(vec![wide_val.as_str()]));
+        let encoded = lance_arrow::scalar::encode_scalar_value_buffer(&scalar_arr).unwrap();
+
+        // Embed the scalar buffer inside a larger coalesced backing allocation.
+        let mut backing = vec![0xAB_u8; 128 * 1024];
+        let offset = 64;
+        backing[offset..offset + encoded.len()].copy_from_slice(&encoded);
+        let backing_bytes = Bytes::from(backing);
+        let backing_start = backing_bytes.as_ptr() as usize;
+        let backing_end = backing_start + backing_bytes.len();
+        let scalar_slice = backing_bytes.slice(offset..offset + encoded.len());
+
+        let mut scheduler = ConstantPageScheduler::try_new(
+            Arc::from([(offset as u64, encoded.len() as u64)]),
+            None,
+            DataType::Utf8,
+            Arc::from([DefinitionInterpretation::AllValidItem]),
+        )
+        .unwrap();
+        let init = scheduler.init_layout().unwrap();
+        let buffers = init.with_buffers(vec![scalar_slice]).unwrap();
+        let io: Arc<dyn EncodingsIo> = Arc::new(NoopEncodingsIo);
+        let cached = scheduler.init_from_buffers(buffers, &io).await.unwrap();
+        let cached_any = cached.as_arc_any();
+        let state = cached_any.downcast_ref::<CachedConstantState>().unwrap();
+        let decoded = state.scalar.as_string::<i32>();
+        assert_eq!(decoded.value(0), wide_val);
+
+        let val_ptr = decoded.value_data().as_ptr() as usize;
+        assert!(
+            val_ptr < backing_start || val_ptr >= backing_end,
+            "decoded scalar must copy out of coalesced I/O backing buffer"
+        );
     }
 }

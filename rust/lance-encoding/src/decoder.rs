@@ -3807,6 +3807,12 @@ pub trait DecodePageTask: Send + std::fmt::Debug {
         None
     }
 
+    /// Whether [`Self::decode_variable_into`] is guaranteed to emit valid UTF-8
+    /// boundaries for `Utf8`/`LargeUtf8` outputs without needing a batch rescan.
+    fn variable_decode_utf8_proven(&self) -> bool {
+        false
+    }
+
     /// Appends this page's decoded values to `out_data` and their end offsets,
     /// measured from the start of `out_data`, to `out_offsets`, returning its
     /// repetition and definition levels for restoring validity and nested structure.

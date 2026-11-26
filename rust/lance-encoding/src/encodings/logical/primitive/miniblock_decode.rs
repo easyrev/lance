@@ -23,6 +23,7 @@ use lance_core::Result;
 use lance_core::cache::{Context, DeepSizeOf, LanceCache};
 use lance_core::error::Error;
 use lance_core::utils::bit::pad_bytes;
+use lance_core::utils::tokio::spawn_cpu;
 
 use super::structure::{StructuralMetadataIo, StructuralProjection};
 use crate::EncodingsIo;
@@ -2281,16 +2282,21 @@ impl StructuralPageScheduler for MiniBlockScheduler {
                 self.repetition_index_depth,
             )?;
 
-            // decode dictionary
+            // decode dictionary (offload non-trivial dictionaries so multi-page cold reads
+            // decompress dictionaries across the CPU pool instead of serially on tokio workers)
+            const MINIBLOCK_DICT_SPAWN_CPU_THRESHOLD_BYTES: usize = 32 * 1024;
             let dictionary = match (self.dictionary.as_ref(), dictionary_bytes) {
                 (Some(dictionary), Some(dictionary_data)) => {
-                    Some(Arc::new(dictionary.dictionary_decompressor.decompress(
-                        Some(LanceBuffer::from_bytes(
-                            dictionary_data,
-                            dictionary.dictionary_data_alignment,
-                        )),
-                        dictionary.num_dictionary_items,
-                    )?))
+                    let decompressor = dictionary.dictionary_decompressor.clone();
+                    let alignment = dictionary.dictionary_data_alignment;
+                    let num_items = dictionary.num_dictionary_items;
+                    let buf = LanceBuffer::from_bytes(dictionary_data, alignment);
+                    let block = if buf.len() >= MINIBLOCK_DICT_SPAWN_CPU_THRESHOLD_BYTES {
+                        spawn_cpu(move || decompressor.decompress(Some(buf), num_items)).await?
+                    } else {
+                        decompressor.decompress(Some(buf), num_items)?
+                    };
+                    Some(Arc::new(block))
                 }
                 (_, None) if self.structural_projection.is_some() => None,
                 (None, None) => None,

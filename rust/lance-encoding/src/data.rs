@@ -40,6 +40,7 @@ use lance_core::{Error, Result};
 
 use crate::{
     buffer::LanceBuffer,
+    compression::VariableWidthOffsets,
     statistics::{ComputeStat, Stat},
 };
 
@@ -688,7 +689,7 @@ impl VariableWidthBlock {
         )
     }
 
-    fn validate_offsets_for_append<T>(&self, selection: &Range<u64>) -> Result<()>
+    pub(crate) fn validate_offsets_for_append<T>(&self, selection: &Range<u64>) -> Result<()>
     where
         T: OffsetSizeTrait + bytemuck::Pod,
     {
@@ -742,6 +743,102 @@ impl VariableWidthBlock {
         Ok(())
     }
 
+    fn variable_byte_span_typed<T>(&self) -> Result<(u64, u64)>
+    where
+        T: OffsetSizeTrait + bytemuck::Pod,
+    {
+        let selection = 0..self.num_values;
+        self.validate_offsets_for_append::<T>(&selection)?;
+        let num_values = usize::try_from(self.num_values)
+            .map_err(|_| self.append_error(&selection, "value count overflows usize"))?;
+        let offsets = self.offsets.borrow_to_typed_view::<T>();
+        let first = offsets[0].as_usize();
+        let last = offsets[num_values].as_usize();
+        Ok((self.num_values, (last - first) as u64))
+    }
+
+    /// Validates this block's full offset table and returns `(num_values, payload_bytes)`.
+    pub(crate) fn variable_byte_span(&self) -> Result<(u64, u64)> {
+        if self.num_values == 0 {
+            return Ok((0, 0));
+        }
+        match self.bits_per_offset {
+            32 => self.variable_byte_span_typed::<i32>(),
+            64 => self.variable_byte_span_typed::<i64>(),
+            other => Err(self.append_error(
+                &(0..self.num_values),
+                format!("unsupported offset width: {other} bits"),
+            )),
+        }
+    }
+
+    fn append_variable_into_typed<T, O>(
+        &self,
+        out_data: &mut Vec<u8>,
+        out_offsets: &mut Vec<O>,
+    ) -> Result<()>
+    where
+        T: OffsetSizeTrait + bytemuck::Pod,
+        O: ArrowNativeType + TryFrom<usize>,
+    {
+        let selection = 0..self.num_values;
+        self.validate_offsets_for_append::<T>(&selection)?;
+        let num_values = usize::try_from(self.num_values)
+            .map_err(|_| self.append_error(&selection, "value count overflows usize"))?;
+        let offsets = self.offsets.borrow_to_typed_view::<T>();
+        let first = offsets[0].as_usize();
+        let last = offsets[num_values].as_usize();
+        let base = out_data.len();
+        let appended_len = last - first;
+        let final_len = base.checked_add(appended_len).ok_or_else(|| {
+            Error::not_supported_source("appending variable-width data would overflow usize".into())
+        })?;
+        if std::mem::size_of::<O>() == 4 && final_len > i32::MAX as usize {
+            return Err(Error::not_supported_source(format!(
+                "appending variable-width data would require {final_len} bytes, which exceeds the capacity of 32-bit offsets"
+            ).into()));
+        }
+        O::try_from(final_len).map_err(|_| {
+            Error::not_supported_source(format!(
+                "appending variable-width data would require {final_len} bytes, which exceeds the capacity of {}-bit offsets",
+                std::mem::size_of::<O>() * 8
+            ).into())
+        })?;
+
+        out_data.extend_from_slice(&self.data.as_ref()[first..last]);
+        for &offset in &offsets[1..=num_values] {
+            let rebased = base + (offset.as_usize() - first);
+            let out_end = O::try_from(rebased).map_err(|_| {
+                Error::not_supported_source("appending variable-width offset overflows".into())
+            })?;
+            out_offsets.push(out_end);
+        }
+        Ok(())
+    }
+
+    /// Appends this block's validated values and rebased end offsets into shared buffers.
+    pub(crate) fn append_variable_into(
+        &self,
+        out_data: &mut Vec<u8>,
+        out_offsets: &mut crate::compression::VariableWidthOffsets,
+    ) -> Result<()> {
+        if self.num_values == 0 {
+            return Ok(());
+        }
+        match (self.bits_per_offset, out_offsets) {
+            (32, crate::compression::VariableWidthOffsets::U32(offsets)) => {
+                self.append_variable_into_typed::<i32, u32>(out_data, offsets)
+            }
+            (64, crate::compression::VariableWidthOffsets::U64(offsets)) => {
+                self.append_variable_into_typed::<i64, u64>(out_data, offsets)
+            }
+            _ => Err(Error::invalid_input(format!(
+                "Destination offsets do not match {}-bit VariableWidthBlock offsets",
+                self.bits_per_offset
+            ))),
+        }
+    }
+
     // The offsets buffer comes straight from file bytes, so an unchecked build would
     // let a corrupt file smuggle out-of-bounds offsets into an Arrow array whose
     // consumers then read (or crash on) memory outside the data buffer.  This
@@ -750,6 +847,17 @@ impl VariableWidthBlock {
     // scan, measurably cheaper than Arrow's element-wise checked build) and only
     // falls back to Arrow's checked build for the cold cases.
     fn into_arrow(self, data_type: DataType, _validate: bool) -> Result<ArrayData> {
+        self.into_arrow_validated(data_type, true)
+    }
+
+    /// Converts this variable-width block to Arrow after validating offset bounds
+    /// and monotonicity, skipping the UTF-8 scan because the caller proved every
+    /// appended entry already satisfies UTF-8 and offset boundaries.
+    pub(crate) fn into_arrow_with_validated_utf8(self, data_type: DataType) -> Result<ArrayData> {
+        self.into_arrow_validated(data_type, false)
+    }
+
+    fn into_arrow_validated(self, data_type: DataType, check_utf8: bool) -> Result<ArrayData> {
         let Some(expected_bits_per_offset) = Self::expected_bits_per_offset(&data_type) else {
             // Not an [offsets, bytes] layout we know how to prove; let Arrow
             // check it.
@@ -768,7 +876,7 @@ impl VariableWidthBlock {
             // Cold path; Arrow handles the empty-offsets special cases.
             return self.into_arrow_checked(data_type);
         }
-        let proof = self.validate_layout(&data_type)?;
+        let proof = self.validate_layout_with_utf8(&data_type, check_utf8)?;
         Ok(self.into_arrow_unchecked(data_type, proof))
     }
 
@@ -812,6 +920,14 @@ impl VariableWidthBlock {
     }
 
     fn validate_layout(&self, data_type: &DataType) -> Result<ValidVariableWidthLayout> {
+        self.validate_layout_with_utf8(data_type, true)
+    }
+
+    fn validate_layout_with_utf8(
+        &self,
+        data_type: &DataType,
+        check_utf8: bool,
+    ) -> Result<ValidVariableWidthLayout> {
         let bytes_per_offset = (self.bits_per_offset / 8) as u64;
         let required_bytes = self
             .num_values
@@ -828,7 +944,7 @@ impl VariableWidthBlock {
                 ),
             ));
         }
-        let validate_utf8 = matches!(data_type, DataType::Utf8 | DataType::LargeUtf8);
+        let validate_utf8 = check_utf8 && matches!(data_type, DataType::Utf8 | DataType::LargeUtf8);
         match self.bits_per_offset {
             32 => self.validate_offsets_and_values::<i32>(data_type, validate_utf8),
             64 => self.validate_offsets_and_values::<i64>(data_type, validate_utf8),
@@ -1246,6 +1362,270 @@ impl DictionaryDataBlock {
             num_values: num_indices as u64,
             block_info: BlockInfo::new(),
         }))
+    }
+
+    fn variable_gather_plan_typed<T, I>(
+        dictionary: &VariableWidthBlock,
+        indices_data: &LanceBuffer,
+        num_indices: usize,
+    ) -> Option<Result<u64>>
+    where
+        T: OffsetSizeTrait + bytemuck::Pod,
+        I: ArrowNativeType + bytemuck::Pod,
+    {
+        if dictionary
+            .validate_offsets_for_append::<T>(&(0..dictionary.num_values))
+            .is_err()
+        {
+            return None;
+        }
+        let Ok(dict_len) = usize::try_from(dictionary.num_values) else {
+            return Some(Err(Error::corrupt_file_named(
+                "dictionary",
+                "dictionary size does not fit in usize",
+            )));
+        };
+        let elem_bytes = std::mem::size_of::<I>();
+        let Some(required_bytes) = num_indices.checked_mul(elem_bytes) else {
+            return Some(Err(Error::corrupt_file_named(
+                "dictionary",
+                "dictionary indices byte size overflows",
+            )));
+        };
+        if indices_data.len() < required_bytes {
+            return Some(Err(Error::corrupt_file_named(
+                "dictionary",
+                format!(
+                    "dictionary indices buffer holds {} bytes, expected at least {} bytes",
+                    indices_data.len(),
+                    required_bytes
+                ),
+            )));
+        }
+        let sliced_indices = indices_data.slice_with_length(0, required_bytes);
+        let indices = sliced_indices.borrow_to_typed_slice::<I>();
+        let dict_offsets = dictionary.offsets.borrow_to_typed_view::<T>();
+
+        let mut total_bytes_u128 = 0_u128;
+        for &raw_idx in indices.as_ref() {
+            let Some(idx) = raw_idx.to_usize() else {
+                return Some(Err(Self::index_out_of_range_error(
+                    u64::MAX,
+                    dictionary.num_values,
+                )));
+            };
+            if idx >= dict_len {
+                return Some(Err(Self::index_out_of_range_error(
+                    idx as u64,
+                    dictionary.num_values,
+                )));
+            }
+            // SAFETY: `validate_offsets_for_append` proved `dict_offsets.len() > dict_len` and
+            // monotonic non-negative offsets in `0..=dict_len`.
+            let len = unsafe {
+                (*dict_offsets.get_unchecked(idx + 1)).as_usize()
+                    - (*dict_offsets.get_unchecked(idx)).as_usize()
+            };
+            total_bytes_u128 += len as u128;
+        }
+        let Ok(total_bytes) = u64::try_from(total_bytes_u128) else {
+            return Some(Err(Error::not_supported_source(
+                "appending variable-width data would overflow u64".into(),
+            )));
+        };
+        Some(Ok(total_bytes))
+    }
+
+    /// Computes `(num_values, byte_len, utf8_proven)` for gathering this dictionary
+    /// directly into shared variable-width buffers, or `None` if unsupported.
+    pub(crate) fn variable_gather_plan(
+        &self,
+        bits_per_offset: u8,
+        data_type: &DataType,
+    ) -> Option<Result<(u64, u64, bool)>> {
+        if self.indices.num_values == 0 {
+            return Some(Ok((0, 0, true)));
+        }
+        let DataBlock::VariableWidth(var_dict) = self.dictionary.as_ref() else {
+            return None;
+        };
+        if var_dict.bits_per_offset != bits_per_offset {
+            return None;
+        }
+        let Ok(num_indices) = usize::try_from(self.indices.num_values) else {
+            return Some(Err(Error::corrupt_file_named(
+                "dictionary",
+                "dictionary index count overflows usize",
+            )));
+        };
+        let total_bytes = match (var_dict.bits_per_offset, self.indices.bits_per_value) {
+            (32, 8) => Self::variable_gather_plan_typed::<i32, u8>(
+                var_dict,
+                &self.indices.data,
+                num_indices,
+            ),
+            (32, 16) => Self::variable_gather_plan_typed::<i32, u16>(
+                var_dict,
+                &self.indices.data,
+                num_indices,
+            ),
+            (32, 32) => Self::variable_gather_plan_typed::<i32, u32>(
+                var_dict,
+                &self.indices.data,
+                num_indices,
+            ),
+            (32, 64) => Self::variable_gather_plan_typed::<i32, u64>(
+                var_dict,
+                &self.indices.data,
+                num_indices,
+            ),
+            (64, 8) => Self::variable_gather_plan_typed::<i64, u8>(
+                var_dict,
+                &self.indices.data,
+                num_indices,
+            ),
+            (64, 16) => Self::variable_gather_plan_typed::<i64, u16>(
+                var_dict,
+                &self.indices.data,
+                num_indices,
+            ),
+            (64, 32) => Self::variable_gather_plan_typed::<i64, u32>(
+                var_dict,
+                &self.indices.data,
+                num_indices,
+            ),
+            (64, 64) => Self::variable_gather_plan_typed::<i64, u64>(
+                var_dict,
+                &self.indices.data,
+                num_indices,
+            ),
+            _ => return None,
+        }?;
+        let total_bytes = match total_bytes {
+            Ok(bytes) => bytes,
+            Err(err) => return Some(Err(err)),
+        };
+        let utf8_proven = !matches!(data_type, DataType::Utf8 | DataType::LargeUtf8)
+            || (var_dict.num_values > 0 && var_dict.validate_layout(data_type).is_ok());
+        Some(Ok((self.indices.num_values, total_bytes, utf8_proven)))
+    }
+
+    fn gather_variable_into_typed<D, I, O>(
+        dictionary: &VariableWidthBlock,
+        indices_data: &LanceBuffer,
+        num_indices: usize,
+        out_data: &mut Vec<u8>,
+        out_offsets: &mut Vec<O>,
+    ) -> Result<()>
+    where
+        D: OffsetSizeTrait + bytemuck::Pod,
+        I: ArrowNativeType + bytemuck::Pod,
+        O: ArrowNativeType + TryFrom<usize>,
+    {
+        dictionary.validate_offsets_for_append::<D>(&(0..dictionary.num_values))?;
+        let dict_len = usize::try_from(dictionary.num_values).map_err(|_| {
+            Error::corrupt_file_named("dictionary", "dictionary size does not fit in usize")
+        })?;
+        let required_bytes = num_indices
+            .checked_mul(std::mem::size_of::<I>())
+            .ok_or_else(|| {
+                Error::corrupt_file_named("dictionary", "dictionary indices byte size overflows")
+            })?;
+        if indices_data.len() < required_bytes {
+            return Err(Error::corrupt_file_named(
+                "dictionary",
+                format!(
+                    "dictionary indices buffer holds {} bytes, expected at least {} bytes",
+                    indices_data.len(),
+                    required_bytes
+                ),
+            ));
+        }
+        let sliced_indices = indices_data.slice_with_length(0, required_bytes);
+        let indices = sliced_indices.borrow_to_typed_slice::<I>();
+        let dict_offsets = dictionary.offsets.borrow_to_typed_view::<D>();
+        let dict_data = dictionary.data.as_ref();
+
+        for &raw_idx in indices.as_ref() {
+            let Some(idx) = raw_idx.to_usize() else {
+                return Err(Self::index_out_of_range_error(
+                    u64::MAX,
+                    dictionary.num_values,
+                ));
+            };
+            if idx >= dict_len {
+                return Err(Self::index_out_of_range_error(
+                    idx as u64,
+                    dictionary.num_values,
+                ));
+            }
+            let start = dict_offsets[idx].as_usize();
+            let end = dict_offsets[idx + 1].as_usize();
+            out_data.extend_from_slice(&dict_data[start..end]);
+            let len = out_data.len();
+            if std::mem::size_of::<O>() == 4 && len > i32::MAX as usize {
+                return Err(Error::not_supported_source(format!(
+                    "appending variable-width data would require {len} bytes, which exceeds the capacity of 32-bit offsets"
+                ).into()));
+            }
+            let out_end = O::try_from(len).map_err(|_| {
+                Error::not_supported_source(format!(
+                    "appending variable-width data would require {len} bytes, which exceeds the capacity of {}-bit offsets",
+                    std::mem::size_of::<O>() * 8
+                ).into())
+            })?;
+            out_offsets.push(out_end);
+        }
+        Ok(())
+    }
+
+    /// Appends gathered variable-width entries from this dictionary directly into
+    /// shared output buffers.
+    pub(crate) fn gather_variable_into(
+        &self,
+        out_data: &mut Vec<u8>,
+        out_offsets: &mut VariableWidthOffsets,
+    ) -> Result<()> {
+        if self.indices.num_values == 0 {
+            return Ok(());
+        }
+        let DataBlock::VariableWidth(var_dict) = self.dictionary.as_ref() else {
+            return Err(Error::not_supported(
+                "Direct variable-width gather requires a variable-width dictionary".to_string(),
+            ));
+        };
+        let num_indices = usize::try_from(self.indices.num_values).map_err(|_| {
+            Error::corrupt_file_named("dictionary", "dictionary index count overflows usize")
+        })?;
+        macro_rules! gather {
+            ($dict_off:ty, $idx:ty, $out_off:ty, $offsets:ident) => {
+                Self::gather_variable_into_typed::<$dict_off, $idx, $out_off>(
+                    var_dict,
+                    &self.indices.data,
+                    num_indices,
+                    out_data,
+                    $offsets,
+                )
+            };
+        }
+        match (
+            var_dict.bits_per_offset,
+            self.indices.bits_per_value,
+            out_offsets,
+        ) {
+            (32, 8, VariableWidthOffsets::U32(offsets)) => gather!(i32, u8, u32, offsets),
+            (32, 16, VariableWidthOffsets::U32(offsets)) => gather!(i32, u16, u32, offsets),
+            (32, 32, VariableWidthOffsets::U32(offsets)) => gather!(i32, u32, u32, offsets),
+            (32, 64, VariableWidthOffsets::U32(offsets)) => gather!(i32, u64, u32, offsets),
+            (64, 8, VariableWidthOffsets::U64(offsets)) => gather!(i64, u8, u64, offsets),
+            (64, 16, VariableWidthOffsets::U64(offsets)) => gather!(i64, u16, u64, offsets),
+            (64, 32, VariableWidthOffsets::U64(offsets)) => gather!(i64, u32, u64, offsets),
+            (64, 64, VariableWidthOffsets::U64(offsets)) => gather!(i64, u64, u64, offsets),
+            _ => Err(Error::not_supported(
+                "Unsupported dictionary offset/index width combination for direct gather"
+                    .to_string(),
+            )),
+        }
     }
 
     fn gather_variable_width<I: ArrowNativeType>(

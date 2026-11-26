@@ -39,7 +39,7 @@ use crate::format::{
 };
 use crate::{
     buffer::LanceBuffer,
-    compression::{VariablePerValueDecompressor, VariableWidthOffsets},
+    compression::{CompressedValueSlice, VariablePerValueDecompressor, VariableWidthOffsets},
     data::{BlockInfo, DataBlock, VariableWidthBlock},
     encodings::logical::primitive::fullzip::{PerValueCompressor, PerValueDataBlock},
 };
@@ -1219,9 +1219,265 @@ impl PerValueCompressor for CompressedBufferEncoder {
     }
 }
 
+impl CompressedBufferEncoder {
+    fn slice_bytes(
+        chunks: &[LanceBuffer],
+        slice: CompressedValueSlice,
+        value_idx: usize,
+    ) -> Result<&[u8]> {
+        if slice.start == slice.end {
+            return Ok(&[]);
+        }
+        let chunk = chunks.get(slice.chunk_idx).ok_or_else(|| {
+            Error::corrupt_file_named(
+                "compressed_variable_width",
+                format!(
+                    "compressed value {value_idx} chunk index {} exceeds {} chunks",
+                    slice.chunk_idx,
+                    chunks.len()
+                ),
+            )
+        })?;
+        chunk.as_ref().get(slice.start..slice.end).ok_or_else(|| {
+            Error::corrupt_file_named(
+                "compressed_variable_width",
+                format!(
+                    "compressed value {value_idx} range {}..{} exceeds {} bytes",
+                    slice.start,
+                    slice.end,
+                    chunk.len()
+                ),
+            )
+        })
+    }
+
+    fn push_decompressed_slices<T: ArrowNativeType>(
+        &self,
+        chunks: &[LanceBuffer],
+        slices: &[CompressedValueSlice],
+        out_data: &mut Vec<u8>,
+        out_offsets: &mut Vec<T>,
+        mut decode_value: impl FnMut(usize, &[u8], &mut Vec<u8>) -> Result<()>,
+    ) -> Result<()> {
+        for (value_idx, &slice) in slices.iter().enumerate() {
+            let value = Self::slice_bytes(chunks, slice, value_idx)?;
+            if !value.is_empty() {
+                decode_value(value_idx, value, out_data)?;
+            }
+            out_offsets.push(T::from_usize(out_data.len()).ok_or_else(|| {
+                Error::corrupt_file_named(
+                    "compressed_variable_width",
+                    format!(
+                        "decompressed size {} at value {value_idx} does not fit in a {}-bit offset",
+                        out_data.len(),
+                        std::mem::size_of::<T>() * 8
+                    ),
+                )
+            })?);
+        }
+        Ok(())
+    }
+
+    fn decompress_slices_into_typed<T: ArrowNativeType>(
+        &self,
+        chunks: &[LanceBuffer],
+        slices: &[CompressedValueSlice],
+        out_data: &mut Vec<u8>,
+        out_offsets: &mut Vec<T>,
+    ) -> Result<()> {
+        self.push_decompressed_slices(chunks, slices, out_data, out_offsets, |idx, value, out| {
+            let declared = self
+                .compressor
+                .exact_decompressed_size_of_value(value)
+                .ok_or_else(|| {
+                    Error::not_supported(
+                        "Direct variable-width decompression requires a declared per-value output size"
+                            .to_string(),
+                    )
+                })?;
+            let expected_bytes = usize::try_from(declared).map_err(|_| {
+                Error::corrupt_file_named(
+                    "compressed_variable_width",
+                    format!("compressed value {idx} declared output size {declared} exceeds usize"),
+                )
+            })?;
+            self.compressor
+                .decompress_exact(value, out, expected_bytes)
+                .map_err(|err| {
+                    Error::corrupt_file_named(
+                        "compressed_variable_width",
+                        format!("compressed value {idx} failed exact decompression: {err}"),
+                    )
+                })
+        })
+    }
+
+    fn sum_slice_decompressed_sizes(
+        chunks: &[LanceBuffer],
+        slices: &[CompressedValueSlice],
+        size_of_value: impl Fn(&[u8]) -> Option<u64>,
+    ) -> Option<u64> {
+        let mut total = 0u64;
+        for &slice in slices {
+            if slice.start == slice.end {
+                continue;
+            }
+            let chunk = chunks.get(slice.chunk_idx)?;
+            let value = chunk.as_ref().get(slice.start..slice.end)?;
+            total = total.checked_add(size_of_value(value)?)?;
+        }
+        Some(total)
+    }
+}
+
 impl VariablePerValueDecompressor for CompressedBufferEncoder {
     fn allocates_output(&self) -> bool {
         true
+    }
+
+    fn supports_sliced_input(&self) -> bool {
+        true
+    }
+
+    fn appended_size_slices(
+        &self,
+        chunks: &[LanceBuffer],
+        slices: &[CompressedValueSlice],
+    ) -> Option<u64> {
+        Self::sum_slice_decompressed_sizes(chunks, slices, |value| {
+            self.compressor.exact_decompressed_size_of_value(value)
+        })
+    }
+
+    fn decompressed_size_slices(
+        &self,
+        chunks: &[LanceBuffer],
+        slices: &[CompressedValueSlice],
+    ) -> Option<u64> {
+        Self::sum_slice_decompressed_sizes(chunks, slices, |value| {
+            self.compressor.decompressed_size_of_value(value)
+        })
+    }
+
+    fn decompress_slices_into(
+        &self,
+        chunks: &[LanceBuffer],
+        slices: &[CompressedValueSlice],
+        out_data: &mut Vec<u8>,
+        out_offsets: &mut VariableWidthOffsets,
+    ) -> Result<()> {
+        match out_offsets {
+            VariableWidthOffsets::U32(offsets) => {
+                self.decompress_slices_into_typed(chunks, slices, out_data, offsets)
+            }
+            VariableWidthOffsets::U64(offsets) => {
+                self.decompress_slices_into_typed(chunks, slices, out_data, offsets)
+            }
+        }
+    }
+
+    fn decompress_slices(
+        &self,
+        chunks: &[LanceBuffer],
+        slices: &[CompressedValueSlice],
+        bits_per_offset: u8,
+    ) -> Result<DataBlock> {
+        if !matches!(bits_per_offset, 32 | 64) {
+            return Err(Error::corrupt_file_named(
+                "compressed_variable_width",
+                format!("Unsupported bits_per_offset: {bits_per_offset}"),
+            ));
+        }
+
+        let num_values = slices.len() as u64;
+        let num_offsets = slices.len().checked_add(1).ok_or_else(|| {
+            Error::corrupt_file_named("compressed_variable_width", "Offset count overflowed usize")
+        })?;
+
+        if let Some(exact_bytes) = self.appended_size_slices(chunks, slices) {
+            if bits_per_offset == 32 && exact_bytes > u32::MAX as u64 {
+                return Err(Error::corrupt_file_named(
+                    "compressed_variable_width",
+                    format!("decompressed size {exact_bytes} exceeds 32-bit offsets"),
+                ));
+            }
+            let exact_cap = usize::try_from(exact_bytes).map_err(|_| {
+                Error::corrupt_file_named(
+                    "compressed_variable_width",
+                    format!("decompressed size {exact_bytes} exceeds usize"),
+                )
+            })?;
+            let mut out_data = Vec::new();
+            out_data.try_reserve_exact(exact_cap).map_err(|err| {
+                Error::invalid_input(format!(
+                    "Cannot reserve {exact_cap} compressed variable-width decode bytes: {err}"
+                ))
+            })?;
+            let new_offsets = if bits_per_offset == 32 {
+                let mut out_offsets = Vec::new();
+                out_offsets.try_reserve_exact(num_offsets).map_err(|err| {
+                    Error::invalid_input(format!(
+                        "Cannot reserve {num_offsets} decode offsets: {err}"
+                    ))
+                })?;
+                out_offsets.push(0_u32);
+                self.decompress_slices_into_typed(chunks, slices, &mut out_data, &mut out_offsets)?;
+                LanceBuffer::reinterpret_vec(out_offsets)
+            } else {
+                let mut out_offsets = Vec::new();
+                out_offsets.try_reserve_exact(num_offsets).map_err(|err| {
+                    Error::invalid_input(format!(
+                        "Cannot reserve {num_offsets} decode offsets: {err}"
+                    ))
+                })?;
+                out_offsets.push(0_u64);
+                self.decompress_slices_into_typed(chunks, slices, &mut out_data, &mut out_offsets)?;
+                LanceBuffer::reinterpret_vec(out_offsets)
+            };
+            return Ok(DataBlock::VariableWidth(VariableWidthBlock {
+                bits_per_offset,
+                data: LanceBuffer::from(out_data),
+                offsets: new_offsets,
+                num_values,
+                block_info: BlockInfo::new(),
+            }));
+        }
+
+        let input_bytes = slices.iter().fold(0usize, |total, slice| {
+            total.saturating_add(slice.end.saturating_sub(slice.start))
+        });
+        let mut decompressed = Vec::with_capacity(input_bytes.saturating_mul(2));
+        let new_offsets = if bits_per_offset == 32 {
+            let mut out_offsets = Vec::with_capacity(num_offsets);
+            out_offsets.push(0_u32);
+            self.push_decompressed_slices(
+                chunks,
+                slices,
+                &mut decompressed,
+                &mut out_offsets,
+                |_, value, out| self.compressor.decompress(value, out),
+            )?;
+            LanceBuffer::reinterpret_vec(out_offsets)
+        } else {
+            let mut out_offsets = Vec::with_capacity(num_offsets);
+            out_offsets.push(0_u64);
+            self.push_decompressed_slices(
+                chunks,
+                slices,
+                &mut decompressed,
+                &mut out_offsets,
+                |_, value, out| self.compressor.decompress(value, out),
+            )?;
+            LanceBuffer::reinterpret_vec(out_offsets)
+        };
+
+        Ok(DataBlock::VariableWidth(VariableWidthBlock {
+            bits_per_offset,
+            data: LanceBuffer::from(decompressed),
+            offsets: new_offsets,
+            num_values,
+            block_info: BlockInfo::new(),
+        }))
     }
 
     fn decompress(&self, data: VariableWidthBlock) -> Result<DataBlock> {
