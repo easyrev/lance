@@ -1,0 +1,22 @@
+--- /root/lance/tmp/10526-review/review/issue-10526/linux-64cpu/decode-followup/verify.py	2026-11-26 04:37:34.843343900 +0800
++++ /root/lance/tmp/shared-buffer-tools/verify-narrow.py	2026-11-26 13:26:20.136922520 +0800
+@@ -30,7 +30,7 @@
+             assert actual.equals(pa.Table.from_batches([wanted])), start
+ 
+     column = expected.column(0)
+-    lengths = pc.binary_length(column)
++    lengths = None if pa.types.is_integer(column.type) else pc.binary_length(column)
+     print(
+         json.dumps(
+             {
+@@ -40,8 +40,8 @@
+                 "batch_size": 1024,
+                 "take_seed": 10526,
+                 "null_rows": column.null_count,
+-                "empty_rows": pc.sum(pc.equal(lengths, 0)).as_py(),
+-                "short_nonempty_rows": pc.sum(
++                "empty_rows": None if lengths is None else pc.sum(pc.equal(lengths, 0)).as_py(),
++                "short_nonempty_rows": None if lengths is None else pc.sum(
+                     pc.and_(pc.greater(lengths, 0), pc.less(lengths, 180_000))
+                 ).as_py(),
+             }
